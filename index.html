@@ -229,7 +229,7 @@ kbd {
 
 <section id="panel" class="panel" aria-labelledby="title">
   <h1 id="title">Field Day</h1>
-  <p class="lede">A clubhouse and twelve games to play with friends, in VR or right here in the browser. Everyone who has this page open can join you.</p>
+  <p class="lede">A clubhouse and thirteen games to play with friends, in VR or right here in the browser. Everyone who has this page open can join you.</p>
   <p id="net" class="net" data-state="connecting"><span class="dot" aria-hidden="true"></span><span id="net-text">Looking for other players…</span></p>
   <fieldset class="levels">
     <legend class="field-label">Pick a game</legend>
@@ -333,7 +333,7 @@ kbd {
   const HOLD_OFF = new V3(0, -0.015, -0.085);
   const DESK_OFF = { left: new V3(-0.26, -0.34, -0.3), right: new V3(0.2, -0.22, -0.36) };
   const PREF_KEY = 'field-day-prefs';
-  const LEVEL_COUNT = 13;
+  const LEVEL_COUNT = 14;
   const HUB = 8;
   const HATS = ['None', 'Cap', 'Beanie', 'Party hat', 'Crown'];
   const FACES = ['Dots', 'Happy', 'Shades', 'Wink'];
@@ -1102,9 +1102,10 @@ kbd {
     { id: 'siege', name: 'Skyline Siege', short: 'Siege', glyph: '\u{1F52B}', blurb: 'A co-op sci-fi raid with four kinds of laser gun.' },
     { id: 'hexwood', name: 'Hexwood Hollow', short: 'Hexwood', glyph: '\u{1FA84}', blurb: 'A co-op quest through a haunted forest with a three-spell wand.' },
     { id: 'hideseek', name: 'Sunset Backyards', short: 'Hide & seek', glyph: '\u{1F648}', blurb: 'Hide-and-seek at golden hour, with friends or bots.' },
+    { id: 'charades', name: 'Charades Lounge', short: 'Charades', glyph: '\u{1F3AD}', blurb: 'Act it out or draw it in the air with a 3D pen. Best with friends.' },
   ];
-  const KIOSK_COLORS = [0xf5821f, 0xe8e4d8, 0x8bd450, 0xb388ff, 0xff4d6a, 0x2ec4b6, 0x3fbf7f, 0xff9ad0, 0xffd27a, 0x4fc3f7, 0x4a8aff, 0xb06aff, 0xffb36b];
-  const PICKER_ORDER = [8, 12, 3, 10, 11, 0, 1, 2, 4, 5, 6, 7, 9];
+  const KIOSK_COLORS = [0xf5821f, 0xe8e4d8, 0x8bd450, 0xb388ff, 0xff4d6a, 0x2ec4b6, 0x3fbf7f, 0xff9ad0, 0xffd27a, 0x4fc3f7, 0x4a8aff, 0xb06aff, 0xffb36b, 0xff9ad0];
+  const PICKER_ORDER = [8, 13, 12, 3, 10, 11, 0, 1, 2, 4, 5, 6, 7, 9];
   function makeKiosk(L, x, z, yaw) {
     const fx = Math.sin(yaw), fz = Math.cos(yaw);   // direction the kiosk faces
     const rx = Math.cos(yaw), rz = -Math.sin(yaw);  // its right-hand side
@@ -1167,6 +1168,7 @@ kbd {
     karts: { gain: 0.82, bpm: 96, swing: 0.08, chords: ['Fmaj7', 'G6', 'Em7', 'Am7'], arp: { inst: 'pluck', every: 2, order: [1, 2, 3, 2, 4, 3, 2, 3] }, pad: { inst: 'pad' }, bass: { at: [0, 3, 6, 10, 12] }, drums: { k: 'x..x..x...x.....', s: '....x.......x...', h: 'x-x-x-x-x-x-x-x-' }, cut: 4200, crackle: 0.6 },
     siege: { bpm: 80, swing: 0.06, chords: ['Cm9', 'Abmaj7', 'Fm9', 'G7sus'], arp: { inst: 'synth', every: 1, order: [1, 3, 2, 4, 1, 3, 2, 4] }, pad: { inst: 'pad' }, bass: { at: [0, 6, 10] }, drums: { k: 'x.....x...x.....', s: '....x.......x...', h: '-.o.-.o.-.o.-.o.' }, cut: 3000, crackle: 0.6 },
     hexwood: { gain: 2.4, bpm: 70, swing: 0.08, chords: ['Em9', 'Cmaj9', 'Am9', 'B7sus'], arp: { inst: 'musicbox', every: 2, order: [2, 4, 3, 4, 2, 3, 4, 3], up: 12 }, pad: { inst: 'flute' }, bass: { at: [0] }, drums: {}, cut: 3600, crackle: 0.8 },
+    charades: { gain: 0.9, bpm: 96, swing: 0.22, chords: ['Fmaj7', 'Dm7', 'G7', 'Cmaj7'], comp: { inst: 'ep', at: [2, 7, 14], dur: 0.4 }, lead: { inst: 'vibes', p: 0.18, up: 12 }, bass: { walk: true }, drums: { r: 'x.-ox.-ox.-ox.-o', b: '....o.......o...', k: 'o.......o.......' }, cut: 3600, crackle: 0.9 },
     hideseek: { bpm: 84, swing: 0.18, chords: ['Am', 'Dm', 'E7', 'Am'], arp: { inst: 'pizz', every: 2, order: [1, 0, 3, 0, 2, 0, 4, 0] }, lead: { inst: 'pizz', p: 0.12, up: 12 }, bass: { walk: true, short: true }, drums: { b: '....o.......o...', sh: '-.-.-.-.-.-.-.-.' }, cut: 3000, crackle: 1 },
   };
 
@@ -2953,7 +2955,10 @@ kbd {
     for (let i = 0; i < 3; i++) makeTool(L, new V3(rackX - 0.32 + i * 0.32, 0.97, rackZ), downQ);
 
     // buttons, kiosk, boards
-    const machineBtn = makeButton(L, new V3(-2.4, 1.0, -0.9), 0x8bd450, 'Pitching machine', () => setMachine(!L.machine.on), { faceYaw: Math.PI / 2 });
+    // game settings live on a panel against the backstop, well clear of the batter's box
+    addBox(G, 3.9, 1.5, 0.08, lam(0x2b2d42), -2.74, 1.2, 4.62);
+    makePlate(G, 'Game settings', 2.4, 0.26, new V3(-2.74, 1.78, 4.57), Math.PI, { bg: '#2b2d42', fg: '#ffd23f', size: 0.7 });
+    const machineBtn = makeButton(L, new V3(-3.42, 1.0, 4.3), 0x8bd450, 'Pitching machine', () => setMachine(!L.machine.on), { faceYaw: Math.PI });
     function setMachine(on) {
       L.machine.on = on;
       L.machine.next = 0;
@@ -2962,7 +2967,7 @@ kbd {
       state.hudDirty = true;
     }
     setMachine(true);
-    makeButton(L, new V3(-2.4, 1.0, -0.25), 0xf5821f, 'Reset balls', () => resetBodies(L), { faceYaw: Math.PI / 2 });
+    makeButton(L, new V3(-4.1, 1.0, 4.3), 0xf5821f, 'Reset balls', () => resetBodies(L), { faceYaw: Math.PI });
     makeKiosk(L, -4.9, 3.3, Math.PI * 0.75);
     L.board = makeBoard(G, 720, 460, 2.4, 1.533, -6.4, 2.0, -0.6, Math.PI / 2 - 0.3);
     {
@@ -3242,9 +3247,10 @@ kbd {
     // ================================================================ FULL GAME: you (and friends) vs the Sandlot Sluggers
     const INNINGS = 3;
     const BASE_POS = [new V3(19.4, 0, -19.4), new V3(0, 0, -38.8), new V3(-19.4, 0, -19.4)];
-    const FIRST = BASE_POS[0];
+    const FIRST = BASE_POS[0], SECOND = BASE_POS[1];
     const SPOTS = [[0, -17.2], [0.3, 1.9], [16.5, -23], [7, -33], [-7, -33], [-16.5, -23], [-24, -44], [0, -52], [24, -44]];
-    const EV = { BALL: 1, STRIKE_LOOK: 2, STRIKE_SWING: 3, FOUL: 4, OUT_FLY: 5, OUT_GROUND: 6, SINGLE: 7, DOUBLE: 8, TRIPLE: 9, HR: 10, WALK: 11, K: 12, SIDE: 13, WIN: 14, LOSS: 15, TIE: 16, START: 17, OUT_LINE: 18, ENDED: 19 };
+    const EV = { BALL: 1, STRIKE_LOOK: 2, STRIKE_SWING: 3, FOUL: 4, OUT_FLY: 5, OUT_GROUND: 6, SINGLE: 7, DOUBLE: 8, TRIPLE: 9, HR: 10, WALK: 11, K: 12, SIDE: 13, WIN: 14, LOSS: 15, TIE: 16, START: 17, OUT_LINE: 18, ENDED: 19, DP: 20, FC: 21 };
+    const BASE_D = 27.43;   // home to first or third
     const HIT_BASES = { [EV.SINGLE]: 1, [EV.DOUBLE]: 2, [EV.TRIPLE]: 3, [EV.HR]: 4 };
     const GM = { def: 0, gid: 0, ph: 0, inn: 1, outs: 0, b: 0, s: 0, bases: [0, 0, 0], r: [0, 0], h: [0, 0], line: [[0, 0, 0], [0, 0, 0]], bi: 0, order: [], ev: [0, 0, 0, 0, ''], cpuT: 0, endT: 0 };
     L.game = GM;
@@ -3262,6 +3268,8 @@ kbd {
     function describe(code, team, runs, who) {
       if (team === 1 && who && (code === EV.OUT_FLY || code === EV.OUT_LINE)) return `${who} makes the catch!`;
       if (team === 1 && who && code === EV.OUT_GROUND) return `${who} throws them out at first!`;
+      if (team === 1 && who && code === EV.DP) return `${who} starts the double play!${runs ? ` ${runs} run${runs > 1 ? 's' : ''} score${runs > 1 ? '' : 's'}` : ''}`;
+      if (team === 1 && who && code === EV.FC) return `${who} gets the force at second`;
       const t = team ? 'Sluggers: ' : who ? `${who}: ` : '';
       const r = runs ? ` ${runs} run${runs > 1 ? 's' : ''} score${runs > 1 ? '' : 's'}!` : '';
       switch (code) {
@@ -3271,7 +3279,9 @@ kbd {
         case EV.FOUL: return 'Foul ball';
         case EV.OUT_FLY: return `${t}caught! Fly out`;
         case EV.OUT_LINE: return `${t}snagged! Line out`;
-        case EV.OUT_GROUND: return `${t}grounded out`;
+        case EV.OUT_GROUND: return `${t}grounded out${r}`;
+        case EV.DP: return team ? `Double play! Two down for the Sluggers${r}` : `${t}grounds into a double play${r}`;
+        case EV.FC: return team ? `Sluggers: out at second, fielder\u2019s choice${r}` : `${t}fielder\u2019s choice, out at second${r}`;
         case EV.SINGLE: return `${t}single!${r}`;
         case EV.DOUBLE: return `${t}double!${r}`;
         case EV.TRIPLE: return `${t}triple!${r}`;
@@ -3292,6 +3302,7 @@ kbd {
       if (text) showToast(text);
       if (code === EV.HR || code === EV.WIN) { sfx('fanfare', 0.9); sfx('cheer', 1); }
       else if (HIT_BASES[code]) sfx('cheer', team ? 0.5 : 0.9);
+      else if (code === EV.DP) { sfx('mitt', 0.7); setTimeout(() => sfx('mitt', 0.7), 380); if (team === 1) sfx('cheer', 0.6); }
       else if (code === EV.STRIKE_LOOK || code === EV.STRIKE_SWING || code === EV.K) sfx('beep', 0.7);
       else if (code === EV.BALL || code === EV.WALK) sfx('beep2', 0.5);
       if (team === 1 && code !== EV.SIDE && !GM.def) cpuSwing(code);
@@ -3330,6 +3341,43 @@ kbd {
       score(t, runs);
       GM.h[t] += 1;
       return runs;
+    }
+    // a groundout: the batter is out at first, and any runner who had to move up does
+    function groundAdvance() {
+      const B = GM.bases;
+      let runs = 0;
+      if (B[0]) { if (B[1]) { if (B[2]) runs = 1; B[2] = 1; } B[1] = 1; B[0] = 0; }
+      return runs;
+    }
+    // runner out at second and the batter out at first; others move up a base unless that was the third out
+    function doublePlay(t) {
+      const B = GM.bases;
+      let runs = 0;
+      GM.outs += 2;
+      if (GM.outs < 3) { runs = B[2] ? 1 : 0; GM.bases = [0, 0, B[1] ? 1 : 0]; score(t, runs); } else GM.bases = [0, 0, 0];
+      return runs;
+    }
+    // out at second; the batter reaches first and forced runners move up
+    function fieldersChoice(t) {
+      const B = GM.bases;
+      GM.outs += 1;
+      const runs = B[1] && B[2] && GM.outs < 3 ? 1 : 0;
+      GM.bases = GM.outs < 3 ? [1, 0, B[1] ? 1 : B[2]] : [0, 0, 0];
+      score(t, runs);
+      return runs;
+    }
+    // an infielder has the ball: turn two if there's a force at second and time to do it, otherwise get the batter at first
+    function infieldPlay(f, t) {
+      const toFirst = 0.6 + Math.hypot(f.x - FIRST.x, f.z - FIRST.z) / 24;
+      if (GM.bases[0] && GM.outs < 2) {
+        const d2 = Math.hypot(f.x - SECOND.x, f.z - SECOND.z);
+        // a quick flip when close to the bag, a firmer throw from farther away
+        const toSecond = d2 < 12 ? 0.3 + d2 / 20 : 0.5 + d2 / 26;
+        // the runner from first needs about 3.6 s to reach second; the pivot and relay take about 1.3 s;
+        // a sandlot batter needs about 4.7 s to reach first
+        if (t + toSecond < 3.6) return t + toSecond + 1.28 < 4.7 ? EV.DP : EV.FC;
+      }
+      return t + toFirst < 4.5 ? EV.OUT_GROUND : EV.SINGLE;
     }
     function nextBatter() {
       GM.b = 0; GM.s = 0;
@@ -3372,8 +3420,16 @@ kbd {
       } else if (code === EV.FOUL) {
         if (GM.s < 2) GM.s += 1;
         announce(code, 0);
-      } else if (code === EV.OUT_FLY || code === EV.OUT_GROUND || code === EV.OUT_LINE) {
+      } else if (code === EV.OUT_FLY || code === EV.OUT_LINE) {
         announce(code, 0, 0, who); GM.outs += 1; nextBatter(); if (GM.outs >= 3) endHalf();
+      } else if (code === EV.OUT_GROUND) {
+        GM.outs += 1;
+        const runs = GM.outs < 3 ? groundAdvance() : 0;
+        score(0, runs);
+        announce(code, 0, runs, who); nextBatter(); if (GM.outs >= 3) endHalf();
+      } else if (code === EV.DP || code === EV.FC) {
+        const runs = code === EV.DP ? doublePlay(0) : fieldersChoice(0);
+        announce(code, 0, runs, who); nextBatter(); if (GM.outs >= 3) endHalf();
       } else if (HIT_BASES[code]) {
         const runs = hit(0, HIT_BASES[code]);
         announce(code, 0, runs, who); nextBatter();
@@ -3386,6 +3442,8 @@ kbd {
       const code = x < 0.2 ? EV.K : x < 0.45 ? EV.OUT_GROUND : x < 0.66 ? EV.OUT_FLY : x < 0.73 ? EV.WALK : x < 0.89 ? EV.SINGLE : x < 0.95 ? EV.DOUBLE : x < 0.96 ? EV.TRIPLE : EV.HR;
       if (code === EV.WALK) announce(code, 1, walk(1));
       else if (HIT_BASES[code]) announce(code, 1, hit(1, HIT_BASES[code]));
+      else if (code === EV.OUT_GROUND && GM.bases[0] && GM.outs < 2 && rand() < 0.5) { announce(EV.DP, 1, doublePlay(1)); if (GM.outs >= 3) endHalf(); }
+      else if (code === EV.OUT_GROUND) { GM.outs += 1; const runs = GM.outs < 3 ? groundAdvance() : 0; score(1, runs); announce(code, 1, runs); if (GM.outs >= 3) endHalf(); }
       else { announce(code, 1); GM.outs += 1; if (GM.outs >= 3) endHalf(); }
       if (GM.ph === 2 && GM.inn >= INNINGS && GM.r[1] > GM.r[0]) finish();
       changed();
@@ -3510,7 +3568,7 @@ kbd {
       return p;
     }
     function startPlay(b) {
-      Object.assign(GAME_PLAY, { active: true, ball: b, t0: performance.now(), landed: false, result: 0, endT: 0, glove: -1, sendUntil: 0, chaser: -1 });
+      Object.assign(GAME_PLAY, { active: true, ball: b, t0: performance.now(), landed: false, judged: false, result: 0, endT: 0, glove: -1, sendUntil: 0, chaser: -1 });
       for (const f of FIELDERS) { f.held.visible = false; }
     }
     function endPlay(code, glove) {
@@ -3533,9 +3591,15 @@ kbd {
       const b = P.ball, t = (now - P.t0) / 1000;
       const dd = b.data || {};
       if (dd.hr) { endPlay(EV.HR, -1); return; }
+      // fair or foul: a ball that first comes down past first or third is judged where it lands; one that comes
+      // down in the infield is judged where it passes the bag, stops, or is touched
       if (!P.landed && dd.landAt) {
         P.landed = true;
-        if (!fair(dd.landAt.x, dd.landAt.z)) { endPlay(EV.FOUL, -1); return; }
+        if (Math.hypot(dd.landAt.x, dd.landAt.z) > BASE_D) { P.judged = true; if (!fair(dd.landAt.x, dd.landAt.z)) { endPlay(EV.FOUL, -1); return; } }
+      }
+      if (P.landed && !P.judged && (Math.hypot(b.pos.x, b.pos.z) > BASE_D || Math.hypot(b.vel.x, b.vel.z) < 0.3)) {
+        P.judged = true;
+        if (!fair(b.pos.x, b.pos.z)) { endPlay(EV.FOUL, -1); return; }
       }
       if (!P.landed && b.pos.z > 3.5) { endPlay(EV.FOUL, -1); return; }
       if (!dd.batted || b.held) { endPlay(EV.FOUL, -1); return; }
@@ -3560,7 +3624,8 @@ kbd {
         const d = Math.hypot(b.pos.x - f.x, b.pos.z - f.z);
         if (!P.landed && d < Math.max(reach, 0.75) && b.pos.y < 2.1 && b.pos.y > 0.15 && !(f.i === 1 && t < 0.6)) { endPlay(t > 1.4 || b.pos.y > 1.7 ? EV.OUT_FLY : EV.OUT_LINE, f.i); return; }
         if (P.landed && d < reach && b.pos.y < 1.0) {
-          if (f.i <= 5) { const throwT = 0.6 + Math.hypot(f.x - FIRST.x, f.z - FIRST.z) / 24; endPlay(t + throwT < 4.5 ? EV.OUT_GROUND : EV.SINGLE, f.i); }
+          if (!P.judged && !fair(b.pos.x, b.pos.z)) { endPlay(EV.FOUL, -1); return; }   // touched in foul ground before the bag
+          if (f.i <= 5) endPlay(infieldPlay(f, t), f.i);
           else {
             // in a small park, balls that reach the warning track are doubles, and deep ones into the corners can be triples
             const deep = Math.hypot(b.pos.x, b.pos.z) > 48, corner = deep && Math.abs(Math.atan2(b.pos.x, -b.pos.z)) > 0.6;
@@ -3605,7 +3670,10 @@ kbd {
         const a = arcs[i], k = (now - a.t0) / a.dur;
         if (k >= 1.3) { G.remove(a.m); arcs.splice(i, 1); continue; }
         const kk = Math.min(1, k);
-        a.m.position.set(a.end.x * kk, 1 + Math.sin(kk * Math.PI) * a.h, a.end.z * kk);
+        if (k < 0) { a.m.visible = false; continue; }
+        a.m.visible = true;
+        const fx = a.from ? a.from.x : 0, fz = a.from ? a.from.z : 0, fy = a.from ? a.from.y : 1;
+        a.m.position.set(fx + (a.end.x - fx) * kk, fy + (1.1 - fy) * kk + Math.sin(kk * Math.PI) * a.h, fz + (a.end.z - fz) * kk);
       }
     }
 
@@ -3676,7 +3744,7 @@ kbd {
       if (!Array.isArray(bg) || bg.length !== 20 || !bg.every((x) => int(x, 0, 99999))) return;
       if (!Array.isArray(bgo) || !bgo.every((x) => typeof x === 'string' && x.length < 64)) return;
       const prevPh = GM.ph;
-      if (bg[1] !== prevPh) state.hudDirty = true;
+      state.hudDirty = true;
       Object.assign(GM, { gid: bg[0], ph: Math.min(bg[1], 3), inn: clamp(bg[2], 1, INNINGS), outs: Math.min(bg[3], 3), b: Math.min(bg[4], 4), s: Math.min(bg[5], 3), bases: bg.slice(6, 9).map((x) => (x ? 1 : 0)), r: bg.slice(9, 11), h: bg.slice(11, 13), bi: bg[13], line: [bg.slice(14, 17), bg.slice(17, 20)], order: bgo.slice(0, 12) });
       if (GM.bi >= GM.order.length) GM.bi = 0;
       if (Array.isArray(bge) && bge.length === 5 && int(bge[0], 0, 1e9) && int(bge[1], 0, 99) && int(bge[2], 0, 1) && int(bge[3], 0, 9) && typeof bge[4] === 'string') {
@@ -3694,7 +3762,7 @@ kbd {
         if (Array.isArray(pres.bgr) && pres.bgr.join() !== st.lastBgr) { st.lastBgr = pres.bgr.join(); hostRequest(pres.bgr); }
         if (rec.peer === GM.order[GM.bi] && Array.isArray(pres.bga)) {
           for (const e of pres.bga.slice(-4)) {
-            if (!Array.isArray(e) || e.length !== 2 || !int(e[0], 0, 1e9) || !int(e[1], 1, 18)) continue;
+            if (!Array.isArray(e) || e.length !== 2 || !int(e[0], 0, 1e9) || !int(e[1], 1, 21)) continue;
             if (e[0] <= (st.bgaSeq || 0)) continue;
             st.bgaSeq = e[0];
             if (st.bgaInit) hostPitchEvent(e[1]);
@@ -3759,10 +3827,10 @@ kbd {
     }
 
     // a button by home plate to start or end a game
-    makeButton(L, new V3(-2.4, 1.0, 0.4), 0x4fc3f7, 'Play ball!', () => gameRequest(gameOn() ? 0 : 1), { faceYaw: Math.PI / 2 });
-    makeButton(L, new V3(-2.4, 1.0, 1.05), 0xff5c6a, 'End game', () => { if (gameOn()) gameRequest(2); }, { faceYaw: Math.PI / 2 });
-    makeButton(L, new V3(-2.4, 1.0, 1.7), 0x8bd450, 'Defense', () => gameRequest(GM.def ? 4 : 3), { faceYaw: Math.PI / 2 });
-    L.gameInternals = { hostPitchEvent, cpuPA, startGame, FIELDERS, EV, gameRequest, hit, walk };
+    makeButton(L, new V3(-1.38, 1.0, 4.3), 0x4fc3f7, 'Play ball!', () => gameRequest(gameOn() ? 0 : 1), { faceYaw: Math.PI });
+    makeButton(L, new V3(-2.06, 1.0, 4.3), 0xff5c6a, 'End game', () => { if (gameOn()) gameRequest(2); }, { faceYaw: Math.PI });
+    makeButton(L, new V3(-2.74, 1.0, 4.3), 0x8bd450, 'Defense', () => gameRequest(GM.def ? 4 : 3), { faceYaw: Math.PI });
+    L.gameInternals = { hostPitchEvent, cpuPA, startGame, FIELDERS, EV, gameRequest, hit, walk, infieldPlay, groundAdvance, doublePlay, fieldersChoice };
 
 
     // ================================================================ DEFENSE: take the field while the Sluggers bat
@@ -3774,6 +3842,8 @@ kbd {
     const HUMAN_SPOTS = [4, 7, 3, 5, 6, 8];
     const SPOT_NAMES = { 3: 'second base', 4: 'shortstop', 5: 'third base', 6: 'left field', 7: 'center field', 8: 'right field' };
     const FIRST_GLOVE = new V3(19.0, 1.1, -19.8);
+    const SECOND_GLOVE = new V3(0.5, 1.1, -38.2);   // the bag at second, glove side toward home
+    const forceAtSecond = () => GM.bases[0] === 1 && GM.outs < 2;
     const HOME_SPOT = new V3(-3.4, 0, 2.6);   // beside home plate, by the bat rack, where you start
     const defenseNow = () => GM.ph === 2 && GM.def === 1;
     const rad = (d) => (d * Math.PI) / 180;
@@ -3794,7 +3864,9 @@ kbd {
         GM.s += 1;
         if (GM.s >= 3) { announce(EV.K, 1); next(); GM.outs += 1; if (GM.outs >= 3) endHalf(); } else announce(code, 1);
       } else if (code === EV.FOUL) { if (GM.s < 2) GM.s += 1; announce(code, 1); }
-      else if (code === EV.OUT_FLY || code === EV.OUT_LINE || code === EV.OUT_GROUND) { announce(code, 1, 0, who); next(); GM.outs += 1; if (GM.outs >= 3) endHalf(); }
+      else if (code === EV.OUT_FLY || code === EV.OUT_LINE) { announce(code, 1, 0, who); next(); GM.outs += 1; if (GM.outs >= 3) endHalf(); }
+      else if (code === EV.OUT_GROUND) { GM.outs += 1; const runs = GM.outs < 3 ? groundAdvance() : 0; score(1, runs); announce(code, 1, runs, who); next(); if (GM.outs >= 3) endHalf(); }
+      else if (code === EV.DP || code === EV.FC) { const runs = code === EV.DP ? doublePlay(1) : fieldersChoice(1); announce(code, 1, runs, who); next(); if (GM.outs >= 3) endHalf(); }
       else if (HIT_BASES[code]) { announce(code, 1, hit(1, HIT_BASES[code])); next(); }
       if (GM.ph === 2 && GM.inn >= INNINGS && GM.r[1] > GM.r[0]) finish();
       changed();
@@ -3850,7 +3922,7 @@ kbd {
       const la = rad(lerp(la0, la1, rand())), sp = lerp(s0, s1, rand()), spray = (rand() - 0.5) * 2 * rad(43);
       const from = new V3(0, 0.9, 0.2);
       launch(b, from, new V3(Math.sin(spray) * Math.cos(la) * sp, Math.sin(la) * sp, -Math.cos(spray) * Math.cos(la) * sp), { batted: true, hitFrom: from.clone(), landed: false, hr: false });
-      DEF.play = { ball: b, t0: now, landed: false, landT: 0, result: 0, endT: 0, fielder: null, tf: 0, chaser: -1 };
+      DEF.play = { ball: b, t0: now, landed: false, judged: false, landT: 0, result: 0, endT: 0, fielder: null, tf: 0, chaser: -1 };
       DEF.pitch = null;
     }
     function endDefense(code, glove, now, who) {
@@ -3871,6 +3943,8 @@ kbd {
       if (holder) {
         // a player caught it on the fly, or picked it up
         if (!P.landed && P.fielder === null) { endDefense(EV.OUT_FLY, -1, now, nameOf(holder)); return; }
+        // picked up before it reached the bag: fair or foul is decided right where you touched it
+        if (P.landed && !P.judged && P.fielder === null) { P.judged = true; if (!fair(b.pos.x, b.pos.z)) { endDefense(EV.FOUL, -1, now); return; } }
         if (P.fielder === null) {
           P.fielder = holder; P.tf = t;
           if (Math.hypot(b.pos.x, b.pos.z) > 36) {
@@ -3880,8 +3954,13 @@ kbd {
           }
         }
       }
+      // fair or foul: judged where it lands if that's past first or third, otherwise where it passes the bag, stops, or is touched
       if (!P.landed && b.pos.y < 0.25 && t > 0.2 && !holder) {
         P.landed = true; P.landT = t;
+        if (Math.hypot(b.pos.x, b.pos.z) > BASE_D) { P.judged = true; if (!fair(b.pos.x, b.pos.z)) { endDefense(EV.FOUL, -1, now); return; } }
+      }
+      if (P.landed && !P.judged && (Math.hypot(b.pos.x, b.pos.z) > BASE_D || Math.hypot(b.vel.x, b.vel.z) < 0.3 || holder)) {
+        P.judged = true;
         if (!fair(b.pos.x, b.pos.z)) { endDefense(EV.FOUL, -1, now); return; }
       }
       if (dd.hr || (!P.landed && Math.hypot(b.pos.x, b.pos.z) > FENCE_R + 1 && fair(b.pos.x, b.pos.z))) { endDefense(EV.HR, -1, now); return; }
@@ -3890,6 +3969,23 @@ kbd {
       if (P.fielder !== null) {
         const fb = FIELDERS[2];
         if (!fb.human) { fb.tx = FIRST_GLOVE.x; fb.tz = FIRST_GLOVE.z; }
+        // with a force at second, the other middle infielder covers the bag
+        if (forceAtSecond()) {
+          const cover = !FIELDERS[3].human && !FIELDERS[4].human ? (b.pos.x > 0 ? 4 : 3) : FIELDERS[3].human ? 4 : 3;
+          P.cover = cover;
+          FIELDERS[cover].tx = SECOND_GLOVE.x; FIELDERS[cover].tz = SECOND_GLOVE.z;
+          // your throw beats the runner to second: force out, then the pivot and relay to first
+          if (!holder && b.pos.distanceTo(SECOND_GLOVE) < 1.9) {
+            if (t < 3.6) {
+              const code = t + 1.28 < 4.7 ? EV.DP : EV.FC;
+              const m = new THREE.Mesh(sph(0.045, 8, 6), ballMat);
+              G.add(m);
+              arcs.push({ m, from: SECOND_GLOVE.clone(), end: FIRST_GLOVE.clone(), t0: now + 250, dur: 900, h: 0.6 });
+              endDefense(code, cover, now, nameOf(P.fielder));
+            } else endDefense(EV.SINGLE, -1, now);
+            return;
+          }
+        }
         if (!holder && b.pos.distanceTo(FIRST_GLOVE) < 1.9) { endDefense(t < 4.6 ? EV.OUT_GROUND : EV.SINGLE, fb.human ? -1 : 2, now, nameOf(P.fielder)); return; }
         if (t > 4.6) { endDefense(EV.SINGLE, -1, now); return; }
         return;
@@ -3923,7 +4019,8 @@ kbd {
         const d = Math.hypot(b.pos.x - f.x, b.pos.z - f.z);
         if (!P.landed && d < Math.max(reach, 0.75) && b.pos.y < 2.1 && b.pos.y > 0.15 && !(f.i === 1 && t < 0.6)) { endDefense(t > 1.4 || b.pos.y > 1.7 ? EV.OUT_FLY : EV.OUT_LINE, f.i, now); return; }
         if (P.landed && d < reach && b.pos.y < 1.0) {
-          if (f.i <= 5) { const throwT = 0.6 + Math.hypot(f.x - FIRST.x, f.z - FIRST.z) / 24; endDefense(t + throwT < 4.5 ? EV.OUT_GROUND : EV.SINGLE, f.i, now); }
+          if (!P.judged && !fair(b.pos.x, b.pos.z)) { endDefense(EV.FOUL, -1, now); return; }
+          if (f.i <= 5) endDefense(infieldPlay(f, t), f.i, now);
           else { const deep = Math.hypot(b.pos.x, b.pos.z) > 48, corner = deep && Math.abs(Math.atan2(b.pos.x, -b.pos.z)) > 0.6; endDefense(t > 6.5 || (corner && t > 4) ? EV.TRIPLE : t > 3.2 || deep ? EV.DOUBLE : EV.SINGLE, f.i, now); }
           return;
         }
@@ -3984,9 +4081,11 @@ kbd {
     }
     L.mySpotName = () => SPOT_NAMES[mySpot()] || '';
     // browser: throwing during defense goes straight to the first baseman
+    // in the infield with a force at second, the throw goes to second to start a double play; otherwise to first
+    const throwTarget = (obj) => (forceAtSecond() && Math.hypot(obj.pos.x, obj.pos.z) < 36 ? SECOND_GLOVE : FIRST_GLOVE);
     L.throwOverride = (obj) => {
       if (!defenseNow()) return null;
-      const d = FIRST_GLOVE.clone().sub(obj.pos), dist = d.length();
+      const d = throwTarget(obj).clone().sub(obj.pos), dist = d.length();
       const T = clamp(dist / 26, 0.35, 2.2);
       const v = d.divideScalar(T);
       v.y += 0.5 * GRAVITY * T;
@@ -4005,7 +4104,7 @@ kbd {
     };
     // fielding hints while you're on defense
     const baseHintsFor = L.hintsFor, baseHints = L.hints;
-    L.hintsFor = () => (defenseNow() ? [['WASD', 'move'], ['Shift', 'run'], ['E', 'glove a ball near you'], ['Space', 'throw to first']] : baseHintsFor ? baseHintsFor() : baseHints);
+    L.hintsFor = () => (defenseNow() ? [['WASD', 'move'], ['Shift', 'run'], ['E', 'glove a ball near you'], ['Space', forceAtSecond() ? 'throw to second for two' : 'throw to first']] : baseHintsFor ? baseHintsFor() : baseHints);
     L.hudActions.splice(1, 0, { label: () => (GM.def ? 'Defense: on' : 'Defense: off'), run: () => gameRequest(GM.def ? 4 : 3) });
     L.defInternals = { hostCpuEvent, swingAt, defensePitch, HUMAN_SPOTS, FIRST_GLOVE };
 
@@ -4341,11 +4440,13 @@ kbd {
       return true;
     };
 
-    function discSound(kind, speed) {
+    let discQuiet = false;
+    function discSound(kind, speed, dd = D) {
+      if (discQuiet) return;
       const now = performance.now();
-      if (now - D.lastSnd < 90) return;
-      D.lastSnd = now;
-      sfx(kind, Math.min(1, speed / 10) / (1 + D.pos.distanceTo(myHead.pos) * 0.12));
+      if (now - (dd.lastSnd || 0) < 90) return;
+      dd.lastSnd = now;
+      sfx(kind, Math.min(1, speed / 10) / (1 + dd.pos.distanceTo(myHead.pos) * 0.12));
     }
     function holeOut(now) {
       const s = L.stats, h = hole();
@@ -4370,81 +4471,82 @@ kbd {
       forcePresence();
     }
 
-    function discStep(h, now) {
-      const v = D.vel, sp = v.length();
-      if (!D.sliding && sp > 0.05) {
+    // d and the hole default to your disc; the rival's disc and its practice flights pass their own (cb)
+    function discStep(h, now, d = D, cb = null) {
+      const v = d.vel, sp = v.length();
+      if (!d.sliding && sp > 0.05) {
         _vh.copy(v).multiplyScalar(1 / sp);
-        const ndv = D.n.dot(_vh);
+        const ndv = d.n.dot(_vh);
         const alpha = Math.asin(clamp(-ndv, -1, 1));
         // VR throws are slower than a browser flick, so they get a little extra float as they slow
-        const CL = (0.15 + 1.4 * alpha) * (D.float ? 1 + 0.6 * Math.max(0, 1 - sp / 20) : 1), CD = 0.08 + 2.72 * (alpha + 0.07) * (alpha + 0.07);
-        _ld.copy(D.n).addScaledVector(_vh, -ndv);
+        const CL = (0.15 + 1.4 * alpha) * (d.float ? 1 + 0.6 * Math.max(0, 1 - sp / 20) : 1), CD = 0.08 + 2.72 * (alpha + 0.07) * (alpha + 0.07);
+        _ld.copy(d.n).addScaledVector(_vh, -ndv);
         const ll = _ld.length();
         if (ll > 1e-4) v.addScaledVector(_ld, (KL * CL * sp * sp * h) / ll);
         v.addScaledVector(_vh, -KD * CD * sp * sp * h);
         // fade: as the disc slows it banks left; a fast disc turns slightly right first
-        _left.crossVectors(D.n, _vh);
+        _left.crossVectors(d.n, _vh);
         let roll = 0;
         // (a VR throw flies more like a stable frisbee, so it fades much less)
-        if (sp < 16) roll = (D.float ? 0.3 : 0.9) * (1 - sp / 16) * h;
+        if (sp < 16) roll = (d.float ? 0.3 : 0.9) * (1 - sp / 16) * h;
         else if (sp > 21) roll = -0.25 * Math.min(1, (sp - 21) / 8) * h;
-        if (roll) D.n.addScaledVector(_left, roll).normalize();
+        if (roll) d.n.addScaledVector(_left, roll).normalize();
       }
       v.y -= GRAVITY * h;
-      if (D.inLeaves) v.multiplyScalar(1 - 3.5 * h);
-      D.pos.addScaledVector(v, h);
+      if (d.inLeaves) v.multiplyScalar(1 - 3.5 * h);
+      d.pos.addScaledVector(v, h);
 
       // ground
-      if (D.pos.y <= 0.012) {
-        D.pos.y = 0.012;
-        if (!D.sliding && v.y < -1.6) {
-          discSound('disc', -v.y);
+      if (d.pos.y <= 0.012) {
+        d.pos.y = 0.012;
+        if (!d.sliding && v.y < -1.6) {
+          discSound('disc', -v.y, d);
           v.y = -v.y * 0.18;
           v.x *= 0.6; v.z *= 0.6;
         } else {
-          if (!D.sliding) discSound('disc', 3);
-          D.sliding = true;
+          if (!d.sliding) discSound('disc', 3, d);
+          d.sliding = true;
           v.y = 0;
           const hs = Math.hypot(v.x, v.z);
           const nd = Math.max(0, hs - 5.5 * h);
           if (hs > 1e-6) { v.x *= nd / hs; v.z *= nd / hs; }
-          D.n.lerp(UP, Math.min(1, 6 * h)).normalize();
+          d.n.lerp(UP, Math.min(1, 6 * h)).normalize();
         }
       }
       // trees
-      D.inLeaves = false;
-      for (const t of trees) {
-        const dx = D.pos.x - t.x, dz = D.pos.z - t.z;
+      d.inLeaves = false;
+      for (const t of (cb && cb.trees) || trees) {
+        const dx = d.pos.x - t.x, dz = d.pos.z - t.z;
         if (Math.abs(dx) > t.cr + 0.3 || Math.abs(dz) > t.cr + 0.3) continue;
         const hd = Math.hypot(dx, dz);
-        if (D.pos.y < t.cy && hd < t.tr + 0.1 && hd > 1e-4) {
+        if (d.pos.y < t.cy && hd < t.tr + 0.1 && hd > 1e-4) {
           const nx = dx / hd, nz = dz / hd;
-          D.pos.x = t.x + nx * (t.tr + 0.1);
-          D.pos.z = t.z + nz * (t.tr + 0.1);
+          d.pos.x = t.x + nx * (t.tr + 0.1);
+          d.pos.z = t.z + nz * (t.tr + 0.1);
           const vn = v.x * nx + v.z * nz;
           if (vn < 0) {
-            discSound('wood', -vn);
+            discSound('wood', -vn, d);
             v.x -= 1.3 * vn * nx; v.z -= 1.3 * vn * nz;
             v.multiplyScalar(0.55);
-            D.n.lerp(new V3(nx, 0.3, nz), 0.5).normalize();
+            d.n.lerp(new V3(nx, 0.3, nz), 0.5).normalize();
           }
         }
-        const dy = (D.pos.y - t.cy) / 0.85;
+        const dy = (d.pos.y - t.cy) / 0.85;
         if (hd * hd + dy * dy < t.cr * t.cr * 0.8) {
-          if (!D.inLeaves && v.length() > 3) discSound('leaves', v.length());
-          D.inLeaves = true;
+          if (!d.inLeaves && v.length() > 3) discSound('leaves', v.length(), d);
+          d.inLeaves = true;
         }
       }
       // baskets: the current one catches, every pole can be hit
       HOLES.forEach((hl, i) => {
         const B = hl.basket;
-        const dx = D.pos.x - B.x, dz = D.pos.z - B.z, hd = Math.hypot(dx, dz);
-        if (i === L.stats.hole && hd < 0.3 && D.pos.y > 0.52 && D.pos.y < 1.36) { holeOut(now); return; }
-        if (hd < 0.13 && hd > 1e-4 && D.pos.y < 1.75 && D.phase === 'flying') {
+        const dx = d.pos.x - B.x, dz = d.pos.z - B.z, hd = Math.hypot(dx, dz);
+        if (i === (cb ? cb.hole : L.stats.hole) && hd < 0.3 && d.pos.y > 0.52 && d.pos.y < 1.36) { if (cb) cb.holed(now); else holeOut(now); return; }
+        if (hd < 0.13 && hd > 1e-4 && d.pos.y < 1.75 && d.phase === 'flying') {
           const nx = dx / hd, nz = dz / hd;
-          D.pos.x = B.x + nx * 0.13; D.pos.z = B.z + nz * 0.13;
+          d.pos.x = B.x + nx * 0.13; d.pos.z = B.z + nz * 0.13;
           const vn = v.x * nx + v.z * nz;
-          if (vn < 0) { discSound('rim', -vn); v.x -= 1.4 * vn * nx; v.z -= 1.4 * vn * nz; v.multiplyScalar(0.6); }
+          if (vn < 0) { discSound('rim', -vn, d); v.x -= 1.4 * vn * nx; v.z -= 1.4 * vn * nz; v.multiplyScalar(0.6); }
         }
       });
     }
@@ -4627,6 +4729,215 @@ kbd {
       camera.position.set(6 + Math.sin(a) * 4, 6.5, 12);
       camera.lookAt(-3, 1, -30);
     };
+
+    // ================================================================ FAIRWAY FINN: a disc golf rival
+    // He plays the hole you're on with his own disc and the same flight physics as yours. Before each throw he
+    // test-flies a spread of aims, speeds and angles (a few each frame, so nothing stutters), takes the one
+    // that lands nearest the basket, then throws it with a little human error. The host runs him.
+    const FINN = { name: 'Fairway Finn', color: '#4fc3f7', on: prefs.discBot !== false, active: false, hole: -1, phase: 'wait', strokes: 0, scores: HOLES.map(() => 0), lie: new V3(), t0: 0, gen: null, plan: null, throwT: 0, req: null, reqSeq: 0, lastMyDone: 0 };
+    const MAX_THROWS = 8;
+    const finnDisc = { mesh: makeDiscMesh(FINN.color), pos: new V3(), vel: new V3(), n: new V3(0, 1, 0), spin: 0, phase: 'ready', sliding: false, inLeaves: false, lastSnd: 0, float: false };
+    finnDisc.mesh.visible = false;
+    G.add(finnDisc.mesh);
+    FINN.disc = finnDisc;
+    L.finn = FINN;
+    const finnBody = buildAvatar(FINN.color, 2, 0, true, 5, 3);
+    const finnLabel = new THREE.Sprite(new THREE.SpriteMaterial({ map: canvasTexture(256, 64, (g) => { rr(g, 4, 6, 248, 52, 26); g.fillStyle = 'rgba(20,16,32,0.8)'; g.fill(); g.fillStyle = '#ffffff'; g.font = `700 30px ${BODY}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('Fairway Finn', 128, 33); }).tex, transparent: true, depthWrite: false }));
+    finnLabel.scale.set(0.9, 0.225, 1); finnLabel.position.y = 0.42;
+    finnBody.add(finnLabel);
+    finnBody.visible = false;
+    G.add(finnBody);
+    const herePeersDG = () => {
+      const ids = [state.myPeer];
+      for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer);
+      return ids.sort();
+    };
+    const finnHost = () => herePeersDG()[0] === state.myPeer;
+    const finnGauss = () => (rand() + rand() + rand() - 1.5) / 0.5;
+    const _fv = new V3(), _fh = new V3(), _fq = new Q4(), _fqs = new Q4();
+
+    // a throw: direction, speed and launch angle, with the disc held flat to its path like a browser throw
+    function finnLaunch(dk, sp, pitch, yaw, from) {
+      const c = Math.cos(yaw), s = Math.sin(yaw);
+      const hx = dk.x * c - dk.z * s, hz = dk.x * s + dk.z * c;
+      dk.pos.copy(from);
+      dk.vel.set(hx * Math.cos(pitch) * sp, Math.sin(pitch) * sp, hz * Math.cos(pitch) * sp);
+      _fh.copy(dk.vel).normalize();
+      dk.n.copy(UP).addScaledVector(_fh, -UP.dot(_fh));
+      if (dk.n.lengthSq() < 1e-4) dk.n.set(0, 0, 1);
+      dk.n.normalize().multiplyScalar(Math.cos(0.07)).addScaledVector(_fh, -Math.sin(0.07)).normalize();
+      dk.sliding = false; dk.inLeaves = false; dk.phase = 'flying'; dk.float = false;
+    }
+    // test-fly one candidate after another; yields between each so the work spreads over frames
+    function* finnPlanGen(holeIdx, now) {
+      const H = HOLES[holeIdx];
+      const to = _fv.copy(H.basket).sub(FINN.lie).setY(0);
+      const dist = to.length();
+      const dir = to.normalize().clone();
+      const from = FINN.lie.clone().setY(1.2);
+      // only the trees near the line matter for planning
+      const near = trees.filter((t) => { const px = t.x - from.x, pz = t.z - from.z, along = px * dir.x + pz * dir.z, off = Math.abs(px * dir.z - pz * dir.x); return along > -4 && along < dist + 25 && off < 24; });
+      const cb = { hole: holeIdx, trees: near, holed: () => { sim.holed = true; } };
+      const sim = { pos: new V3(), vel: new V3(), n: new V3(), sliding: false, inLeaves: false, phase: 'flying', x: dir.x, z: dir.z, holed: false, lastSnd: 0, float: false };
+      const top = Math.min(22, 6 + dist * 0.42);
+      const speeds = [0.5, 0.65, 0.8, 0.92, 1.05, 1.18].map((k) => Math.max(5, top * k));
+      let best = { score: Infinity, sp: speeds[2], pitch: 0.08, yaw: 0 };
+      for (const yaw of [-0.36, -0.24, -0.12, 0, 0.12, 0.24, 0.36]) {
+        for (const sp of speeds) {
+          for (const pitch of [0.05, 0.15]) {
+            sim.holed = false;
+            finnLaunch(sim, sp, pitch, yaw, from);
+            discQuiet = true;
+            try {
+              for (let k = 0; k < 360 && sim.phase === 'flying' && !sim.holed; k++) {
+                discStep(1 / 40, now, sim, cb);
+                if (sim.sliding && Math.hypot(sim.vel.x, sim.vel.z) < 0.12) break;
+                if (sim.pos.y < -2) break;
+              }
+            } finally { discQuiet = false; }
+            const off = outOfBounds(sim.pos) || sim.pos.y < -1;
+            const score = sim.holed ? -100 : Math.hypot(sim.pos.x - H.basket.x, sim.pos.z - H.basket.z) + (off ? 60 : 0) + Math.abs(yaw) * 0.5;
+            if (score < best.score) best = { score, sp, pitch, yaw };
+            yield null;
+          }
+        }
+      }
+      return best;
+    }
+
+    // ---------------------------------------------------------------- his round (host)
+    function finnToHole(i, now) {
+      // leaving a hole he hadn't finished: he picks up for one more throw
+      if (FINN.hole >= 0 && FINN.phase !== 'holed' && !FINN.scores[FINN.hole]) FINN.scores[FINN.hole] = Math.min(MAX_THROWS, FINN.strokes + 1);
+      FINN.hole = i;
+      FINN.lie.copy(HOLES[i].tee).add(HOLES[i].right.clone().multiplyScalar(1.4));
+      FINN.strokes = 0; FINN.phase = 'wait'; FINN.t0 = now; FINN.gen = null; FINN.plan = null;
+      finnDisc.phase = 'ready';
+      forcePresence();
+    }
+    function finnStep(dt, now) {
+      if (!FINN.active) return;
+      const myDone = L.stats.done;
+      if (myDone < FINN.lastMyDone) { FINN.scores = HOLES.map(() => 0); FINN.hole = -1; }
+      FINN.lastMyDone = myDone;
+      if (L.stats.hole !== FINN.hole && D.phase !== 'between') finnToHole(L.stats.hole, now);
+      const H = HOLES[FINN.hole];
+      if (!H) return;
+      if (FINN.phase === 'wait') {
+        // you throw first, then he lines up
+        if ((L.stats.strokes > 0 || now - FINN.t0 > 4000) && now - FINN.t0 > 1500) { FINN.phase = 'aim'; FINN.t0 = now; FINN.gen = finnPlanGen(FINN.hole, now); FINN.plan = null; }
+      } else if (FINN.phase === 'aim') {
+        if (FINN.gen) {
+          const t0 = performance.now();
+          while (FINN.gen && performance.now() - t0 < 3) { const r = FINN.gen.next(); if (r.done) { FINN.plan = r.value; FINN.gen = null; } }
+        }
+        if (FINN.plan && now - FINN.t0 > 1200) {
+          const p = FINN.plan;
+          const to = _fv.copy(H.basket).sub(FINN.lie).setY(0).normalize();
+          finnDisc.x = to.x; finnDisc.z = to.z;
+          finnLaunch(finnDisc, p.sp * (1 + finnGauss() * 0.09), p.pitch + finnGauss() * 0.035, p.yaw + finnGauss() * 0.06, FINN.lie.clone().setY(1.2));
+          FINN.strokes += 1; FINN.phase = 'flying'; FINN.throwT = now;
+          sfx('whoosh', 0.6 / (1 + FINN.lie.distanceTo(myHead.pos) * 0.1));
+          forcePresence();
+        }
+      } else if (FINN.phase === 'flying') {
+        const steps = Math.max(1, Math.ceil(dt * 120)), h = dt / steps;
+        const cb = { hole: FINN.hole, holed: () => {
+          FINN.phase = 'holed'; finnDisc.phase = 'holed'; FINN.scores[FINN.hole] = FINN.strokes;
+          finnDisc.pos.set(H.basket.x, 0.56, H.basket.z); finnDisc.vel.set(0, 0, 0);
+          sfx('chains', 0.6 / (1 + H.basket.distanceTo(myHead.pos) * 0.08));
+          spawnFloat(`Finn: ${scoreWord(FINN.strokes, H.par)}`, new V3(H.basket.x, 2.1, H.basket.z), '#4fc3f7');
+          state.dirtyBoard = true; forcePresence();
+        } };
+        for (let k = 0; k < steps && finnDisc.phase === 'flying'; k++) discStep(h, now, finnDisc, cb);
+        if (finnDisc.phase === 'flying') {
+          const stopped = finnDisc.sliding && Math.hypot(finnDisc.vel.x, finnDisc.vel.z) < 0.12;
+          const lost = finnDisc.pos.y < -2 || now - FINN.throwT > 15000;
+          if (stopped || lost) {
+            finnDisc.phase = 'rest'; finnDisc.vel.set(0, 0, 0);
+            if (outOfBounds(finnDisc.pos) || lost) FINN.strokes += 1;   // penalty; he throws again from where he was
+            else FINN.lie.copy(finnDisc.pos).setY(0);
+            if (FINN.strokes >= MAX_THROWS) { FINN.phase = 'holed'; FINN.scores[FINN.hole] = MAX_THROWS; state.dirtyBoard = true; }
+            else { FINN.phase = 'wait'; FINN.t0 = now; }
+            forcePresence();
+          }
+        }
+      }
+    }
+
+    // ---------------------------------------------------------------- per frame, network, scoreboard
+    const baseUpdateDG = L.update, basePresenceDG = L.presence, baseReadDG = L.readPresence, baseDrawDG = L.drawBoard;
+    L.update = (dt, now) => {
+      FINN.active = FINN.on && herePeersDG().length < 3;
+      if (finnHost()) finnStep(dt, now);
+      baseUpdateDG(dt, now);
+      const H = HOLES[FINN.hole];
+      const show = FINN.active && !!H && state.level === L.idx;
+      finnBody.visible = show;
+      finnDisc.mesh.visible = show && (FINN.phase === 'flying' || FINN.phase === 'holed' || finnDisc.phase === 'rest');
+      if (!show) return;
+      // he stands at his lie, facing the basket
+      const to = _fv.copy(H.basket).sub(FINN.lie).setY(0);
+      if (to.lengthSq() < 1e-4) to.set(0, 0, -1);
+      to.normalize();
+      const lunge = FINN.phase === 'flying' && now - FINN.throwT < 400 ? 0.35 : 0;
+      finnBody.position.set(FINN.lie.x - to.x * (0.6 - lunge), 1.55, FINN.lie.z - to.z * (0.6 - lunge));
+      finnBody.rotation.y = Math.atan2(-to.x, -to.z);
+      // his disc
+      if (FINN.phase === 'flying') finnDisc.spin += Math.min(40, finnDisc.vel.length() * 2.2) * dt;
+      _fq.setFromUnitVectors(UP, finnDisc.n.lengthSq() > 0.5 ? finnDisc.n : UP);
+      _fqs.setFromAxisAngle(UP, finnDisc.spin);
+      finnDisc.mesh.quaternion.multiplyQuaternions(_fq, _fqs);
+      finnDisc.mesh.position.copy(finnDisc.pos);
+    };
+    const q2 = (x) => Math.round(x * 100) / 100;
+    const FPH = { wait: 0, aim: 1, flying: 2, holed: 3 }, FPN = ['wait', 'aim', 'flying', 'holed'];
+    L.presence = () => {
+      const p = basePresenceDG ? basePresenceDG() : {};
+      if (finnHost()) p.dgb = [FINN.on ? 1 : 0, FINN.hole, FPH[FINN.phase], FINN.strokes, q2(finnDisc.pos.x), q2(finnDisc.pos.y), q2(finnDisc.pos.z), q2(finnDisc.n.x), q2(finnDisc.n.y), q2(finnDisc.n.z), q2(FINN.lie.x), q2(FINN.lie.z), ...FINN.scores];
+      if (FINN.req) p.dgr = FINN.req.slice();
+      return p;
+    };
+    L.readPresence = (rec, pres, st) => {
+      if (baseReadDG) baseReadDG(rec, pres, st);
+      if (finnHost() && Array.isArray(pres.dgr) && pres.dgr.length === 2 && (pres.dgr[0] === 0 || pres.dgr[0] === 1) && pres.dgr.join() !== st.dgr) {
+        st.dgr = pres.dgr.join();
+        if (st.dgrInit && FINN.on !== !!pres.dgr[0]) { FINN.on = !!pres.dgr[0]; state.hudDirty = true; state.dirtyBoard = true; forcePresence(); }
+      }
+      st.dgrInit = true;
+      if (rec.peer !== herePeersDG()[0]) return;
+      const a = pres.dgb;
+      if (!Array.isArray(a) || a.length !== 12 + HOLES.length || !a.every(finite)) return;
+      if ((a[0] === 1) !== FINN.on) { FINN.on = a[0] === 1; state.hudDirty = true; }
+      const scores = a.slice(12).map((x) => clamp(Math.round(x), 0, MAX_THROWS));
+      if (scores.join() !== FINN.scores.join()) state.dirtyBoard = true;
+      const ph = FPN[clamp(Math.round(a[2]), 0, 3)];
+      if (ph === 'flying' && FINN.phase !== 'flying') FINN.throwT = performance.now();
+      Object.assign(FINN, { hole: clamp(Math.round(a[1]), -1, HOLES.length - 1), phase: ph, strokes: a[3], scores });
+      finnDisc.pos.set(a[4], a[5], a[6]); finnDisc.n.set(a[7], a[8], a[9]);
+      finnDisc.phase = ph === 'flying' ? 'flying' : 'rest';
+      FINN.lie.set(a[10], 0, a[11]);
+    };
+    function setFinn(on) {
+      FINN.on = on; prefs.discBot = on; savePrefs();
+      FINN.req = [on ? 1 : 0, ++FINN.reqSeq];
+      showToast(on ? 'Fairway Finn will play along' : 'Fairway Finn sits this round out');
+      state.hudDirty = true; state.dirtyBoard = true;
+      forcePresence();
+    }
+    L.setFinn = setFinn;
+    L.hudActions.push({ label: () => (FINN.on ? 'Bot: on' : 'Bot: off'), run: () => setFinn(!FINN.on) });
+    L.drawBoard = (rows) => {
+      const all = rows.slice();
+      if (FINN.active) {
+        const done = FINN.scores.filter((x) => x).length;
+        const total = FINN.scores.reduce((a, b) => a + b, 0), parDone = HOLES.reduce((a, h, i) => a + (FINN.scores[i] ? h.par : 0), 0);
+        all.push({ name: 'Fairway Finn (bot)', color: FINN.color, me: false, done, rel: total - parDone, text: done ? `${toPar(total - parDone)} thru ${done}` : `Hole ${Math.max(0, FINN.hole) + 1}` });
+      }
+      all.sort(L.sortRows);
+      baseDrawDG(all);
+    };
+    L.finnInternals = { finnPlanGen, finnStep, finnToHole };
     return L;
   })();
 
@@ -7625,21 +7936,22 @@ kbd {
       const t = clamp(((px - ax) * dx + (pz - az) * dz) / (dx * dx + dz * dz), 0, 1);
       return [ax + dx * t, az + dz * t];
     }
-    function bonk(sp, kind) { if (sp > 0.25) sfx(kind || 'ball', Math.min(1, sp / 4) * 0.6); }
-    function ballStep(h, now) {
-      const H = H0();
-      let lx = B.x - H.x, lz = B.z - H.z;
+    let simQuiet = false;
+    function bonk(sp, kind) { if (!simQuiet && sp > 0.25) sfx(kind || 'ball', Math.min(1, sp / 4) * 0.6); }
+    // b and H default to your ball on your hole; the rival's ball and its practice runs pass their own
+    function ballStep(h, now, b = B, H = H0(), cb = null) {
+      let lx = b.x - H.x, lz = b.z - H.z;
       grad(H, lx, lz, g2);
-      B.vx -= 9.8 * 0.714 * g2[0] * h;
-      B.vz -= 9.8 * 0.714 * g2[1] * h;
-      let sp = Math.hypot(B.vx, B.vz);
-      if (sp > 0) { const ns = Math.max(0, sp - (0.5 + 0.06 * sp) * h); B.vx *= ns / sp; B.vz *= ns / sp; sp = ns; }
-      lx += B.vx * h; lz += B.vz * h;
+      b.vx -= 9.8 * 0.714 * g2[0] * h;
+      b.vz -= 9.8 * 0.714 * g2[1] * h;
+      let sp = Math.hypot(b.vx, b.vz);
+      if (sp > 0) { const ns = Math.max(0, sp - (0.5 + 0.06 * sp) * h); b.vx *= ns / sp; b.vz *= ns / sp; sp = ns; }
+      lx += b.vx * h; lz += b.vz * h;
       const hw = H.w / 2 - BR, hl = H.len / 2 - BR;
-      if (lx < -hw) { lx = -hw; if (B.vx < 0) { bonk(-B.vx); B.vx = -B.vx * 0.72; } }
-      if (lx > hw) { lx = hw; if (B.vx > 0) { bonk(B.vx); B.vx = -B.vx * 0.72; } }
-      if (lz < -hl) { lz = -hl; if (B.vz < 0) { bonk(-B.vz); B.vz = -B.vz * 0.72; } }
-      if (lz > hl) { lz = hl; if (B.vz > 0) { bonk(B.vz); B.vz = -B.vz * 0.72; } }
+      if (lx < -hw) { lx = -hw; if (b.vx < 0) { bonk(-b.vx); b.vx = -b.vx * 0.72; } }
+      if (lx > hw) { lx = hw; if (b.vx > 0) { bonk(b.vx); b.vx = -b.vx * 0.72; } }
+      if (lz < -hl) { lz = -hl; if (b.vz < 0) { bonk(-b.vz); b.vz = -b.vz * 0.72; } }
+      if (lz > hl) { lz = hl; if (b.vz > 0) { bonk(b.vz); b.vz = -b.vz * 0.72; } }
       for (const f of H.feats) {
         if (f.t === 'wall' || f.t === 'spin') {
           const segs = [];
@@ -7653,41 +7965,42 @@ kbd {
             lx = cx + nx * min; lz = cz + nz * min;
             let wvx = 0, wvz = 0;
             if (f.t === 'spin') { wvx = -f.w * (cz - f.c[1]); wvz = f.w * (cx - f.c[0]); }
-            const vn = (B.vx - wvx) * nx + (B.vz - wvz) * nz;
-            if (vn < 0) { bonk(-vn); B.vx -= 1.65 * vn * nx; B.vz -= 1.65 * vn * nz; }
+            const vn = (b.vx - wvx) * nx + (b.vz - wvz) * nz;
+            if (vn < 0) { bonk(-vn); b.vx -= 1.65 * vn * nx; b.vz -= 1.65 * vn * nz; }
           }
         } else if (f.t === 'bump') {
           const dx = lx - f.c[0], dz = lz - f.c[1], d = Math.hypot(dx, dz), min = BR + f.r;
           if (d < min && d > 1e-6) {
             const nx = dx / d, nz = dz / d;
             lx = f.c[0] + nx * min; lz = f.c[1] + nz * min;
-            const vn = B.vx * nx + B.vz * nz;
+            const vn = b.vx * nx + b.vz * nz;
             if (vn < 0) {
-              B.vx -= 2.15 * vn * nx; B.vz -= 2.15 * vn * nz;
-              const out = B.vx * nx + B.vz * nz, want = Math.max(1.5, -vn * 1.25);
-              if (out < want) { B.vx += nx * (want - out); B.vz += nz * (want - out); }
-              tone(1250, 0, 0.12, 'sine', 0.18); f.flash = 0.2;
+              b.vx -= 2.15 * vn * nx; b.vz -= 2.15 * vn * nz;
+              const out = b.vx * nx + b.vz * nz, want = Math.max(1.5, -vn * 1.25);
+              if (out < want) { b.vx += nx * (want - out); b.vz += nz * (want - out); }
+              if (!simQuiet) { tone(1250, 0, 0.12, 'sine', 0.18); f.flash = 0.2; }
             }
           }
         }
       }
-      B.x = H.x + lx; B.z = H.z + lz;
-      sp = Math.hypot(B.vx, B.vz);
+      b.x = H.x + lx; b.z = H.z + lz;
+      sp = Math.hypot(b.vx, b.vz);
       const cx = lx - H.cup[0], cz = lz - H.cup[1], dc = Math.hypot(cx, cz);
       if (dc < CUP_R) {
-        if (sp < 1.3) { finishHole(me.strokes, now, false); return; }
-        if (dc < CUP_R * 0.6 && !B.lipped) {
-          B.lipped = true;
+        if (sp < 1.3) { if (cb) { cb.sink(now); return; } finishHole(me.strokes, now, false); return; }
+        if (dc < CUP_R * 0.6 && !b.lipped) {
+          b.lipped = true;
           const a = (rand() - 0.5) * 0.6, c = Math.cos(a), s = Math.sin(a);
-          const vx = B.vx * c - B.vz * s, vz = B.vx * s + B.vz * c;
-          B.vx = vx * 0.7; B.vz = vz * 0.7;
-          tone(700, 500, 0.06, 'triangle', 0.15);
+          const vx = b.vx * c - b.vz * s, vz = b.vx * s + b.vz * c;
+          b.vx = vx * 0.7; b.vz = vz * 0.7;
+          if (!simQuiet) tone(700, 500, 0.06, 'triangle', 0.15);
         }
-      } else B.lipped = false;
+      } else b.lipped = false;
       grad(H, lx, lz, g2);
       // the felt holds a slow ball still unless the slope pulls harder than rolling friction
       if (sp < 0.04 && 9.8 * 0.714 * Math.hypot(g2[0], g2[1]) < 0.55) {
-        B.vx = 0; B.vz = 0;
+        b.vx = 0; b.vz = 0;
+        if (cb) { cb.rest(now); return; }
         me.phase = 'rest';
         if (me.strokes >= MAXS) finishHole(MAXS, now, true);
         state.hudDirty = true;
@@ -7943,6 +8256,173 @@ kbd {
       camera.lookAt(0, 0, -1);
     };
     placeOnTee();
+
+    // ================================================================ BIRDIE BEA: a mini golf rival
+    // She plays the hole you're on with her own ball and the same physics as yours. Before each putt she
+    // test-rolls about a hundred shots in silence and picks the one that finishes nearest the cup, then
+    // adds a little human error. The host runs her; everyone sees her.
+    const BEA = { name: 'Birdie Bea', color: '#ffb36b', on: prefs.golfBot !== false, active: false, hole: -1, phase: 'wait', strokes: 0, scores: HOLES.map(() => 0), t0: 0, aim: [0, -1], swingT: 0, req: null, reqSeq: 0 };
+    const beaBall = { x: 0, z: 0, vx: 0, vz: 0, lipped: false, sink: 0 };
+    BEA.ball = beaBall;
+    L.bea = BEA;
+    const beaMesh = new THREE.Mesh(new THREE.SphereGeometry(BR, 16, 12), new THREE.MeshLambertMaterial({ color: 0xffb36b }));
+    G.add(beaMesh);
+    const bea = buildAvatar(BEA.color, 3, 1, true, 4, 6);
+    const beaLabel = new THREE.Sprite(new THREE.SpriteMaterial({ map: canvasTexture(256, 64, (g) => { rr(g, 4, 6, 248, 52, 26); g.fillStyle = 'rgba(20,16,32,0.8)'; g.fill(); g.fillStyle = '#ffffff'; g.font = `700 30px ${BODY}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('Birdie Bea', 128, 33); }).tex, transparent: true, depthWrite: false }));
+    beaLabel.scale.set(0.9, 0.225, 1); beaLabel.position.y = 0.42;
+    bea.add(beaLabel);
+    const beaPutter = new THREE.Group();
+    beaPutter.add(at(new THREE.Mesh(cyl(0.012, 0.012, 0.85, 6), lam(0xc8ccd8)), 0, -0.42, 0));
+    beaPutter.add(at(new THREE.Mesh(boxg(0.1, 0.04, 0.035), lam(0x2b2d42)), 0.03, -0.85, 0));
+    beaPutter.position.set(0.18, -0.3, -0.15);
+    bea.add(beaPutter);
+    bea.visible = false; beaMesh.visible = false;
+    G.add(bea);
+    const herePeersMG = () => {
+      const ids = [state.myPeer];
+      for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer);
+      return ids.sort();
+    };
+    const beaHost = () => herePeersMG()[0] === state.myPeer;
+
+    // ---------------------------------------------------------------- planning a putt
+    // one practice roll at a time, so the work can be spread over several frames
+    function* planGen(H, now) {
+      const cx = H.x + H.cup[0], cz = H.z + H.cup[1];
+      const base = Math.atan2(cz - beaBall.z, cx - beaBall.x);
+      const sx = beaBall.x, sz = beaBall.z;
+      let best = { score: Infinity, a: base, sp: 1.5 };
+      for (let da = -80; da <= 80; da += 10) {
+        for (const sp of [0.8, 1.3, 1.9, 2.6, 3.5, 4.6]) {
+          const a = base + (da * Math.PI) / 180;
+          const t = { x: sx, z: sz, vx: Math.cos(a) * sp, vz: Math.sin(a) * sp, lipped: false, sink: 0 };
+          let sunk = false, rest = false;
+          const cb = { sink: () => { sunk = true; }, rest: () => { rest = true; } };
+          simQuiet = true;
+          try { for (let k = 0; k < 900 && !sunk && !rest; k++) ballStep(1 / 120, now, t, H, cb); } finally { simQuiet = false; }
+          // holing it is best; otherwise how close it stops (a gentler putt breaks ties)
+          const score = sunk ? -10 + sp * 0.01 + Math.abs(da) * 0.001 : Math.hypot(t.x - cx, t.z - cz) + sp * 0.005;
+          if (score < best.score) best = { score, a, sp };
+          yield null;
+        }
+      }
+      return best;
+    }
+    function planPutt(H, now) { const g = planGen(H, now); let r; do { r = g.next(); } while (!r.done); return r.value; }
+    const gauss = () => (rand() + rand() + rand() - 1.5) / 0.5;
+
+    // ---------------------------------------------------------------- her round (host)
+    function beaToHole(i, now) {
+      // leaving a hole she hadn't finished: she picks up for one more stroke
+      if (BEA.hole >= 0 && BEA.phase !== 'holed' && BEA.hole < HOLES.length && !BEA.scores[BEA.hole]) BEA.scores[BEA.hole] = Math.min(MAXS, BEA.strokes + 1);
+      BEA.hole = i;
+      const H = HOLES[i];
+      Object.assign(beaBall, { x: H.x + H.tee[0] + 0.18, z: H.z + H.tee[1], vx: 0, vz: 0, lipped: false, sink: 0 });
+      BEA.strokes = 0; BEA.phase = 'wait'; BEA.t0 = now;
+      forcePresence();
+    }
+    function beaStep(dt, now) {
+      if (!BEA.active) return;
+      // a fresh round for you (your card going back to empty) is a fresh round for her
+      const myDone = me.scores.filter((x) => x).length;
+      if (myDone < (BEA.lastMyDone || 0)) { BEA.scores = HOLES.map(() => 0); BEA.hole = -1; }
+      BEA.lastMyDone = myDone;
+      if (me.hole !== BEA.hole && me.phase !== 'between') beaToHole(me.hole, now);
+      const H = HOLES[BEA.hole];
+      if (!H) return;
+      if (BEA.phase === 'wait') {
+        // let you go first, then line up
+        if ((me.strokes > 0 || now - BEA.t0 > 3000) && now - BEA.t0 > 1400) { BEA.phase = 'aim'; BEA.t0 = now; BEA.plan = null; BEA.gen = planGen(H, now); }
+      } else if (BEA.phase === 'aim') {
+        // think it over a little each frame (about 3 ms), so the host's frame rate never stutters
+        if (BEA.gen) {
+          const t0 = performance.now();
+          while (BEA.gen && performance.now() - t0 < 3) { const r = BEA.gen.next(); if (r.done) { BEA.plan = r.value; BEA.gen = null; BEA.aim = [Math.cos(r.value.a), Math.sin(r.value.a)]; } }
+        }
+        if (BEA.plan && now - BEA.t0 > 1100) {
+          const p = BEA.plan;
+          const a = p.a + (gauss() * 2.2 * Math.PI) / 180, sp = p.sp * (1 + gauss() * 0.07);
+          beaBall.vx = Math.cos(a) * sp; beaBall.vz = Math.sin(a) * sp;
+          BEA.strokes += 1; BEA.phase = 'moving'; BEA.swingT = now;
+          tone(950, 650, 0.05, 'triangle', 0.25 / (1 + Math.hypot(beaBall.x - myHead.pos.x, beaBall.z - myHead.pos.z) * 0.3));
+          forcePresence();
+        }
+      } else if (BEA.phase === 'moving') {
+        const steps = Math.max(1, Math.ceil(dt * 240)), h = dt / steps;
+        const cb = {
+          sink: () => { BEA.phase = 'holed'; BEA.scores[BEA.hole] = BEA.strokes; spawnFloat(`Bea: ${word(BEA.strokes, H.par)}`, new V3(H.x + H.cup[0], 1.3, H.z + H.cup[1]), '#ffb36b'); sfx('chime', 0.5); state.dirtyBoard = true; forcePresence(); },
+          rest: () => { if (BEA.strokes >= MAXS) { BEA.phase = 'holed'; BEA.scores[BEA.hole] = MAXS; state.dirtyBoard = true; } else { BEA.phase = 'wait'; BEA.t0 = now; } forcePresence(); },
+        };
+        for (let k = 0; k < steps && BEA.phase === 'moving'; k++) ballStep(h, now, beaBall, H, cb);
+      }
+    }
+
+    // ---------------------------------------------------------------- per frame, network, scoreboard
+    const baseUpdateMG = L.update, basePresenceMG = L.presence, baseReadMG = L.readPresence, baseDrawMG = L.drawBoard;
+    L.update = (dt, now) => {
+      BEA.active = BEA.on && herePeersMG().length < 3;
+      if (beaHost()) beaStep(dt, now);
+      baseUpdateMG(dt, now);
+      const H = HOLES[BEA.hole];
+      const show = BEA.active && !!H && state.level === L.idx;
+      bea.visible = show;
+      beaMesh.visible = show && BEA.phase !== 'holed';
+      if (!show) return;
+      const gy = height(H, beaBall.x - H.x, beaBall.z - H.z);
+      beaMesh.position.set(beaBall.x, gy + BR, beaBall.z);
+      // she stands behind her ball, facing her line
+      const ax = BEA.aim[0], az = BEA.aim[1];
+      const standX = beaBall.x - ax * 0.45 - az * 0.25, standZ = beaBall.z - az * 0.45 + ax * 0.25;
+      if (BEA.phase === 'aim' || BEA.phase === 'wait') { bea.position.set(standX, 1.45, standZ); bea.rotation.y = Math.atan2(-ax, -az); }
+      if (BEA.phase === 'holed') bea.position.y = 1.45 + Math.abs(Math.sin(now * 0.008)) * 0.08;
+      const u = (now - BEA.swingT) / 300;
+      beaPutter.rotation.x = u < 1 ? Math.sin(u * Math.PI) * -0.7 : 0;
+    };
+    const q2 = (x) => Math.round(x * 100) / 100;
+    const PHC = { wait: 0, aim: 1, moving: 2, holed: 3 }, PHN = ['wait', 'aim', 'moving', 'holed'];
+    L.presence = () => {
+      const p = basePresenceMG();
+      if (beaHost()) p.mgb = [BEA.on ? 1 : 0, BEA.hole, q2(beaBall.x), q2(beaBall.z), PHC[BEA.phase], BEA.strokes, q2(BEA.aim[0]), q2(BEA.aim[1]), ...BEA.scores];
+      if (BEA.req) p.mgr = BEA.req.slice();
+      return p;
+    };
+    L.readPresence = (rec, pres, st) => {
+      baseReadMG(rec, pres, st);
+      if (beaHost() && Array.isArray(pres.mgr) && pres.mgr.length === 2 && (pres.mgr[0] === 0 || pres.mgr[0] === 1) && pres.mgr.join() !== st.mgr) {
+        st.mgr = pres.mgr.join();
+        if (st.mgrInit && BEA.on !== !!pres.mgr[0]) { BEA.on = !!pres.mgr[0]; state.hudDirty = true; state.dirtyBoard = true; forcePresence(); }
+      }
+      st.mgrInit = true;
+      if (rec.peer !== herePeersMG()[0]) return;
+      const a = pres.mgb;
+      if (!Array.isArray(a) || a.length !== 8 + HOLES.length || !a.every(finite)) return;
+      if ((a[0] === 1) !== BEA.on) { BEA.on = a[0] === 1; state.hudDirty = true; }
+      const scores = a.slice(8).map((x) => clamp(Math.round(x), 0, MAXS));
+      if (scores.join() !== BEA.scores.join()) state.dirtyBoard = true;
+      if (a[4] === 1 && BEA.phase !== 'aim') BEA.swingT = 0;
+      if (a[4] === 2 && BEA.phase !== 'moving') BEA.swingT = performance.now();
+      Object.assign(BEA, { hole: clamp(Math.round(a[1]), -1, HOLES.length - 1), phase: PHN[clamp(Math.round(a[4]), 0, 3)], strokes: a[5], aim: [a[6], a[7]], scores });
+      Object.assign(beaBall, { x: a[2], z: a[3] });
+    };
+    function setBea(on) {
+      BEA.on = on; prefs.golfBot = on; savePrefs();
+      BEA.req = [on ? 1 : 0, ++BEA.reqSeq];
+      showToast(on ? 'Birdie Bea will play along' : 'Birdie Bea sits this round out');
+      state.hudDirty = true; state.dirtyBoard = true;
+      forcePresence();
+    }
+    L.setBea = setBea;
+    L.hudActions.push({ label: () => (BEA.on ? 'Bot: on' : 'Bot: off'), run: () => setBea(!BEA.on) });
+    L.drawBoard = (rows) => {
+      const all = rows.slice();
+      if (BEA.active) {
+        const t = total(BEA.scores), rel = t - parThrough(BEA.scores), done = BEA.scores.filter((x) => x).length;
+        all.push({ name: 'Birdie Bea (bot)', color: BEA.color, me: false, scores: BEA.scores, rel, done, text: done ? `${t} (${toPar(rel)})` : 'Hole 1' });
+      }
+      all.sort(L.sortRows);
+      baseDrawMG(all);
+    };
+    L.beaInternals = { planPutt, beaStep, beaToHole };
     return L;
   })();
 
@@ -8472,6 +8952,7 @@ kbd {
         if (inMyLevel(rec) && st && st.lane >= 0 && st.lane !== mine && !owner.has(st.lane)) owner.set(st.lane, rec);
         if (rec.bowlBall) rec.bowlBall.visible = false;
       }
+      if (typeof botLaneRec === 'function') { const br = botLaneRec(); if (br && br.lvState[L.id].lane !== mine && !owner.has(br.lvState[L.id].lane)) owner.set(br.lvState[L.id].lane, br); if (br && br.bowlBall) br.bowlBall.visible = false; }
       for (let i = 0; i < NL; i++) {
         if (i === mine) continue;
         const rec = owner.get(i), st = rec && rec.lvState[L.id];
@@ -8484,7 +8965,7 @@ kbd {
         });
         if (st && st.ball && st.ball[3] === 1) {
           if (!rec.bowlBall) { rec.bowlBall = new THREE.Mesh(ballGeo, new THREE.MeshLambertMaterial({ map: ballTex })); G.add(rec.bowlBall); }
-          if (PLAYER_COLORS[rec.colorIdx]) rec.bowlBall.material.color.set(PLAYER_COLORS[rec.colorIdx].hex);
+          if (rec.color) rec.bowlBall.material.color.set(rec.color); else if (PLAYER_COLORS[rec.colorIdx]) rec.bowlBall.material.color.set(PLAYER_COLORS[rec.colorIdx].hex);
           rec.bowlBall.visible = true;
           rec.bowlBall.position.set(st.ball[0], st.ball[1], st.ball[2]);
         }
@@ -8492,7 +8973,7 @@ kbd {
       // monitors
       for (let i = 0; i < NL; i++) {
         if (i === mine) drawMonitor(i, state.name, PLAYER_COLORS[state.colorIdx].hex, me.rolls);
-        else { const rec = owner.get(i), st = rec && rec.lvState[L.id]; drawMonitor(i, rec ? rec.name : '', rec && PLAYER_COLORS[rec.colorIdx] ? PLAYER_COLORS[rec.colorIdx].hex : '', st ? st.rolls : []); }
+        else { const rec = owner.get(i), st = rec && rec.lvState[L.id]; drawMonitor(i, rec ? rec.name : '', rec && rec.color ? rec.color : rec && PLAYER_COLORS[rec.colorIdx] ? PLAYER_COLORS[rec.colorIdx].hex : '', st ? st.rolls : []); }
       }
       // readouts
       const r = bowlAnalyze(me.rolls);
@@ -8567,6 +9048,170 @@ kbd {
       camera.lookAt(0, 0.4, -12);
     };
     rackPins(true);
+
+    // ================================================================ STRIKE SALLY: a bowling rival on a free lane
+    // She bowls a frame each time you (or the host, with friends) finish one. Her results come from a skill
+    // profile (about a 26% strike rate and 40% spares); her ball and pins play out on her lane for everyone.
+    const BOT = { name: 'Strike Sally', color: '#ff9ad0', on: prefs.bowlBot !== false, lane: -1, rolls: [], phase: 'idle', t0: 0, ballX: 0, ballZ: 0, ballOn: false, aim: 0, knock: [], pins: null, done: false, toldResult: false, req: null, reqSeq: 0 };
+    L.bowlBot = BOT;
+    const freshPins = () => SPOTS.flatMap(([x, z]) => [x, z, 0]);
+    BOT.pins = freshPins();
+    const herePeers = () => {
+      const ids = [state.myPeer];
+      for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer);
+      return ids.sort();
+    };
+    const isHost = () => herePeers()[0] === state.myPeer;
+    function humanLanes() {
+      const used = new Set();
+      if (me.lane >= 0) used.add(me.lane);
+      for (const rec of remotes.values()) { const st = rec.lvState[L.id]; if (rec.lv === L.idx && st && st.lane >= 0) used.add(st.lane); }
+      return used;
+    }
+    // an avatar at her lane, so she's someone
+    const sally = buildAvatar(BOT.color, 1, 1, true, 2, 2);
+    const sallyLabel = new THREE.Sprite(new THREE.SpriteMaterial({ map: canvasTexture(256, 64, (g) => { rr(g, 4, 6, 248, 52, 26); g.fillStyle = 'rgba(20,16,32,0.8)'; g.fill(); g.fillStyle = '#ffffff'; g.font = `700 30px ${BODY}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('Strike Sally', 128, 33); }).tex, transparent: true, depthWrite: false }));
+    sallyLabel.scale.set(0.9, 0.225, 1); sallyLabel.position.y = 0.42;
+    sally.add(sallyLabel);
+    sally.visible = false;
+    G.add(sally);
+    const botRec = { name: BOT.name, color: BOT.color, colorIdx: -1, bowlBall: null, lvState: { [L.id]: { lane: -1, pins: null, ball: null, rolls: [] } } };
+    function botLaneRec() {
+      if (BOT.lane < 0) return null;
+      const st = botRec.lvState[L.id];
+      st.lane = BOT.lane; st.pins = BOT.pins; st.rolls = BOT.rolls;
+      st.ball = [laneX(BOT.lane) + BOT.ballX, BR, BOT.ballZ, BOT.ballOn ? 1 : 0];
+      return botRec;
+    }
+    L.botLaneRec = botLaneRec;
+
+    // ---------------------------------------------------------------- how she bowls (host)
+    const standing = () => [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].filter((k) => BOT.pins[k * 3 + 2] === 0);
+    function decideKnock() {
+      const up = standing(), fresh = up.length === 10;
+      let n;
+      if (fresh) {
+        const r = rand();
+        n = r < 0.26 ? 10 : r < 0.29 ? Math.floor(rand() * 3) : r < 0.45 ? 9 : r < 0.72 ? 8 : r < 0.9 ? 7 : 6;
+      } else n = rand() < 0.4 ? up.length : Math.floor(rand() * up.length * 0.8);
+      n = Math.min(n, up.length);
+      // pins near the head pin and the pocket go first
+      const ranked = up.map((k) => ({ k, w: rand() + (3 - Math.floor(k === 0 ? 0 : k < 3 ? 1 : k < 6 ? 2 : 3)) * 0.35 + (Math.abs(SPOTS[k][0] - BOT.aim) < 0.2 ? 0.3 : 0) })).sort((a, b) => b.w - a.w);
+      return ranked.slice(0, n).map((o) => o.k);
+    }
+    function botRoll(now) {
+      BOT.phase = 'rolling'; BOT.t0 = now;
+      BOT.aim = (rand() - 0.5) * 0.25;
+      BOT.ballX = 0; BOT.ballZ = 0.2; BOT.ballOn = true;
+      BOT.knock = decideKnock();
+    }
+    function frameCount(rolls) { const r = bowlAnalyze(rolls); return r.done ? 10 : r.frame; }
+    function botStep(now) {
+      const lanes = humanLanes();
+      // the highest lane nobody is using
+      let lane = -1;
+      if (BOT.on) for (let i = NL - 1; i >= 0; i--) if (!lanes.has(i)) { lane = i; break; }
+      if (lane !== BOT.lane) { BOT.lane = lane; forcePresence(); }
+      if (lane < 0) return;
+      // a new game for you means a new game for her
+      if (me.rolls.length === 0 && (BOT.rolls.length > 0) && BOT.phase === 'idle') { BOT.rolls = []; BOT.pins = freshPins(); BOT.done = false; BOT.toldResult = false; forcePresence(); }
+      if (BOT.phase === 'idle') {
+        if (BOT.sameFrame) { if (now > BOT.nextT) { BOT.sameFrame = false; botRoll(now); } }
+        else {
+          const owed = frameCount(me.rolls) - frameCount(BOT.rolls);
+          if (owed > 0 && !BOT.done && now - BOT.t0 > 900) botRoll(now);
+        }
+      } else if (BOT.phase === 'rolling') {
+        const k = Math.min(1, (now - BOT.t0) / 2300);
+        BOT.ballZ = 0.2 + (HEAD_Z + 0.2 - 0.2) * k;
+        BOT.ballX = BOT.aim * k;
+        if (k >= 1) {
+          // into the pins
+          for (const p of BOT.knock) {
+            const a = rand() * Math.PI * 2, d = 0.1 + rand() * 0.25;
+            BOT.pins[p * 3] += Math.cos(a) * d; BOT.pins[p * 3 + 1] += Math.sin(a) * d * 0.5 - 0.1; BOT.pins[p * 3 + 2] = 2;
+          }
+          if (BOT.knock.length) crashAt(laneX(BOT.lane), BOT.knock.length);
+          BOT.ballOn = false;
+          BOT.phase = 'settle'; BOT.t0 = now;
+          forcePresence();
+        }
+      } else if (BOT.phase === 'settle' && now - BOT.t0 > 1400) {
+        const before = bowlAnalyze(BOT.rolls);
+        BOT.rolls.push(BOT.knock.length);
+        const after = bowlAnalyze(BOT.rolls);
+        if (BOT.knock.length === 10 && before.fresh) spawnFloat('Strike!', new V3(laneX(BOT.lane), 1.6, -6), '#ff9ad0');
+        if (after.done) { BOT.done = true; BOT.pins = freshPins(); }
+        else if (after.fresh) BOT.pins = freshPins();
+        else for (let p = 0; p < 10; p++) if (BOT.pins[p * 3 + 2] !== 0) BOT.pins[p * 3 + 2] = 3;
+        // a second ball (or a 10th-frame bonus ball) follows straight on; otherwise wait for your next frame
+        BOT.phase = 'idle'; BOT.t0 = now;
+        if (!after.done && after.frame === before.frame) { BOT.sameFrame = true; BOT.nextT = now + 700; }
+        state.dirtyBoard = true;
+        forcePresence();
+      }
+      // when you're both done, say who won
+      if (BOT.done && bowlAnalyze(me.rolls).done && !BOT.toldResult) {
+        BOT.toldResult = true;
+        const mine = bowlAnalyze(me.rolls).total, hers = bowlAnalyze(BOT.rolls).total;
+        showToast(mine > hers ? `You beat Strike Sally ${mine} to ${hers}!` : mine < hers ? `Strike Sally wins ${hers} to ${mine}` : `A ${mine} to ${hers} tie with Strike Sally`);
+      }
+    }
+    function crashAt(x, n) {
+      const dist = Math.hypot(myHead.pos.x - x, myHead.pos.z - HEAD_Z);
+      noiseBurst(0.5, Math.min(0.4, 0.1 + n * 0.03) / (1 + dist * 0.1), 2200, 0.7, 0.005);
+    }
+
+    // ---------------------------------------------------------------- per frame, network, scoreboard
+    const baseUpdate = L.update, basePresence = L.presence, baseRead = L.readPresence, baseDraw = L.drawBoard;
+    L.update = (dt, now) => {
+      if (isHost()) botStep(now);
+      baseUpdate(dt, now);
+      const show = BOT.lane >= 0 && state.level === L.idx;
+      sally.visible = show;
+      if (show) {
+        const atLine = BOT.phase === 'rolling' && now - BOT.t0 < 900;
+        sally.position.set(laneX(BOT.lane) + 0.3, 1.55, atLine ? 0.6 : 2.0);
+        sally.rotation.y = 0;
+      }
+    };
+    const q2 = (x) => Math.round(x * 100) / 100;
+    L.presence = () => {
+      const p = basePresence();
+      if (isHost()) p.bwb = { on: BOT.on ? 1 : 0, l: BOT.lane, r: BOT.rolls.slice(0, 21), b: [q2(BOT.ballX), q2(BOT.ballZ), BOT.ballOn ? 1 : 0], p: BOT.pins.map(q2) };
+      if (BOT.req) p.bwr = BOT.req.slice();
+      return p;
+    };
+    L.readPresence = (rec, pres, st) => {
+      baseRead(rec, pres, st);
+      if (isHost() && Array.isArray(pres.bwr) && pres.bwr.length === 2 && (pres.bwr[0] === 0 || pres.bwr[0] === 1) && pres.bwr.join() !== st.bwr) {
+        st.bwr = pres.bwr.join();
+        if (st.bwrInit && BOT.on !== !!pres.bwr[0]) { BOT.on = !!pres.bwr[0]; state.hudDirty = true; forcePresence(); }
+      }
+      st.bwrInit = true;
+      if (rec.peer !== herePeers()[0]) return;
+      const b = pres.bwb;
+      if (!b || typeof b !== 'object' || !Number.isInteger(b.l) || b.l < -1 || b.l >= NL || !Array.isArray(b.r) || !b.r.every((x) => Number.isInteger(x) && x >= 0 && x <= 10) || !Array.isArray(b.b) || b.b.length !== 3 || !b.b.every(finite) || !Array.isArray(b.p) || b.p.length !== 30 || !b.p.every(finite)) return;
+      if ((b.on === 1) !== BOT.on) { BOT.on = b.on === 1; state.hudDirty = true; }
+      if (b.r.length !== BOT.rolls.length) state.dirtyBoard = true;
+      Object.assign(BOT, { lane: b.l, rolls: b.r.slice(), ballX: b.b[0], ballZ: b.b[1], ballOn: b.b[2] === 1, pins: b.p.slice() });
+    };
+    function setBot(on) {
+      BOT.on = on; prefs.bowlBot = on; savePrefs();
+      BOT.req = [on ? 1 : 0, ++BOT.reqSeq];
+      showToast(on ? 'Strike Sally will bowl with you' : 'Strike Sally sits this one out');
+      state.hudDirty = true; state.dirtyBoard = true;
+      forcePresence();
+    }
+    L.setBowlBot = setBot;
+    L.hudActions.push({ label: () => (BOT.on ? 'Bot: on' : 'Bot: off'), run: () => setBot(!BOT.on) });
+    L.drawBoard = (rows) => {
+      const all = rows.slice();
+      if (BOT.lane >= 0) { const r = bowlAnalyze(BOT.rolls); all.push({ name: 'Strike Sally (bot)', color: BOT.color, me: false, total: r.total, frame: r.frame, text: r.done ? `${r.total} final` : `${r.total}, frame ${r.frame + 1}` }); }
+      all.sort(L.sortRows);
+      baseDraw(all);
+    };
+    L.bowlBotInternals = { botStep, decideKnock };
     return L;
   })();
 
@@ -9577,6 +10222,14 @@ kbd {
           if (now > K.bumpT) { K.speed *= 0.7; K.bumpT = now + 400; tone(160, 90, 0.12, 'square', 0.12); if (state.mode === 'vr') for (const s of SIDES) haptic(vrHands[s], 0.6, 60); }
         }
       }
+      // and into the bots
+      if (typeof botKarts === 'function') for (const b of botKarts()) {
+        const dx = K.x - b.x, dz = K.z - b.z, d = Math.hypot(dx, dz);
+        if (d < 1.7 && d > 1e-3) {
+          K.x += (dx / d) * (1.7 - d) * 0.6; K.z += (dz / d) * (1.7 - d) * 0.6;
+          if (now > K.bumpT) { K.speed *= 0.75; K.bumpT = now + 400; tone(160, 90, 0.12, 'square', 0.12); if (state.mode === 'vr') for (const s of SIDES) haptic(vrHands[s], 0.6, 60); }
+        }
+      }
       // boost pads
       if (now > K.boostCool && Math.abs(K.lat) < 2.4) {
         for (const b of BOOSTS) {
@@ -9623,6 +10276,7 @@ kbd {
         if (rec.lv !== L.idx || !st || st.raceId !== race.id || (st.phase !== 'run' && st.phase !== 'done')) continue;
         rows.push({ me: false, phase: st.phase, lap: st.raceLap, s: st.s, finish: st.finish });
       }
+      if (typeof botKarts === 'function') for (const b of botKarts()) if (b.raceId === race.id && (b.phase === 'run' || b.phase === 'done')) rows.push({ me: false, bot: b.n, phase: b.phase, lap: b.lap, s: b.s, finish: b.finish });
       rows.sort((a, b) => {
         if (a.phase === 'done' && b.phase === 'done') return a.finish - b.finish;
         if (a.phase === 'done') return -1;
@@ -9937,11 +10591,12 @@ kbd {
 
     // ---------------------------------------------------------------- per frame
     const _ia = new V3();
-    function ownerName(peer) { const rec = remotes.get(peer); return rec ? rec.name : null; }
+    function ownerName(peer, bot) { if (bot >= 0 && typeof BOT_NAMES !== 'undefined') return BOT_NAMES[bot]; const rec = remotes.get(peer); return rec ? rec.name : null; }
     function karts() {
       // everyone's kart position, me included
       const out = [{ peer: state.myPeer, x: K.x, z: K.z, s: K.s }];
       for (const rec of remotes.values()) { const st = rec.lvState[L.id]; if (rec.lv === L.idx && st && st.ok) out.push({ peer: rec.peer, x: st.x, z: st.z, s: st.s }); }
+      if (typeof botKarts === 'function') for (const b of botKarts()) out.push({ peer: `bot:${b.n}`, x: b.x, z: b.z, s: b.s });
       return out;
     }
     function stepBall(b, dt, homingTarget) {
@@ -10006,17 +10661,17 @@ kbd {
         b.mesh.rotation.y += dt * 0.5;
         if (now - b.t0 > 30000) { G.remove(b.mesh); mineObjs.bananas.splice(i, 1); continue; }
         // I can slip on my own peel too, once I've driven clear of it
-        if (playing && now - b.t0 > 1200 && Math.hypot(K.x - b.x, K.z - b.z) < 1.0) { G.remove(b.mesh); mineObjs.bananas.splice(i, 1); hitMe(null); forcePresence(); }
+        if (playing && (b.bot >= 0 || now - b.t0 > 1200) && Math.hypot(K.x - b.x, K.z - b.z) < 1.0) { G.remove(b.mesh); mineObjs.bananas.splice(i, 1); hitMe(b.bot >= 0 ? BOT_NAMES[b.bot] : null); forcePresence(); }
       }
       for (let i = mineObjs.balls.length - 1; i >= 0; i--) {
         const b = mineObjs.balls[i];
-        b.owner = state.myPeer;
+        b.owner = b.bot >= 0 ? `bot:${b.bot}` : state.myPeer;
         stepBall(b, dt, b.kind === 'homing' ? homingTargetFor(b) : null);
         b.mesh.position.set(b.x, 0.35, b.z);
         b.mesh.rotation.y += dt * 9;
         if (now - b.t0 > (b.kind === 'homing' ? 7000 : 6000)) { G.remove(b.mesh); mineObjs.balls.splice(i, 1); continue; }
         // my own bumper ball can come back around and get me
-        if (playing && b.kind === 'bumper' && now - b.t0 > 900 && Math.hypot(K.x - b.x, K.z - b.z) < 1.15) { G.remove(b.mesh); mineObjs.balls.splice(i, 1); hitMe(null); forcePresence(); }
+        if (playing && (b.bot >= 0 || (b.kind === 'bumper' && now - b.t0 > 900)) && Math.hypot(K.x - b.x, K.z - b.z) < 1.15) { G.remove(b.mesh); mineObjs.balls.splice(i, 1); hitMe(b.bot >= 0 ? BOT_NAMES[b.bot] : null); forcePresence(); }
       }
       // everyone else's things: move balls between updates, and check if they hit me
       for (const [key, o] of remoteObjs) {
@@ -10033,7 +10688,7 @@ kbd {
           if (usedUp.size > 60) usedUp.delete(usedUp.values().next().value);
           consumed.list.push([++consumed.seq, o.owner, o.id]);
           if (consumed.list.length > 6) consumed.list.shift();
-          hitMe(ownerName(o.owner));
+          hitMe(ownerName(o.owner, o.bot));
         }
       }
     }
@@ -10070,8 +10725,8 @@ kbd {
     L.presence = () => {
       const p = basePresence();
       p.ki = {
-        b: mineObjs.bananas.map((b) => [b.id, r2i(b.x), r2i(b.z)]),
-        p: mineObjs.balls.map((b) => [b.id, KIND_CODE[b.kind], r2i(b.x), r2i(b.z), r2i(b.vx), r2i(b.vz)]),
+        b: mineObjs.bananas.map((b) => [b.id, r2i(b.x), r2i(b.z), b.bot >= 0 ? b.bot : -1]),
+        p: mineObjs.balls.map((b) => [b.id, KIND_CODE[b.kind], r2i(b.x), r2i(b.z), r2i(b.vx), r2i(b.vz), b.bot >= 0 ? b.bot : -1]),
         s: K.shieldT > 0 ? 1 : 0, sp: K.spinT > 0 ? 1 : 0,
         x: consumed.list.slice(),
       };
@@ -10090,22 +10745,22 @@ kbd {
       // their bananas and balls
       const seen = new Set();
       if (Array.isArray(ki.b)) for (const a of ki.b.slice(0, 6)) {
-        if (!Array.isArray(a) || a.length !== 3 || !Number.isInteger(a[0]) || !ok(a[1]) || !ok(a[2])) continue;
+        if (!Array.isArray(a) || (a.length !== 3 && a.length !== 4) || !Number.isInteger(a[0]) || !ok(a[1]) || !ok(a[2])) continue;
         const key = `${rec.peer}:b${a[0]}`;
         seen.add(key);
         if (usedUp.has(key)) continue;
         let o = remoteObjs.get(key);
-        if (!o) { o = { kind: 'banana', owner: rec.peer, id: a[0], mesh: bananaMesh(), alive: true }; remoteObjs.set(key, o); }
+        if (!o) { o = { kind: 'banana', owner: rec.peer, id: a[0], mesh: bananaMesh(), alive: true, bot: Number.isInteger(a[3]) ? a[3] : -1 }; remoteObjs.set(key, o); }
         o.x = a[1]; o.z = a[2]; o.mesh.position.set(o.x, 0, o.z);
       }
       if (Array.isArray(ki.p)) for (const a of ki.p.slice(0, 4)) {
-        if (!Array.isArray(a) || a.length !== 6 || !Number.isInteger(a[0]) || (a[1] !== 0 && a[1] !== 1) || !a.slice(2).every(ok)) continue;
+        if (!Array.isArray(a) || (a.length !== 6 && a.length !== 7) || !Number.isInteger(a[0]) || (a[1] !== 0 && a[1] !== 1) || !a.slice(2, 6).every(ok)) continue;
         const key = `${rec.peer}:p${a[0]}`;
         seen.add(key);
         if (usedUp.has(key)) continue;
         let o = remoteObjs.get(key);
         const kind = a[1] === 1 ? 'homing' : 'bumper';
-        if (!o) { o = { kind, owner: rec.peer, id: a[0], mesh: ballMesh(kind), alive: true }; remoteObjs.set(key, o); }
+        if (!o) { o = { kind, owner: rec.peer, id: a[0], mesh: ballMesh(kind), alive: true, bot: Number.isInteger(a[6]) ? a[6] : -1 }; remoteObjs.set(key, o); }
         o.x = a[2]; o.z = a[3]; o.vx = a[4]; o.vz = a[5];
       }
       for (const [key, o] of remoteObjs) if (o.owner === rec.peer && !seen.has(key)) o.alive = false;
@@ -10129,6 +10784,300 @@ kbd {
     };
     L.hints = [['W/S', 'drive and brake'], ['A/D', 'steer'], ['E or Space', 'use your item'], ['Start race', 'button, top right']];
     L.itemsInternals = { ITEMS, rollItem, itemBoxes, hitMe };
+
+    // ================================================================ AI RACERS
+    // Up to three computer racers fill the grid when there are fewer than four people. The host drives them;
+    // everyone else sees them through the host's presence.
+    const BOT_NAMES = ['Turbo Tess', 'Pebble Pete', 'Captain Drift'];
+    const BOT_COLORS = ['#ff8a3a', '#8bd450', '#b388ff'];
+    const BOT_SKILL = [{ vmax: 16.0, line: -1.2 }, { vmax: 15.6, line: 1.4 }, { vmax: 15.1, line: 0.2 }];
+    const bots = [];
+    const botState = { on: prefs.kartBots !== false, req: null, reqSeq: 0 };
+    L.bots = bots;
+    L.botState = botState;
+    // how sharply the track bends ahead of each point (signed: + bends left)
+    const BEND = P.map((_, i) => {
+      const a = T[i], b = T[(i + Math.round(16 / DS)) % N];
+      return Math.atan2(a.x * b.z - a.z * b.x, a.x * b.x + a.z * b.z);
+    });
+    const humanCount = () => racers().length;
+    const isHost = () => racers()[0] === state.myPeer;
+    const wantBots = () => (botState.on ? Math.max(0, Math.min(3, 4 - humanCount())) : 0);
+    function botKarts() { return bots.filter((b) => b.active); }
+    L.botKarts = botKarts;
+
+    function makeBot(n) {
+      const kart = makeKart(BOT_COLORS[n]);
+      const driver = buildAvatar(BOT_COLORS[n], (n * 2 + 1) % HATS.length, n % FACES.length, false);
+      driver.position.set(0, 0.95, 0.35);
+      kart.g.add(driver);
+      const label = new THREE.Sprite(new THREE.SpriteMaterial({ map: canvasTexture(256, 64, (g) => { rr(g, 4, 6, 248, 52, 26); g.fillStyle = 'rgba(20,16,32,0.75)'; g.fill(); g.fillStyle = '#ffffff'; g.font = `700 30px ${BODY}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(BOT_NAMES[n], 128, 33); }).tex, transparent: true, depthWrite: false }));
+      label.scale.set(1.2, 0.3, 1); label.position.set(0, 1.85, 0.35);
+      kart.g.add(label);
+      const shield = new THREE.Mesh(new THREE.SphereGeometry(1.45, 18, 12), shieldMat);
+      shield.position.y = 0.7; shield.visible = false;
+      kart.g.add(shield);
+      const b = {
+        n, name: BOT_NAMES[n], kart, shield, active: false,
+        x: 0, z: 0, yaw: 0, speed: 0, steer: 0, idx: 0, s: 0, line: BOT_SKILL[n].line, vmax: BOT_SKILL[n].vmax,
+        lap: 0, halfway: false, phase: 'free', raceId: 0, finish: 0, boostT: 0, boostCool: 0, spinT: 0, shieldT: 0, item: null, roll: 0, itemT: 0, bumpT: 0, wspin: 0,
+        rx: 0, rz: 0, ryaw: 0,
+      };
+      bots.push(b);
+      return b;
+    }
+    for (let n = 0; n < 3; n++) makeBot(n);
+    function placeBot(b, slot) {
+      const back = Math.round((3.5 + Math.floor(slot / 2) * 4) / DS);
+      const i = (N - back) % N, lat = (slot % 2 ? 1 : -1) * 2.2;
+      Object.assign(b, { x: P[i].x + NR[i].x * lat, z: P[i].z + NR[i].z * lat, yaw: Math.atan2(-T[i].x, -T[i].z), speed: 0, steer: 0, idx: i, s: i * DS, halfway: false, spinT: 0, shieldT: 0, boostT: 0 });
+      b.rx = b.x; b.rz = b.z; b.ryaw = b.yaw;
+    }
+
+    // ---------------------------------------------------------------- driving (host)
+    function leaderProgress() {
+      // how far round the race the people are, for a gentle catch-up either way
+      let best = -Infinity;
+      const mine = race.lap * TLEN + K.s;
+      best = Math.max(best, mine);
+      for (const rec of remotes.values()) { const st = rec.lvState[L.id]; if (rec.lv === L.idx && st && st.ok) best = Math.max(best, (st.raceLap || 0) * TLEN + st.s); }
+      return best;
+    }
+    function botDrive(b, dt, now, frozen) {
+      b.idx = nearest(b.x, b.z, b.idx);
+      const p = P[b.idx];
+      const lat = (b.x - p.x) * NR[b.idx].x + (b.z - p.z) * NR[b.idx].z;
+      const offroad = Math.abs(lat) > HW + 0.5;
+      // aim at a point ahead on the racing line, cutting to the inside of bends
+      const ahead = Math.round((6 + Math.max(0, b.speed) * 0.55) / DS);
+      const ti = (b.idx + ahead) % N, bend = BEND[b.idx];
+      const want = clamp(b.line - Math.sign(bend) * Math.min(2.4, Math.abs(bend) * 3.2), -HW + 1.1, HW - 1.1);
+      const tx = P[ti].x + NR[ti].x * want, tz = P[ti].z + NR[ti].z * want;
+      const head = Math.atan2(-(tx - b.x), -(tz - b.z));
+      let dy = head - b.yaw; while (dy > Math.PI) dy -= Math.PI * 2; while (dy < -Math.PI) dy += Math.PI * 2;
+      const spun = b.spinT > 0;
+      b.spinT = Math.max(0, b.spinT - dt); b.shieldT = Math.max(0, b.shieldT - dt); b.boostT = Math.max(0, b.boostT - dt);
+      const steerCmd = spun ? 0 : clamp(-dy * 2.4, -1, 1);
+      b.steer += (steerCmd - b.steer) * Math.min(1, dt * 8);
+      // slow for tight bends; a little catch-up so races stay close
+      let target = b.vmax * (1 - clamp(Math.abs(BEND[(b.idx + Math.round(10 / DS)) % N]) * 0.55, 0, 0.35));
+      if (race.phase === 'run' && b.phase === 'run') {
+        const gap = (b.lap * TLEN + b.s) - leaderProgress();
+        if (gap > 40) target *= 0.93; else if (gap < -30) target *= 1.1;
+      }
+      const vmax = b.boostT > 0 ? 23 : offroad ? 7 : b.shieldT > 0 ? Math.max(target, 18) : target;
+      const throttle = frozen || spun ? 0 : b.speed < vmax ? 1 : 0, brake = !frozen && !spun && b.speed > vmax + 1.5 ? 0.6 : 0;
+      if (spun) b.speed *= Math.exp(-2.6 * dt);
+      if (throttle && b.speed < vmax) b.speed += (b.boostT > 0 ? 14 : 6.5) * dt;
+      if (brake && b.speed > 0.3) b.speed -= 16 * brake * dt;
+      b.speed -= Math.sign(b.speed) * Math.min(Math.abs(b.speed), (throttle ? 0.6 : 2.2) * dt + 0.01 * b.speed * b.speed * dt);
+      if (b.speed > vmax) b.speed = Math.max(vmax, b.speed - (offroad ? 14 : 5) * dt);
+      const grip = clamp(Math.abs(b.speed) / 5, 0, 1) * (1 - 0.35 * clamp((Math.abs(b.speed) - 12) / 10, 0, 1));
+      b.yaw -= b.steer * 2.1 * grip * dt;
+      b.x += -Math.sin(b.yaw) * b.speed * dt;
+      b.z += -Math.cos(b.yaw) * b.speed * dt;
+      // boost pads
+      if (now > b.boostCool && Math.abs(lat) < 2.4) for (const pi of BOOSTS) { const di = Math.abs(((b.idx - pi + N / 2 + N) % N) - N / 2); if (di * DS < 1.6) { b.boostT = 1.4; b.boostCool = now + 1500; break; } }
+      // laps
+      const prevS = b.s;
+      b.s = b.idx * DS;
+      if (b.s > TLEN * 0.4 && b.s < TLEN * 0.6) b.halfway = true;
+      if (prevS > TLEN * 0.8 && b.s < TLEN * 0.2) {
+        if (b.halfway) {
+          b.lap += 1;
+          if (b.phase === 'run' && b.lap >= RACE_LAPS) { b.phase = 'done'; b.finish = now - race.start; showToast(`${b.name} finished`); state.dirtyBoard = true; }
+          state.dirtyBoard = true;
+        }
+        b.halfway = false;
+      } else if (prevS < TLEN * 0.2 && b.s > TLEN * 0.8) b.halfway = false;
+      // item boxes, and using what they've got
+      for (const box of itemBoxes) if (now > box.back && Math.hypot(b.x - box.x, b.z - box.z) < 1.35) { box.back = now + 4000; if (!b.item && b.roll <= 0) b.roll = 1.2; }
+      if (b.roll > 0) { b.roll -= dt; if (b.roll <= 0) { b.item = botRollItem(b); b.itemT = now + 800 + rand() * 1500; } }
+      if (b.item && now > b.itemT && !frozen && !spun) botUseItem(b, now);
+    }
+    function standingOf(b) { const s = standings(); return { place: s.findIndex((r) => r.bot === b.n) + 1, n: s.length }; }
+    function botRollItem(b) {
+      const { place, n } = standingOf(b);
+      const r = rand();
+      if (n > 1 && place === 1) return r < 0.45 ? 'banana' : r < 0.8 ? 'bumper' : 'turbo';
+      return r < 0.3 ? 'turbo' : r < 0.55 ? 'homing' : r < 0.72 ? 'bumper' : r < 0.86 ? 'banana' : 'shield';
+    }
+    // simple tactics: turbo on a straight, drop a peel with someone close behind, fire at someone ahead
+    function botUseItem(b, now) {
+      const fx = -Math.sin(b.yaw), fz = -Math.cos(b.yaw);
+      const others = karts().filter((k) => k.peer !== `bot:${b.n}`);
+      let behind = false, ahead = false;
+      for (const k of others) {
+        const dx = k.x - b.x, dz = k.z - b.z, d = Math.hypot(dx, dz), along = (dx * fx + dz * fz) / (d || 1);
+        if (d < 12 && along < -0.6) behind = true;
+        if (d < 30 && along > 0.85) ahead = true;
+      }
+      const it = b.item;
+      let go = false;
+      if (it === 'turbo') go = Math.abs(BEND[b.idx]) < 0.12;
+      else if (it === 'banana') go = behind || now > b.itemT + 6000;
+      else if (it === 'bumper') go = ahead || now > b.itemT + 7000;
+      else if (it === 'homing') go = others.length > 0;
+      else if (it === 'shield') go = true;
+      if (!go) return;
+      b.item = null;
+      if (it === 'turbo') { b.boostT = 1.6; b.boostCool = now + 1700; }
+      else if (it === 'shield') b.shieldT = 5;
+      else if (it === 'banana') {
+        const o = { id: ++mineObjs.seq, x: b.x - fx * 1.6, z: b.z - fz * 1.6, t0: now, mesh: bananaMesh(), bot: b.n };
+        o.mesh.position.set(o.x, 0, o.z);
+        mineObjs.bananas.push(o);
+        if (mineObjs.bananas.length > 8) { const old = mineObjs.bananas.shift(); G.remove(old.mesh); }
+      } else {
+        const sp = Math.max(28, b.speed + 14);
+        const o = { id: ++mineObjs.seq, kind: it, x: b.x + fx * 1.8, z: b.z + fz * 1.8, vx: fx * sp, vz: fz * sp, t0: now, mesh: ballMesh(it), idx: b.idx, bot: b.n };
+        mineObjs.balls.push(o);
+        if (mineObjs.balls.length > 6) { const old = mineObjs.balls.shift(); G.remove(old.mesh); }
+      }
+      forcePresence();
+    }
+    function hitBot(b) {
+      if (b.shieldT > 0) return;
+      if (b.spinT > 0) return;
+      b.spinT = 1.3; b.boostT = 0;
+    }
+    // the host checks every banana and ball on the track against the bots
+    function botHits(now) {
+      for (const b of botKarts()) {
+        for (let i = mineObjs.bananas.length - 1; i >= 0; i--) {
+          const o = mineObjs.bananas[i];
+          if (o.bot === b.n && now - o.t0 < 1200) continue;
+          if (Math.hypot(b.x - o.x, b.z - o.z) < 1.0) { G.remove(o.mesh); mineObjs.bananas.splice(i, 1); if (b.shieldT <= 0 && o.bot !== b.n) showToast(`${o.bot >= 0 ? BOT_NAMES[o.bot] : state.name} got ${b.name}!`); hitBot(b); forcePresence(); }
+        }
+        for (let i = mineObjs.balls.length - 1; i >= 0; i--) {
+          const o = mineObjs.balls[i];
+          if (o.bot === b.n && now - o.t0 < 900) continue;
+          if (Math.hypot(b.x - o.x, b.z - o.z) < 1.2) { G.remove(o.mesh); mineObjs.balls.splice(i, 1); hitBot(b); forcePresence(); }
+        }
+        for (const [key, o] of remoteObjs) {
+          if (!o.alive || Math.hypot(b.x - o.x, b.z - o.z) > (o.kind === 'banana' ? 1.0 : 1.2)) continue;
+          o.alive = false;
+          usedUp.add(key);
+          consumed.list.push([++consumed.seq, o.owner, o.id]);
+          if (consumed.list.length > 6) consumed.list.shift();
+          hitBot(b);
+          forcePresence();
+        }
+      }
+    }
+
+    // ---------------------------------------------------------------- per frame
+    let lastRaceId = race.id, lastPhase = race.phase;
+    const baseUpdate = L.update;
+    L.update = (dt, now) => {
+      baseUpdate(dt, now);
+      const host = isHost() && state.level === L.idx;
+      const n = wantBots();
+      if (host) {
+        bots.forEach((b, i) => {
+          const was = b.active;
+          b.active = i < n;
+          if (b.active && !was) { placeBot(b, humanCount() + i + 2); b.phase = race.phase === 'run' || race.phase === 'count' ? 'free' : 'free'; b.lap = 0; }
+        });
+        // a race just started: line up on the grid behind the people
+        if (race.id !== lastRaceId && (race.phase === 'count' || race.phase === 'run')) {
+          botKarts().forEach((b, i) => { placeBot(b, humanCount() + i); Object.assign(b, { phase: 'count', raceId: race.id, lap: 0, finish: 0, item: null, roll: 0 }); });
+          forcePresence();
+        }
+        if (race.phase === 'run' && lastPhase === 'count') botKarts().forEach((b) => { if (b.raceId === race.id) { b.phase = 'run'; b.lap = 0; b.halfway = false; } });
+        const frozen = race.phase === 'count';
+        for (const b of botKarts()) for (let k = 0; k < 2; k++) botDrive(b, dt / 2, now, frozen && b.phase === 'count');
+        // bots bump each other
+        const list = botKarts();
+        for (let i = 0; i < list.length; i++) for (let j = i + 1; j < list.length; j++) {
+          const a = list[i], c = list[j], dx = c.x - a.x, dz = c.z - a.z, d = Math.hypot(dx, dz);
+          if (d < 1.7 && d > 1e-3) { const p = (1.7 - d) / 2; a.x -= (dx / d) * p; a.z -= (dz / d) * p; c.x += (dx / d) * p; c.z += (dz / d) * p; }
+        }
+        // and get pushed by the people
+        for (const b of list) {
+          for (const k of karts()) {
+            if (k.peer.startsWith('bot:')) continue;
+            const dx = b.x - k.x, dz = b.z - k.z, d = Math.hypot(dx, dz);
+            if (d < 1.7 && d > 1e-3) { b.x += (dx / d) * (1.7 - d) * 0.5; b.z += (dz / d) * (1.7 - d) * 0.5; if (now > b.bumpT) { b.speed *= 0.8; b.bumpT = now + 400; } }
+          }
+        }
+        botHits(now);
+      }
+      lastRaceId = race.id; lastPhase = race.phase;
+      // draw them
+      const k = 1 - Math.exp(-dt * (host ? 30 : 10));
+      for (const b of bots) {
+        b.kart.g.visible = b.active && state.level === L.idx;
+        if (!b.kart.g.visible) continue;
+        if (Math.hypot(b.rx - b.x, b.rz - b.z) > 8) { b.rx = b.x; b.rz = b.z; }
+        b.rx += (b.x - b.rx) * k; b.rz += (b.z - b.rz) * k;
+        let dy = b.yaw - b.ryaw; while (dy > Math.PI) dy -= Math.PI * 2; while (dy < -Math.PI) dy += Math.PI * 2;
+        b.ryaw += dy * k;
+        b.kart.g.position.set(b.rx, 0, b.rz);
+        b.kart.g.rotation.y = b.ryaw + (b.spinT > 0 ? (1.3 - b.spinT) * 11 : 0);
+        b.wspin += b.speed * dt / 0.24;
+        for (const w of b.kart.wheels) w.rotation.x = -b.wspin;
+        for (const f of b.kart.fronts) f.rotation.y = -b.steer * 0.45;
+        b.shield.visible = b.shieldT > 0;
+      }
+    };
+
+    // ---------------------------------------------------------------- network
+    const PH = { free: 0, count: 1, run: 2, done: 3 }, PH_NAME = ['free', 'count', 'run', 'done'];
+    const basePresence2 = L.presence, baseRead2 = L.readPresence;
+    const q2 = (x) => Math.round(x * 100) / 100;
+    L.presence = () => {
+      const p = basePresence2();
+      if (isHost()) p.kb = [botState.on ? 1 : 0, ...botKarts().map((b) => [b.n, q2(b.x), q2(b.z), q2(b.yaw), q2(b.speed), q2(b.steer), Math.round(b.s), b.lap, PH[b.phase], Math.round(b.finish / 10), b.raceId, (b.spinT > 0 ? 1 : 0) | (b.shieldT > 0 ? 2 : 0)])];
+      if (botState.req) p.kbr = botState.req.slice();
+      return p;
+    };
+    L.readPresence = (rec, pres, st) => {
+      baseRead2(rec, pres, st);
+      // asked to switch bots on or off
+      if (isHost() && Array.isArray(pres.kbr) && pres.kbr.length === 2 && (pres.kbr[0] === 0 || pres.kbr[0] === 1) && pres.kbr.join() !== st.kbr) {
+        st.kbr = pres.kbr.join();
+        if (st.kbrInit && botState.on !== !!pres.kbr[0]) { botState.on = !!pres.kbr[0]; state.hudDirty = true; state.dirtyBoard = true; forcePresence(); }
+      }
+      st.kbrInit = true;
+      // the host's bots
+      if (rec.peer !== racers()[0] || !Array.isArray(pres.kb)) return;
+      const on = pres.kb[0] === 1;
+      if (on !== botState.on) { botState.on = on; state.hudDirty = true; }
+      const seen = new Set();
+      for (const a of pres.kb.slice(1, 4)) {
+        if (!Array.isArray(a) || a.length !== 12 || !a.every(finite) || !Number.isInteger(a[0]) || a[0] < 0 || a[0] > 2) continue;
+        const b = bots[a[0]];
+        seen.add(a[0]);
+        const was = b.active;
+        Object.assign(b, { active: true, x: clamp(a[1], -300, 300), z: clamp(a[2], -300, 300), yaw: a[3], speed: a[4], steer: a[5], s: a[6], lap: a[7], phase: PH_NAME[clamp(a[8], 0, 3)], finish: a[9] * 10, raceId: a[10], spinT: a[11] & 1 ? 0.5 : 0, shieldT: a[11] & 2 ? 1 : 0 });
+        if (!was) { b.rx = b.x; b.rz = b.z; b.ryaw = b.yaw; }
+        state.dirtyBoard = true;
+      }
+      for (const b of bots) if (!seen.has(b.n)) b.active = false;
+    };
+    function setBots(on) {
+      botState.on = on;
+      prefs.kartBots = on; savePrefs();
+      botState.req = [on ? 1 : 0, ++botState.reqSeq];
+      showToast(on ? 'Computer racers on' : 'Computer racers off');
+      state.hudDirty = true; state.dirtyBoard = true;
+      forcePresence();
+    }
+    L.setBots = setBots;
+    L.hudActions.push({ label: () => (botState.on ? 'Bots: on' : 'Bots: off'), run: () => setBots(!botState.on) });
+    // the scoreboard lists the bots too
+    const baseDraw = L.drawBoard;
+    L.drawBoard = (rows) => {
+      const all = rows.slice();
+      for (const b of botKarts()) {
+        const inRace = b.raceId === race.id && (b.phase === 'run' || b.phase === 'done');
+        all.push({ name: `${b.name} (bot)`, color: BOT_COLORS[b.n], me: false, inRace, done: b.phase === 'done', finish: b.finish, lap: b.lap, best: 1e12, text: inRace ? (b.phase === 'done' ? `Finished ${fmt(b.finish)}` : `Lap ${Math.min(RACE_LAPS, b.lap + 1)}/${RACE_LAPS}`) : 'Cruising' });
+      }
+      all.sort(L.sortRows);
+      baseDraw(all);
+    };
+    L.botInternals = { BOT_NAMES, botDrive, placeBot, hitBot, BEND };
     return L;
   })();
 
@@ -10919,6 +11868,717 @@ kbd {
       camera.lookAt(0, 1.2, -16);
     };
     L.internals = { startRound, found, hostTag, EV, HOME_SPOT, request };
+    return L;
+  })();
+
+  // ================================================================ LEVEL: CHARADES LOUNGE
+  const charades = (() => {
+    const L = newLevel(13);
+    const G = L.group;
+    const rand = mulberry32(2626);
+    const R = { minX: -10, maxX: 10, minZ: -8, maxZ: 8, H: 4.6 };
+    L.bounds = R;
+    L.env = {
+      sky: skyTexture([[0, '#1a1426'], [1, '#1a1426']]),
+      bg: 0x1a1426, fog: [0x1a1426, 30, 80], hemi: [0xffe2c8, 0x3a2a3a, 0.62],
+      sun: [0xffd8b0, 0.25], sunDir: new V3(0.2, 1, 0.3), ambient: [0x5a4a5a, 0.45], sprite: null,
+    };
+    // the prompts: original, no brands or titles
+    const PROMPTS = {
+      Action: ['brushing teeth', 'riding a bike', 'juggling', 'surfing', 'fishing', 'baking a cake', 'climbing a ladder', 'walking a dog', 'washing dishes', 'taking a selfie',
+        'building a snowman', 'flying a kite', 'playing guitar', 'swimming', 'skiing', 'rowing a boat', 'painting a wall', 'mowing the lawn', 'blowing bubbles', 'ice skating',
+        'skateboarding', 'sneezing', 'yawning', 'tying shoelaces', 'lifting weights', 'doing yoga', 'making a sandwich', 'sweeping the floor', 'jumping rope', 'hula hooping',
+        'reading a book', 'driving a car', 'chopping wood', 'planting a tree', 'brushing hair', 'taking a nap', 'eating spaghetti', 'opening a present', 'hammering a nail', 'pouring tea'],
+      Animal: ['elephant', 'penguin', 'kangaroo', 'monkey', 'snake', 'giraffe', 'octopus', 'crab', 'flamingo', 'owl', 'chicken', 'cat', 'dog', 'frog', 'butterfly',
+        'shark', 'bear', 'rabbit', 'horse', 'dolphin', 'turtle', 'spider', 'eagle', 'lion', 'bat', 'snail', 'gorilla', 'peacock', 'crocodile', 'jellyfish'],
+      Job: ['chef', 'firefighter', 'astronaut', 'pilot', 'doctor', 'teacher', 'magician', 'dentist', 'lifeguard', 'farmer', 'photographer', 'mail carrier', 'police officer',
+        'painter', 'scientist', 'barber', 'construction worker', 'dj', 'waiter', 'detective', 'mechanic', 'ballet dancer', 'conductor', 'clown', 'surgeon'],
+      Sport: ['basketball', 'bowling', 'golf', 'tennis', 'baseball', 'boxing', 'archery', 'karate', 'fencing', 'gymnastics', 'volleyball', 'soccer', 'hockey', 'rock climbing',
+        'diving', 'table tennis', 'wrestling', 'cycling', 'snowboarding', 'weightlifting'],
+      Thing: ['umbrella', 'toothbrush', 'rocket', 'volcano', 'rainbow', 'robot', 'ghost', 'roller coaster', 'campfire', 'tornado', 'popcorn', 'telephone', 'vacuum cleaner',
+        'windmill', 'lighthouse', 'hot air balloon', 'ice cream cone', 'birthday cake', 'alarm clock', 'pizza', 'helicopter', 'guitar', 'tent', 'snowflake', 'washing machine',
+        'mirror', 'scissors', 'balloon', 'ladder', 'sandcastle'],
+    };
+    const CATS = Object.keys(PROMPTS);
+    L.PROMPTS = PROMPTS;
+    L.CATS = CATS;
+
+    // ---------------------------------------------------------------- the room
+    const wood = canvasTexture(256, 256, (g) => {
+      for (let i = 0; i < 8; i++) { const s = 120 + Math.floor(rand() * 40); g.fillStyle = `rgb(${s + 30},${s - 10},${s - 50})`; g.fillRect(0, i * 32, 256, 30); g.fillStyle = 'rgba(60,30,10,0.4)'; g.fillRect(0, i * 32 + 30, 256, 2); g.fillRect(Math.floor(rand() * 256), i * 32, 2, 30); }
+    }).tex;
+    wood.wrapS = wood.wrapT = THREE.RepeatWrapping; wood.repeat.set(5, 4);
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(20, 16), new THREE.MeshLambertMaterial({ map: wood }));
+    floor.rotation.x = -Math.PI / 2; G.add(floor);
+    const wallMat = lam(0x3a2a44), trimMat = lam(0x6b2a3a);
+    for (const [x, z, w, d] of [[0, R.minZ, 20, 0.3], [0, R.maxZ, 20, 0.3], [R.minX, 0, 0.3, 16], [R.maxX, 0, 0.3, 16]]) {
+      addBox(G, w, R.H, d, wallMat, x, R.H / 2, z);
+      addBox(G, w + 0.02, 0.9, d + 0.06, trimMat, x, 0.45, z);
+    }
+    const ceil = new THREE.Mesh(new THREE.PlaneGeometry(20, 16), lam(0x241a2c)); ceil.rotation.x = Math.PI / 2; ceil.position.y = R.H; G.add(ceil);
+    // the stage: a low platform, velvet curtains, footlights and a spotlight
+    const STAGE = { x0: -4.5, x1: 4.5, z0: -7.7, z1: -3.2 };
+    L.STAGE = STAGE;
+    addBox(G, 9, 0.12, 4.5, lam(0x5a3a28), 0, 0.06, -5.45);
+    addBox(G, 9.2, 0.14, 0.12, lam(0xd8b45a), 0, 0.07, -3.18);
+    const velvet = lam(0x9a1f2e);
+    for (let k = 0; k < 18; k++) { const c = addCyl(G, 0.22, 0.22, R.H - 0.2, 8, velvet, -4.25 + k * 0.5, (R.H - 0.2) / 2, -7.6); c.scale.z = 0.5; }
+    for (const sx of [-1, 1]) { const side = addBox(G, 1.2, R.H - 0.3, 0.3, velvet, sx * 5.2, (R.H - 0.3) / 2, -5.2); side.rotation.y = sx * 0.4; }
+    addBox(G, 10.4, 0.5, 0.3, lam(0x6b1520), 0, R.H - 0.35, -7.4);
+    const glow = new THREE.SpriteMaterial({ map: warmGlowTex, color: 0xffd08a, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true });
+    for (let k = 0; k < 9; k++) { const s = new THREE.Sprite(glow); s.position.set(-4 + k, 0.2, -3.28); s.scale.set(0.5, 0.35, 1); G.add(s); }
+    const spot = new THREE.SpotLight(0xfff0d8, 1.4, 14, 0.55, 0.5, 1.2);
+    spot.position.set(0, R.H - 0.2, -1.5); spot.target.position.set(0, 0, -5.2);
+    G.add(spot, spot.target);
+    const roomLight = new THREE.PointLight(0xffd8b0, 0.7, 22, 1.4); roomLight.position.set(0, 3.8, 3); G.add(roomLight);
+    // string lights over the audience
+    for (let k = 0; k < 16; k++) { const s = new THREE.Sprite(glow); s.position.set(-8 + k * 1.07, 3.7 - Math.sin((k / 15) * Math.PI) * 0.4, 1.5); s.scale.set(0.3, 0.3, 1); G.add(s); }
+
+    // ---------------------------------------------------------------- audience: red couches on the left, blue on the right
+    const TEAM_COL = ['#ff5c6a', '#4f8cff'], TEAM_NAME = ['Red', 'Blue'];
+    L.TEAM_COL = TEAM_COL; L.TEAM_NAME = TEAM_NAME;
+    const SEATS = [[], []];
+    for (const team of [0, 1]) {
+      const sx = team === 0 ? -1 : 1, fab = lam(team === 0 ? 0xb83a4a : 0x3a5ab8), dark = lam(team === 0 ? 0x8a2a36 : 0x2a428a);
+      for (const [row, z] of [[0, 1.4], [1, 3.6]]) {
+        const cx = sx * 3.6;
+        addBox(G, 4.2, 0.45, 0.9, fab, cx, 0.225, z);
+        addBox(G, 4.2, 0.85, 0.25, dark, cx, 0.42, z + 0.4);
+        for (const ax of [-1, 1]) addBox(G, 0.25, 0.65, 0.9, dark, cx + ax * 2.0, 0.33, z);
+        for (const k of [-1.3, 0, 1.3]) SEATS[team].push(new V3(cx + k, 0, z + 0.05));
+        void row;
+      }
+    }
+    L.SEATS = SEATS;
+    // a popcorn cart, because of course
+    addBox(G, 0.9, 0.9, 0.6, lam(0xc23b4a), -8.6, 0.45, 6.6);
+    const pc = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.6, 0.45), new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.35 }));
+    pc.position.set(-8.6, 1.2, 6.6); G.add(pc);
+    for (let k = 0; k < 30; k++) { const p = new THREE.Mesh(new THREE.IcosahedronGeometry(0.035, 0), lam(0xfff2c8)); p.position.set(-8.6 + (rand() - 0.5) * 0.6, 0.95 + rand() * 0.35, 6.6 + (rand() - 0.5) * 0.35); G.add(p); }
+    for (const [x, z] of [[-9.2, -6.8], [9.2, -6.8], [9.2, 7.2]]) {
+      addCyl(G, 0.3, 0.24, 0.55, 10, lam(0xc46a3a), x, 0.275, z);
+      const leaf = new THREE.Mesh(new THREE.IcosahedronGeometry(0.55, 1), lam(0x4e8a3a)); leaf.position.set(x, 1.0, z); leaf.scale.set(1, 1.3, 1); G.add(leaf);
+    }
+
+    // ---------------------------------------------------------------- the card dispenser and a stand for the pens
+    const DISP = new V3(-3.2, 0, -5.0);
+    L.DISP = DISP;
+    addBox(G, 0.7, 1.0, 0.5, lam(0x2b2d42), DISP.x, 0.5 + 0.12, DISP.z);
+    addBox(G, 0.6, 0.06, 0.4, lam(0xffd23f), DISP.x, 1.15, DISP.z);
+    makePlate(G, 'Draw a card', 0.9, 0.18, new V3(DISP.x, 1.42, DISP.z + 0.02), 0, { bg: '#2b2d42', fg: '#ffd23f', size: 0.6 });
+    // a little stack of cards on top
+    for (let k = 0; k < 6; k++) addBox(G, 0.3, 0.008, 0.2, lam(k % 2 ? 0xf4f2ec : 0xe8e4d8), DISP.x, 1.19 + k * 0.009, DISP.z);
+    const PEN_STAND = new V3(3.0, 0, -4.6);
+    addBox(G, 0.8, 0.9, 0.5, lam(0x2b2d42), PEN_STAND.x, 0.45 + 0.12, PEN_STAND.z);
+    makePlate(G, '3D pens', 0.7, 0.16, new V3(PEN_STAND.x, 1.28, PEN_STAND.z + 0.02), 0, { bg: '#2b2d42', fg: '#8bd450', size: 0.6 });
+    L.PEN_STAND = PEN_STAND;
+    // the big board over the stage, and a guess board on the side wall
+    L.board = makeBoard(G, 720, 460, 3.6, 2.3, 0, 2.95, -7.35, 0);
+    const guessBoard = makeBoard(G, 720, 500, 2.4, 1.67, R.minX + 0.2, 2.2, 0.5, Math.PI / 2);
+    L.guessBoard = guessBoard;
+    makeKiosk(L, 8.4, 5.6, -Math.PI * 0.75);
+    const sign = makeBoard(G, 720, 500, 2.2, 1.53, R.maxX - 0.2, 2.1, 0.5, -Math.PI / 2);
+    function drawSign() {
+      const g = sign.g, W = 720;
+      g.fillStyle = '#241a2c'; g.fillRect(0, 0, W, 500);
+      g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+      g.fillStyle = '#ffd23f'; g.font = `800 56px ${DISPLAY}`; g.fillText('Charades', 36, 76);
+      let y = 120;
+      for (const [label, body] of [
+        ['Acting', 'On your turn, take a card from the dispenser. Act it out, or draw in the air with a 3D pen. Press Got it! when your team says it.'],
+        ['Guessing', 'Shout it out with voice chat, or type a guess in a browser (press Enter). The category is on the big board.'],
+        ['The pen', 'VR: grab a pen, hold the trigger to draw; A or X changes colour, B or Y undoes. Browser: E takes a pen, hold Space to draw, R colour, Z undo.'],
+      ]) {
+        g.fillStyle = '#ff9ad0'; g.font = `700 24px ${BODY}`; g.fillText(label, 36, y); y += 31;
+        g.fillStyle = '#f2e8f8'; g.font = `400 24px ${BODY}`; y = wrapText(g, body, 36, y, 648, 30) + 10;
+      }
+      sign.tex.needsUpdate = true;
+    }
+    drawSign();
+    redraws.push(drawSign);
+
+    // ================================================================ 3D PENS: draw in the air
+    // Each player's drawing is a log of points and pen-lifts. Everyone gets a rolling window of the newest
+    // entries, so drawings stay small on the network however much you draw.
+    const PEN_COLORS = ['#ff4d6a', '#ffd23f', '#4fc3f7', '#8bd450', '#b388ff', '#ffffff'];
+    const PEN_NAMES = ['Red', 'Yellow', 'Blue', 'Green', 'Purple', 'White'];
+    const BRK = 99999, UNDO = 99998, WINDOW = 120, MAX_POINTS = 1800, STEP = 0.022;
+    TOOL_MESH.pen = () => {
+      const g = new THREE.Group();
+      const bodyM = new THREE.MeshLambertMaterial({ color: 0xf4f2ec, emissive: 0x000000 });
+      const capM = new THREE.MeshLambertMaterial({ color: 0x2b2d42, emissive: 0x000000 });
+      const tipM = new THREE.MeshBasicMaterial({ color: PEN_COLORS[0] });
+      const body = new THREE.Mesh(cyl(0.013, 0.013, 0.13, 10), bodyM); body.rotation.x = Math.PI / 2; body.position.z = -0.05;
+      const cap = new THREE.Mesh(cyl(0.014, 0.014, 0.03, 10), capM); cap.rotation.x = Math.PI / 2; cap.position.z = 0.03;
+      const tip = new THREE.Mesh(new THREE.ConeGeometry(0.012, 0.035, 10), tipM); tip.rotation.x = -Math.PI / 2; tip.position.z = -0.13;
+      g.add(body, cap, tip);
+      g.userData.mats = [bodyM, capM];
+      g.userData.tip = tipM;
+      return g;
+    };
+    const pens = [];
+    for (let k = 0; k < 4; k++) pens.push(makeTool(L, new V3(PEN_STAND.x - 0.3 + k * 0.2, 1.06, PEN_STAND.z), new Q4(), 'pen'));
+    // two more on the coffee tables by the couches, for doodling while you watch
+    for (const sx of [-1, 1]) {
+      addBox(G, 0.8, 0.45, 0.5, lam(0x5a3a28), sx * 3.6, 0.225, -0.2);
+      pens.push(makeTool(L, new V3(sx * 3.6, 0.5, -0.2), new Q4(), 'pen'));
+    }
+    L.pens = pens;
+
+    // ---------------------------------------------------------------- what's drawn, by whom
+    const drawings = new Map();   // peer -> { gen, seen, strokes: [{ c, pts: [V3] }] }
+    const mine = { gen: 1, log: [], base: 0, color: 0, drawing: false, hand: null, last: null, points: 0 };
+    L.myDrawing = mine;
+    L.drawings = drawings;
+    const myStrokes = () => { let d = drawings.get(state.myPeer); if (!d) { d = { gen: mine.gen, seen: 0, strokes: [] }; drawings.set(state.myPeer, d); } return d; };
+    let dirty = true;
+    function pushEntry(e) { mine.log.push(e); if (mine.log.length > WINDOW * 3) { const cut = mine.log.length - WINDOW * 2; mine.log.splice(0, cut); mine.base += cut; } forcePresence(); }
+    function penStart() {
+      if (mine.points >= MAX_POINTS) { showToast('Your drawing is full. Clear it to draw more'); return; }
+      mine.drawing = true; mine.last = null;
+      pushEntry([BRK, mine.color, 0]);
+      myStrokes().strokes.push({ c: mine.color, pts: [] });
+    }
+    function penStop() { mine.drawing = false; mine.last = null; }
+    function penPoint(p) {
+      if (!mine.drawing || mine.points >= MAX_POINTS) return;
+      if (mine.last && mine.last.distanceTo(p) < STEP) return;
+      const q = [Math.round(p.x * 100), Math.round(p.y * 100), Math.round(p.z * 100)];
+      pushEntry(q);
+      const s = myStrokes().strokes;
+      if (!s.length) s.push({ c: mine.color, pts: [] });
+      s[s.length - 1].pts.push(new V3(q[0] / 100, q[1] / 100, q[2] / 100));
+      mine.last = p.clone();
+      mine.points += 1;
+      dirty = true;
+    }
+    function penUndo() {
+      const s = myStrokes().strokes;
+      if (!s.length) return;
+      const gone = s.pop();
+      mine.points -= gone.pts.length;
+      pushEntry([UNDO, 0, 0]);
+      dirty = true;
+      tone(500, 300, 0.08, 'triangle', 0.1);
+    }
+    function clearMine() {
+      mine.gen += 1; mine.log = []; mine.base = 0; mine.points = 0; mine.drawing = false;
+      const d = myStrokes(); d.strokes = []; d.gen = mine.gen;
+      dirty = true;
+      forcePresence();
+    }
+    L.clearMyDrawing = clearMine;
+    function nextColor() {
+      mine.color = (mine.color + 1) % PEN_COLORS.length;
+      for (const t of pens) if (t.held && t.held.peer === state.myPeer) t.g.children[0].userData.tip.color.set(PEN_COLORS[mine.color]);
+      showToast(`Pen: ${PEN_NAMES[mine.color]}`);
+      tone(700 + mine.color * 90, 0, 0.06, 'sine', 0.1);
+    }
+
+    // ---------------------------------------------------------------- drawing it: thin tubes, one batch per colour
+    const segGeo = new THREE.CylinderGeometry(0.016, 0.016, 1, 6, 1, true);   // thick enough to read from the couches
+    segGeo.translate(0, 0.5, 0);
+    const CAP = 3000;
+    const batches = PEN_COLORS.map((c) => { const m = new THREE.InstancedMesh(segGeo, new THREE.MeshBasicMaterial({ color: c }), CAP); m.count = 0; m.frustumCulled = false; G.add(m); return m; });
+    const _m4 = new THREE.Matrix4(), _q4 = new Q4(), _sc = new V3(), _dir = new V3();
+    const YUP = new V3(0, 1, 0);
+    function rebuild() {
+      const n = PEN_COLORS.map(() => 0);
+      for (const d of drawings.values()) for (const s of d.strokes) {
+        const b = batches[s.c] || batches[0], ci = s.c in n ? s.c : 0;
+        for (let i = 1; i < s.pts.length && n[ci] < CAP; i++) {
+          const a = s.pts[i - 1], c = s.pts[i];
+          _dir.subVectors(c, a);
+          const len = _dir.length();
+          if (len < 1e-4) continue;
+          _q4.setFromUnitVectors(YUP, _dir.multiplyScalar(1 / len));
+          _m4.compose(a, _q4, _sc.set(1, len, 1));
+          b.setMatrixAt(n[ci]++, _m4);
+        }
+      }
+      batches.forEach((b, i) => { b.count = n[i]; b.instanceMatrix.needsUpdate = true; });
+      dirty = false;
+    }
+
+    // ---------------------------------------------------------------- holding a pen
+    const myPen = () => pens.find((t) => t.held && t.held.peer === state.myPeer);
+    const _tip = new V3(), _cq = new Q4(), _cp = new V3(), _fw = new V3();
+    function tipOf(t, out) { return out.set(0, 0, -0.15).applyQuaternion(t.quat).add(t.pos); }
+    L.onTrigger = (t) => { if (t.kind === 'pen') penStart(); };
+    L.onTriggerEnd = (t) => { if (t.kind === 'pen') penStop(); };
+    L.onToolGrab = (t) => { if (t.kind === 'pen') t.g.children[0].userData.tip.color.set(PEN_COLORS[mine.color]); };
+    // browser: the pen sits in front of you; hold Space to draw where you're looking
+    L.deskSwing = () => { if (myPen()) penStart(); };
+    L.deskRelease = () => penStop();
+    L.deskHand = (side, mh) => {
+      if (state.mode !== 'flat') return false;
+      const t = pens.find((x) => x.held && x.held.peer === state.myPeer && x.held.side === side);
+      if (!t) return false;
+      camera.getWorldQuaternion(_cq); camera.getWorldPosition(_cp);
+      mh.pos.set(0.14, -0.16, -0.34).applyQuaternion(_cq).add(_cp);
+      _fw.set(0, 0, -1.3).applyQuaternion(_cq).add(_cp).sub(mh.pos).normalize();
+      mh.quat.setFromUnitVectors(FWD, _fw);
+      mh.ok = true;
+      return true;
+    };
+    const btnPrev = { left: [false, false], right: [false, false] };
+    function penUpdate(dt, now) {
+      const t = myPen();
+      if (!t) { mine.drawing = false; }
+      else if (mine.drawing) {
+        if (state.mode === 'vr') penPoint(tipOf(t, _tip));
+        else { camera.getWorldQuaternion(_cq); camera.getWorldPosition(_cp); penPoint(_tip.set(0, 0, -1.3).applyQuaternion(_cq).add(_cp)); }
+      }
+      // VR: A or X changes colour, B or Y undoes, on the hand holding the pen
+      if (t && state.mode === 'vr') {
+        const side = t.held.side, gp = vrHands[side].source && vrHands[side].source.gamepad;
+        const b4 = !!(gp && gp.buttons && gp.buttons[4] && gp.buttons[4].pressed), b5 = !!(gp && gp.buttons && gp.buttons[5] && gp.buttons[5].pressed);
+        if (b4 && !btnPrev[side][0]) nextColor();
+        if (b5 && !btnPrev[side][1]) penUndo();
+        btnPrev[side] = [b4, b5];
+      }
+      if (dirty) rebuild();
+    }
+    L.onKey = (code) => {
+      if (state.mode !== 'flat') return;
+      if (code === 'KeyR' && myPen()) nextColor();
+      else if (code === 'KeyZ') penUndo();
+    };
+
+    // ---------------------------------------------------------------- sync
+    function drawPresence() {
+      const start = Math.max(0, mine.log.length - WINDOW);
+      const flat = [];
+      for (let i = start; i < mine.log.length; i++) flat.push(...mine.log[i]);
+      return [mine.gen, mine.base + start, ...flat];
+    }
+    function readDrawing(peer, a) {
+      if (peer === state.myPeer) return;   // never replay my own drawing back onto itself
+      if (!Array.isArray(a) || a.length < 2 || (a.length - 2) % 3 !== 0 || !a.every((x) => Number.isInteger(x) && Math.abs(x) < 1e7)) return;
+      let d = drawings.get(peer);
+      if (!d) { d = { gen: a[0], seen: 0, strokes: [] }; drawings.set(peer, d); }
+      if (d.gen !== a[0]) { d.gen = a[0]; d.seen = 0; d.strokes = []; dirty = true; }
+      const start = a[1], n = (a.length - 2) / 3;
+      for (let k = 0; k < n; k++) {
+        const idx = start + k;
+        if (idx < d.seen) continue;
+        const e0 = a[2 + k * 3], e1 = a[3 + k * 3], e2 = a[4 + k * 3];
+        if (e0 === BRK) d.strokes.push({ c: clamp(e1, 0, PEN_COLORS.length - 1), pts: [] });
+        else if (e0 === UNDO) d.strokes.pop();
+        else {
+          if (!d.strokes.length) d.strokes.push({ c: 0, pts: [] });
+          const s = d.strokes[d.strokes.length - 1];
+          if (s.pts.length < MAX_POINTS) s.pts.push(new V3(e0 / 100, e1 / 100, e2 / 100));
+        }
+        d.seen = idx + 1;
+        dirty = true;
+      }
+    }
+    L.readDrawing = readDrawing;
+    function forgetDrawingsOfAbsent() {
+      for (const peer of Array.from(drawings.keys())) {
+        if (peer === state.myPeer) continue;
+        const rec = remotes.get(peer);
+        if (!rec || rec.lv !== L.idx) { drawings.delete(peer); dirty = true; }
+      }
+    }
+    L.update = (dt, now) => { penUpdate(dt, now); if (now - (L._forgetT || 0) > 1000) { L._forgetT = now; forgetDrawingsOfAbsent(); } };
+    L.presence = () => ({ chd: drawPresence() });
+    L.readPresence = (rec, pres) => { if (pres.chd) readDrawing(rec.peer, pres.chd); };
+    L.penInternals = { penStart, penStop, penPoint, penUndo, nextColor, clearMine, PEN_COLORS };
+
+    // ================================================================ THE GAME: teams, rounds, secret cards, guesses
+    const ACT_S = 90, PICK_S = 25, REVEAL_S = 5, FINAL_S = 10;
+    const EVC = { START: 1, UP: 2, GOT: 3, TIMEUP: 4, FINAL: 5, ENDED: 6, SKIP: 7 };
+    const CH = { gid: 0, ph: 0, round: 0, maxRounds: 6, actor: '', team: 0, endAt: 0, cat: -1, word: '', score: [0, 0], teams: new Map(), order: [[], []], turn: [0, 0], ev: [0, 0, '', ''], guessedBy: '' };
+    L.ch = CH;
+    const me = { card: null, used: new Set(), skips: 0, guessSeq: 0, guess: null, req: null, reqSeq: 0, reports: [], repSeq: 0, lastPh: -1, lastRound: 0 };
+    L.chMe = me;
+    const herePeersCH = () => {
+      const ids = [state.myPeer];
+      for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer);
+      return ids.sort();
+    };
+    const chHost = () => herePeersCH()[0] === state.myPeer;
+    const nameOfCH = (p) => (p === state.myPeer ? state.name : (remotes.get(p) || {}).name || 'Someone');
+    const myTeam = () => (CH.teams.has(state.myPeer) ? CH.teams.get(state.myPeer) : -1);
+    const iAmActor = () => CH.actor === state.myPeer && (CH.ph === 1 || CH.ph === 2);
+
+    // ---------------------------------------------------------------- matching a guess against the card
+    const STOP = new Set(['a', 'an', 'the', 'some', 'someone', 'person', 'is', 'its', 'it', 'of', 'to', 'my', 'your']);
+    const normCH = (s) => String(s).toLowerCase().replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim();
+    const stemCH = (w) => (w.length > 5 && w.endsWith('ing') ? w.slice(0, -3) : w.length > 4 && w.endsWith('es') ? w.slice(0, -2) : w.length > 3 && w.endsWith('s') ? w.slice(0, -1) : w);
+    function lev(a, b) {
+      if (Math.abs(a.length - b.length) > 3) return 9;
+      const d = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+      for (let j = 1; j <= b.length; j++) d[0][j] = j;
+      for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      return d[a.length][b.length];
+    }
+    function guessMatches(guess, word) {
+      const g = normCH(guess), w = normCH(word);
+      if (!g || !w) return false;
+      if (g === w || lev(g, w) <= (w.length >= 8 ? 2 : w.length >= 4 ? 1 : 0)) return true;
+      const gw = g.split(' ').filter((x) => !STOP.has(x)).map(stemCH);
+      const ww = w.split(' ').filter((x) => !STOP.has(x)).map(stemCH);
+      return ww.length > 0 && ww.every((x) => gw.some((y) => y === x || (x.length >= 6 && lev(x, y) <= 1)));
+    }
+    L.guessMatches = guessMatches;
+
+    // ---------------------------------------------------------------- rules (host)
+    function announceCH(code, a, b) { CH.ev = [CH.ev[0] + 1, code, a || '', b || '']; showEventCH(CH.ev); forcePresence(); }
+    function balanceTeams() {
+      const here = herePeersCH();
+      for (const p of Array.from(CH.teams.keys())) if (!here.includes(p)) CH.teams.delete(p);
+      for (const p of here) if (!CH.teams.has(p)) { const n0 = [...CH.teams.values()].filter((t) => t === 0).length, n1 = CH.teams.size - n0; CH.teams.set(p, n0 <= n1 ? 0 : 1); }
+      CH.order = [here.filter((p) => CH.teams.get(p) === 0), here.filter((p) => CH.teams.get(p) === 1)];
+    }
+    function nextActor(team) {
+      const list = CH.order[team].length ? CH.order[team] : CH.order[1 - team];
+      const t = CH.order[team].length ? team : 1 - team;
+      const p = list[CH.turn[t] % list.length];
+      CH.turn[t] += 1;
+      return { p, t };
+    }
+    function startRoundCH(now) {
+      balanceTeams();
+      const { p, t } = nextActor(CH.round % 2 === 1 ? 1 : 0);
+      Object.assign(CH, { actor: p, team: t, ph: 1, endAt: now + PICK_S * 1000, cat: -1, word: '', guessedBy: '' });
+      CH.round += 1;
+      announceCH(EVC.UP, p, String(t));
+    }
+    function startGameCH(now) {
+      balanceTeams();
+      Object.assign(CH, { gid: CH.gid + 1, round: 0, score: [0, 0], turn: [0, 0], maxRounds: Math.max(6, Math.min(12, herePeersCH().length * 2)) });
+      announceCH(EVC.START, '', '');
+      startRoundCH(now);
+    }
+    function endRoundCH(now, guesser) {
+      CH.ph = 3; CH.endAt = now + REVEAL_S * 1000; CH.guessedBy = guesser || '';
+      if (guesser !== undefined && guesser !== null) { CH.score[CH.team] += 1; announceCH(EVC.GOT, guesser, String(CH.team)); }
+      else announceCH(EVC.TIMEUP, '', '');
+    }
+    function hostReport(from, r) {
+      // reports come from the actor's page: [seq, code, value]
+      if (from !== CH.actor) return;
+      const now = performance.now();
+      if (r[1] === 1 && CH.ph === 1) { CH.cat = clamp(r[2] | 0, 0, CATS.length - 1); CH.ph = 2; CH.endAt = now + ACT_S * 1000; forcePresence(); }
+      else if (r[1] === 2 && CH.ph === 2) endRoundCH(now, typeof r[2] === 'string' && r[2] ? r[2] : '');
+      else if (r[1] === 3 && CH.ph === 2) { CH.cat = clamp(r[2] | 0, 0, CATS.length - 1); announceCH(EVC.SKIP, CH.actor, ''); }
+      else if (r[1] === 4 && (CH.ph === 3 || CH.ph === 2) && typeof r[2] === 'string') { CH.word = r[2].slice(0, 40); forcePresence(); }
+    }
+    function hostRequestCH(from, req) {
+      if (!Array.isArray(req) || req.length !== 3 || req[1] !== CH.gid) return;
+      const now = performance.now();
+      if (req[0] === 1 && (CH.ph === 0 || CH.ph === 4)) startGameCH(now);
+      else if (req[0] === 2 && (CH.ph === 1 || CH.ph === 2 || CH.ph === 3)) { CH.ph = 0; announceCH(EVC.ENDED, '', ''); }
+      else if (req[0] === 3 && (CH.ph === 0 || CH.ph === 4)) { balanceTeams(); CH.teams.set(from, 1 - (CH.teams.get(from) || 0)); balanceTeams(); forcePresence(); state.dirtyBoard = true; }
+    }
+    function hostTickCH(now) {
+      if (me.req && me.req.join() !== me.lastOwnReq) { me.lastOwnReq = me.req.join(); hostRequestCH(state.myPeer, me.req); }
+      for (const r of me.reports) if (r[0] > (me.ownRepSeen || 0)) { me.ownRepSeen = r[0]; hostReport(state.myPeer, r); }
+      if (CH.ph === 0 || CH.ph === 4) { balanceTeams(); if (CH.ph === 4 && now > CH.endAt) { CH.ph = 0; forcePresence(); } return; }
+      // the actor left: move on
+      if (!herePeersCH().includes(CH.actor)) { endRoundCH(now, null); return; }
+      if (CH.ph === 1 && now > CH.endAt) { CH.endAt = now + 3000; }   // the actor's page will draw for them
+      if (CH.ph === 2 && now > CH.endAt) endRoundCH(now, null);
+      if (CH.ph === 3 && now > CH.endAt) {
+        if (CH.round >= CH.maxRounds) { CH.ph = 4; CH.endAt = now + FINAL_S * 1000; announceCH(EVC.FINAL, '', ''); }
+        else startRoundCH(now);
+      }
+    }
+
+    // ---------------------------------------------------------------- the actor's side: drawing a card, skipping, got it
+    function report(code, value) {
+      me.reports.push([++me.repSeq, code, value]);
+      if (me.reports.length > 4) me.reports.shift();
+      forcePresence();
+    }
+    function drawCard() {
+      if (!iAmActor()) { showToast(CH.ph === 0 ? 'Start a game first' : 'It\u2019s not your turn to act'); return; }
+      let cat, word, tries = 0;
+      do { cat = Math.floor(rand() * CATS.length); const list = PROMPTS[CATS[cat]]; word = list[Math.floor(rand() * list.length)]; tries++; } while (me.used.has(word) && tries < 40);
+      me.used.add(word);
+      me.card = { cat, word };
+      drawCardFace();
+      sfx('click', 0.8);
+      if (CH.ph === 1) report(1, cat); else report(3, cat);
+      showToast(`Your card: ${word}`);
+    }
+    function skipCard() {
+      if (!iAmActor() || CH.ph !== 2) return;
+      if (me.skips >= 2) { showToast('No skips left this turn'); return; }
+      me.skips += 1;
+      drawCard();
+    }
+    function gotIt(guesser) {
+      if (!iAmActor() || CH.ph !== 2 || !me.card) return;
+      report(2, guesser || state.myPeer);
+      report(4, me.card.word);
+    }
+    L.chActions = { drawCard, skipCard, gotIt };
+
+    // the card: its face for the actor, its back for everyone else
+    const cardFace = canvasTexture(512, 320);
+    function drawCardFace() {
+      const g = cardFace.g;
+      g.fillStyle = '#fbf7ee'; g.fillRect(0, 0, 512, 320);
+      g.fillStyle = '#c23b4a'; g.fillRect(0, 0, 512, 64);
+      g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillStyle = '#ffffff'; g.font = `700 34px ${BODY}`; g.fillText(me.card ? CATS[me.card.cat] : '', 256, 34);
+      g.fillStyle = '#1b1932'; g.font = `800 56px ${DISPLAY}`; g.fillText(me.card ? me.card.word : '', 256, 190, 480);
+      cardFace.tex.needsUpdate = true;
+    }
+    const cardBackTex = canvasTexture(256, 160, (g) => { g.fillStyle = '#c23b4a'; g.fillRect(0, 0, 256, 160); g.fillStyle = '#ffd23f'; g.font = `800 90px ${DISPLAY}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('?', 128, 84); }).tex;
+    const myCard = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 0.125), new THREE.MeshBasicMaterial({ map: cardFace.tex, side: THREE.DoubleSide }));
+    myCard.visible = false; scene.add(myCard);
+    const otherCard = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 0.125), new THREE.MeshBasicMaterial({ map: cardBackTex, side: THREE.DoubleSide }));
+    otherCard.visible = false; G.add(otherCard);
+
+    // ---------------------------------------------------------------- guessing (browser: type and press Enter)
+    const guessBox = document.createElement('input');
+    guessBox.type = 'text'; guessBox.maxLength = 40; guessBox.placeholder = 'Type a guess and press Enter';
+    guessBox.setAttribute('aria-label', 'Your guess');
+    Object.assign(guessBox.style, { position: 'absolute', left: '50%', bottom: 'calc(64px + env(safe-area-inset-bottom, 0px))', transform: 'translateX(-50%)', width: 'min(420px, 80vw)', padding: '10px 14px', borderRadius: '12px', border: '2px solid rgba(255,255,255,0.4)', background: 'rgba(20,16,32,0.85)', color: '#fff', font: `500 18px ${BODY}`, display: 'none', zIndex: '4', pointerEvents: 'auto' });
+    (ui.hud || document.body).appendChild(guessBox);
+    guessBox.addEventListener('keydown', (e) => {
+      e.stopPropagation();
+      if (e.key === 'Enter') { const t = guessBox.value.trim(); if (t) sendGuess(t); guessBox.value = ''; }
+      else if (e.key === 'Escape') guessBox.blur();
+    });
+    function sendGuess(text) {
+      me.guess = [++me.guessSeq, text.slice(0, 40)];
+      bubbleFor(state.myPeer, text, performance.now());
+      addGuessFeed(state.myPeer, text, false);
+      forcePresence();
+    }
+    L.sendGuess = sendGuess;
+    // speech bubbles over people's heads
+    const bubbles = new Map();
+    function bubbleFor(peer, text, now) {
+      let b = bubbles.get(peer);
+      if (!b) { const c = canvasTexture(512, 128); b = { c, s: new THREE.Sprite(new THREE.SpriteMaterial({ map: c.tex, transparent: true, depthWrite: false })), until: 0 }; b.s.scale.set(0.9, 0.225, 1); G.add(b.s); bubbles.set(peer, b); }
+      const g = b.c.g;
+      g.clearRect(0, 0, 512, 128);
+      rr(g, 6, 8, 500, 96, 40); g.fillStyle = 'rgba(255,255,255,0.95)'; g.fill();
+      g.beginPath(); g.moveTo(230, 104); g.lineTo(256, 124); g.lineTo(282, 104); g.fill();
+      g.fillStyle = '#1b1932'; g.font = `700 40px ${BODY}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(text, 256, 58, 470);
+      b.c.tex.needsUpdate = true;
+      b.until = now + 4500;
+    }
+    const feed = [];
+    function addGuessFeed(peer, text, ok) { feed.push({ who: nameOfCH(peer), text, ok, team: CH.teams.get(peer) }); if (feed.length > 9) feed.shift(); drawGuessBoard(); }
+    function drawGuessBoard() {
+      const g = guessBoard.g, W = 720;
+      g.fillStyle = '#241a2c'; g.fillRect(0, 0, W, 500);
+      g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+      g.fillStyle = '#ffd23f'; g.font = `800 50px ${DISPLAY}`; g.fillText('Guesses', 32, 64);
+      feed.forEach((f, i) => {
+        const y = 118 + i * 42;
+        g.fillStyle = f.team === 1 ? '#6a9aff' : f.team === 0 ? '#ff7a86' : '#d8c8e8'; g.font = `700 26px ${BODY}`; g.fillText(f.who, 32, y, 220);
+        g.fillStyle = f.ok ? '#8bd450' : '#f2e8f8'; g.font = `${f.ok ? 800 : 400} 28px ${BODY}`; g.fillText(`${f.text}${f.ok ? '  \u2714' : ''}`, 270, y, 420);
+      });
+      guessBoard.tex.needsUpdate = true;
+    }
+    drawGuessBoard();
+
+    // ---------------------------------------------------------------- what happened, for everyone
+    function showEventCH(ev) {
+      const [, code, a, b] = ev;
+      if (code === EVC.START) { showToast('Charades! Teams are on the board'); sfx('fanfare', 0.6); }
+      else if (code === EVC.UP) { const t = Number(b); showToast(a === state.myPeer ? 'You\u2019re up! Draw a card at the dispenser' : `${TEAM_NAME[t]} team: ${nameOfCH(a)} is acting`); sfx('chime', 0.7); }
+      else if (code === EVC.GOT) { showToast(`${a === CH.actor ? 'Got it' : nameOfCH(a) + ' got it'}! Point to ${TEAM_NAME[Number(b)]}`); sfx('cheer', 0.8); }
+      else if (code === EVC.TIMEUP) { showToast('Time\u2019s up!'); sfx('buzzer', 0.6); }
+      else if (code === EVC.SKIP) showToast(`${nameOfCH(a)} skipped a card`);
+      else if (code === EVC.FINAL) { const [r, bl] = CH.score; showToast(r === bl ? `It\u2019s a tie, ${r} to ${bl}!` : `${r > bl ? 'Red' : 'Blue'} team wins ${Math.max(r, bl)} to ${Math.min(r, bl)}!`); sfx('fanfare', 0.9); }
+      else if (code === EVC.ENDED) showToast('Charades ended');
+      state.dirtyBoard = true; state.hudDirty = true;
+    }
+
+    // ---------------------------------------------------------------- per frame
+    const _hp = new V3();
+    function seatMe() {
+      camera.getWorldPosition(_hp);
+      let spot, yaw = 0;
+      if (iAmActor()) spot = new V3(0, 0, -4.4);
+      else {
+        const t = myTeam() < 0 ? 0 : myTeam();
+        const idx = Math.max(0, CH.order[t].indexOf(state.myPeer));
+        spot = SEATS[t][idx % SEATS[t].length];
+      }
+      dolly.position.x += spot.x - _hp.x; dolly.position.z += spot.z - _hp.z;
+      if (state.mode !== 'vr') { state.yaw = iAmActor() ? Math.PI : yaw; state.pitch = -0.05; }
+    }
+    const baseUpdateCH = L.update, basePresenceCH = L.presence, baseReadCH = L.readPresence;
+    L.update = (dt, now) => {
+      baseUpdateCH(dt, now);
+      if (chHost()) hostTickCH(now);
+      // new round or phase: take your place, tidy up
+      if (CH.round !== me.lastRound) {
+        me.lastRound = CH.round;
+        me.card = null; me.skips = 0; clearMine();
+        if ((CH.ph === 1 || CH.ph === 2) && state.mode !== 'menu') seatMe();
+      }
+      if (CH.ph !== me.lastPh) {
+        if (CH.ph === 3 && CH.actor === state.myPeer && me.card) report(4, me.card.word);
+        me.lastPh = CH.ph;
+        state.hudDirty = true; state.dirtyBoard = true;
+      }
+      // the actor's page draws a card for them if they dawdle
+      if (CH.ph === 1 && iAmActor() && !me.card && now > CH.endAt) drawCard();
+      // cards in hands
+      const actorRec = remotes.get(CH.actor);
+      myCard.visible = iAmActor() && !!me.card && state.level === L.idx;
+      if (myCard.visible) {
+        const hand = myHands.left.ok && state.mode === 'vr' ? myHands.left : null;
+        if (hand) { myCard.position.set(0, 0.06, -0.06).applyQuaternion(hand.quat).add(hand.pos); camera.getWorldQuaternion(_cqCH); myCard.quaternion.copy(_cqCH); }
+        else { camera.getWorldQuaternion(_cqCH); camera.getWorldPosition(_hp); myCard.position.set(-0.17, -0.12, -0.4).applyQuaternion(_cqCH).add(_hp); myCard.quaternion.copy(_cqCH); }
+      }
+      otherCard.visible = !!actorRec && CH.actor !== state.myPeer && CH.ph === 2 && actorRec.hasL;
+      if (otherCard.visible) { otherCard.position.copy(actorRec.cur.l.pos).add(_hp.set(0, 0.08, 0)); otherCard.quaternion.copy(actorRec.cur.l.quat); }
+      // bubbles follow heads and fade
+      for (const [peer, b] of bubbles) {
+        const head = peer === state.myPeer ? null : remotes.get(peer);
+        b.s.visible = now < b.until && (peer !== state.myPeer) && head && head.lv === L.idx && head.hasH;
+        if (b.s.visible) b.s.position.copy(head.cur.h.pos).add(_hp.set(0, 0.55, 0));
+      }
+      // the guess box shows for guessers during a turn
+      const guessing = state.mode === 'flat' && state.level === L.idx && CH.ph === 2 && !iAmActor();
+      guessBox.style.display = guessing ? 'block' : 'none';
+      if (!guessing && document.activeElement === guessBox) guessBox.blur();
+      updateStatusCH(now);
+      if (now - (L._boardT || 0) > 250) { L._boardT = now; state.dirtyBoard = true; }
+    };
+    const _cqCH = new Q4();
+    let statusKeyCH = '';
+    function updateStatusCH(now) {
+      if (!ui.status) return;
+      const show = state.mode === 'flat' && state.level === L.idx && CH.ph > 0;
+      if (!show) { if (statusKeyCH) { ui.status.hidden = true; statusKeyCH = ''; } return; }
+      const n = Math.max(0, Math.ceil((CH.endAt - now) / 1000));
+      const a = `Red ${CH.score[0]}, Blue ${CH.score[1]}`;
+      const b = CH.ph === 1 ? (iAmActor() ? 'Draw a card!' : `${nameOfCH(CH.actor)} is choosing`) : CH.ph === 2 ? `${CATS[CH.cat] || ''} \u00b7 ${n}s` : CH.ph === 3 ? (CH.word ? `It was: ${CH.word}` : 'Round over') : 'Final';
+      const c = iAmActor() && me.card ? `Your card: ${me.card.word}` : '';
+      const key = `${a}|${b}|${c}`;
+      if (key === statusKeyCH) return;
+      statusKeyCH = key;
+      ui.status.hidden = false;
+      ui.status.replaceChildren();
+      for (const [txt, col] of [[a, '#ffd23f'], [b, null], [c, '#8bd450']]) { if (!txt) continue; const s = document.createElement('span'); s.textContent = txt; if (col) s.style.color = col; ui.status.append(s); }
+    }
+
+    // ---------------------------------------------------------------- the big board
+    L.rowFor = (st, isMe) => { const t = isMe ? myTeam() : (st.chTeam ?? -1); return { team: t, text: t < 0 ? '' : TEAM_NAME[t] }; };
+    L.sortRows = (a, b) => (a.team - b.team);
+    L.drawBoard = (rows) => {
+      const g = L.board.g, W = 720, H = 460, now = performance.now();
+      g.fillStyle = '#241a2c'; g.fillRect(0, 0, W, H);
+      g.strokeStyle = '#ffd23f'; g.lineWidth = 8; g.strokeRect(4, 4, W - 8, H - 8);
+      g.textAlign = 'center'; g.textBaseline = 'middle';
+      // scores
+      g.font = `800 64px ${DISPLAY}`;
+      g.fillStyle = TEAM_COL[0]; g.fillText(String(CH.score[0]), 110, 70);
+      g.fillStyle = TEAM_COL[1]; g.fillText(String(CH.score[1]), W - 110, 70);
+      g.font = `700 24px ${BODY}`; g.fillStyle = TEAM_COL[0]; g.fillText('RED', 110, 118); g.fillStyle = TEAM_COL[1]; g.fillText('BLUE', W - 110, 118);
+      g.fillStyle = '#ffd23f'; g.font = `800 54px ${DISPLAY}`; g.fillText('Charades', W / 2, 70);
+      let big = '', small = '';
+      if (CH.ph === 0) { big = 'Press Start game'; small = `${herePeersCH().length} here \u00b7 teams pick themselves`; }
+      else if (CH.ph === 1) { big = `${nameOfCH(CH.actor)} is up`; small = `${TEAM_NAME[CH.team]} team \u00b7 drawing a card`; }
+      else if (CH.ph === 2) { big = CATS[CH.cat] || ''; small = `${nameOfCH(CH.actor)} is acting for ${TEAM_NAME[CH.team]} \u00b7 ${Math.max(0, Math.ceil((CH.endAt - now) / 1000))}s`; }
+      else if (CH.ph === 3) { big = CH.word ? `It was: ${CH.word}` : 'Round over'; small = CH.guessedBy ? `${CH.guessedBy === CH.actor ? 'Got it' : nameOfCH(CH.guessedBy) + ' got it'}!` : 'Time ran out'; }
+      else { const [r, b] = CH.score; big = r === b ? 'A tie!' : `${r > b ? 'Red' : 'Blue'} wins!`; small = `${r} to ${b}`; }
+      g.fillStyle = '#ffffff'; g.font = `800 72px ${DISPLAY}`; g.fillText(big, W / 2, 230, W - 80);
+      g.fillStyle = '#d8c8e8'; g.font = `400 30px ${BODY}`; g.fillText(small, W / 2, 300, W - 80);
+      if (CH.ph >= 1 && CH.ph <= 3) { g.fillStyle = '#9a8ab0'; g.font = `400 24px ${BODY}`; g.fillText(`Round ${CH.round} of ${CH.maxRounds}`, W / 2, 380); }
+      void rows;
+      L.board.tex.needsUpdate = true;
+    };
+
+    // ---------------------------------------------------------------- buttons
+    function request(kind) { me.req = [kind, CH.gid, ++me.reqSeq]; if (chHost()) { me.lastOwnReq = me.req.join(); hostRequestCH(state.myPeer, me.req); } forcePresence(); }
+    makeButton(L, new V3(DISP.x + 0.7, 1.0, DISP.z + 0.1), 0xffd23f, 'Draw a card', () => drawCard(), { faceYaw: 0 });
+    makeButton(L, new V3(1.4, 1.0, -3.6), 0x8bd450, 'Got it!', () => gotIt(), { faceYaw: 0 });
+    makeButton(L, new V3(2.1, 1.0, -3.6), 0xff9a5c, 'Skip card', () => skipCard(), { faceYaw: 0 });
+    makeButton(L, new V3(-1.4, 1.0, -3.6), 0x4fc3f7, 'Start game', () => request(1), { faceYaw: 0 });
+    makeButton(L, new V3(-2.1, 1.0, -3.6), 0x9a90b0, 'Clear drawing', () => clearMine(), { faceYaw: 0 });
+    makeButton(L, new V3(0, 1.0, 5.6), 0xb388ff, 'Switch team', () => request(3), { faceYaw: Math.PI });
+    L.hudActions = [
+      { label: () => 'Start game', run: () => request(1), show: () => CH.ph === 0 || CH.ph === 4 },
+      { label: () => 'Switch team', run: () => request(3), show: () => CH.ph === 0 || CH.ph === 4 },
+      { label: () => 'Got it!', run: () => gotIt(), show: () => iAmActor() && CH.ph === 2 },
+      { label: () => 'Skip card', run: () => skipCard(), show: () => iAmActor() && CH.ph === 2 },
+      { label: () => 'Clear drawing', run: () => clearMine() },
+      { label: () => 'End game', run: () => request(2), show: () => CH.ph >= 1 && CH.ph <= 3 },
+    ];
+    L.hintsFor = () => {
+      const pen = pens.some((t) => t.held && t.held.peer === state.myPeer);
+      if (pen) return [['Hold Space', 'draw'], ['R', 'colour'], ['Z', 'undo'], ['E', 'put the pen down']];
+      if (CH.ph === 2 && !iAmActor()) return [['Type', 'your guess, then Enter'], ['Drag', 'look']];
+      return [['WASD', 'move'], ['Drag', 'look'], ['E', 'take a pen or press a button']];
+    };
+
+    // ---------------------------------------------------------------- network
+    L.presence = () => {
+      const p = basePresenceCH();
+      if (me.guess) p.chg = me.guess.slice();
+      if (me.req) p.chq = me.req.slice();
+      if (me.reports.length) p.chr = me.reports.map((r) => r.slice());
+      if (chHost()) {
+        p.chs = [CH.gid, CH.ph, CH.round, CH.maxRounds, CH.team, Math.max(0, Math.round((CH.endAt - performance.now()) / 100)), CH.cat + 1, CH.score[0], CH.score[1]];
+        p.cha = CH.actor; p.chw = CH.ph >= 3 ? CH.word : ''; p.chb = CH.guessedBy;
+        p.cht = [...CH.teams.entries()].slice(0, 16);
+        p.che = CH.ev.slice();
+      }
+      return p;
+    };
+    const intCH = (x, lo, hi) => Number.isInteger(x) && x >= lo && x <= hi;
+    L.readPresence = (rec, pres, st) => {
+      baseReadCH(rec, pres, st);
+      const host = chHost();
+      // guesses: everyone shows them; the actor checks their own team's
+      if (Array.isArray(pres.chg) && pres.chg.length === 2 && intCH(pres.chg[0], 0, 1e9) && typeof pres.chg[1] === 'string' && pres.chg[0] > (st.gSeq || 0)) {
+        st.gSeq = pres.chg[0];
+        if (st.gInit) {
+          const text = pres.chg[1].slice(0, 40);
+          const correct = iAmActor() && CH.ph === 2 && me.card && CH.teams.get(rec.peer) === CH.team && guessMatches(text, me.card.word);
+          bubbleFor(rec.peer, text, performance.now());
+          addGuessFeed(rec.peer, text, correct);
+          if (correct) gotIt(rec.peer);
+        }
+      }
+      st.gInit = true;
+      if (host) {
+        if (Array.isArray(pres.chq) && pres.chq.join() !== st.lastReq) { st.lastReq = pres.chq.join(); if (st.reqInit) hostRequestCH(rec.peer, pres.chq); }
+        st.reqInit = true;
+        if (Array.isArray(pres.chr)) for (const r of pres.chr.slice(-4)) { if (!Array.isArray(r) || r.length !== 3 || !intCH(r[0], 0, 1e9) || r[0] <= (st.repSeq || 0)) continue; st.repSeq = r[0]; hostReport(rec.peer, r); }
+      } else if (rec.peer === herePeersCH()[0] && Array.isArray(pres.chs) && pres.chs.length === 9 && pres.chs.every((x) => intCH(x, 0, 1e9))) {
+        const s = pres.chs;
+        Object.assign(CH, { gid: s[0], ph: Math.min(s[1], 4), round: s[2], maxRounds: s[3], team: s[4] ? 1 : 0, cat: s[6] >= 1 && s[6] <= CATS.length ? s[6] - 1 : -1, score: [s[7], s[8]] });
+        const left = performance.now() + s[5] * 100;
+        if (Math.abs(left - CH.endAt) > 400) CH.endAt = left;
+        if (typeof pres.cha === 'string') CH.actor = pres.cha.slice(0, 64);
+        CH.word = typeof pres.chw === 'string' ? pres.chw.slice(0, 40) : '';
+        CH.guessedBy = typeof pres.chb === 'string' ? pres.chb.slice(0, 64) : '';
+        if (Array.isArray(pres.cht)) { CH.teams = new Map(pres.cht.filter((e) => Array.isArray(e) && typeof e[0] === 'string' && (e[1] === 0 || e[1] === 1))); CH.order = [herePeersCH().filter((p) => CH.teams.get(p) === 0), herePeersCH().filter((p) => CH.teams.get(p) === 1)]; }
+        const ev = pres.che;
+        if (Array.isArray(ev) && ev.length === 4 && intCH(ev[0], 0, 1e9) && ev[0] !== CH.ev[0]) { const fresh = CH.ev[0] !== 0; CH.ev = ev.slice(); if (fresh) showEventCH(ev); }
+      }
+      st.chTeam = CH.teams.has(rec.peer) ? CH.teams.get(rec.peer) : -1;
+    };
+    L.clampPlayer = (p) => {
+      // the actor stays on the stage; everyone else stays off it during a turn
+      const B = R, m = 0.3;
+      let x = clamp(p.x, B.minX + m, B.maxX - m), z = clamp(p.z, B.minZ + m, B.maxZ - m);
+      if (CH.ph === 1 || CH.ph === 2) {
+        if (iAmActor()) { x = clamp(x, STAGE.x0 + 0.3, STAGE.x1 - 0.3); z = clamp(z, STAGE.z0 + 0.3, STAGE.z1 - 0.1); }
+        else if (z < STAGE.z1 + 0.6 && Math.abs(x) < STAGE.x1 + 0.5) z = STAGE.z1 + 0.6;
+      }
+      return [x - p.x, z - p.z];
+    };
+    L.spawn = () => { dolly.position.set((Math.random() - 0.5) * 3, 0, 6.2); state.yaw = 0; };
+    L.onExit = () => { guessBox.style.display = 'none'; myCard.visible = false; if (ui.status) ui.status.hidden = true; statusKeyCH = ''; };
+    L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0001) * 0.3; camera.position.set(Math.sin(a) * 4, 2.6, 6.5); camera.lookAt(0, 1.4, -5); };
+    L.chInternals = { CH, hostTickCH, startGameCH, guessMatches, drawCard, gotIt, sendGuess, EVC };
     return L;
   })();
 
