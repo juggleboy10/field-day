@@ -187,9 +187,9 @@
     }
 
     // ---------------------------------------------------------------- the race
-    const RACE = { id: 0, state: 'idle', startAt: 0, botsOn: false, myFinish: 0, over: false, seqShown: -1, goneT: 0 };
+    const RACE = { id: 0, state: 'idle', startAt: 0, botsOn: false, botsN: 0, myFinish: 0, over: false, seqShown: -1, goneT: 0 };
     L.race = RACE;
-    const BOT_DEF = [{ name: 'Parkour Pete', color: '#ff8a4a', f: 0.66, hat: 1, face: 1 }, { name: 'Vault Val', color: '#8bd450', f: 0.76, hat: 2, face: 2 }, { name: 'Rooftop Rex', color: '#b388ff', f: 0.86, hat: 0, face: 3 }];
+    const BOT_DEF = [{ name: 'Parkour Pete', color: '#ff8a4a', f: 0.66, hat: 1, face: 1 }, { name: 'Vault Val', color: '#8bd450', f: 0.76, hat: 2, face: 2 }, { name: 'Rooftop Rex', color: '#b388ff', f: 0.86, hat: 0, face: 3 }, { name: 'Leap Lena', color: '#4fc3f7', f: 0.71, hat: 3, face: 0 }, { name: 'Flip Finn', color: '#ffd23f', f: 0.81, hat: 1, face: 3 }];
     const ROUTE = [
       [0, 0, 3, 0], [1.4, 0, -12, 5.2], [-1.4, 0.3, -17, 4.4], [1.2, 0.6, -22, 4.4], [-1.2, 0.3, -27, 4.4], [0, 0, -32, 4.4], [0, 0, -40.6, 5.2],
       [0, 7, -41.2, 1.25], [0, 7, -48, 5], [0, 7, -53, 3], [0, 7, -65, 1.7], [0, 7, -71, 4.5], [0, 0.2, -96, 8], [0, 0.2, -103, 5],
@@ -206,11 +206,11 @@
       out.set(a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k);
       return 0;
     }
-    const bots = BOT_DEF.map((d) => {
+    const bots = BOT_DEF.map((d, bi) => {
       const g = buildAvatar(d.color, d.hat, d.face, true, 1, 2);
       const tag = new THREE.Sprite(new THREE.SpriteMaterial({ map: canvasTexture(256, 64, (c) => { rr(c, 4, 6, 248, 52, 26); c.fillStyle = 'rgba(20,16,32,0.8)'; c.fill(); c.fillStyle = '#fff'; c.font = `700 28px ${BODY}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(d.name, 128, 33, 230); }).tex, transparent: true, depthWrite: false }));
       tag.scale.set(0.9, 0.225, 1); tag.position.y = 0.42; g.add(tag); g.visible = false; G.add(g);
-      return Object.assign({ g, finishT: ROUTE_T[ROUTE_T.length - 1] / d.f, pos: new V3() }, d);
+      return Object.assign({ g, bi, finishT: ROUTE_T[ROUTE_T.length - 1] / d.f, pos: new V3() }, d);
     });
     const raceNow = () => (RACE.state === 'idle' ? 0 : Date.now() - RACE.startAt);
     const myProgress = () => { const [, bz] = bodyXZ(); return clamp(3 - bz, 0, 180) + Math.max(0, dolly.position.y) * 0.4; };
@@ -218,7 +218,7 @@
       const rows = [];
       rows.push({ name: state.name || 'You', me: true, fin: RACE.myFinish, prog: myProgress() });
       for (const rec of remotes.values()) { const st = rec.lvState[L.id]; if (rec.lv === L.idx && st && st.pk && st.pk[0] === RACE.id) rows.push({ name: rec.name, fin: st.pk[2], prog: st.pk[4] / 10 }); }
-      if (RACE.botsOn) { const t = Math.max(0, raceNow()) / 1000; for (const b of bots) rows.push({ name: b.name, bot: true, fin: t >= b.finishT ? Math.round(b.finishT * 1000) : 0, prog: Math.min(180, (t * b.f / ROUTE_T[ROUTE_T.length - 1]) * 180) }); }
+      if (RACE.botsOn) { const t = Math.max(0, raceNow()) / 1000; for (const b of bots.slice(0, RACE.botsN)) rows.push({ name: b.name, bot: true, fin: t >= b.finishT ? Math.round(b.finishT * 1000) : 0, prog: Math.min(180, (t * b.f / ROUTE_T[ROUTE_T.length - 1]) * 180) }); }
       rows.sort((a, b) => (a.fin && b.fin ? a.fin - b.fin : a.fin ? -1 : b.fin ? 1 : b.prog - a.prog));
       return rows;
     }
@@ -248,9 +248,9 @@
     function startRace(fromPeer) {
       RACE.id = Math.floor(Date.now() / 1000); RACE.startAt = Date.now() + COUNT_MS; RACE.state = 'count'; RACE.myFinish = 0; RACE.over = false; RACE.seqShown = -1;
       const others = [...remotes.values()].filter((r) => r.lv === L.idx && r.inGame).length;
-      RACE.botsOn = others === 0;
+      RACE.botsN = clamp(L.picker.n - 1 - others, 0, bots.length); RACE.botsOn = RACE.botsN > 0;
       resetDrinks(); toStart(); boardKey = '';
-      showToast(RACE.botsOn ? 'Race against the bots! Get ready\u2026' : 'Race! Get ready\u2026');
+      showToast(RACE.botsOn ? `Race against ${RACE.botsN === 1 ? 'a bot' : `${RACE.botsN} bots`}! Get ready\u2026` : 'Race! Get ready\u2026');
       forcePresence();
     }
     function finishRace() {
@@ -263,6 +263,7 @@
     makeButton(L, new V3(2.4, 1.0, -1.6), 0x8bd450, 'START race', () => startRace(), { faceYaw: 0 });
     makeButton(L, new V3(2.4, 1.0, 0.2), 0xff7a3a, 'Back to start', () => { toStart(); showToast('Back at the start'); }, { faceYaw: 0 });
     makeKiosk(L, -3.4, 2.4, Math.PI / 2);
+    makePlayerPicker(L, { min: 1, max: 1 + BOT_DEF.length, def: 4, label: 'Racers', note: 'from the next race' });
 
     // ---------------------------------------------------------------- drinks in use
     function takeBottle(b, hand) { b.taken = true; b.held = hand || null; if (!hand) b.g.visible = false; }
@@ -513,7 +514,7 @@
       for (const b of bottles) if (!b.taken && b.g.visible) { b.g.position.y = b.home.y + Math.sin(now * 0.003 + b.home.x) * 0.05; b.g.rotation.y += dt * 1.2; }
       // bots
       for (const b of bots) {
-        b.g.visible = here && RACE.botsOn && (RACE.state === 'count' || RACE.state === 'run' || RACE.state === 'over');
+        b.g.visible = here && RACE.botsOn && b.bi < RACE.botsN && (RACE.state === 'count' || RACE.state === 'run' || RACE.state === 'over');
         if (!b.g.visible) continue;
         const t = Math.max(0, raceNow()) / 1000, done = routeAt(t, b.f, b.pos);
         const ph = t * 6 + b.f * 10, bob = done || t <= 0 ? 0 : Math.abs(Math.sin(ph)) * 0.05;
@@ -573,7 +574,7 @@
     L.attract = (now) => { camera.position.set(Math.sin(now * 0.0002) * 3, 3, 8); camera.lookAt(0, 4, -40); };
 
     // ---------------------------------------------------------------- network
-    L.presence = () => ({ pk: [RACE.id, Math.floor(RACE.startAt / 100) % 1e9, RACE.myFinish, P.cpIdx, Math.round(myProgress() * 10), RACE.botsOn ? 1 : 0] });
+    L.presence = () => ({ pk: [RACE.id, Math.floor(RACE.startAt / 100) % 1e9, RACE.myFinish, P.cpIdx, Math.round(myProgress() * 10), RACE.botsN] });
     L.readPresence = (rec, pres, st) => {
       const a = pres.pk;
       if (!(Array.isArray(a) && a.length === 6 && a.every((x) => typeof x === 'number' && isFinite(x)))) { st.pk = null; return; }
@@ -582,7 +583,7 @@
       if (a[0] > RACE.id && state.level === L.idx) {
         const startAt = a[1] * 100 + Math.floor(Date.now() / 1e11) * 1e11;
         if (startAt > Date.now() - 500) {
-          RACE.id = a[0]; RACE.startAt = startAt; RACE.state = 'count'; RACE.myFinish = 0; RACE.over = false; RACE.botsOn = a[5] === 1;
+          RACE.id = a[0]; RACE.startAt = startAt; RACE.state = 'count'; RACE.myFinish = 0; RACE.over = false; RACE.botsN = clamp(Math.round(a[5]), 0, bots.length); RACE.botsOn = RACE.botsN > 0;
           resetDrinks(); toStart(); boardKey = ''; showToast(`${rec.name} started a race! Get ready\u2026`);
         }
       }

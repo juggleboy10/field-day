@@ -30,6 +30,7 @@
     updateRemotes(dt);
     updateBodies(L, dt, now);
     L.update(dt, now);
+    if (L.picker) L.picker.tick();
     updateButtons(L, now);
     updateFloats(now);
     updateUi(now);

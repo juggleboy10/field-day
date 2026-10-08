@@ -93,6 +93,7 @@
       }
     }
     makeKiosk(L, 9.2, 5.2, Math.atan2(-9.2, -5.2));
+    makePlayerPicker(L, { min: 2, max: 9, def: FILL_TO, note: 'from the next round' });
     L.board = makeBoard(G, 720, 460, 3.2, 2.05, 0, 2.5, -10.2, 0);
 
     // ---------------------------------------------------------------- the potato
@@ -214,7 +215,7 @@
     // ---------------------------------------------------------------- the host: rounds, the fuse, the bots
     function beginCount(now) {
       const hs = humans().slice(0, MAX_SPOTS);
-      const nb = Math.max(0, FILL_TO - hs.length);
+      const nb = Math.min(bots.length, Math.max(0, L.picker.n - hs.length));
       const ids = hs.concat(bots.slice(0, nb).map((b) => b.id));
       for (let i = ids.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [ids[i], ids[j]] = [ids[j], ids[i]]; }
       Object.assign(RS, { round: RS.round + 1, ph: 'count', order: ids, alive: ids.slice(), holder: '', fl: null, heat: 0, popped: '', winner: '' });

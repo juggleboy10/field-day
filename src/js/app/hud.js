@@ -27,7 +27,7 @@
     if (ui.micBtn) { ui.micBtn.hidden = !VOICE.stream; ui.micBtn.textContent = VOICE.muted ? 'Mic: muted' : 'Mic: on'; }
     syncVoiceToggle();
     if (ui.musicToggle) ui.musicToggle.checked = MUSIC.on;
-    const actionBtns = L.hudActions.filter((a) => !a.show || a.show()).map((a) => {
+    const actionBtns = L.hudActions.concat(L.picker ? [L.picker.hud] : []).filter((a) => !a.show || a.show()).map((a) => {
       const b = document.createElement('button');
       b.className = 'hud-btn';
       b.type = 'button';

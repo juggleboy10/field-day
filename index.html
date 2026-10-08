@@ -443,7 +443,7 @@ kbd {
   };
   function savePrefs() {
     try {
-      localStorage.setItem(PREF_KEY, JSON.stringify({ name: state.nameEdited ? state.name : '', color: state.colorIdx, level: state.level, hat: state.hat, face: state.face, shirt: state.shirt, shirtColor: state.shirtColor, music: prefs.music !== false, voice: prefs.voice === true, smoothTurn: prefs.smoothTurn === true, popBest: prefs.popBest | 0 }));
+      localStorage.setItem(PREF_KEY, JSON.stringify({ name: state.nameEdited ? state.name : '', color: state.colorIdx, level: state.level, hat: state.hat, face: state.face, shirt: state.shirt, shirtColor: state.shirtColor, music: prefs.music !== false, voice: prefs.voice === true, smoothTurn: prefs.smoothTurn === true, popBest: prefs.popBest | 0, players: prefs.players || {} }));
     } catch (e) { /* storage unavailable */ }
   }
   function forcePresence() { state.presenceDue = true; }
@@ -1194,6 +1194,67 @@ kbd {
     L.group.add(post);
     void rx; void rz;
     makeButton(L, new V3(x, 1.02, z), KIOSK_COLORS[HUB], 'Go back', () => switchLevel(HUB), { faceYaw: yaw });
+    L.kioskAt = { x, z, yaw };
+  }
+
+  // ---------------------------------------------------------------- how many players: a -/+ stand (VR) and a HUD button (browser)
+  // o: { min, max, def, label ('Players' or 'Per team'), onChange(n), x, z, yaw } (by default the stand goes beside the kiosk).
+  // The number is the total: bots make up whatever friends don't. It's remembered per game, and shared with everyone in the
+  // game: whoever changed it last wins (presence key pc, read in net.js).
+  function makePlayerPicker(L, o) {
+    const saved = prefs.players && prefs.players[L.id];
+    const P = {
+      min: o.min, max: o.max, label: o.label || 'Players', onChange: o.onChange || null,
+      n: saved && Number.isInteger(saved.n) ? clamp(saved.n, o.min, o.max) : o.def, t: saved && saved.t > 0 ? saved.t : 0,
+    };
+    const text = () => `${P.label}: ${P.n}`;
+    let yaw = o.yaw, x = o.x, z = o.z;
+    if (x === undefined && L.kioskAt) {
+      const k = L.kioskAt, rx = Math.cos(k.yaw), rz = -Math.sin(k.yaw);
+      yaw = k.yaw; x = k.x + rx * 1.15; z = k.z + rz * 1.15;
+    }
+    // a stand with the number and two buttons (not for games you play sitting in a boat or kart: there the right
+    // thumbstick click, which works in every game, is the way to change it in VR)
+    let plate = null;
+    if (o.stand !== false && x !== undefined) {
+      const fx = Math.sin(yaw || 0), fz = Math.cos(yaw || 0), rx = Math.cos(yaw || 0), rz = -Math.sin(yaw || 0);
+      plate = makePlate(L.group, text(), 0.9, 0.2, new V3(x - fx * 0.05, 1.5, z - fz * 0.05), yaw || 0, { bg: '#16142e', fg: '#ffd23f', size: 0.62 });
+      const back = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.28, 0.06), legMat);
+      back.position.set(x - fx * 0.09, 1.5, z - fz * 0.09); back.rotation.y = yaw || 0; L.group.add(back);
+      makeButton(L, new V3(x - rx * 0.24, 1.02, z - rz * 0.24), 0xff7a3a, 'Fewer', () => P.set(P.n - 1), { faceYaw: yaw || 0 });
+      makeButton(L, new V3(x + rx * 0.24, 1.02, z + rz * 0.24), 0x8bd450, 'More', () => P.set(P.n + 1), { faceYaw: yaw || 0 });
+    }
+    let stickPrev = true;
+    P.tick = () => {
+      if (state.mode !== 'vr' || state.level !== L.idx) { stickPrev = true; return; }
+      const gp = vrHands.right && vrHands.right.source && vrHands.right.source.gamepad;
+      const down = !!(gp && gp.buttons && gp.buttons[3] && gp.buttons[3].pressed);
+      if (down && !stickPrev) P.set(P.n >= P.max ? P.min : P.n + 1);
+      stickPrev = down;
+    };
+    function apply(quiet) {
+      if (plate) plate.userData.draw(text());
+      prefs.players = prefs.players || {};
+      prefs.players[L.id] = { n: P.n, t: P.t };
+      savePrefs();
+      state.hudDirty = true; state.dirtyBoard = true;
+      if (!quiet) showToast(o.note ? `${text()} · ${o.note}` : text());
+      if (P.onChange) P.onChange(P.n);
+    }
+    P.set = (n) => {
+      n = clamp(n, P.min, P.max);
+      if (n === P.n) { showToast(n === P.max ? `${text()} (the most)` : `${text()} (the fewest)`); return; }
+      P.n = n; P.t = Date.now(); apply(false); forcePresence();
+    };
+    P.merge = (a) => {
+      if (!Array.isArray(a) || a.length !== 2 || !Number.isInteger(a[0]) || typeof a[1] !== 'number' || !(a[1] > P.t)) return;
+      const n = clamp(a[0], P.min, P.max);
+      P.t = a[1];
+      if (n !== P.n) { P.n = n; apply(false); } else apply(true);
+    };
+    P.hud = { label: () => `${text()} ▸`, run: () => P.set(P.n >= P.max ? P.min : P.n + 1) };
+    L.picker = P;
+    return P;
   }
 
   // ---------------------------------------------------------------- level registry
@@ -2937,6 +2998,7 @@ kbd {
     redraws.push(drawSign);
     makeButton(L, new V3(2.8, 1.03, 2.75), 0xf5821f, 'Reset balls', () => resetBodies(L), { faceYaw: -Math.PI / 2 });
     makeKiosk(L, -4.2, 3.9, Math.PI * 0.75);
+    makePlayerPicker(L, { min: 2, max: 8, def: 4, label: 'Lightning players', note: 'from the next game' });
 
     // balls
     const ballTex = canvasTexture(256, 128, (g) => {
@@ -3060,7 +3122,8 @@ kbd {
     // one right behind. Score before the person in front of you and they're out. First shot from the line;
     // after a miss, rebound and shoot from anywhere. Last one standing wins. Computer shooters fill the line.
     const FT_D = 3.9, FT = new V3(RIM.x, 0, RIM.z + FT_D);
-    const LT_BOTS = [{ name: 'Swish Sam', color: '#ffb36b', skill: 1.0 }, { name: 'Bricky Bo', color: '#8bd450', skill: 1.35 }, { name: 'Net Nadia', color: '#b388ff', skill: 0.85 }];
+    const LT_BOTS = [{ name: 'Swish Sam', color: '#ffb36b', skill: 1.0 }, { name: 'Bricky Bo', color: '#8bd450', skill: 1.35 }, { name: 'Net Nadia', color: '#b388ff', skill: 0.85 },
+      { name: 'Hoop Hana', color: '#4fc3f7', skill: 0.95 }, { name: 'Dunk Dex', color: '#ff6a9a', skill: 1.15 }, { name: 'Rim Rosa', color: '#ffd23f', skill: 1.05 }, { name: 'Layup Lou', color: '#5ad8b0', skill: 1.25 }];
     const LT = { ph: 0, gid: 0, order: [], line: [], front: '', chaser: '', out: [], winner: '', ballOf: {}, giveSeq: {}, frontShot: false, ev: [0, 0, '', ''] };
     L.lt = LT;
     const ltMe = { req: null, reqSeq: 0, reports: [], repSeq: 0, k: -1, giveSeen: -1, held: false, shots: 0 };
@@ -3112,8 +3175,8 @@ kbd {
     function announceLT(code, a, b) { LT.ev = [LT.ev[0] + 1, code, a || '', b || '']; showEventLT(LT.ev); forcePresence(); }
     function startLightning(now) {
       const humans = herePeersLT();
-      // computer shooters only when you're on your own; with friends it's just the people here
-      const nb = humans.length === 1 ? 3 : 0;
+      // computer shooters make up the numbers to the picker's count (at least two players in all)
+      const nb = Math.min(bots.length, Math.max(humans.length < 2 ? 1 : 0, L.picker.n - humans.length));
       const order = [];
       for (let i = 0; i < Math.max(humans.length, nb); i++) { if (humans[i]) order.push(humans[i]); if (i < nb) order.push(bots[i].id); }
       Object.assign(LT, { gid: LT.gid + 1, ph: 1, order, out: [], winner: '', ballOf: {}, frontShot: false });
@@ -8198,8 +8261,10 @@ kbd {
         const r = rayBody(_o, _d, rec.cur.h.pos, Math.max(0.2, rec.cur.h.pos.y - 1.15), hitT);
         if (r.dist < 0.3 && r.s < hitT) { hitT = r.s; hitRec = rec; }
       }
+      let hitBot = null;
+      if (L.ltRayHitsBot) { const hb = L.ltRayHitsBot(_o, _d, hitT); if (hb) { hitBot = hb.bot; hitT = hb.s; hitRec = null; } }
       let hitDrone = null;
-      if (!hitRec) {
+      if (!hitRec && !hitBot) {
         for (const dr of drones) {
           if (!dr.alive || !dr.m.visible) continue;
           _w.subVectors(dr.pos, _o);
@@ -8218,6 +8283,12 @@ kbd {
         me.tags += 1;
         me.lh.push([++me.lhSeq, hitRec.peer]);
         if (me.lh.length > 6) me.lh.shift();
+        sfx('zap', 1);
+        spawnFloat('+1', _end.clone().setY(_end.y + 0.4), TEAM_HEX[me.team]);
+        state.dirtyBoard = true;
+      } else if (hitBot) {
+        me.tags += 1;
+        L.ltHitBot(hitBot, now);
         sfx('zap', 1);
         spawnFloat('+1', _end.clone().setY(_end.y + 0.4), TEAM_HEX[me.team]);
         state.dirtyBoard = true;
@@ -8293,7 +8364,7 @@ kbd {
 
     // ---------------------------------------------------------------- rounds, scores, readouts
     function scores() {
-      const s = [0, 0];
+      const s = L.ltBotTags ? L.ltBotTags() : [0, 0];
       if (me.team >= 0) s[me.team] += me.tags;
       for (const rec of remotes.values()) {
         if (rec.lv !== L.idx) continue;
@@ -8330,7 +8401,7 @@ kbd {
       }
       if (me.winT && now - me.winT > 6000) { me.round += 1; me.tags = 0; me.winT = 0; state.dirtyBoard = true; forcePresence(); }
       // drones
-      const practice = opponents() === 0;
+      const practice = opponents() === 0 && !(L.ltEnemyBots && L.ltEnemyBots());
       drones.forEach((dr, i) => {
         if (!dr.alive && now > dr.respawn) dr.alive = true;
         const t = now * 0.00035 + dr.phase;
@@ -8426,6 +8497,224 @@ kbd {
       camera.position.set(Math.sin(a) * 13, 6, Math.cos(a) * 10);
       camera.lookAt(0, 0.5, 0);
     };
+    // ---------------------------------------------------------------- computer players
+    // Bots make up each team to the picker's number. The lowest-named player's page runs them: it moves them between
+    // cover, has them shoot (at people and at each other), and publishes where they are, their tags and their shots.
+    // A person who tags a bot reports it (lbh) and the host knocks it out; a bot's shot at a person names them (lbs)
+    // and that person's own page tags them, the same way people's shots work.
+    makePlayerPicker(L, { min: 1, max: 5, def: 3, label: 'Per team' });
+    const LB_NAMES = ['Zap Zara', 'Pew Pete', 'Glow Gil', 'Beam Bree', 'Flash Finn', 'Volt Vic', 'Neon Nell', 'Ray Rory', 'Blip Bea', 'Sparks Sol'];
+    const lbots = LB_NAMES.map((name, k) => {
+      const team = k < 5 ? 0 : 1;
+      const g = buildAvatar(TEAM_HEX[team], (k * 3 + 2) % HATS.length, k % FACES.length, true, (k * 2 + 1) % SHIRTS.length, team ? 4 : 6);
+      const tag = new THREE.Sprite(new THREE.SpriteMaterial({ map: canvasTexture(256, 64, (c) => { rr(c, 4, 6, 248, 52, 26); c.fillStyle = 'rgba(20,16,32,0.8)'; c.fill(); c.fillStyle = TEAM_HEX[team]; c.font = `700 28px ${BODY}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(name, 128, 33, 230); }).tex, transparent: true, depthWrite: false }));
+      tag.scale.set(0.9, 0.225, 1); tag.position.y = 0.45; g.add(tag);
+      const gun = makeBlaster(); gun.position.set(0.22, -0.32, -0.22); g.add(gun);
+      for (const m of gun.userData.glow) m.color.setHex(TEAM_COLORS[team]);
+      g.visible = false; G.add(g);
+      return { id: `bot:${k}`, k, team, name, g, gun, active: false, x: 0, z: 0, rx: 0, rz: 0, yaw: 0, vx: 0, vz: 0, tagged: false, taggedUntil: 0, invUntil: 0, tags: 0, cool: 0, goal: null, goalT: 0, skill: 0.85 + rand() * 0.3 };
+    });
+    const ltHost = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort()[0] === state.myPeer; };
+    const ltHumans = () => { const out = state.mode !== 'menu' ? [{ id: state.myPeer, team: me.team, head: myHead.pos, tagged: me.tagged }] : []; for (const rec of remotes.values()) { const st = rec.lvState[L.id]; if (inMyLevel(rec) && rec.hasH && st && (st.team === 0 || st.team === 1)) out.push({ id: rec.peer, team: st.team, head: rec.cur.h.pos, tagged: st.tagged }); } return out; };
+    const LB = { seq: 0, shots: [], hitSeq: 0, hits: [], round: -1 };
+    L.ltBots = lbots;
+    function spawnBot(b) {
+      const z = b.team === 0 ? 9.6 : -9.6;
+      b.x = b.rx = (rand() - 0.5) * 6; b.z = b.rz = z + (rand() - 0.5) * 1.5; b.vx = b.vz = 0; b.goal = null; b.yaw = b.team === 0 ? 0 : Math.PI;
+    }
+    function fillLtBots() {
+      const nh = [0, 0];
+      for (const h of ltHumans()) nh[h.team] += 1;
+      for (const t of [0, 1]) {
+        const want = Math.max(0, L.picker.n - nh[t]);
+        lbots.filter((b) => b.team === t).forEach((b, i) => { const was = b.active; b.active = i < want; if (b.active && !was) { spawnBot(b); b.tags = 0; b.tagged = false; } });
+      }
+      forcePresence();
+    }
+    // a clear line between two points (cover blocks are taller than 1.2 m, or low walls you can shoot over)?
+    const _lo = new V3(), _ld = new V3();
+    function clearLine(a, b) {
+      _ld.subVectors(b, a); const len = _ld.length(); if (len < 1e-3) return true; _ld.divideScalar(len);
+      for (const bx of L.boxes) if (rayBox(a, _ld, bx, len) < len - 0.2) return false;
+      return true;
+    }
+    function pushOutOfBoxes(b) {
+      const m = 0.35;
+      b.x = clamp(b.x, AR.minX + m, AR.maxX - m); b.z = clamp(b.z, AR.minZ + m, AR.maxZ - m);
+      for (const bx of L.boxes) if (b.x > bx.min.x - m && b.x < bx.max.x + m && b.z > bx.min.z - m && b.z < bx.max.z + m) {
+        const dl = b.x - (bx.min.x - m), dr = bx.max.x + m - b.x, dn = b.z - (bx.min.z - m), df = bx.max.z + m - b.z, k = Math.min(dl, dr, dn, df);
+        if (k === dl) b.x = bx.min.x - m; else if (k === dr) b.x = bx.max.x + m; else if (k === dn) b.z = bx.min.z - m; else b.z = bx.max.z + m;
+      }
+    }
+    // somewhere to head for: beside a block, on our half or the middle (or pushing up when we're ahead)
+    function pickGoal(b) {
+      const side = b.team === 0 ? 1 : -1;
+      for (let i = 0; i < 12; i++) {
+        const bx = L.boxes[Math.floor(rand() * L.boxes.length)], cx = (bx.min.x + bx.max.x) / 2, cz = (bx.min.z + bx.max.z) / 2;
+        if (cz * side < -6 && rand() < 0.7) continue;          // mostly stay out of their back third
+        const a = rand() * Math.PI * 2, r = Math.max(bx.max.x - bx.min.x, bx.max.z - bx.min.z) / 2 + 0.7;
+        return new V3(clamp(cx + Math.cos(a) * r, AR.minX + 0.6, AR.maxX - 0.6), 0, clamp(cz + Math.sin(a) * r, AR.minZ + 0.6, AR.maxZ - 0.6));
+      }
+      return new V3((rand() - 0.5) * 20, 0, side * (2 + rand() * 6));
+    }
+    const _bh = new V3(), _th = new V3(), _se = new V3();
+    function botHead(b, out) { return out.set(b.x, 1.5, b.z); }
+    function tagBot(b, now) { if (b.tagged || now < b.invUntil) return false; b.tagged = true; b.taggedUntil = now + 3000; forcePresence(); return true; }
+    function botFire(b, now, target) {
+      botHead(b, _bh); _bh.y = 1.25;
+      _th.copy(target.head); _th.y -= 0.35;
+      const d = _bh.distanceTo(_th);
+      const p = clamp((0.82 - d * 0.03) * b.skill, 0.2, 0.8);
+      const hit = Math.random() < p;
+      // a miss goes a little wide
+      if (!hit) { _th.x += (Math.random() - 0.5) * 1.6; _th.y += (Math.random() - 0.3) * 0.8; _th.z += (Math.random() - 0.5) * 1.6; }
+      _ld.subVectors(_th, _bh).normalize();
+      let maxT = 45;
+      for (const bx of L.boxes) maxT = Math.min(maxT, rayBox(_bh, _ld, bx, maxT));
+      const end = _se.copy(_bh).addScaledVector(_ld, hit ? Math.min(maxT, d) : Math.min(maxT, d + 4));
+      showBeam(_bh, end, b.team);
+      sfx('laser', 0.5 / (1 + _bh.distanceTo(myHead.pos) * 0.1));
+      let victim = '';
+      if (hit) {
+        victim = target.id;
+        b.tags += 1;
+        if (target.bot) tagBot(target.bot, now);
+        else if (target.id === state.myPeer) getTagged(now, b.name);
+      }
+      LB.shots.push([++LB.seq, r3(_bh.x), r3(_bh.y), r3(_bh.z), r3(end.x), r3(end.y), r3(end.z), victim, b.k]);
+      if (LB.shots.length > 6) LB.shots.shift();
+      b.cool = now + 900 + Math.random() * 700;
+      state.dirtyBoard = true;
+      forcePresence();
+    }
+    function getTagged(now, by) {
+      if (me.tagged || now < me.invUntil || state.mode === 'menu') return;
+      me.tagged = true; me.taggedUntil = now + 3000;
+      sfx('tagged', 1); showToast(`Tagged by ${by}`);
+      if (state.mode === 'vr') for (const s of SIDES) haptic(vrHands[s], 0.9, 200);
+      state.dirtyBoard = true; forcePresence();
+    }
+    function stepLtBots(dt, now) {
+      const hs = ltHumans();
+      for (const b of lbots) {
+        if (!b.active) continue;
+        if (b.tagged) { if (now > b.taggedUntil) { b.tagged = false; b.invUntil = now + 1500; forcePresence(); } else { b.vx = b.vz = 0; continue; } }
+        // the nearest enemy it can see
+        botHead(b, _bh);
+        let tgt = null, td = 26;
+        for (const h of hs) if (h.team !== b.team && !h.tagged) { const d = Math.hypot(h.head.x - b.x, h.head.z - b.z); if (d < td && clearLine(_bh, h.head)) { td = d; tgt = h; } }
+        for (const o of lbots) if (o.active && o.team !== b.team && !o.tagged) { const oh = botHead(o, new V3()); const d = Math.hypot(o.x - b.x, o.z - b.z); if (d < td && clearLine(_bh, oh)) { td = d; tgt = { id: o.id, head: oh, bot: o }; } }
+        // move: to its goal, strafing a little when it has someone in its sights
+        // a new place to go when it gets there, after a while, or when it's stopped getting closer (stuck on a block)
+        const gd = b.goal ? Math.hypot(b.goal.x - b.x, b.goal.z - b.z) : 0;
+        if (b.goal && gd < (b.bestGd || 1e9) - 0.3) { b.bestGd = gd; b.progT = now; }
+        if (!b.goal || now > b.goalT || gd < 0.4 || (!tgt && now - (b.progT || now) > 1500)) { b.goal = pickGoal(b); b.goalT = now + 4000 + rand() * 4000; b.bestGd = 1e9; b.progT = now; }
+        let mx = b.goal.x - b.x, mz = b.goal.z - b.z;
+        const ml = Math.hypot(mx, mz) || 1;
+        let sp = tgt ? 1.2 : 2.6;
+        if (tgt) { const s = Math.sin(now * 0.002 + b.k) > 0 ? 1 : -1; const fx = (tgt.head.x - b.x) / td, fz = (tgt.head.z - b.z) / td; mx = mx / ml * 0.4 - fz * s; mz = mz / ml * 0.4 + fx * s; }
+        else { mx /= ml; mz /= ml; }
+        const l2 = Math.hypot(mx, mz) || 1;
+        const k = 1 - Math.exp(-dt * 6);
+        b.vx += (mx / l2 * sp * b.skill - b.vx) * k; b.vz += (mz / l2 * sp * b.skill - b.vz) * k;
+        b.x += b.vx * dt; b.z += b.vz * dt;
+        pushOutOfBoxes(b);
+        b.yaw = tgt ? Math.atan2(-(tgt.head.x - b.x), -(tgt.head.z - b.z)) : Math.hypot(b.vx, b.vz) > 0.3 ? Math.atan2(-b.vx, -b.vz) : b.yaw;
+        if (tgt && now > b.cool && !me.winT) botFire(b, now, tgt);
+      }
+    }
+    // people's shots can hit bots: called from fire()
+    function rayHitsBot(o, d, maxT) {
+      let best = null, bt = maxT;
+      for (const b of lbots) {
+        if (!b.active || b.tagged || b.team === me.team) continue;
+        const r = rayBody(o, d, botHead(b, _bh), 0.4, bt);
+        if (r.dist < 0.32 && r.s < bt) { bt = r.s; best = b; }
+      }
+      return best ? { bot: best, s: bt } : null;
+    }
+    L.ltRayHitsBot = rayHitsBot;
+    L.ltHitBot = (b, now) => {
+      if (ltHost()) tagBot(b, now);
+      else { LB.hits.push([++LB.hitSeq, b.k]); if (LB.hits.length > 6) LB.hits.shift(); b.tagged = true; b.taggedUntil = now + 3000; }
+    };
+    L.ltEnemyBots = () => lbots.some((b) => b.active && b.team !== me.team);
+    L.ltBotTags = () => { const s = [0, 0]; for (const b of lbots) if (b.active) s[b.team] += b.tags; return s; };
+    let fillT = 0;
+    const baseUpdate = L.update;
+    L.update = (dt, now) => {
+      const here = state.mode !== 'menu' && state.level === L.idx;
+      if (here && ltHost()) {
+        if (LB.round !== me.round) { LB.round = me.round; for (const b of lbots) b.tags = 0; }
+        if (now - fillT > 800) { fillT = now; fillLtBots(); }
+        if (!L.paused) stepLtBots(Math.min(dt, 0.05), now);
+        for (const b of lbots) { b.rx = b.x; b.rz = b.z; }
+      } else for (const b of lbots) { const k = 1 - Math.exp(-dt * 10); b.rx += (b.x - b.rx) * k; b.rz += (b.z - b.rz) * k; if (b.tagged && now > b.taggedUntil + 400) b.tagged = false; }
+      baseUpdate(dt, now);
+      for (const b of lbots) {
+        b.g.visible = here && b.active;
+        if (!b.g.visible) continue;
+        const run = Math.hypot(b.vx, b.vz);
+        b.g.position.set(b.rx, (b.tagged ? 1.15 : 1.5) + (run > 0.5 && !b.tagged ? Math.abs(Math.sin(now * 0.012 + b.k)) * 0.05 : 0), b.rz);
+        b.g.rotation.set(b.tagged ? 0.5 : 0, b.yaw, 0, 'YXZ');
+        for (const m of b.gun.userData.glow) m.color.setHex(b.tagged ? 0x555566 : TEAM_COLORS[b.team]);
+      }
+    };
+    {
+      const baseP = L.presence, baseR = L.readPresence;
+      const r1 = (x) => Math.round(x * 10);
+      L.presence = () => {
+        const p = baseP();
+        if (ltHost()) { p.lbt = lbots.filter((b) => b.active).map((b) => [b.k, r1(b.x), r1(b.z), Math.round(b.yaw * 100), b.tagged ? 1 : 0, b.tags, r1(b.vx), r1(b.vz)]); p.lbs = LB.shots.slice(); }
+        p.lbh = LB.hits.slice();     // always sent (even empty), so the host has seen it before our first hit
+        return p;
+      };
+      L.readPresence = (rec, pres, st) => {
+        baseR(rec, pres, st);
+        const now = performance.now();
+        // someone tagged one of our bots
+        if (ltHost() && Array.isArray(pres.lbh)) {
+          for (const h of pres.lbh.slice(-6)) {
+            if (!Array.isArray(h) || h.length !== 2 || !Number.isInteger(h[0]) || !lbots[h[1]]) continue;
+            if (h[0] <= (st.lbhSeq || 0)) continue;
+            st.lbhSeq = h[0];
+            if (st.lbhInit && lbots[h[1]].team !== st.team) tagBot(lbots[h[1]], now);
+          }
+          st.lbhInit = true;
+        }
+        const ids = [state.myPeer]; for (const r of remotes.values()) if (r.lv === L.idx && r.inGame) ids.push(r.peer);
+        if (rec.peer !== ids.sort()[0]) return;
+        if (Array.isArray(pres.lbt)) {
+          const seen = new Set();
+          for (const a of pres.lbt.slice(0, lbots.length)) {
+            if (!Array.isArray(a) || a.length !== 8 || !a.every(Number.isFinite) || !lbots[a[0]]) continue;
+            const b = lbots[a[0]]; seen.add(b.k);
+            if (!b.active) { b.rx = a[1] / 10; b.rz = a[2] / 10; }
+            const tagged = a[4] === 1;
+            if (tagged && !b.tagged) b.taggedUntil = now + 3000;
+            Object.assign(b, { active: true, x: clamp(a[1] / 10, AR.minX, AR.maxX), z: clamp(a[2] / 10, AR.minZ, AR.maxZ), yaw: a[3] / 100, tagged, tags: clamp(a[5] | 0, 0, 9999), vx: a[6] / 10, vz: a[7] / 10 });
+          }
+          for (const b of lbots) if (!seen.has(b.k)) b.active = false;
+          state.dirtyBoard = true;
+        }
+        // the bots' shots: beams, and a tag if one names us
+        if (Array.isArray(pres.lbs)) {
+          for (const s of pres.lbs.slice(-6)) {
+            if (!Array.isArray(s) || s.length !== 9 || !Number.isInteger(s[0]) || !s.slice(1, 7).every((x) => finite(x) && Math.abs(x) < 100) || typeof s[7] !== 'string') continue;
+            if (s[0] <= (st.lbsSeq || 0)) continue;
+            st.lbsSeq = s[0];
+            if (!st.lbsInit) continue;
+            const b = lbots[s[8]] || lbots[0];
+            showBeam(new V3(s[1], s[2], s[3]), new V3(s[4], s[5], s[6]), b.team);
+            sfx('laser', 0.5 / (1 + new V3(s[1], s[2], s[3]).distanceTo(myHead.pos) * 0.1));
+            if (s[7] === state.myPeer && b.team !== me.team) getTagged(now, b.name);
+          }
+          st.lbsInit = true;
+        }
+      };
+    }
+    L.onExit = ((base) => () => { base(); for (const b of lbots) b.g.visible = false; })(L.onExit);
+    L.ltInternals = { lbots, fillLtBots, stepLtBots, rayHitsBot, botFire, ltHost, LB, me, scores, fire: (now) => fire(now), clearLine };
     return L;
   })();
 
@@ -8572,7 +8861,7 @@ kbd {
     }).tex;
     const ball = makeBody(L, { geo: new THREE.SphereGeometry(SMALL_R, 22, 16), tex: ballTex, r: SMALL_R, slot: new V3(0, SMALL_R + 0.002, 0) });
     // the ball's size: big and floaty (bubble soccer), or the classic small one
-    const SOC = { big: true, seq: 0, armed: true };
+    const SOC = { big: true, seq: 0, armed: true, lastTouch: '' };
     L.soc = SOC;
     function applyBallSize(big) {
       SOC.big = big;
@@ -8680,7 +8969,7 @@ kbd {
       // a harder kick gets more air under it, on top of where you're looking
       _kd.y = SOC.big ? Math.min(0.85, clamp(_kd.y, -0.1, 0.5) + 0.12 + power * 0.34) : clamp(_kd.y, -0.1, 0.65) + 0.18;
       _kd.normalize();
-      claimBall();
+      claimBall(); SOC.lastTouch = state.myPeer;
       ball.vel.copy(_kd).multiplyScalar(SOC.big ? 5 + power * 10.5 : 6 + power * 16).addScaledVector(me.vel, 0.4);
       ball.pos.y = Math.max(ball.pos.y, BR + 0.02);
       sfx('kick', 0.6 + power * 0.4);
@@ -8762,7 +9051,7 @@ kbd {
         const dx = ball.pos.x - myHead.pos.x, dz = ball.pos.z - myHead.pos.z, d = Math.hypot(dx, dz), minD = 0.34 + BR;
         if (d < minD && d > 1e-4 && ball.pos.y < (SOC.big ? BR + 0.7 : 1.0)) {
           _n.set(dx / d, 0, dz / d);
-          claimBall();
+          claimBall(); SOC.lastTouch = state.myPeer;
           ball.pos.x = myHead.pos.x + _n.x * (minD + 0.01);
           ball.pos.z = myHead.pos.z + _n.z * (minD + 0.01);
           const push = Math.max(0, me.vel.dot(_n)) * 1.2 + 0.7;
@@ -8780,7 +9069,7 @@ kbd {
               const h = vrHands[side];
               const sp = handSpeed(h);
               _n.subVectors(ball.pos, mh.pos).multiplyScalar(1 / hd);
-              claimBall();
+              claimBall(); SOC.lastTouch = state.myPeer;
               ball.pos.copy(mh.pos).addScaledVector(_n, min + 0.01);
               const hs = h.hist;
               const hv = hs.length > 1 ? new V3().subVectors(hs[hs.length - 1].p, hs[Math.max(0, hs.length - 4)].p).divideScalar(Math.max(0.001, (hs[hs.length - 1].t - hs[Math.max(0, hs.length - 4)].t) / 1000)) : new V3();
@@ -8799,9 +9088,10 @@ kbd {
         SOC.armed = false;
         const team = ball.pos.z > 0 ? 1 : 0;
         me.goals[team] += 1;
-        if (team === me.team) me.scoredBy += 1;
+        const byBot = L.socBots && L.socBots.byId(SOC.lastTouch);
+        if (team === me.team && !byBot) me.scoredBy += 1;
         me.kickoffT = now + 2600;
-        goalCelebration(team, team === me.team ? 'you' : null);
+        goalCelebration(team, byBot ? (byBot.team === team ? byBot.name : null) : team === me.team ? 'you' : null);
         forcePresence();
       }
       if (me.kickoffT && now > me.kickoffT) {
@@ -8888,9 +9178,196 @@ kbd {
         if (a[0] > SOC.seq || (a[0] === SOC.seq && rec.peer < state.myPeer && (a[1] === 1) !== SOC.big)) { SOC.seq = a[0]; if ((a[1] === 1) !== SOC.big) applyBallSize(a[1] === 1); }
       };
     }
+    // ---------------------------------------------------------------- computer players
+    // Bots make up each team to the picker's number. The lowest-named player's page runs them: when a bot touches the
+    // ball that page claims it (as anyone touching it does), so the ball's physics and goals work as they always have.
+    // Each team's bots share out the jobs: a keeper (when the side has three or more), a chaser for the ball, and supports.
+    makePlayerPicker(L, { min: 1, max: 5, def: 3, label: 'Per team', x: KX, z: KZ + 2.4, yaw: Math.PI / 2 });
+    const SB_NAMES = ['Kicky Kai', 'Nutmeg Nia', 'Header Hal', 'Volley Val', 'Corner Cora', 'Striker Stu', 'Dribble Di', 'Goalie Gus', 'Pass Patti', 'Wing Wes'];
+    const sbots = SB_NAMES.map((name, k) => {
+      const team = k < 5 ? 0 : 1;
+      const g = buildAvatar(TEAM_HEX[team], (k * 3 + 1) % HATS.length, k % FACES.length, true, (k * 2) % SHIRTS.length, team ? 4 : 6);
+      const tag = new THREE.Sprite(new THREE.SpriteMaterial({ map: canvasTexture(256, 64, (c) => { rr(c, 4, 6, 248, 52, 26); c.fillStyle = 'rgba(20,16,32,0.8)'; c.fill(); c.fillStyle = TEAM_HEX[team]; c.font = `700 28px ${BODY}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(name, 128, 33, 230); }).tex, transparent: true, depthWrite: false }));
+      tag.scale.set(0.9, 0.225, 1); tag.position.y = 0.45; g.add(tag);
+      g.visible = false; G.add(g);
+      return { id: `bot:${k}`, k, team, j: k % 5, name, g, active: false, x: 0, z: 0, rx: 0, rz: 0, yaw: 0, vx: 0, vz: 0, role: 'sup', kickCool: 0, skill: 0.85 + rand() * 0.3 };
+    });
+    const socHumans = () => { const ids = state.mode !== 'menu' ? [{ id: state.myPeer, team: me.team }] : []; for (const rec of remotes.values()) { const st = rec.lvState[L.id]; if (rec.lv === L.idx && rec.inGame && st && (st.team === 0 || st.team === 1)) ids.push({ id: rec.peer, team: st.team }); } return ids; };
+    const socHost = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort()[0] === state.myPeer; };
+    L.socBots = { list: sbots, byId: (id) => (typeof id === 'string' && id.startsWith('bot:') ? sbots[Number(id.slice(4))] || null : null) };
+    const attackZ = (t) => (t === 0 ? -HL : HL), ownZ = (t) => (t === 0 ? HL : -HL);
+    function homeSpot(b, out) {
+      // where a bot lines up: its own half, spread across
+      const s = b.team === 0 ? 1 : -1;
+      return out.set(clamp((b.j - 2) * 4.2, -HW + 1.5, HW - 1.5), 0, s * (b.role === 'keep' ? HL - 1.2 : 6 + (b.j % 2) * 4));
+    }
+    const _bt = new V3();
+    function fillSocBots() {
+      const nh = [0, 0];
+      for (const h of socHumans()) nh[h.team] += 1;
+      for (const t of [0, 1]) {
+        const want = Math.max(0, L.picker.n - nh[t]);
+        sbots.filter((b) => b.team === t).forEach((b, i) => {
+          const was = b.active;
+          b.active = i < want;
+          if (b.active && !was) { homeSpot(b, _bt); b.x = b.rx = _bt.x; b.z = b.rz = _bt.z; b.vx = b.vz = 0; }
+        });
+      }
+      forcePresence();
+    }
+    function assignRoles() {
+      const hs = socHumans();
+      for (const t of [0, 1]) {
+        const tb = sbots.filter((b) => b.active && b.team === t);
+        if (!tb.length) continue;
+        const size = tb.length + hs.filter((h) => h.team === t).length;
+        let rest = tb;
+        if (size >= 3) { tb[0].role = 'keep'; rest = tb.slice(1); }
+        // the chaser: whichever bot is nearest the ball, unless a teammate person is nearer still
+        let best = null, bd = 1e9;
+        for (const b of rest) { const d = Math.hypot(b.x - ball.pos.x, b.z - ball.pos.z); if (d < bd) { bd = d; best = b; } }
+        let personNearer = false;
+        for (const h of hs) if (h.team === t) {
+          const rec = remotes.get(h.id);
+          const p = h.id === state.myPeer ? myHead.pos : (rec && rec.hasH ? rec.cur.h.pos : null);
+          if (p && Math.hypot(p.x - ball.pos.x, p.z - ball.pos.z) < bd - 1.0) personNearer = true;
+        }
+        for (const b of rest) b.role = b === best && !personNearer ? 'chase' : 'sup';
+      }
+    }
+    function botKick(b, tx, tz, power, spread, now, loft) {
+      let dx = tx - ball.pos.x, dz = tz - ball.pos.z;
+      const l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l;
+      const a = (Math.random() - 0.5) * spread, c = Math.cos(a), s2 = Math.sin(a);
+      const kx = dx * c - dz * s2, kz = dx * s2 + dz * c;
+      const up = loft !== undefined ? loft : SOC.big ? 0.12 + power * 0.34 : 0.12 + power * 0.12;
+      _bt.set(kx, up, kz).normalize();
+      claimBall(); SOC.lastTouch = b.id;
+      ball.vel.copy(_bt).multiplyScalar(SOC.big ? 5 + power * 10.5 : 6 + power * 15);
+      ball.pos.y = Math.max(ball.pos.y, BR + 0.02);
+      b.kickCool = (now || performance.now()) + 700; SOC.botKickT = now || performance.now();
+      SOC.kicks = (SOC.kicks || 0) + 1;
+      sfx('kick', 0.4 + power * 0.4);
+    }
+    const _tg = new V3();
+    function stepSocBots(dt, now) {
+      assignRoles();
+      const live = SOC.armed && !me.kickoffT && !me.winT;
+      for (const b of sbots) {
+        if (!b.active) continue;
+        const atk = attackZ(b.team), own = ownZ(b.team), dirZ = Math.sign(atk);
+        let speed = 3.4 * b.skill;
+        // where to go
+        if (!live) homeSpot(b, _tg);
+        else if (b.role === 'keep') {
+          const near = Math.abs(ball.pos.z - own) < 5 && Math.abs(ball.pos.x) < GW + 2;
+          if (near) { _tg.set(ball.pos.x, 0, ball.pos.z); speed *= 1.15; }
+          else _tg.set(clamp(ball.pos.x * 0.35, -GW + 0.5, GW - 0.5), 0, own - Math.sign(own) * 1.2);
+        } else if (b.role === 'chase') {
+          // get behind the ball, on the line from it to the goal you're attacking
+          let gx = -ball.pos.x, gz = atk - ball.pos.z; const gl = Math.hypot(gx, gz) || 1; gx /= gl; gz /= gl;
+          const back = BR + 0.55;
+          _tg.set(ball.pos.x - gx * back, 0, ball.pos.z - gz * back);
+          // on the wrong side of the ball: go round it, not through it
+          const ahead = (b.x - ball.pos.x) * gx + (b.z - ball.pos.z) * gz;
+          if (ahead > -0.2) { const side = (b.x - ball.pos.x) * -gz + (b.z - ball.pos.z) * gx >= 0 ? 1 : -1; _tg.x += -gz * side * 1.6; _tg.z += gx * side * 1.6; }
+          speed *= 1.08;
+        } else {
+          // support: spread across, a little goal-side of the ball, or ahead of it when we're attacking
+          const lane = clamp((b.j - 2) * 3.6, -HW + 2, HW - 2);
+          const attacking = ball.pos.z * dirZ > -4;
+          _tg.set(clamp(ball.pos.x * 0.4 + lane, -HW + 1.5, HW - 1.5), 0, clamp(ball.pos.z + (attacking ? dirZ * 5 : -dirZ * 5), -HL + 2, HL - 2));
+          speed *= 0.85;
+        }
+        // move (with a little separation from teammates)
+        let mx = _tg.x - b.x, mz = _tg.z - b.z;
+        for (const o of sbots) if (o !== b && o.active) { const ox = b.x - o.x, oz = b.z - o.z, od = Math.hypot(ox, oz); if (od < 1.2 && od > 1e-3) { mx += ox / od * 0.8; mz += oz / od * 0.8; } }
+        const ml = Math.hypot(mx, mz);
+        const want = ml > 0.15 ? Math.min(speed, ml * 3) : 0;
+        const tvx = ml > 1e-3 ? mx / ml * want : 0, tvz = ml > 1e-3 ? mz / ml * want : 0;
+        const k = 1 - Math.exp(-dt * 6);
+        b.vx += (tvx - b.vx) * k; b.vz += (tvz - b.vz) * k;
+        b.x = clamp(b.x + b.vx * dt, -HW + 0.4, HW - 0.4); b.z = clamp(b.z + b.vz * dt, -HL + 0.4, HL - 0.4);
+        if (Math.hypot(b.vx, b.vz) > 0.3) b.yaw = Math.atan2(-b.vx, -b.vz);
+        if (!live || ball.held) continue;
+        // touching the ball pushes it, like walking into it does
+        const dx = ball.pos.x - b.x, dz = ball.pos.z - b.z, d = Math.hypot(dx, dz), minD = 0.34 + BR;
+        if (d < minD && d > 1e-4 && ball.pos.y < (SOC.big ? BR + 0.7 : 1.0)) {
+          const nx = dx / d, nz = dz / d;
+          claimBall(); SOC.lastTouch = b.id;
+          ball.pos.x = b.x + nx * (minD + 0.01); ball.pos.z = b.z + nz * (minD + 0.01);
+          const push = Math.max(0, b.vx * nx + b.vz * nz) * 1.2 + 0.7, vn = ball.vel.x * nx + ball.vel.z * nz;
+          if (vn < push) { ball.vel.x += nx * (push - vn); ball.vel.z += nz * (push - vn); }
+        }
+        // kick: chasers shoot when in range (or knock it on), keepers clear it
+        // (a ball that's just been kicked gets a moment to travel before anyone kicks it again)
+        if (now > b.kickCool && now - (SOC.botKickT || 0) > 450 && d < (SOC.big ? 1.6 : 1.1) && ball.pos.y < (SOC.big ? 2.0 : 0.8) && (b.role === 'chase' || b.role === 'keep')) {
+          const toGoal = Math.hypot(ball.pos.x, atk - ball.pos.z);
+          const behind = ((ball.pos.x - b.x) * -ball.pos.x + (ball.pos.z - b.z) * (atk - ball.pos.z)) / ((d || 1) * (toGoal || 1));
+          if (b.role === 'keep') botKick(b, ball.pos.x > 0 ? HW - 2 : -HW + 2, 0, 0.85, 0.5, now);
+          else if (behind > 0.35) {
+            const lineDist = Math.abs(atk - ball.pos.z), wing = Math.abs(ball.pos.x) > GW + 2.5;
+            // out on the wing near their goal: cut it back into the middle
+            if (wing && lineDist < 9) botKick(b, 0, atk - Math.sign(atk) * 5, 0.45, 0.3, now, 0.06);
+            // lined up and in range: a hard, low shot
+            else if (toGoal < (SOC.big ? 11 : 15) && behind > 0.6) {
+              // aim for the corner away from their keeper (or a corner at random)
+              const kp = sbots.find((o) => o.active && o.team !== b.team && o.role === 'keep');
+              const side = kp ? (kp.x > 0 ? -1 : 1) : (Math.random() < 0.5 ? -1 : 1);
+              botKick(b, side * (GW - (SOC.big ? 1.0 : 0.6)) + (Math.random() - 0.5) * 0.6, atk, 0.92 + Math.random() * 0.08, 0.12 / b.skill, now, SOC.big ? 0.04 : 0.03);
+            }
+            // further out: knock it on toward goal (or keep dribbling if it's already rolling the right way)
+            else if (toGoal >= (SOC.big ? 11 : 15)) botKick(b, ball.pos.x * 0.6, ball.pos.z + Math.sign(atk) * 8, 0.32, 0.3, now, 0.08);
+          }
+        }
+      }
+    }
+    // everyone draws the bots (smoothed); the host moves them
+    let fillT = 0;
+    const baseUpdate = L.update;
+    L.update = (dt, now) => {
+      baseUpdate(dt, now);
+      const here = state.mode !== 'menu' && state.level === L.idx;
+      if (!here) { for (const b of sbots) b.g.visible = false; return; }
+      if (socHost()) {
+        if (now - fillT > 800) { fillT = now; fillSocBots(); }
+        if (!L.paused) stepSocBots(Math.min(dt, 0.05), now);
+        for (const b of sbots) { b.rx = b.x; b.rz = b.z; }
+      } else for (const b of sbots) { const k = 1 - Math.exp(-dt * 10); b.rx += (b.x - b.rx) * k; b.rz += (b.z - b.rz) * k; }
+      for (const b of sbots) {
+        b.g.visible = b.active;
+        if (!b.active) continue;
+        const run = Math.hypot(b.vx, b.vz);
+        b.g.position.set(b.rx, 1.5 + (run > 0.5 ? Math.abs(Math.sin(now * 0.012 + b.k)) * 0.06 : 0), b.rz);
+        b.g.rotation.y = b.yaw;
+      }
+    };
+    {
+      const baseP = L.presence, baseR = L.readPresence;
+      const r1 = (x) => Math.round(x * 10);
+      L.presence = () => {
+        const p = baseP();
+        if (socHost()) p.sbt = sbots.filter((b) => b.active).map((b) => [b.k, r1(b.x), r1(b.z), Math.round(b.yaw * 100), r1(b.vx), r1(b.vz)]);
+        return p;
+      };
+      L.readPresence = (rec, pres, st) => {
+        baseR(rec, pres, st);
+        const ids = [state.myPeer]; for (const r of remotes.values()) if (r.lv === L.idx && r.inGame) ids.push(r.peer);
+        if (rec.peer !== ids.sort()[0] || !Array.isArray(pres.sbt)) return;
+        const seen = new Set();
+        for (const a of pres.sbt.slice(0, sbots.length)) {
+          if (!Array.isArray(a) || a.length !== 6 || !a.every(Number.isFinite) || !sbots[a[0]]) continue;
+          const b = sbots[a[0]]; seen.add(b.k);
+          if (!b.active) { b.rx = a[1] / 10; b.rz = a[2] / 10; }
+          Object.assign(b, { active: true, x: clamp(a[1] / 10, -HW, HW), z: clamp(a[2] / 10, -HL, HL), yaw: a[3] / 100, vx: a[4] / 10, vz: a[5] / 10 });
+        }
+        for (const b of sbots) if (!seen.has(b.k)) b.active = false;
+      };
+    }
+    L.onExit = ((base) => () => { base(); for (const b of sbots) b.g.visible = false; })(L.onExit);
+    L.socInternals = { physics: (dt, now) => updateBodies(L, dt, now), me, scores, sbots, fillSocBots, stepSocBots, assignRoles, botKick, socHost, SOC, ball, HW, HL, GW };
     return L;
   })();
-
   // ================================================================ LEVEL: SEASIDE MINI GOLF
   const minigolf = (() => {
     const L = newLevel(6);
@@ -13467,11 +13944,11 @@ kbd {
     // ================================================================ AI RACERS
     // Up to three computer racers fill the grid when there are fewer than four people. The host drives them;
     // everyone else sees them through the host's presence.
-    const BOT_NAMES = ['Turbo Tess', 'Pebble Pete', 'Captain Drift'];
-    const BOT_COLORS = ['#ff8a3a', '#8bd450', '#b388ff'];
-    const BOT_SKILL = [{ vmax: 17.4, line: -1.2 }, { vmax: 16.9, line: 1.4 }, { vmax: 16.4, line: 0.2 }];
+    const BOT_NAMES = ['Turbo Tess', 'Pebble Pete', 'Captain Drift', 'Zoom Zara', 'Skid Sid'];
+    const BOT_COLORS = ['#ff8a3a', '#8bd450', '#b388ff', '#4fc3f7', '#ffd23f'];
+    const BOT_SKILL = [{ vmax: 17.4, line: -1.2 }, { vmax: 16.9, line: 1.4 }, { vmax: 16.4, line: 0.2 }, { vmax: 16.7, line: -0.6 }, { vmax: 17.1, line: 0.9 }];
     const bots = [];
-    const botState = { on: prefs.kartBots !== false, req: null, reqSeq: 0 };
+    const botState = { on: true, req: null, reqSeq: 0 };
     L.bots = bots;
     L.botState = botState;
     // how sharply the track bends ahead of each point (signed: + bends left)
@@ -13481,7 +13958,8 @@ kbd {
     });
     const humanCount = () => racers().length;
     const isHost = () => racers()[0] === state.myPeer;
-    const wantBots = () => (botState.on ? Math.max(0, Math.min(3, 4 - humanCount())) : 0);
+    makePlayerPicker(L, { min: 1, max: 1 + BOT_NAMES.length, def: 4, label: 'Racers', stand: false });
+    const wantBots = () => clamp(L.picker.n - humanCount(), 0, BOT_NAMES.length);
     function botKarts() { return bots.filter((b) => b.active); }
     L.botKarts = botKarts;
 
@@ -13505,7 +13983,7 @@ kbd {
       bots.push(b);
       return b;
     }
-    for (let n = 0; n < 3; n++) makeBot(n);
+    for (let n = 0; n < BOT_NAMES.length; n++) makeBot(n);
     function placeBot(b, slot) {
       const back = Math.round((3.5 + Math.floor(slot / 2) * 4) / DS);
       const i = (N - back) % N, lat = (slot % 2 ? 1 : -1) * 2.2;
@@ -13724,8 +14202,8 @@ kbd {
       const on = pres.kb[0] === 1;
       if (on !== botState.on) { botState.on = on; state.hudDirty = true; }
       const seen = new Set();
-      for (const a of pres.kb.slice(1, 4)) {
-        if (!Array.isArray(a) || a.length !== 12 || !a.every(finite) || !Number.isInteger(a[0]) || a[0] < 0 || a[0] > 2) continue;
+      for (const a of pres.kb.slice(1, 1 + bots.length)) {
+        if (!Array.isArray(a) || a.length !== 12 || !a.every(finite) || !Number.isInteger(a[0]) || a[0] < 0 || a[0] >= bots.length) continue;
         const b = bots[a[0]];
         seen.add(a[0]);
         const was = b.active;
@@ -13744,7 +14222,6 @@ kbd {
       forcePresence();
     }
     L.setBots = setBots;
-    L.hudActions.push({ label: () => (botState.on ? 'Bots: on' : 'Bots: off'), run: () => setBots(!botState.on) });
     // the scoreboard lists the bots too
     const baseDraw = L.drawBoard;
     L.drawBoard = (rows) => {
@@ -14159,7 +14636,9 @@ kbd {
       let seekers, hiders;
       if (kind === 1) { seekers = [requester]; hiders = humans.filter((p) => p !== requester); }
       else { seekers = []; hiders = humans.slice(); }
-      const nb = kind === 1 ? Math.max(2, 4 - hiders.length) : Math.max(2, 3 - hiders.length);
+      // bots make up the numbers: everyone (you, friends, a bot seeker if there is one) adds up to the picker's count
+      const total = L.picker.n, seekersN = 1;
+      const nb = clamp(total - hiders.length - seekersN, kind === 1 && !hiders.length ? 1 : 0, 7);
       const spots = shuffle(SPOTS.slice());
       const names = shuffle([0, 1, 2, 3, 4, 5, 6, 7]);
       const look = () => [Math.floor(rand() * PLAYER_COLORS.length), Math.floor(rand() * HATS.length), Math.floor(rand() * FACES.length), Math.floor(rand() * SHIRTS.length), Math.floor(rand() * SHIRT_COLORS.length)];
@@ -14352,6 +14831,7 @@ kbd {
     makeButton(L, new V3(1.3, 1.0, -8.6), 0x8bd450, 'I\u2019ll hide', () => request(2), { faceYaw: 0 });
     makeButton(L, new V3(3.4, 1.0, -8.6), 0x9a90b0, 'End round', () => request(3), { faceYaw: 0 });
     makeKiosk(L, -4.2, -6.4, 0);
+    makePlayerPicker(L, { min: 2, max: 9, def: 5, note: 'from the next round' });
     L.board = makeBoard(G, 720, 460, 2.2, 1.405, -6.8, 2.0, -9.2, 0.35);
     const sign = makeBoard(G, 720, 500, 1.9, 1.32, 6.6, 1.95, -9.2, -0.35);
     function drawSign() {
@@ -14547,6 +15027,7 @@ kbd {
       camera.lookAt(0, 1.2, -16);
     };
     L.internals = { startRound, found, hostTag, EV, HOME_SPOT, request };
+    L.hsInternals = { startRound, bots, R };
     return L;
   })();
 
@@ -15392,6 +15873,7 @@ kbd {
     drawSign();
     redraws.push(drawSign);
     makeKiosk(L, F.minX - 2.2, -6, Math.PI / 2);
+    makePlayerPicker(L, { min: 1, max: 5, def: 3, label: 'Per team', note: 'from the next round' });
     // walking: the field's edges, and around the bunkers
     L.clampPlayer = (p) => {
       let x = clamp(p.x, L.bounds.minX + 0.3, L.bounds.maxX - 0.3), z = clamp(p.z, L.bounds.minZ + 0.3, L.bounds.maxZ - 0.3);
@@ -15606,7 +16088,7 @@ kbd {
     makeButton(L, new V3(L.OUT.x - 0.6, 1.0, 5.2), 0xb388ff, 'Switch team', () => { if (PB.ph === 2 && !me.out) { showToast('Finish this round first'); return; } joinTeam(1 - me.team); }, { faceYaw: -Math.PI / 2 });
 
     // ---------------------------------------------------------------- computer players (the host runs them)
-    const BOT_NAMES = ['Splatty Sue', 'Rex Rapid', 'Dot Drizzle', 'Pip Pelter', 'Moe Mayhem', 'Gus Goop'];
+    const BOT_NAMES = ['Splatty Sue', 'Rex Rapid', 'Dot Drizzle', 'Pip Pelter', 'Moe Mayhem', 'Gus Goop', 'Blot Betty', 'Squirt Sly', 'Drip Dina', 'Plop Pablo'];
     const bots = BOT_NAMES.map((name, n) => {
       const body = buildAvatar(n % 2 ? '#3d8bff' : '#ff4d6a', (n * 3 + 1) % HATS.length, n % FACES.length, false);
       const label = new THREE.Sprite(new THREE.SpriteMaterial({ map: canvasTexture(256, 64, (g) => { rr(g, 4, 6, 248, 52, 26); g.fillStyle = 'rgba(20,16,32,0.8)'; g.fill(); g.fillStyle = '#ffffff'; g.font = `700 30px ${BODY}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(name, 128, 33); }).tex, transparent: true, depthWrite: false }));
@@ -15625,12 +16107,12 @@ kbd {
     for (const c of [...L.bunkers.CANS, ...L.bunkers.CONES]) for (const a of [0, Math.PI / 2, Math.PI, -Math.PI / 2]) COVER.push(new V3(c.x + Math.cos(a) * (c.r + 0.7), 0, c.z + Math.sin(a) * (c.r + 0.7)));
     for (const w of L.bunkers.WALLS) for (const s of [-1, 1]) COVER.push(new V3(w.x + s * Math.sin(w.rot) * (w.hd + 0.7), 0, w.z + s * Math.cos(w.rot) * (w.hd + 0.7)));
     function fillBots() {
-      // computer players fill each team up to three (when fewer than six people are here)
+      // computer players fill each team up to the picker's number
       const n = [0, 0];
       for (const id of herePeersPB()) { const t = teamOf(id); if (t === 0 || t === 1) n[t]++; }
-      const people = n[0] + n[1], want = people >= 6 ? [0, 0] : [Math.max(0, 3 - n[0]), Math.max(0, 3 - n[1])];
+      const want = [Math.max(0, L.picker.n - n[0]), Math.max(0, L.picker.n - n[1])];
       let k = 0;
-      for (const t of [0, 1]) for (let i = 0; i < want[t]; i++) { const b = bots[k++]; Object.assign(b, { active: true, team: t, out: false, ph: 'move' }); b.band.material.color.set(L.TEAM_HEX[t]); }
+      for (const t of [0, 1]) for (let i = 0; i < want[t] && k < bots.length; i++) { const b = bots[k++]; Object.assign(b, { active: true, team: t, out: false, ph: 'move' }); b.band.material.color.set(L.TEAM_HEX[t]); }
       for (; k < bots.length; k++) bots[k].active = false;
       bots.forEach((b, i) => { if (b.active) { const p = spawnSpot(b.team, 5 + i); b.x = p.x; b.z = p.z; b.rx = b.x; b.rz = b.z; b.until = 0; } });
     }
@@ -16524,9 +17006,9 @@ kbd {
     }
 
     // ---------------------------------------------------------------- the race
-    const RACE = { id: 0, state: 'idle', startAt: 0, botsOn: false, myFinish: 0, over: false, seqShown: -1, goneT: 0 };
+    const RACE = { id: 0, state: 'idle', startAt: 0, botsOn: false, botsN: 0, myFinish: 0, over: false, seqShown: -1, goneT: 0 };
     L.race = RACE;
-    const BOT_DEF = [{ name: 'Parkour Pete', color: '#ff8a4a', f: 0.66, hat: 1, face: 1 }, { name: 'Vault Val', color: '#8bd450', f: 0.76, hat: 2, face: 2 }, { name: 'Rooftop Rex', color: '#b388ff', f: 0.86, hat: 0, face: 3 }];
+    const BOT_DEF = [{ name: 'Parkour Pete', color: '#ff8a4a', f: 0.66, hat: 1, face: 1 }, { name: 'Vault Val', color: '#8bd450', f: 0.76, hat: 2, face: 2 }, { name: 'Rooftop Rex', color: '#b388ff', f: 0.86, hat: 0, face: 3 }, { name: 'Leap Lena', color: '#4fc3f7', f: 0.71, hat: 3, face: 0 }, { name: 'Flip Finn', color: '#ffd23f', f: 0.81, hat: 1, face: 3 }];
     const ROUTE = [
       [0, 0, 3, 0], [1.4, 0, -12, 5.2], [-1.4, 0.3, -17, 4.4], [1.2, 0.6, -22, 4.4], [-1.2, 0.3, -27, 4.4], [0, 0, -32, 4.4], [0, 0, -40.6, 5.2],
       [0, 7, -41.2, 1.25], [0, 7, -48, 5], [0, 7, -53, 3], [0, 7, -65, 1.7], [0, 7, -71, 4.5], [0, 0.2, -96, 8], [0, 0.2, -103, 5],
@@ -16543,11 +17025,11 @@ kbd {
       out.set(a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k);
       return 0;
     }
-    const bots = BOT_DEF.map((d) => {
+    const bots = BOT_DEF.map((d, bi) => {
       const g = buildAvatar(d.color, d.hat, d.face, true, 1, 2);
       const tag = new THREE.Sprite(new THREE.SpriteMaterial({ map: canvasTexture(256, 64, (c) => { rr(c, 4, 6, 248, 52, 26); c.fillStyle = 'rgba(20,16,32,0.8)'; c.fill(); c.fillStyle = '#fff'; c.font = `700 28px ${BODY}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(d.name, 128, 33, 230); }).tex, transparent: true, depthWrite: false }));
       tag.scale.set(0.9, 0.225, 1); tag.position.y = 0.42; g.add(tag); g.visible = false; G.add(g);
-      return Object.assign({ g, finishT: ROUTE_T[ROUTE_T.length - 1] / d.f, pos: new V3() }, d);
+      return Object.assign({ g, bi, finishT: ROUTE_T[ROUTE_T.length - 1] / d.f, pos: new V3() }, d);
     });
     const raceNow = () => (RACE.state === 'idle' ? 0 : Date.now() - RACE.startAt);
     const myProgress = () => { const [, bz] = bodyXZ(); return clamp(3 - bz, 0, 180) + Math.max(0, dolly.position.y) * 0.4; };
@@ -16555,7 +17037,7 @@ kbd {
       const rows = [];
       rows.push({ name: state.name || 'You', me: true, fin: RACE.myFinish, prog: myProgress() });
       for (const rec of remotes.values()) { const st = rec.lvState[L.id]; if (rec.lv === L.idx && st && st.pk && st.pk[0] === RACE.id) rows.push({ name: rec.name, fin: st.pk[2], prog: st.pk[4] / 10 }); }
-      if (RACE.botsOn) { const t = Math.max(0, raceNow()) / 1000; for (const b of bots) rows.push({ name: b.name, bot: true, fin: t >= b.finishT ? Math.round(b.finishT * 1000) : 0, prog: Math.min(180, (t * b.f / ROUTE_T[ROUTE_T.length - 1]) * 180) }); }
+      if (RACE.botsOn) { const t = Math.max(0, raceNow()) / 1000; for (const b of bots.slice(0, RACE.botsN)) rows.push({ name: b.name, bot: true, fin: t >= b.finishT ? Math.round(b.finishT * 1000) : 0, prog: Math.min(180, (t * b.f / ROUTE_T[ROUTE_T.length - 1]) * 180) }); }
       rows.sort((a, b) => (a.fin && b.fin ? a.fin - b.fin : a.fin ? -1 : b.fin ? 1 : b.prog - a.prog));
       return rows;
     }
@@ -16585,9 +17067,9 @@ kbd {
     function startRace(fromPeer) {
       RACE.id = Math.floor(Date.now() / 1000); RACE.startAt = Date.now() + COUNT_MS; RACE.state = 'count'; RACE.myFinish = 0; RACE.over = false; RACE.seqShown = -1;
       const others = [...remotes.values()].filter((r) => r.lv === L.idx && r.inGame).length;
-      RACE.botsOn = others === 0;
+      RACE.botsN = clamp(L.picker.n - 1 - others, 0, bots.length); RACE.botsOn = RACE.botsN > 0;
       resetDrinks(); toStart(); boardKey = '';
-      showToast(RACE.botsOn ? 'Race against the bots! Get ready\u2026' : 'Race! Get ready\u2026');
+      showToast(RACE.botsOn ? `Race against ${RACE.botsN === 1 ? 'a bot' : `${RACE.botsN} bots`}! Get ready\u2026` : 'Race! Get ready\u2026');
       forcePresence();
     }
     function finishRace() {
@@ -16600,6 +17082,7 @@ kbd {
     makeButton(L, new V3(2.4, 1.0, -1.6), 0x8bd450, 'START race', () => startRace(), { faceYaw: 0 });
     makeButton(L, new V3(2.4, 1.0, 0.2), 0xff7a3a, 'Back to start', () => { toStart(); showToast('Back at the start'); }, { faceYaw: 0 });
     makeKiosk(L, -3.4, 2.4, Math.PI / 2);
+    makePlayerPicker(L, { min: 1, max: 1 + BOT_DEF.length, def: 4, label: 'Racers', note: 'from the next race' });
 
     // ---------------------------------------------------------------- drinks in use
     function takeBottle(b, hand) { b.taken = true; b.held = hand || null; if (!hand) b.g.visible = false; }
@@ -16850,7 +17333,7 @@ kbd {
       for (const b of bottles) if (!b.taken && b.g.visible) { b.g.position.y = b.home.y + Math.sin(now * 0.003 + b.home.x) * 0.05; b.g.rotation.y += dt * 1.2; }
       // bots
       for (const b of bots) {
-        b.g.visible = here && RACE.botsOn && (RACE.state === 'count' || RACE.state === 'run' || RACE.state === 'over');
+        b.g.visible = here && RACE.botsOn && b.bi < RACE.botsN && (RACE.state === 'count' || RACE.state === 'run' || RACE.state === 'over');
         if (!b.g.visible) continue;
         const t = Math.max(0, raceNow()) / 1000, done = routeAt(t, b.f, b.pos);
         const ph = t * 6 + b.f * 10, bob = done || t <= 0 ? 0 : Math.abs(Math.sin(ph)) * 0.05;
@@ -16910,7 +17393,7 @@ kbd {
     L.attract = (now) => { camera.position.set(Math.sin(now * 0.0002) * 3, 3, 8); camera.lookAt(0, 4, -40); };
 
     // ---------------------------------------------------------------- network
-    L.presence = () => ({ pk: [RACE.id, Math.floor(RACE.startAt / 100) % 1e9, RACE.myFinish, P.cpIdx, Math.round(myProgress() * 10), RACE.botsOn ? 1 : 0] });
+    L.presence = () => ({ pk: [RACE.id, Math.floor(RACE.startAt / 100) % 1e9, RACE.myFinish, P.cpIdx, Math.round(myProgress() * 10), RACE.botsN] });
     L.readPresence = (rec, pres, st) => {
       const a = pres.pk;
       if (!(Array.isArray(a) && a.length === 6 && a.every((x) => typeof x === 'number' && isFinite(x)))) { st.pk = null; return; }
@@ -16919,7 +17402,7 @@ kbd {
       if (a[0] > RACE.id && state.level === L.idx) {
         const startAt = a[1] * 100 + Math.floor(Date.now() / 1e11) * 1e11;
         if (startAt > Date.now() - 500) {
-          RACE.id = a[0]; RACE.startAt = startAt; RACE.state = 'count'; RACE.myFinish = 0; RACE.over = false; RACE.botsOn = a[5] === 1;
+          RACE.id = a[0]; RACE.startAt = startAt; RACE.state = 'count'; RACE.myFinish = 0; RACE.over = false; RACE.botsN = clamp(Math.round(a[5]), 0, bots.length); RACE.botsOn = RACE.botsN > 0;
           resetDrinks(); toStart(); boardKey = ''; showToast(`${rec.name} started a race! Get ready\u2026`);
         }
       }
@@ -16931,7 +17414,7 @@ kbd {
   // ================================================================ LEVEL: GYM CLASS DODGEBALL
   // Red on one half of a gym, blue on the other, six foam balls on the centre line. Pick one up and throw it: a ball that hasn't
   // touched the floor sends whoever it hits to the sideline. Catch one instead and the thrower is out and a teammate comes back.
-  // Best of three rounds. Bots fill each team to four. The lowest-named player's page runs the rounds and the bots; every page
+  // Best of three rounds. Bots fill each team up to the number picked (four to start with). The lowest-named player's page runs the rounds and the bots; every page
   // judges hits on its own player.
   const dodgeball = (() => {
     const L = newLevel(17);
@@ -16945,7 +17428,7 @@ kbd {
       sky: skyTexture([[0, '#2a2f4a'], [1, '#2a2f4a']]), bg: 0x2a2f4a, fog: [0x2a2f4a, 40, 120], hemi: [0xfff1dc, 0x6a5a48, 0.95],
       sun: [0xffffff, 0.35], sunDir: new V3(0.3, 1, 0.2), ambient: [0x806858, 0.4], sprite: null,
     };
-    const HW = 6, HD = 10, BR = 0.11, NB = 6, TEAM_SIZE = 4, WIN_ROUNDS = 2, ROUND_MS = 90000, COUNT_MS = 4000, OVER_MS = 6000;
+    const HW = 6, HD = 10, BR = 0.11, NB = 6, TEAM_SIZE = 5, WIN_ROUNDS = 2, ROUND_MS = 90000, COUNT_MS = 4000, OVER_MS = 6000;
     const DB_HEX = [0xe5453a, 0x3d82e8], DB_STR = ['#ff6a5a', '#6aa8ff'];
     const ST = { idle: 0, count: 1, play: 2, over: 3 }, ST_N = ['idle', 'count', 'play', 'over'];
     const _hd = new V3(), _t = new V3(), _v = new V3();
@@ -17017,14 +17500,14 @@ kbd {
     const bots = [];
     for (let k = 0; k < 2 * TEAM_SIZE; k++) {
       const team = k < TEAM_SIZE ? 0 : 1, j = k % TEAM_SIZE;
-      const g = buildAvatar(team === 0 ? '#ff8a7a' : '#7ab0ff', [1, 2, 0, 1][j], [1, 2, 3, 1][j], true, 1, team === 0 ? 6 : 4);
-      const names = ['Dodger Dan', 'Wally Wham', 'Pitch Perfect', 'Duck Duck', 'Ace Ava', 'Bounce Betty', 'Slingshot Sid', 'Spin Cycle'];
+      const g = buildAvatar(team === 0 ? '#ff8a7a' : '#7ab0ff', [1, 2, 0, 1, 2][j], [1, 2, 3, 1, 0][j], true, 1, team === 0 ? 6 : 4);
+      const names = ['Dodger Dan', 'Wally Wham', 'Pitch Perfect', 'Duck Duck', 'Zing Zelda', 'Ace Ava', 'Bounce Betty', 'Slingshot Sid', 'Spin Cycle', 'Lob Larry'];
       const tag = new THREE.Sprite(new THREE.SpriteMaterial({ map: canvasTexture(256, 64, (c) => { rr(c, 4, 6, 248, 52, 26); c.fillStyle = 'rgba(20,16,32,0.8)'; c.fill(); c.fillStyle = '#fff'; c.font = `700 28px ${BODY}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(names[k], 128, 33, 230); }).tex, transparent: true, depthWrite: false }));
       tag.scale.set(0.9, 0.225, 1); tag.position.y = 0.42; g.add(tag); g.visible = false; G.add(g);
       bots.push({ k, team, j, g, active: false, out: false, x: 0, z: 0, ball: null, thrAt: 0, cool: 0, dodgeUntil: 0, dodgeDir: 0, skill: 0.5 + Math.random() * 0.4, vx: 0, name: names[k] });
     }
     L.dbBots = bots;
-    const botStart = (bt) => ({ x: -4.5 + bt.j * 3, z: bt.team === 0 ? 8.8 : -8.8 });
+    const botStart = (bt) => ({ x: -4.8 + bt.j * 2.4, z: bt.team === 0 ? 8.8 : -8.8 });
     const botOutSpot = (bt) => ({ x: bt.team === 0 ? 7.5 : -7.5, z: (bt.team === 0 ? 1 : -1) * (2 + bt.j * 1.7) });
     const aliveCount = (team) => humans().filter((h) => h.team === team && !h.out).length + bots.filter((b) => b.active && b.team === team && !b.out).length;
     function resetBalls() {
@@ -17061,7 +17544,7 @@ kbd {
     function beginCount(now) {
       RS.round += 1; RS.st = 'count'; H.t0 = now; RS.left = COUNT_MS;
       const nh = [0, 0]; for (const h of humans()) nh[h.team] += 1;
-      for (const bt of bots) { bt.active = bt.j < Math.max(0, TEAM_SIZE - nh[bt.team]); bt.out = false; bt.ball = null; Object.assign(bt, botStart(bt)); bt.thrAt = 0; bt.cool = 0; }
+      for (const bt of bots) { bt.active = bt.j < Math.max(0, L.picker.n - nh[bt.team]); bt.out = false; bt.ball = null; Object.assign(bt, botStart(bt)); bt.thrAt = 0; bt.cool = 0; }
       resetBalls();
       forcePresence();
     }
@@ -17248,6 +17731,7 @@ kbd {
     };
     makeButton(L, new V3(7.9, 1.0, 5.5), 0xb388ff, 'Switch team', () => switchTeam(), { faceYaw: -Math.PI / 2 });
     makeKiosk(L, 8.4, 8.2, -Math.PI / 2);
+    makePlayerPicker(L, { min: 1, max: TEAM_SIZE, def: 4, label: 'Per team', note: 'from the next round' });
 
     // ---------------------------------------------------------------- scoreboard, HUD, roster
     let boardKey = '';
@@ -17434,6 +17918,7 @@ kbd {
       }
     }
     makeKiosk(L, 9.2, 5.2, Math.atan2(-9.2, -5.2));
+    makePlayerPicker(L, { min: 2, max: 9, def: FILL_TO, note: 'from the next round' });
     L.board = makeBoard(G, 720, 460, 3.2, 2.05, 0, 2.5, -10.2, 0);
 
     // ---------------------------------------------------------------- the potato
@@ -17555,7 +18040,7 @@ kbd {
     // ---------------------------------------------------------------- the host: rounds, the fuse, the bots
     function beginCount(now) {
       const hs = humans().slice(0, MAX_SPOTS);
-      const nb = Math.max(0, FILL_TO - hs.length);
+      const nb = Math.min(bots.length, Math.max(0, L.picker.n - hs.length));
       const ids = hs.concat(bots.slice(0, nb).map((b) => b.id));
       for (let i = ids.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [ids[i], ids[j]] = [ids[j], ids[i]]; }
       Object.assign(RS, { round: RS.round + 1, ph: 'count', order: ids, alive: ids.slice(), holder: '', fl: null, heat: 0, popped: '', winner: '' });
@@ -18235,7 +18720,7 @@ kbd {
     }
 
     // ---------------------------------------------------------------- the race (whoever presses Start sets the clock for everyone here)
-    const RACE = { id: 0, state: 'idle', startAt: 0, botsOn: false, myFinish: 0 };
+    const RACE = { id: 0, state: 'idle', startAt: 0, botsOn: false, botsN: 0, myFinish: 0 };
     L.race = RACE;
     const raceNow = () => (RACE.state === 'idle' ? 0 : Date.now() - RACE.startAt);
     const racers = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort(); };
@@ -18247,9 +18732,9 @@ kbd {
     }
     function startRace() {
       RACE.id = Math.floor(Date.now() / 1000); RACE.startAt = Date.now() + COUNT_MS; RACE.state = 'count'; RACE.myFinish = 0;
-      RACE.botsOn = racers().length === 1;
+      RACE.botsN = clamp(L.picker.n - racers().length, 0, bots.length); RACE.botsOn = RACE.botsN > 0;
       toGrid(); boardKey = '';
-      showToast(RACE.botsOn ? 'Race against the bots! Get ready…' : 'Race! Get ready…');
+      showToast(RACE.botsOn ? `Race against ${RACE.botsN === 1 ? 'a bot' : `${RACE.botsN} bots`}! Get ready…` : 'Race! Get ready…');
       forcePresence();
     }
     L.startRace = startRace;
@@ -18262,7 +18747,10 @@ kbd {
     }
 
     // ---------------------------------------------------------------- the bots: each follows its own line round the rocks, at its own pace
-    const BOT_DEF = [{ name: 'Paddle Patty', color: '#ff8a4a', f: 0.97, lane: -2.2, hat: 1, face: 1 }, { name: 'River Rick', color: '#8bd450', f: 0.9, lane: 1.8, hat: 2, face: 2 }, { name: 'Eddy Ellis', color: '#b388ff', f: 0.83, lane: 0.3, hat: 0, face: 3 }];
+    const BOT_DEF = [{ name: 'Paddle Patty', color: '#ff8a4a', f: 0.97, lane: -2.2, hat: 1, face: 1 }, { name: 'River Rick', color: '#8bd450', f: 0.9, lane: 1.8, hat: 2, face: 2 }, { name: 'Eddy Ellis', color: '#b388ff', f: 0.83, lane: 0.3, hat: 0, face: 3 },
+      { name: 'Rapids Rosa', color: '#4fc3f7', f: 0.87, lane: -0.9, hat: 3, face: 0 }, { name: 'Whitewater Walt', color: '#ffd23f', f: 0.93, lane: 2.6, hat: 2, face: 1 }];
+    const BOT_ROW = 6;     // the bots line up a row behind the people
+    makePlayerPicker(L, { min: 1, max: 1 + BOT_DEF.length, def: 4, label: 'Racers', note: 'from the next race', stand: false });
     const bots = BOT_DEF.map((d, bi) => {
       const line = new Float32Array(N);
       for (let i = 0; i < N; i++) line[i] = d.lane * clamp(W[i] / 10, 0.6, 1.2);
@@ -18276,11 +18764,11 @@ kbd {
           }
         }
       }
-      const i0g = Math.round((START_S - 3) / DS), gridLat = GRID[bi + 1];
+      const i0g = Math.round((START_S - BOT_ROW) / DS), gridLat = GRID[bi];
       for (let i = i0g; i < Math.min(N, i0g + 22); i++) { const k = smooth(0, 1, (i - i0g) / 22); line[i] = gridLat * (1 - k) + line[i] * k; }
       for (let pass = 0; pass < 3; pass++) { const c = Float32Array.from(line); for (let i = i0g + 22; i < N - 3; i++) line[i] = (c[i - 3] + c[i - 2] + c[i - 1] + c[i] + c[i + 1] + c[i + 2] + c[i + 3]) / 7; }
       for (let i = 0; i < N; i++) line[i] = clamp(line[i], -W[i] / 2 + 0.9, W[i] / 2 - 0.9);
-      const tAt = new Float32Array(N), i0 = Math.round((START_S - 3) / DS);
+      const tAt = new Float32Array(N), i0 = Math.round((START_S - BOT_ROW) / DS);
       for (let i = i0 + 1; i < N; i++) tAt[i] = tAt[i - 1] + DS / (d.f * (C[i] + 2.2));
       const kay = makeKayak(d.color);
       const av = buildAvatar(d.color, d.hat, d.face, true, 1, 2); av.position.set(0, SEAT_Y, 0.12); kay.g.add(av);
@@ -18288,7 +18776,7 @@ kbd {
       tag.scale.set(0.9, 0.225, 1); tag.position.set(0, SEAT_Y + 0.45, 0.12); kay.g.add(tag);
       kay.g.visible = false;
       const finishT = tAt[Math.round(FINISH_S / DS)] * 1000;
-      return Object.assign({ line, tAt, i0, kay, finishT, s: 0, lat: 0 }, d);
+      return Object.assign({ line, tAt, i0, kay, finishT, s: 0, lat: 0, bi }, d);
     });
     function botAt(b, tMs) {
       // where a bot is, t ms into the race
@@ -18303,7 +18791,7 @@ kbd {
     function standings() {
       const rows = [{ name: state.name || 'You', me: true, fin: RACE.myFinish, prog: K.s }];
       for (const rec of remotes.values()) { const st = rec.lvState[L.id]; if (rec.lv === L.idx && st && st.ok && st.raceId === RACE.id) rows.push({ name: rec.name, fin: st.fin, prog: st.s }); }
-      if (RACE.botsOn && RACE.state !== 'idle') { const t = Math.max(0, raceNow()); for (const b of bots) rows.push({ name: b.name, bot: true, fin: t >= b.finishT ? Math.round(b.finishT) : 0, prog: Math.min(FINISH_S, botAt(b, t).s) }); }
+      if (RACE.botsOn && RACE.state !== 'idle') { const t = Math.max(0, raceNow()); for (const b of bots.slice(0, RACE.botsN)) rows.push({ name: b.name, bot: true, fin: t >= b.finishT ? Math.round(b.finishT) : 0, prog: Math.min(FINISH_S, botAt(b, t).s) }); }
       rows.sort((a, b) => (a.fin && b.fin ? a.fin - b.fin : a.fin ? -1 : b.fin ? 1 : b.prog - a.prog));
       return rows;
     }
@@ -18522,7 +19010,7 @@ kbd {
       // the bots
       const tRace = Math.max(0, raceNow());
       for (const b of bots) {
-        b.kay.g.visible = here && RACE.botsOn && RACE.state !== 'idle';
+        b.kay.g.visible = here && RACE.botsOn && RACE.state !== 'idle' && b.bi < RACE.botsN;
         if (!b.kay.g.visible) continue;
         const q = botAt(b, tRace);
         riverPoint(q.s, q.lat, _a);
@@ -18613,11 +19101,11 @@ kbd {
 
     // ---------------------------------------------------------------- network
     const PHC = { idle: 0, count: 1, run: 2, over: 3 };
-    L.presence = () => ({ ky: [r3(K.x), r3(K.z), r3(K.yaw), Math.round(K.s * 10), RACE.id, Math.floor(RACE.startAt / 100) % 1e9, RACE.myFinish, PHC[RACE.state], Math.round(K.paddleAng * 100) / 100, state.mode === 'vr' ? 1 : 0] });
+    L.presence = () => ({ ky: [r3(K.x), r3(K.z), r3(K.yaw), Math.round(K.s * 10), RACE.id, Math.floor(RACE.startAt / 100) % 1e9, RACE.myFinish, PHC[RACE.state], Math.round(K.paddleAng * 100) / 100, state.mode === 'vr' ? 1 : 0, RACE.botsN] });
     L.readPresence = (rec, pres, st) => {
       const a = pres.ky;
       st.ok = false;
-      if (!(Array.isArray(a) && a.length === 10 && a.every((x) => typeof x === 'number' && isFinite(x)))) return;
+      if (!(Array.isArray(a) && a.length === 11 && a.every((x) => typeof x === 'number' && isFinite(x)))) return;
       const fin = Number.isInteger(a[6]) && a[6] >= 0 && a[6] < 3.6e6 ? a[6] : 0;
       if (fin !== st.fin || a[4] !== st.raceId) state.dirtyBoard = true;
       Object.assign(st, { ok: true, x: clamp(a[0], -400, 400), z: clamp(a[1], -600, 200), yaw: a[2], s: clamp(a[3] / 10, 0, TLEN), raceId: a[4], fin, paddle: clamp(a[8], -1, 1), vr: a[9] === 1 });
@@ -18625,7 +19113,8 @@ kbd {
       if (a[4] > RACE.id && state.level === L.idx && state.mode !== 'menu') {
         const startAt = a[5] * 100 + Math.floor(Date.now() / 1e11) * 1e11;
         if (startAt > Date.now() - 500) {
-          Object.assign(RACE, { id: a[4], startAt, state: 'count', myFinish: 0, botsOn: false });
+          const nb = clamp(Math.round(a[10]), 0, bots.length);
+          Object.assign(RACE, { id: a[4], startAt, state: 'count', myFinish: 0, botsN: nb, botsOn: nb > 0 });
           toGrid(); boardKey = ''; showToast(`${rec.name} started a race! Get ready…`);
         }
       }
@@ -19140,7 +19629,7 @@ kbd {
     L.grabless = true;
     L.teams = true; L.teamKey = 'fq';
     L.walkSpeed = 3.4;
-    const FX = 14, FZ = 24, WIN = 3, TEAM_SIZE = 4, FLAG_Z = 20.5, BASE_R = 3.0, PICK_R = 1.5, BOT_TAG_R = 0.95, HUMAN_TAG_R = 2.2, IMMUNE_MS = 3000;
+    const FX = 14, FZ = 24, WIN = 3, TEAM_SIZE = 6, FLAG_Z = 20.5, BASE_R = 3.0, PICK_R = 1.5, BOT_TAG_R = 0.95, HUMAN_TAG_R = 2.2, IMMUNE_MS = 3000;
     L.bounds = { minX: -FX, maxX: FX, minZ: -FZ, maxZ: FZ };
     L.env = {
       sky: skyTexture([[0, '#4a90d8'], [0.55, '#a8d4f0'], [1, '#e8f4fa']]),
@@ -19203,6 +19692,7 @@ kbd {
     }
     L.pushOut = pushOut;
     makeKiosk(L, FX - 1.2, FZ - 1.6, Math.atan2(-(FX - 1.2), -(FZ - 1.6)));
+    makePlayerPicker(L, { min: 1, max: TEAM_SIZE, def: 4, label: 'Per team' });
     L.board = makeBoard(G, 720, 460, 3.2, 2.05, -FX - 1.2, 2.4, 0, Math.PI / 2);
 
     // ---------------------------------------------------------------- the flags
@@ -19229,7 +19719,7 @@ kbd {
     }
 
     // ---------------------------------------------------------------- bots
-    const BOT_NAMES = ['Dash Darla', 'Sneaky Sam', 'Flag Fern', 'Tag Tony', 'Zippy Zoe', 'Rover Rex', 'Swift Sid', 'Bolt Bea'];
+    const BOT_NAMES = ['Dash Darla', 'Sneaky Sam', 'Flag Fern', 'Tag Tony', 'Quick Quin', 'Racer Rae', 'Zippy Zoe', 'Rover Rex', 'Swift Sid', 'Bolt Bea', 'Hop Hugo', 'Nippy Nell'];
     const bots = BOT_NAMES.map((name, k) => {
       const team = k < TEAM_SIZE ? 0 : 1;
       const g = buildAvatar(team ? '#7ab0ff' : '#ff8a7a', (k * 3 + 1) % HATS.length, k % FACES.length, true, (k * 2) % SHIRTS.length, team ? 4 : 6);
@@ -19279,14 +19769,14 @@ kbd {
     function fillBots() {
       const n = [0, 0];
       for (const h of humanList()) n[h.team] += 1;
-      const want = [Math.max(0, TEAM_SIZE - n[0]), Math.max(0, TEAM_SIZE - n[1])];
+      const want = [Math.max(0, L.picker.n - n[0]), Math.max(0, L.picker.n - n[1])];
       for (const t of [0, 1]) {
         const tb = bots.filter((b) => b.team === t);
         tb.forEach((b, i) => {
           const was = b.active;
           b.active = i < want[t];
           // roles: keep at least one defender; with people on the team, bots lean toward defending
-          b.role = i === 0 ? 'def' : (n[t] > 0 ? (i % 2 ? 'def' : 'att') : (i % 2 ? 'att' : 'def'));
+          b.role = want[t] === 1 && n[t] === 0 ? 'att' : i === 0 ? 'def' : (n[t] > 0 ? (i % 2 ? 'def' : 'att') : (i % 2 ? 'att' : 'def'));
           b.speed = b.role === 'att' ? 3.95 : 3.7;
           if (b.active && !was) respawnBot(b, 0);
         });
@@ -19294,7 +19784,7 @@ kbd {
     }
     function respawnBot(b, now) {
       const home = HOME[b.team];
-      b.x = clamp((b.k % TEAM_SIZE - 1.5) * 3 + (Math.random() - 0.5), -FX + 1, FX - 1); b.z = home.z + (b.team === 0 ? 2.5 : -2.5);
+      b.x = clamp((b.k % TEAM_SIZE - (TEAM_SIZE - 1) / 2) * 2.4 + (Math.random() - 0.5), -FX + 1, FX - 1); b.z = home.z + (b.team === 0 ? 2.5 : -2.5);
       b.rx = b.x; b.rz = b.z; b.downUntil = now + 1500;
     }
     function startPlay(now, full) {
@@ -19582,7 +20072,7 @@ kbd {
     };
     L.onExit = () => { hudPlate.visible = false; if (ui.status) ui.status.hidden = true; statusKey = ''; for (const b of bots) b.g.visible = false; };
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.00008) * 0.5; camera.position.set(Math.sin(a) * 16 + 10, 9, 18); camera.lookAt(0, 0, 0); };
-    L.ctfInternals = { RS, H, me, bots, HOME, COVER, hostStep, tag, validTag, everyone, isHost, startPlay, pushOut, requestTag, ownHalf };
+    L.ctfInternals = { fillBots, RS, H, me, bots, HOME, COVER, hostStep, tag, validTag, everyone, isHost, startPlay, pushOut, requestTag, ownHalf };
     return L;
   })();
   // ================================================================ TRIVIA: THE QUESTION BANK
@@ -19867,9 +20357,9 @@ kbd {
     const QN = 10, FILL_TO = 4, SEATS = 8;
     const PH = { idle: 0, intro: 1, ask: 2, reveal: 3, final: 4 }, PH_N = ['idle', 'intro', 'ask', 'reveal', 'final'];
     const durOf = (ph) => (ph === 'intro' ? T.INTRO : ph === 'ask' ? T.ASK : ph === 'reveal' ? T.REVEAL : ph === 'final' ? T.FINAL : 1);
-    const BOT_NAMES = ['Brainy Brooke', 'Trivia Trev', 'Smarty Sal'];
-    const BOT_ACC = [0.74, 0.62, 0.55];
-    const BOT_COLORS = ['#ff7ac8', '#4fc3f7', '#ffd23f'];
+    const BOT_NAMES = ['Brainy Brooke', 'Trivia Trev', 'Smarty Sal', 'Quiz Kid Kim', 'Know-It-Ned', 'Puzzle Pia', 'Fact Finn'];
+    const BOT_ACC = [0.74, 0.62, 0.55, 0.68, 0.6, 0.7, 0.5];
+    const BOT_COLORS = ['#ff7ac8', '#4fc3f7', '#ffd23f', '#8bd450', '#ff8a4a', '#b388ff', '#5ad8b0'];
     const ANS_HEX = [0xe8453c, 0x3a7ae8, 0xf2c230, 0x3cb85a];
     const ANS_CSS = ['#e8453c', '#3a7ae8', '#f2c230', '#3cb85a'];
     const LET = ['A', 'B', 'C', 'D'];
@@ -19954,6 +20444,7 @@ kbd {
       }
     }
     makeKiosk(L, -7.6, 3.6, Math.atan2(7.6, -2.6));
+    makePlayerPicker(L, { min: 1, max: SEATS, def: FILL_TO, note: 'from the next game' });
     // the side scoreboard
     L.board = makeBoard(G, 720, 460, 2.6, 1.66, -7.4, 2.4, -4.6, 0.85);
 
@@ -20139,7 +20630,7 @@ kbd {
     }
     function beginGame(now) {
       const hs = humans().slice(0, SEATS);
-      const nb = Math.max(0, FILL_TO - hs.length);
+      const nb = Math.min(bots.length, Math.max(0, L.picker.n - hs.length));
       RS.order = shuffle(hs.slice()).concat(bots.slice(0, nb).map((b) => b.id));
       RS.scores = RS.order.map(() => 0);
       RS.choices = RS.order.map(() => -1); RS.gains = RS.order.map(() => 0);
@@ -20994,12 +21485,14 @@ kbd {
     }
 
     // ---------------------------------------------------------------- the race
-    const RACE = { id: 0, state: 'idle', startAt: 0, botsOn: false, myFinish: 0 };
+    const RACE = { id: 0, state: 'idle', startAt: 0, botsOn: false, botsN: 0, myFinish: 0 };
     L.race = RACE;
     const BOT_DEF = [
       { name: 'Little Lily', color: '#ff8ad0', f: 0.78, hat: 3, face: 1 },
       { name: 'Speedy Sam', color: '#4ab0ff', f: 0.88, hat: 1, face: 2 },
       { name: 'Jumping Jo', color: '#ffd23f', f: 0.96, hat: 2, face: 3 },
+      { name: 'Tiny Tim', color: '#8bd450', f: 0.82, hat: 0, face: 0 },
+      { name: 'Bouncy Bea', color: '#ff8a4a', f: 0.9, hat: 1, face: 2 },
     ];
     // the bots' route: [x, y, z, speed getting there, how they move]
     const ROUTE = [
@@ -21031,13 +21524,14 @@ kbd {
       tag.scale.set(0.9, 0.225, 1); tag.position.y = 0.5; g.add(tag); g.visible = false; G.add(g);
       return Object.assign({ g, sack: makeSack(), finishT: FIN_T / d.f, pos: new V3(), lane: 0 }, d);
     });
-    bots.forEach((b, i) => { b.lane = (i - 1) * 0.9; });
+    const LANES = [-0.9, 0, 0.9, -1.8, 1.8];
+    bots.forEach((b, i) => { b.bi = i; b.lane = LANES[i % LANES.length]; });
     const raceNow = () => (RACE.state === 'idle' ? 0 : Date.now() - RACE.startAt);
     const myProgress = () => { const [, bz] = bodyXZ(); return clamp(2 - bz, 0, 99.5); };
     function standings() {
       const rows = [{ name: state.name || 'You', me: true, fin: RACE.myFinish, prog: myProgress() }];
       for (const rec of remotes.values()) { const st = rec.lvState[L.id]; if (rec.lv === L.idx && st && st.rk && st.rk[0] === RACE.id) rows.push({ name: rec.name, fin: st.rk[2], prog: st.rk[4] / 10 }); }
-      if (RACE.botsOn) { const t = Math.max(0, raceNow()) / 1000; for (const b of bots) rows.push({ name: b.name, bot: true, fin: t >= b.finishT ? Math.round(b.finishT * 1000) : 0, prog: clamp(2 - routeAtZ(t, b.f), 0, 99.5) }); }
+      if (RACE.botsOn) { const t = Math.max(0, raceNow()) / 1000; for (const b of bots.slice(0, RACE.botsN)) rows.push({ name: b.name, bot: true, fin: t >= b.finishT ? Math.round(b.finishT * 1000) : 0, prog: clamp(2 - routeAtZ(t, b.f), 0, 99.5) }); }
       rows.sort((a, b) => (a.fin && b.fin ? a.fin - b.fin : a.fin ? -1 : b.fin ? 1 : b.prog - a.prog));
       return rows;
     }
@@ -21072,7 +21566,7 @@ kbd {
     function startRace() {
       RACE.id = Math.floor(Date.now() / 1000); RACE.startAt = Date.now() + COUNT_MS; RACE.state = 'count'; RACE.myFinish = 0;
       const others = [...remotes.values()].filter((r) => r.lv === L.idx && r.inGame).length;
-      RACE.botsOn = others === 0;
+      RACE.botsN = clamp(L.picker.n - 1 - others, 0, bots.length); RACE.botsOn = RACE.botsN > 0;
       resetCourse(); toStart(); boardKey = '';
       showToast(RACE.botsOn ? 'Race the playground gang! Get ready…' : 'Race! Get ready…');
       forcePresence();
@@ -21087,6 +21581,7 @@ kbd {
     makeButton(L, new V3(2.2, 1.0, 1.4), 0x8bd450, 'START race', () => startRace(), { faceYaw: 0 });
     makeButton(L, new V3(2.2, 1.0, 3.0), 0xff7a3a, 'Back to start', () => { toStart(); showToast('Back at the start'); }, { faceYaw: 0 });
     makeKiosk(L, -LANE + 0.6, 4.2, Math.atan2(LANE - 0.6, -2.2));
+    makePlayerPicker(L, { min: 1, max: 1 + BOT_DEF.length, def: 4, label: 'Racers', note: 'from the next race', x: -2.2, z: 0.9, yaw: 0 });
     const countSign = makePlate(G, 'Press START', 2.2, 0.42, new V3(0, 2.6, -0.45), 0, { bg: '#2a3a8a', fg: '#8bff6a', size: 0.6 });
 
     // ---------------------------------------------------------------- holds: the monkey bars
@@ -21302,7 +21797,7 @@ kbd {
       // bots
       const pushers = [];
       for (const b of bots) {
-        b.g.visible = here && RACE.botsOn && (RACE.state === 'count' || RACE.state === 'run' || RACE.state === 'over');
+        b.g.visible = here && RACE.botsOn && b.bi < RACE.botsN && (RACE.state === 'count' || RACE.state === 'run' || RACE.state === 'over');
         b.sack.visible = false;
         if (!b.g.visible) continue;
         const t = Math.max(0, raceNow()) / 1000, mode = routeAt(t, b.f, b.pos);
@@ -21387,7 +21882,7 @@ kbd {
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.00015); camera.position.set(5 + a * 2, 5, 6); camera.lookAt(0, 0.5, -30); };
 
     // ---------------------------------------------------------------- network
-    L.presence = () => ({ rk: [RACE.id, Math.floor(RACE.startAt / 100) % 1e9, RACE.myFinish, P.cpIdx, Math.round(myProgress() * 10), RACE.botsOn ? 1 : 0, (P.sack ? 1 : 0) | (P.crawl ? 2 : 0)] });
+    L.presence = () => ({ rk: [RACE.id, Math.floor(RACE.startAt / 100) % 1e9, RACE.myFinish, P.cpIdx, Math.round(myProgress() * 10), RACE.botsN, (P.sack ? 1 : 0) | (P.crawl ? 2 : 0)] });
     L.readPresence = (rec, pres, st) => {
       const a = pres.rk;
       if (!(Array.isArray(a) && a.length === 7 && a.every((x) => typeof x === 'number' && isFinite(x)))) { st.rk = null; return; }
@@ -21396,7 +21891,7 @@ kbd {
       if (a[0] > RACE.id && state.level === L.idx) {
         const startAt = a[1] * 100 + Math.floor(Date.now() / 1e11) * 1e11;
         if (startAt > Date.now() - 500) {
-          RACE.id = a[0]; RACE.startAt = startAt; RACE.state = 'count'; RACE.myFinish = 0; RACE.botsOn = a[5] === 1;
+          RACE.id = a[0]; RACE.startAt = startAt; RACE.state = 'count'; RACE.myFinish = 0; RACE.botsN = clamp(Math.round(a[5]), 0, bots.length); RACE.botsOn = RACE.botsN > 0;
           resetCourse(); toStart(); boardKey = ''; showToast(`${rec.name} started a race! Get ready…`);
         }
       }
@@ -22063,6 +22558,7 @@ kbd {
       p.t.push([t.i, t.v, t.held ? (t.held.side === 'left' ? 1 : 2) : 0]);
     }
     Object.assign(p, L.presence());
+    if (L.picker) p.pc = [L.picker.n, L.picker.t];
     return p;
   }
   function netTick(now) {
@@ -22128,6 +22624,7 @@ kbd {
     if (rec.lv !== state.level) return;
     const L = curLevel();
     const st = rec.lvState[L.id] || (rec.lvState[L.id] = {});
+    if (L.picker && pres.pc) L.picker.merge(pres.pc);
     L.readPresence(rec, pres, st);
     if (Array.isArray(pres.b)) for (const c of pres.b.slice(0, L.bodies.length)) applyClaim(peer.peer, c, L);
     if (Array.isArray(pres.t)) for (const c of pres.t.slice(0, L.tools.length)) applyToolClaim(peer.peer, c, L);
@@ -22568,7 +23065,7 @@ kbd {
     if (ui.micBtn) { ui.micBtn.hidden = !VOICE.stream; ui.micBtn.textContent = VOICE.muted ? 'Mic: muted' : 'Mic: on'; }
     syncVoiceToggle();
     if (ui.musicToggle) ui.musicToggle.checked = MUSIC.on;
-    const actionBtns = L.hudActions.filter((a) => !a.show || a.show()).map((a) => {
+    const actionBtns = L.hudActions.concat(L.picker ? [L.picker.hud] : []).filter((a) => !a.show || a.show()).map((a) => {
       const b = document.createElement('button');
       b.className = 'hud-btn';
       b.type = 'button';
@@ -22660,6 +23157,7 @@ kbd {
     updateRemotes(dt);
     updateBodies(L, dt, now);
     L.update(dt, now);
+    if (L.picker) L.picker.tick();
     updateButtons(L, now);
     updateFloats(now);
     updateUi(now);

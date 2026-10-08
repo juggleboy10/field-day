@@ -141,7 +141,7 @@
     }).tex;
     const ball = makeBody(L, { geo: new THREE.SphereGeometry(SMALL_R, 22, 16), tex: ballTex, r: SMALL_R, slot: new V3(0, SMALL_R + 0.002, 0) });
     // the ball's size: big and floaty (bubble soccer), or the classic small one
-    const SOC = { big: true, seq: 0, armed: true };
+    const SOC = { big: true, seq: 0, armed: true, lastTouch: '' };
     L.soc = SOC;
     function applyBallSize(big) {
       SOC.big = big;
@@ -249,7 +249,7 @@
       // a harder kick gets more air under it, on top of where you're looking
       _kd.y = SOC.big ? Math.min(0.85, clamp(_kd.y, -0.1, 0.5) + 0.12 + power * 0.34) : clamp(_kd.y, -0.1, 0.65) + 0.18;
       _kd.normalize();
-      claimBall();
+      claimBall(); SOC.lastTouch = state.myPeer;
       ball.vel.copy(_kd).multiplyScalar(SOC.big ? 5 + power * 10.5 : 6 + power * 16).addScaledVector(me.vel, 0.4);
       ball.pos.y = Math.max(ball.pos.y, BR + 0.02);
       sfx('kick', 0.6 + power * 0.4);
@@ -331,7 +331,7 @@
         const dx = ball.pos.x - myHead.pos.x, dz = ball.pos.z - myHead.pos.z, d = Math.hypot(dx, dz), minD = 0.34 + BR;
         if (d < minD && d > 1e-4 && ball.pos.y < (SOC.big ? BR + 0.7 : 1.0)) {
           _n.set(dx / d, 0, dz / d);
-          claimBall();
+          claimBall(); SOC.lastTouch = state.myPeer;
           ball.pos.x = myHead.pos.x + _n.x * (minD + 0.01);
           ball.pos.z = myHead.pos.z + _n.z * (minD + 0.01);
           const push = Math.max(0, me.vel.dot(_n)) * 1.2 + 0.7;
@@ -349,7 +349,7 @@
               const h = vrHands[side];
               const sp = handSpeed(h);
               _n.subVectors(ball.pos, mh.pos).multiplyScalar(1 / hd);
-              claimBall();
+              claimBall(); SOC.lastTouch = state.myPeer;
               ball.pos.copy(mh.pos).addScaledVector(_n, min + 0.01);
               const hs = h.hist;
               const hv = hs.length > 1 ? new V3().subVectors(hs[hs.length - 1].p, hs[Math.max(0, hs.length - 4)].p).divideScalar(Math.max(0.001, (hs[hs.length - 1].t - hs[Math.max(0, hs.length - 4)].t) / 1000)) : new V3();
@@ -368,9 +368,10 @@
         SOC.armed = false;
         const team = ball.pos.z > 0 ? 1 : 0;
         me.goals[team] += 1;
-        if (team === me.team) me.scoredBy += 1;
+        const byBot = L.socBots && L.socBots.byId(SOC.lastTouch);
+        if (team === me.team && !byBot) me.scoredBy += 1;
         me.kickoffT = now + 2600;
-        goalCelebration(team, team === me.team ? 'you' : null);
+        goalCelebration(team, byBot ? (byBot.team === team ? byBot.name : null) : team === me.team ? 'you' : null);
         forcePresence();
       }
       if (me.kickoffT && now > me.kickoffT) {
@@ -457,6 +458,193 @@
         if (a[0] > SOC.seq || (a[0] === SOC.seq && rec.peer < state.myPeer && (a[1] === 1) !== SOC.big)) { SOC.seq = a[0]; if ((a[1] === 1) !== SOC.big) applyBallSize(a[1] === 1); }
       };
     }
+    // ---------------------------------------------------------------- computer players
+    // Bots make up each team to the picker's number. The lowest-named player's page runs them: when a bot touches the
+    // ball that page claims it (as anyone touching it does), so the ball's physics and goals work as they always have.
+    // Each team's bots share out the jobs: a keeper (when the side has three or more), a chaser for the ball, and supports.
+    makePlayerPicker(L, { min: 1, max: 5, def: 3, label: 'Per team', x: KX, z: KZ + 2.4, yaw: Math.PI / 2 });
+    const SB_NAMES = ['Kicky Kai', 'Nutmeg Nia', 'Header Hal', 'Volley Val', 'Corner Cora', 'Striker Stu', 'Dribble Di', 'Goalie Gus', 'Pass Patti', 'Wing Wes'];
+    const sbots = SB_NAMES.map((name, k) => {
+      const team = k < 5 ? 0 : 1;
+      const g = buildAvatar(TEAM_HEX[team], (k * 3 + 1) % HATS.length, k % FACES.length, true, (k * 2) % SHIRTS.length, team ? 4 : 6);
+      const tag = new THREE.Sprite(new THREE.SpriteMaterial({ map: canvasTexture(256, 64, (c) => { rr(c, 4, 6, 248, 52, 26); c.fillStyle = 'rgba(20,16,32,0.8)'; c.fill(); c.fillStyle = TEAM_HEX[team]; c.font = `700 28px ${BODY}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(name, 128, 33, 230); }).tex, transparent: true, depthWrite: false }));
+      tag.scale.set(0.9, 0.225, 1); tag.position.y = 0.45; g.add(tag);
+      g.visible = false; G.add(g);
+      return { id: `bot:${k}`, k, team, j: k % 5, name, g, active: false, x: 0, z: 0, rx: 0, rz: 0, yaw: 0, vx: 0, vz: 0, role: 'sup', kickCool: 0, skill: 0.85 + rand() * 0.3 };
+    });
+    const socHumans = () => { const ids = state.mode !== 'menu' ? [{ id: state.myPeer, team: me.team }] : []; for (const rec of remotes.values()) { const st = rec.lvState[L.id]; if (rec.lv === L.idx && rec.inGame && st && (st.team === 0 || st.team === 1)) ids.push({ id: rec.peer, team: st.team }); } return ids; };
+    const socHost = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort()[0] === state.myPeer; };
+    L.socBots = { list: sbots, byId: (id) => (typeof id === 'string' && id.startsWith('bot:') ? sbots[Number(id.slice(4))] || null : null) };
+    const attackZ = (t) => (t === 0 ? -HL : HL), ownZ = (t) => (t === 0 ? HL : -HL);
+    function homeSpot(b, out) {
+      // where a bot lines up: its own half, spread across
+      const s = b.team === 0 ? 1 : -1;
+      return out.set(clamp((b.j - 2) * 4.2, -HW + 1.5, HW - 1.5), 0, s * (b.role === 'keep' ? HL - 1.2 : 6 + (b.j % 2) * 4));
+    }
+    const _bt = new V3();
+    function fillSocBots() {
+      const nh = [0, 0];
+      for (const h of socHumans()) nh[h.team] += 1;
+      for (const t of [0, 1]) {
+        const want = Math.max(0, L.picker.n - nh[t]);
+        sbots.filter((b) => b.team === t).forEach((b, i) => {
+          const was = b.active;
+          b.active = i < want;
+          if (b.active && !was) { homeSpot(b, _bt); b.x = b.rx = _bt.x; b.z = b.rz = _bt.z; b.vx = b.vz = 0; }
+        });
+      }
+      forcePresence();
+    }
+    function assignRoles() {
+      const hs = socHumans();
+      for (const t of [0, 1]) {
+        const tb = sbots.filter((b) => b.active && b.team === t);
+        if (!tb.length) continue;
+        const size = tb.length + hs.filter((h) => h.team === t).length;
+        let rest = tb;
+        if (size >= 3) { tb[0].role = 'keep'; rest = tb.slice(1); }
+        // the chaser: whichever bot is nearest the ball, unless a teammate person is nearer still
+        let best = null, bd = 1e9;
+        for (const b of rest) { const d = Math.hypot(b.x - ball.pos.x, b.z - ball.pos.z); if (d < bd) { bd = d; best = b; } }
+        let personNearer = false;
+        for (const h of hs) if (h.team === t) {
+          const rec = remotes.get(h.id);
+          const p = h.id === state.myPeer ? myHead.pos : (rec && rec.hasH ? rec.cur.h.pos : null);
+          if (p && Math.hypot(p.x - ball.pos.x, p.z - ball.pos.z) < bd - 1.0) personNearer = true;
+        }
+        for (const b of rest) b.role = b === best && !personNearer ? 'chase' : 'sup';
+      }
+    }
+    function botKick(b, tx, tz, power, spread, now, loft) {
+      let dx = tx - ball.pos.x, dz = tz - ball.pos.z;
+      const l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l;
+      const a = (Math.random() - 0.5) * spread, c = Math.cos(a), s2 = Math.sin(a);
+      const kx = dx * c - dz * s2, kz = dx * s2 + dz * c;
+      const up = loft !== undefined ? loft : SOC.big ? 0.12 + power * 0.34 : 0.12 + power * 0.12;
+      _bt.set(kx, up, kz).normalize();
+      claimBall(); SOC.lastTouch = b.id;
+      ball.vel.copy(_bt).multiplyScalar(SOC.big ? 5 + power * 10.5 : 6 + power * 15);
+      ball.pos.y = Math.max(ball.pos.y, BR + 0.02);
+      b.kickCool = (now || performance.now()) + 700; SOC.botKickT = now || performance.now();
+      SOC.kicks = (SOC.kicks || 0) + 1;
+      sfx('kick', 0.4 + power * 0.4);
+    }
+    const _tg = new V3();
+    function stepSocBots(dt, now) {
+      assignRoles();
+      const live = SOC.armed && !me.kickoffT && !me.winT;
+      for (const b of sbots) {
+        if (!b.active) continue;
+        const atk = attackZ(b.team), own = ownZ(b.team), dirZ = Math.sign(atk);
+        let speed = 3.4 * b.skill;
+        // where to go
+        if (!live) homeSpot(b, _tg);
+        else if (b.role === 'keep') {
+          const near = Math.abs(ball.pos.z - own) < 5 && Math.abs(ball.pos.x) < GW + 2;
+          if (near) { _tg.set(ball.pos.x, 0, ball.pos.z); speed *= 1.15; }
+          else _tg.set(clamp(ball.pos.x * 0.35, -GW + 0.5, GW - 0.5), 0, own - Math.sign(own) * 1.2);
+        } else if (b.role === 'chase') {
+          // get behind the ball, on the line from it to the goal you're attacking
+          let gx = -ball.pos.x, gz = atk - ball.pos.z; const gl = Math.hypot(gx, gz) || 1; gx /= gl; gz /= gl;
+          const back = BR + 0.55;
+          _tg.set(ball.pos.x - gx * back, 0, ball.pos.z - gz * back);
+          // on the wrong side of the ball: go round it, not through it
+          const ahead = (b.x - ball.pos.x) * gx + (b.z - ball.pos.z) * gz;
+          if (ahead > -0.2) { const side = (b.x - ball.pos.x) * -gz + (b.z - ball.pos.z) * gx >= 0 ? 1 : -1; _tg.x += -gz * side * 1.6; _tg.z += gx * side * 1.6; }
+          speed *= 1.08;
+        } else {
+          // support: spread across, a little goal-side of the ball, or ahead of it when we're attacking
+          const lane = clamp((b.j - 2) * 3.6, -HW + 2, HW - 2);
+          const attacking = ball.pos.z * dirZ > -4;
+          _tg.set(clamp(ball.pos.x * 0.4 + lane, -HW + 1.5, HW - 1.5), 0, clamp(ball.pos.z + (attacking ? dirZ * 5 : -dirZ * 5), -HL + 2, HL - 2));
+          speed *= 0.85;
+        }
+        // move (with a little separation from teammates)
+        let mx = _tg.x - b.x, mz = _tg.z - b.z;
+        for (const o of sbots) if (o !== b && o.active) { const ox = b.x - o.x, oz = b.z - o.z, od = Math.hypot(ox, oz); if (od < 1.2 && od > 1e-3) { mx += ox / od * 0.8; mz += oz / od * 0.8; } }
+        const ml = Math.hypot(mx, mz);
+        const want = ml > 0.15 ? Math.min(speed, ml * 3) : 0;
+        const tvx = ml > 1e-3 ? mx / ml * want : 0, tvz = ml > 1e-3 ? mz / ml * want : 0;
+        const k = 1 - Math.exp(-dt * 6);
+        b.vx += (tvx - b.vx) * k; b.vz += (tvz - b.vz) * k;
+        b.x = clamp(b.x + b.vx * dt, -HW + 0.4, HW - 0.4); b.z = clamp(b.z + b.vz * dt, -HL + 0.4, HL - 0.4);
+        if (Math.hypot(b.vx, b.vz) > 0.3) b.yaw = Math.atan2(-b.vx, -b.vz);
+        if (!live || ball.held) continue;
+        // touching the ball pushes it, like walking into it does
+        const dx = ball.pos.x - b.x, dz = ball.pos.z - b.z, d = Math.hypot(dx, dz), minD = 0.34 + BR;
+        if (d < minD && d > 1e-4 && ball.pos.y < (SOC.big ? BR + 0.7 : 1.0)) {
+          const nx = dx / d, nz = dz / d;
+          claimBall(); SOC.lastTouch = b.id;
+          ball.pos.x = b.x + nx * (minD + 0.01); ball.pos.z = b.z + nz * (minD + 0.01);
+          const push = Math.max(0, b.vx * nx + b.vz * nz) * 1.2 + 0.7, vn = ball.vel.x * nx + ball.vel.z * nz;
+          if (vn < push) { ball.vel.x += nx * (push - vn); ball.vel.z += nz * (push - vn); }
+        }
+        // kick: chasers shoot when in range (or knock it on), keepers clear it
+        // (a ball that's just been kicked gets a moment to travel before anyone kicks it again)
+        if (now > b.kickCool && now - (SOC.botKickT || 0) > 450 && d < (SOC.big ? 1.6 : 1.1) && ball.pos.y < (SOC.big ? 2.0 : 0.8) && (b.role === 'chase' || b.role === 'keep')) {
+          const toGoal = Math.hypot(ball.pos.x, atk - ball.pos.z);
+          const behind = ((ball.pos.x - b.x) * -ball.pos.x + (ball.pos.z - b.z) * (atk - ball.pos.z)) / ((d || 1) * (toGoal || 1));
+          if (b.role === 'keep') botKick(b, ball.pos.x > 0 ? HW - 2 : -HW + 2, 0, 0.85, 0.5, now);
+          else if (behind > 0.35) {
+            const lineDist = Math.abs(atk - ball.pos.z), wing = Math.abs(ball.pos.x) > GW + 2.5;
+            // out on the wing near their goal: cut it back into the middle
+            if (wing && lineDist < 9) botKick(b, 0, atk - Math.sign(atk) * 5, 0.45, 0.3, now, 0.06);
+            // lined up and in range: a hard, low shot
+            else if (toGoal < (SOC.big ? 11 : 15) && behind > 0.6) {
+              // aim for the corner away from their keeper (or a corner at random)
+              const kp = sbots.find((o) => o.active && o.team !== b.team && o.role === 'keep');
+              const side = kp ? (kp.x > 0 ? -1 : 1) : (Math.random() < 0.5 ? -1 : 1);
+              botKick(b, side * (GW - (SOC.big ? 1.0 : 0.6)) + (Math.random() - 0.5) * 0.6, atk, 0.92 + Math.random() * 0.08, 0.12 / b.skill, now, SOC.big ? 0.04 : 0.03);
+            }
+            // further out: knock it on toward goal (or keep dribbling if it's already rolling the right way)
+            else if (toGoal >= (SOC.big ? 11 : 15)) botKick(b, ball.pos.x * 0.6, ball.pos.z + Math.sign(atk) * 8, 0.32, 0.3, now, 0.08);
+          }
+        }
+      }
+    }
+    // everyone draws the bots (smoothed); the host moves them
+    let fillT = 0;
+    const baseUpdate = L.update;
+    L.update = (dt, now) => {
+      baseUpdate(dt, now);
+      const here = state.mode !== 'menu' && state.level === L.idx;
+      if (!here) { for (const b of sbots) b.g.visible = false; return; }
+      if (socHost()) {
+        if (now - fillT > 800) { fillT = now; fillSocBots(); }
+        if (!L.paused) stepSocBots(Math.min(dt, 0.05), now);
+        for (const b of sbots) { b.rx = b.x; b.rz = b.z; }
+      } else for (const b of sbots) { const k = 1 - Math.exp(-dt * 10); b.rx += (b.x - b.rx) * k; b.rz += (b.z - b.rz) * k; }
+      for (const b of sbots) {
+        b.g.visible = b.active;
+        if (!b.active) continue;
+        const run = Math.hypot(b.vx, b.vz);
+        b.g.position.set(b.rx, 1.5 + (run > 0.5 ? Math.abs(Math.sin(now * 0.012 + b.k)) * 0.06 : 0), b.rz);
+        b.g.rotation.y = b.yaw;
+      }
+    };
+    {
+      const baseP = L.presence, baseR = L.readPresence;
+      const r1 = (x) => Math.round(x * 10);
+      L.presence = () => {
+        const p = baseP();
+        if (socHost()) p.sbt = sbots.filter((b) => b.active).map((b) => [b.k, r1(b.x), r1(b.z), Math.round(b.yaw * 100), r1(b.vx), r1(b.vz)]);
+        return p;
+      };
+      L.readPresence = (rec, pres, st) => {
+        baseR(rec, pres, st);
+        const ids = [state.myPeer]; for (const r of remotes.values()) if (r.lv === L.idx && r.inGame) ids.push(r.peer);
+        if (rec.peer !== ids.sort()[0] || !Array.isArray(pres.sbt)) return;
+        const seen = new Set();
+        for (const a of pres.sbt.slice(0, sbots.length)) {
+          if (!Array.isArray(a) || a.length !== 6 || !a.every(Number.isFinite) || !sbots[a[0]]) continue;
+          const b = sbots[a[0]]; seen.add(b.k);
+          if (!b.active) { b.rx = a[1] / 10; b.rz = a[2] / 10; }
+          Object.assign(b, { active: true, x: clamp(a[1] / 10, -HW, HW), z: clamp(a[2] / 10, -HL, HL), yaw: a[3] / 100, vx: a[4] / 10, vz: a[5] / 10 });
+        }
+        for (const b of sbots) if (!seen.has(b.k)) b.active = false;
+      };
+    }
+    L.onExit = ((base) => () => { base(); for (const b of sbots) b.g.visible = false; })(L.onExit);
+    L.socInternals = { physics: (dt, now) => updateBodies(L, dt, now), me, scores, sbots, fillSocBots, stepSocBots, assignRoles, botKick, socHost, SOC, ball, HW, HL, GW };
     return L;
   })();
-

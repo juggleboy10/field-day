@@ -116,6 +116,7 @@
     drawSign();
     redraws.push(drawSign);
     makeKiosk(L, F.minX - 2.2, -6, Math.PI / 2);
+    makePlayerPicker(L, { min: 1, max: 5, def: 3, label: 'Per team', note: 'from the next round' });
     // walking: the field's edges, and around the bunkers
     L.clampPlayer = (p) => {
       let x = clamp(p.x, L.bounds.minX + 0.3, L.bounds.maxX - 0.3), z = clamp(p.z, L.bounds.minZ + 0.3, L.bounds.maxZ - 0.3);
@@ -330,7 +331,7 @@
     makeButton(L, new V3(L.OUT.x - 0.6, 1.0, 5.2), 0xb388ff, 'Switch team', () => { if (PB.ph === 2 && !me.out) { showToast('Finish this round first'); return; } joinTeam(1 - me.team); }, { faceYaw: -Math.PI / 2 });
 
     // ---------------------------------------------------------------- computer players (the host runs them)
-    const BOT_NAMES = ['Splatty Sue', 'Rex Rapid', 'Dot Drizzle', 'Pip Pelter', 'Moe Mayhem', 'Gus Goop'];
+    const BOT_NAMES = ['Splatty Sue', 'Rex Rapid', 'Dot Drizzle', 'Pip Pelter', 'Moe Mayhem', 'Gus Goop', 'Blot Betty', 'Squirt Sly', 'Drip Dina', 'Plop Pablo'];
     const bots = BOT_NAMES.map((name, n) => {
       const body = buildAvatar(n % 2 ? '#3d8bff' : '#ff4d6a', (n * 3 + 1) % HATS.length, n % FACES.length, false);
       const label = new THREE.Sprite(new THREE.SpriteMaterial({ map: canvasTexture(256, 64, (g) => { rr(g, 4, 6, 248, 52, 26); g.fillStyle = 'rgba(20,16,32,0.8)'; g.fill(); g.fillStyle = '#ffffff'; g.font = `700 30px ${BODY}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(name, 128, 33); }).tex, transparent: true, depthWrite: false }));
@@ -349,12 +350,12 @@
     for (const c of [...L.bunkers.CANS, ...L.bunkers.CONES]) for (const a of [0, Math.PI / 2, Math.PI, -Math.PI / 2]) COVER.push(new V3(c.x + Math.cos(a) * (c.r + 0.7), 0, c.z + Math.sin(a) * (c.r + 0.7)));
     for (const w of L.bunkers.WALLS) for (const s of [-1, 1]) COVER.push(new V3(w.x + s * Math.sin(w.rot) * (w.hd + 0.7), 0, w.z + s * Math.cos(w.rot) * (w.hd + 0.7)));
     function fillBots() {
-      // computer players fill each team up to three (when fewer than six people are here)
+      // computer players fill each team up to the picker's number
       const n = [0, 0];
       for (const id of herePeersPB()) { const t = teamOf(id); if (t === 0 || t === 1) n[t]++; }
-      const people = n[0] + n[1], want = people >= 6 ? [0, 0] : [Math.max(0, 3 - n[0]), Math.max(0, 3 - n[1])];
+      const want = [Math.max(0, L.picker.n - n[0]), Math.max(0, L.picker.n - n[1])];
       let k = 0;
-      for (const t of [0, 1]) for (let i = 0; i < want[t]; i++) { const b = bots[k++]; Object.assign(b, { active: true, team: t, out: false, ph: 'move' }); b.band.material.color.set(L.TEAM_HEX[t]); }
+      for (const t of [0, 1]) for (let i = 0; i < want[t] && k < bots.length; i++) { const b = bots[k++]; Object.assign(b, { active: true, team: t, out: false, ph: 'move' }); b.band.material.color.set(L.TEAM_HEX[t]); }
       for (; k < bots.length; k++) bots[k].active = false;
       bots.forEach((b, i) => { if (b.active) { const p = spawnSpot(b.team, 5 + i); b.x = p.x; b.z = p.z; b.rx = b.x; b.rz = b.z; b.until = 0; } });
     }

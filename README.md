@@ -27,6 +27,10 @@ tests/trivia.py        Trivia Night: a full game with bots, keyboard and HUD ans
 tests/trivia_mp.py     Trivia Night with two players: the non-host's answers are scored, the host leaves mid-game
 tests/recess.py        Recess Rush: every playground station, no shortcuts, simulated VR (tunnel, sack hops, bars), a race vs bots
 tests/recess_mp.py     Recess Rush with two players: joining a race, the standings, seeing each other's sacks
+tests/players.py       the player-count picker: in every game with one, the number sets how many bots play
+tests/players_mp.py    the picker with two players: the number is shared; soccer and laser tag bots on both pages
+tests/soccer.py        Sunday soccer's computer players: the right numbers, they play and score at both ends
+tests/lasertag.py      Neon laser tag's computer players: they move and shoot, you can tag them, drones only when alone
 tests/multiplayer.py   two players on one machine (a stand-in for Claude's room): hot potato, a kayak race, cornhole, a tag in capture the flag
 ```
 
@@ -38,7 +42,7 @@ All the code still runs as one script, in the order listed in `src/order.txt`. A
 
 ```
 ./build.sh
-for t in smoke parkour hotpotato kayak cornhole ctf piratecove trivia trivia_mp recess recess_mp multiplayer; do python tests/$t.py; done
+for t in smoke parkour hotpotato kayak cornhole ctf piratecove trivia trivia_mp recess recess_mp players players_mp soccer lasertag multiplayer; do python tests/$t.py; done
 ```
 
 The smoke test needs Playwright once: `pip install playwright && playwright install chromium`.

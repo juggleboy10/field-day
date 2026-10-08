@@ -127,7 +127,7 @@
   };
   function savePrefs() {
     try {
-      localStorage.setItem(PREF_KEY, JSON.stringify({ name: state.nameEdited ? state.name : '', color: state.colorIdx, level: state.level, hat: state.hat, face: state.face, shirt: state.shirt, shirtColor: state.shirtColor, music: prefs.music !== false, voice: prefs.voice === true, smoothTurn: prefs.smoothTurn === true, popBest: prefs.popBest | 0 }));
+      localStorage.setItem(PREF_KEY, JSON.stringify({ name: state.nameEdited ? state.name : '', color: state.colorIdx, level: state.level, hat: state.hat, face: state.face, shirt: state.shirt, shirtColor: state.shirtColor, music: prefs.music !== false, voice: prefs.voice === true, smoothTurn: prefs.smoothTurn === true, popBest: prefs.popBest | 0, players: prefs.players || {} }));
     } catch (e) { /* storage unavailable */ }
   }
   function forcePresence() { state.presenceDue = true; }

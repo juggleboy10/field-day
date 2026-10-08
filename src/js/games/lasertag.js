@@ -236,8 +236,10 @@
         const r = rayBody(_o, _d, rec.cur.h.pos, Math.max(0.2, rec.cur.h.pos.y - 1.15), hitT);
         if (r.dist < 0.3 && r.s < hitT) { hitT = r.s; hitRec = rec; }
       }
+      let hitBot = null;
+      if (L.ltRayHitsBot) { const hb = L.ltRayHitsBot(_o, _d, hitT); if (hb) { hitBot = hb.bot; hitT = hb.s; hitRec = null; } }
       let hitDrone = null;
-      if (!hitRec) {
+      if (!hitRec && !hitBot) {
         for (const dr of drones) {
           if (!dr.alive || !dr.m.visible) continue;
           _w.subVectors(dr.pos, _o);
@@ -256,6 +258,12 @@
         me.tags += 1;
         me.lh.push([++me.lhSeq, hitRec.peer]);
         if (me.lh.length > 6) me.lh.shift();
+        sfx('zap', 1);
+        spawnFloat('+1', _end.clone().setY(_end.y + 0.4), TEAM_HEX[me.team]);
+        state.dirtyBoard = true;
+      } else if (hitBot) {
+        me.tags += 1;
+        L.ltHitBot(hitBot, now);
         sfx('zap', 1);
         spawnFloat('+1', _end.clone().setY(_end.y + 0.4), TEAM_HEX[me.team]);
         state.dirtyBoard = true;
@@ -331,7 +339,7 @@
 
     // ---------------------------------------------------------------- rounds, scores, readouts
     function scores() {
-      const s = [0, 0];
+      const s = L.ltBotTags ? L.ltBotTags() : [0, 0];
       if (me.team >= 0) s[me.team] += me.tags;
       for (const rec of remotes.values()) {
         if (rec.lv !== L.idx) continue;
@@ -368,7 +376,7 @@
       }
       if (me.winT && now - me.winT > 6000) { me.round += 1; me.tags = 0; me.winT = 0; state.dirtyBoard = true; forcePresence(); }
       // drones
-      const practice = opponents() === 0;
+      const practice = opponents() === 0 && !(L.ltEnemyBots && L.ltEnemyBots());
       drones.forEach((dr, i) => {
         if (!dr.alive && now > dr.respawn) dr.alive = true;
         const t = now * 0.00035 + dr.phase;
@@ -464,6 +472,224 @@
       camera.position.set(Math.sin(a) * 13, 6, Math.cos(a) * 10);
       camera.lookAt(0, 0.5, 0);
     };
+    // ---------------------------------------------------------------- computer players
+    // Bots make up each team to the picker's number. The lowest-named player's page runs them: it moves them between
+    // cover, has them shoot (at people and at each other), and publishes where they are, their tags and their shots.
+    // A person who tags a bot reports it (lbh) and the host knocks it out; a bot's shot at a person names them (lbs)
+    // and that person's own page tags them, the same way people's shots work.
+    makePlayerPicker(L, { min: 1, max: 5, def: 3, label: 'Per team' });
+    const LB_NAMES = ['Zap Zara', 'Pew Pete', 'Glow Gil', 'Beam Bree', 'Flash Finn', 'Volt Vic', 'Neon Nell', 'Ray Rory', 'Blip Bea', 'Sparks Sol'];
+    const lbots = LB_NAMES.map((name, k) => {
+      const team = k < 5 ? 0 : 1;
+      const g = buildAvatar(TEAM_HEX[team], (k * 3 + 2) % HATS.length, k % FACES.length, true, (k * 2 + 1) % SHIRTS.length, team ? 4 : 6);
+      const tag = new THREE.Sprite(new THREE.SpriteMaterial({ map: canvasTexture(256, 64, (c) => { rr(c, 4, 6, 248, 52, 26); c.fillStyle = 'rgba(20,16,32,0.8)'; c.fill(); c.fillStyle = TEAM_HEX[team]; c.font = `700 28px ${BODY}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(name, 128, 33, 230); }).tex, transparent: true, depthWrite: false }));
+      tag.scale.set(0.9, 0.225, 1); tag.position.y = 0.45; g.add(tag);
+      const gun = makeBlaster(); gun.position.set(0.22, -0.32, -0.22); g.add(gun);
+      for (const m of gun.userData.glow) m.color.setHex(TEAM_COLORS[team]);
+      g.visible = false; G.add(g);
+      return { id: `bot:${k}`, k, team, name, g, gun, active: false, x: 0, z: 0, rx: 0, rz: 0, yaw: 0, vx: 0, vz: 0, tagged: false, taggedUntil: 0, invUntil: 0, tags: 0, cool: 0, goal: null, goalT: 0, skill: 0.85 + rand() * 0.3 };
+    });
+    const ltHost = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort()[0] === state.myPeer; };
+    const ltHumans = () => { const out = state.mode !== 'menu' ? [{ id: state.myPeer, team: me.team, head: myHead.pos, tagged: me.tagged }] : []; for (const rec of remotes.values()) { const st = rec.lvState[L.id]; if (inMyLevel(rec) && rec.hasH && st && (st.team === 0 || st.team === 1)) out.push({ id: rec.peer, team: st.team, head: rec.cur.h.pos, tagged: st.tagged }); } return out; };
+    const LB = { seq: 0, shots: [], hitSeq: 0, hits: [], round: -1 };
+    L.ltBots = lbots;
+    function spawnBot(b) {
+      const z = b.team === 0 ? 9.6 : -9.6;
+      b.x = b.rx = (rand() - 0.5) * 6; b.z = b.rz = z + (rand() - 0.5) * 1.5; b.vx = b.vz = 0; b.goal = null; b.yaw = b.team === 0 ? 0 : Math.PI;
+    }
+    function fillLtBots() {
+      const nh = [0, 0];
+      for (const h of ltHumans()) nh[h.team] += 1;
+      for (const t of [0, 1]) {
+        const want = Math.max(0, L.picker.n - nh[t]);
+        lbots.filter((b) => b.team === t).forEach((b, i) => { const was = b.active; b.active = i < want; if (b.active && !was) { spawnBot(b); b.tags = 0; b.tagged = false; } });
+      }
+      forcePresence();
+    }
+    // a clear line between two points (cover blocks are taller than 1.2 m, or low walls you can shoot over)?
+    const _lo = new V3(), _ld = new V3();
+    function clearLine(a, b) {
+      _ld.subVectors(b, a); const len = _ld.length(); if (len < 1e-3) return true; _ld.divideScalar(len);
+      for (const bx of L.boxes) if (rayBox(a, _ld, bx, len) < len - 0.2) return false;
+      return true;
+    }
+    function pushOutOfBoxes(b) {
+      const m = 0.35;
+      b.x = clamp(b.x, AR.minX + m, AR.maxX - m); b.z = clamp(b.z, AR.minZ + m, AR.maxZ - m);
+      for (const bx of L.boxes) if (b.x > bx.min.x - m && b.x < bx.max.x + m && b.z > bx.min.z - m && b.z < bx.max.z + m) {
+        const dl = b.x - (bx.min.x - m), dr = bx.max.x + m - b.x, dn = b.z - (bx.min.z - m), df = bx.max.z + m - b.z, k = Math.min(dl, dr, dn, df);
+        if (k === dl) b.x = bx.min.x - m; else if (k === dr) b.x = bx.max.x + m; else if (k === dn) b.z = bx.min.z - m; else b.z = bx.max.z + m;
+      }
+    }
+    // somewhere to head for: beside a block, on our half or the middle (or pushing up when we're ahead)
+    function pickGoal(b) {
+      const side = b.team === 0 ? 1 : -1;
+      for (let i = 0; i < 12; i++) {
+        const bx = L.boxes[Math.floor(rand() * L.boxes.length)], cx = (bx.min.x + bx.max.x) / 2, cz = (bx.min.z + bx.max.z) / 2;
+        if (cz * side < -6 && rand() < 0.7) continue;          // mostly stay out of their back third
+        const a = rand() * Math.PI * 2, r = Math.max(bx.max.x - bx.min.x, bx.max.z - bx.min.z) / 2 + 0.7;
+        return new V3(clamp(cx + Math.cos(a) * r, AR.minX + 0.6, AR.maxX - 0.6), 0, clamp(cz + Math.sin(a) * r, AR.minZ + 0.6, AR.maxZ - 0.6));
+      }
+      return new V3((rand() - 0.5) * 20, 0, side * (2 + rand() * 6));
+    }
+    const _bh = new V3(), _th = new V3(), _se = new V3();
+    function botHead(b, out) { return out.set(b.x, 1.5, b.z); }
+    function tagBot(b, now) { if (b.tagged || now < b.invUntil) return false; b.tagged = true; b.taggedUntil = now + 3000; forcePresence(); return true; }
+    function botFire(b, now, target) {
+      botHead(b, _bh); _bh.y = 1.25;
+      _th.copy(target.head); _th.y -= 0.35;
+      const d = _bh.distanceTo(_th);
+      const p = clamp((0.82 - d * 0.03) * b.skill, 0.2, 0.8);
+      const hit = Math.random() < p;
+      // a miss goes a little wide
+      if (!hit) { _th.x += (Math.random() - 0.5) * 1.6; _th.y += (Math.random() - 0.3) * 0.8; _th.z += (Math.random() - 0.5) * 1.6; }
+      _ld.subVectors(_th, _bh).normalize();
+      let maxT = 45;
+      for (const bx of L.boxes) maxT = Math.min(maxT, rayBox(_bh, _ld, bx, maxT));
+      const end = _se.copy(_bh).addScaledVector(_ld, hit ? Math.min(maxT, d) : Math.min(maxT, d + 4));
+      showBeam(_bh, end, b.team);
+      sfx('laser', 0.5 / (1 + _bh.distanceTo(myHead.pos) * 0.1));
+      let victim = '';
+      if (hit) {
+        victim = target.id;
+        b.tags += 1;
+        if (target.bot) tagBot(target.bot, now);
+        else if (target.id === state.myPeer) getTagged(now, b.name);
+      }
+      LB.shots.push([++LB.seq, r3(_bh.x), r3(_bh.y), r3(_bh.z), r3(end.x), r3(end.y), r3(end.z), victim, b.k]);
+      if (LB.shots.length > 6) LB.shots.shift();
+      b.cool = now + 900 + Math.random() * 700;
+      state.dirtyBoard = true;
+      forcePresence();
+    }
+    function getTagged(now, by) {
+      if (me.tagged || now < me.invUntil || state.mode === 'menu') return;
+      me.tagged = true; me.taggedUntil = now + 3000;
+      sfx('tagged', 1); showToast(`Tagged by ${by}`);
+      if (state.mode === 'vr') for (const s of SIDES) haptic(vrHands[s], 0.9, 200);
+      state.dirtyBoard = true; forcePresence();
+    }
+    function stepLtBots(dt, now) {
+      const hs = ltHumans();
+      for (const b of lbots) {
+        if (!b.active) continue;
+        if (b.tagged) { if (now > b.taggedUntil) { b.tagged = false; b.invUntil = now + 1500; forcePresence(); } else { b.vx = b.vz = 0; continue; } }
+        // the nearest enemy it can see
+        botHead(b, _bh);
+        let tgt = null, td = 26;
+        for (const h of hs) if (h.team !== b.team && !h.tagged) { const d = Math.hypot(h.head.x - b.x, h.head.z - b.z); if (d < td && clearLine(_bh, h.head)) { td = d; tgt = h; } }
+        for (const o of lbots) if (o.active && o.team !== b.team && !o.tagged) { const oh = botHead(o, new V3()); const d = Math.hypot(o.x - b.x, o.z - b.z); if (d < td && clearLine(_bh, oh)) { td = d; tgt = { id: o.id, head: oh, bot: o }; } }
+        // move: to its goal, strafing a little when it has someone in its sights
+        // a new place to go when it gets there, after a while, or when it's stopped getting closer (stuck on a block)
+        const gd = b.goal ? Math.hypot(b.goal.x - b.x, b.goal.z - b.z) : 0;
+        if (b.goal && gd < (b.bestGd || 1e9) - 0.3) { b.bestGd = gd; b.progT = now; }
+        if (!b.goal || now > b.goalT || gd < 0.4 || (!tgt && now - (b.progT || now) > 1500)) { b.goal = pickGoal(b); b.goalT = now + 4000 + rand() * 4000; b.bestGd = 1e9; b.progT = now; }
+        let mx = b.goal.x - b.x, mz = b.goal.z - b.z;
+        const ml = Math.hypot(mx, mz) || 1;
+        let sp = tgt ? 1.2 : 2.6;
+        if (tgt) { const s = Math.sin(now * 0.002 + b.k) > 0 ? 1 : -1; const fx = (tgt.head.x - b.x) / td, fz = (tgt.head.z - b.z) / td; mx = mx / ml * 0.4 - fz * s; mz = mz / ml * 0.4 + fx * s; }
+        else { mx /= ml; mz /= ml; }
+        const l2 = Math.hypot(mx, mz) || 1;
+        const k = 1 - Math.exp(-dt * 6);
+        b.vx += (mx / l2 * sp * b.skill - b.vx) * k; b.vz += (mz / l2 * sp * b.skill - b.vz) * k;
+        b.x += b.vx * dt; b.z += b.vz * dt;
+        pushOutOfBoxes(b);
+        b.yaw = tgt ? Math.atan2(-(tgt.head.x - b.x), -(tgt.head.z - b.z)) : Math.hypot(b.vx, b.vz) > 0.3 ? Math.atan2(-b.vx, -b.vz) : b.yaw;
+        if (tgt && now > b.cool && !me.winT) botFire(b, now, tgt);
+      }
+    }
+    // people's shots can hit bots: called from fire()
+    function rayHitsBot(o, d, maxT) {
+      let best = null, bt = maxT;
+      for (const b of lbots) {
+        if (!b.active || b.tagged || b.team === me.team) continue;
+        const r = rayBody(o, d, botHead(b, _bh), 0.4, bt);
+        if (r.dist < 0.32 && r.s < bt) { bt = r.s; best = b; }
+      }
+      return best ? { bot: best, s: bt } : null;
+    }
+    L.ltRayHitsBot = rayHitsBot;
+    L.ltHitBot = (b, now) => {
+      if (ltHost()) tagBot(b, now);
+      else { LB.hits.push([++LB.hitSeq, b.k]); if (LB.hits.length > 6) LB.hits.shift(); b.tagged = true; b.taggedUntil = now + 3000; }
+    };
+    L.ltEnemyBots = () => lbots.some((b) => b.active && b.team !== me.team);
+    L.ltBotTags = () => { const s = [0, 0]; for (const b of lbots) if (b.active) s[b.team] += b.tags; return s; };
+    let fillT = 0;
+    const baseUpdate = L.update;
+    L.update = (dt, now) => {
+      const here = state.mode !== 'menu' && state.level === L.idx;
+      if (here && ltHost()) {
+        if (LB.round !== me.round) { LB.round = me.round; for (const b of lbots) b.tags = 0; }
+        if (now - fillT > 800) { fillT = now; fillLtBots(); }
+        if (!L.paused) stepLtBots(Math.min(dt, 0.05), now);
+        for (const b of lbots) { b.rx = b.x; b.rz = b.z; }
+      } else for (const b of lbots) { const k = 1 - Math.exp(-dt * 10); b.rx += (b.x - b.rx) * k; b.rz += (b.z - b.rz) * k; if (b.tagged && now > b.taggedUntil + 400) b.tagged = false; }
+      baseUpdate(dt, now);
+      for (const b of lbots) {
+        b.g.visible = here && b.active;
+        if (!b.g.visible) continue;
+        const run = Math.hypot(b.vx, b.vz);
+        b.g.position.set(b.rx, (b.tagged ? 1.15 : 1.5) + (run > 0.5 && !b.tagged ? Math.abs(Math.sin(now * 0.012 + b.k)) * 0.05 : 0), b.rz);
+        b.g.rotation.set(b.tagged ? 0.5 : 0, b.yaw, 0, 'YXZ');
+        for (const m of b.gun.userData.glow) m.color.setHex(b.tagged ? 0x555566 : TEAM_COLORS[b.team]);
+      }
+    };
+    {
+      const baseP = L.presence, baseR = L.readPresence;
+      const r1 = (x) => Math.round(x * 10);
+      L.presence = () => {
+        const p = baseP();
+        if (ltHost()) { p.lbt = lbots.filter((b) => b.active).map((b) => [b.k, r1(b.x), r1(b.z), Math.round(b.yaw * 100), b.tagged ? 1 : 0, b.tags, r1(b.vx), r1(b.vz)]); p.lbs = LB.shots.slice(); }
+        p.lbh = LB.hits.slice();     // always sent (even empty), so the host has seen it before our first hit
+        return p;
+      };
+      L.readPresence = (rec, pres, st) => {
+        baseR(rec, pres, st);
+        const now = performance.now();
+        // someone tagged one of our bots
+        if (ltHost() && Array.isArray(pres.lbh)) {
+          for (const h of pres.lbh.slice(-6)) {
+            if (!Array.isArray(h) || h.length !== 2 || !Number.isInteger(h[0]) || !lbots[h[1]]) continue;
+            if (h[0] <= (st.lbhSeq || 0)) continue;
+            st.lbhSeq = h[0];
+            if (st.lbhInit && lbots[h[1]].team !== st.team) tagBot(lbots[h[1]], now);
+          }
+          st.lbhInit = true;
+        }
+        const ids = [state.myPeer]; for (const r of remotes.values()) if (r.lv === L.idx && r.inGame) ids.push(r.peer);
+        if (rec.peer !== ids.sort()[0]) return;
+        if (Array.isArray(pres.lbt)) {
+          const seen = new Set();
+          for (const a of pres.lbt.slice(0, lbots.length)) {
+            if (!Array.isArray(a) || a.length !== 8 || !a.every(Number.isFinite) || !lbots[a[0]]) continue;
+            const b = lbots[a[0]]; seen.add(b.k);
+            if (!b.active) { b.rx = a[1] / 10; b.rz = a[2] / 10; }
+            const tagged = a[4] === 1;
+            if (tagged && !b.tagged) b.taggedUntil = now + 3000;
+            Object.assign(b, { active: true, x: clamp(a[1] / 10, AR.minX, AR.maxX), z: clamp(a[2] / 10, AR.minZ, AR.maxZ), yaw: a[3] / 100, tagged, tags: clamp(a[5] | 0, 0, 9999), vx: a[6] / 10, vz: a[7] / 10 });
+          }
+          for (const b of lbots) if (!seen.has(b.k)) b.active = false;
+          state.dirtyBoard = true;
+        }
+        // the bots' shots: beams, and a tag if one names us
+        if (Array.isArray(pres.lbs)) {
+          for (const s of pres.lbs.slice(-6)) {
+            if (!Array.isArray(s) || s.length !== 9 || !Number.isInteger(s[0]) || !s.slice(1, 7).every((x) => finite(x) && Math.abs(x) < 100) || typeof s[7] !== 'string') continue;
+            if (s[0] <= (st.lbsSeq || 0)) continue;
+            st.lbsSeq = s[0];
+            if (!st.lbsInit) continue;
+            const b = lbots[s[8]] || lbots[0];
+            showBeam(new V3(s[1], s[2], s[3]), new V3(s[4], s[5], s[6]), b.team);
+            sfx('laser', 0.5 / (1 + new V3(s[1], s[2], s[3]).distanceTo(myHead.pos) * 0.1));
+            if (s[7] === state.myPeer && b.team !== me.team) getTagged(now, b.name);
+          }
+          st.lbsInit = true;
+        }
+      };
+    }
+    L.onExit = ((base) => () => { base(); for (const b of lbots) b.g.visible = false; })(L.onExit);
+    L.ltInternals = { lbots, fillLtBots, stepLtBots, rayHitsBot, botFire, ltHost, LB, me, scores, fire: (now) => fire(now), clearLine };
     return L;
   })();
 

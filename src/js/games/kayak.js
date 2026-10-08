@@ -260,7 +260,7 @@
     }
 
     // ---------------------------------------------------------------- the race (whoever presses Start sets the clock for everyone here)
-    const RACE = { id: 0, state: 'idle', startAt: 0, botsOn: false, myFinish: 0 };
+    const RACE = { id: 0, state: 'idle', startAt: 0, botsOn: false, botsN: 0, myFinish: 0 };
     L.race = RACE;
     const raceNow = () => (RACE.state === 'idle' ? 0 : Date.now() - RACE.startAt);
     const racers = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort(); };
@@ -272,9 +272,9 @@
     }
     function startRace() {
       RACE.id = Math.floor(Date.now() / 1000); RACE.startAt = Date.now() + COUNT_MS; RACE.state = 'count'; RACE.myFinish = 0;
-      RACE.botsOn = racers().length === 1;
+      RACE.botsN = clamp(L.picker.n - racers().length, 0, bots.length); RACE.botsOn = RACE.botsN > 0;
       toGrid(); boardKey = '';
-      showToast(RACE.botsOn ? 'Race against the bots! Get ready…' : 'Race! Get ready…');
+      showToast(RACE.botsOn ? `Race against ${RACE.botsN === 1 ? 'a bot' : `${RACE.botsN} bots`}! Get ready…` : 'Race! Get ready…');
       forcePresence();
     }
     L.startRace = startRace;
@@ -287,7 +287,10 @@
     }
 
     // ---------------------------------------------------------------- the bots: each follows its own line round the rocks, at its own pace
-    const BOT_DEF = [{ name: 'Paddle Patty', color: '#ff8a4a', f: 0.97, lane: -2.2, hat: 1, face: 1 }, { name: 'River Rick', color: '#8bd450', f: 0.9, lane: 1.8, hat: 2, face: 2 }, { name: 'Eddy Ellis', color: '#b388ff', f: 0.83, lane: 0.3, hat: 0, face: 3 }];
+    const BOT_DEF = [{ name: 'Paddle Patty', color: '#ff8a4a', f: 0.97, lane: -2.2, hat: 1, face: 1 }, { name: 'River Rick', color: '#8bd450', f: 0.9, lane: 1.8, hat: 2, face: 2 }, { name: 'Eddy Ellis', color: '#b388ff', f: 0.83, lane: 0.3, hat: 0, face: 3 },
+      { name: 'Rapids Rosa', color: '#4fc3f7', f: 0.87, lane: -0.9, hat: 3, face: 0 }, { name: 'Whitewater Walt', color: '#ffd23f', f: 0.93, lane: 2.6, hat: 2, face: 1 }];
+    const BOT_ROW = 6;     // the bots line up a row behind the people
+    makePlayerPicker(L, { min: 1, max: 1 + BOT_DEF.length, def: 4, label: 'Racers', note: 'from the next race', stand: false });
     const bots = BOT_DEF.map((d, bi) => {
       const line = new Float32Array(N);
       for (let i = 0; i < N; i++) line[i] = d.lane * clamp(W[i] / 10, 0.6, 1.2);
@@ -301,11 +304,11 @@
           }
         }
       }
-      const i0g = Math.round((START_S - 3) / DS), gridLat = GRID[bi + 1];
+      const i0g = Math.round((START_S - BOT_ROW) / DS), gridLat = GRID[bi];
       for (let i = i0g; i < Math.min(N, i0g + 22); i++) { const k = smooth(0, 1, (i - i0g) / 22); line[i] = gridLat * (1 - k) + line[i] * k; }
       for (let pass = 0; pass < 3; pass++) { const c = Float32Array.from(line); for (let i = i0g + 22; i < N - 3; i++) line[i] = (c[i - 3] + c[i - 2] + c[i - 1] + c[i] + c[i + 1] + c[i + 2] + c[i + 3]) / 7; }
       for (let i = 0; i < N; i++) line[i] = clamp(line[i], -W[i] / 2 + 0.9, W[i] / 2 - 0.9);
-      const tAt = new Float32Array(N), i0 = Math.round((START_S - 3) / DS);
+      const tAt = new Float32Array(N), i0 = Math.round((START_S - BOT_ROW) / DS);
       for (let i = i0 + 1; i < N; i++) tAt[i] = tAt[i - 1] + DS / (d.f * (C[i] + 2.2));
       const kay = makeKayak(d.color);
       const av = buildAvatar(d.color, d.hat, d.face, true, 1, 2); av.position.set(0, SEAT_Y, 0.12); kay.g.add(av);
@@ -313,7 +316,7 @@
       tag.scale.set(0.9, 0.225, 1); tag.position.set(0, SEAT_Y + 0.45, 0.12); kay.g.add(tag);
       kay.g.visible = false;
       const finishT = tAt[Math.round(FINISH_S / DS)] * 1000;
-      return Object.assign({ line, tAt, i0, kay, finishT, s: 0, lat: 0 }, d);
+      return Object.assign({ line, tAt, i0, kay, finishT, s: 0, lat: 0, bi }, d);
     });
     function botAt(b, tMs) {
       // where a bot is, t ms into the race
@@ -328,7 +331,7 @@
     function standings() {
       const rows = [{ name: state.name || 'You', me: true, fin: RACE.myFinish, prog: K.s }];
       for (const rec of remotes.values()) { const st = rec.lvState[L.id]; if (rec.lv === L.idx && st && st.ok && st.raceId === RACE.id) rows.push({ name: rec.name, fin: st.fin, prog: st.s }); }
-      if (RACE.botsOn && RACE.state !== 'idle') { const t = Math.max(0, raceNow()); for (const b of bots) rows.push({ name: b.name, bot: true, fin: t >= b.finishT ? Math.round(b.finishT) : 0, prog: Math.min(FINISH_S, botAt(b, t).s) }); }
+      if (RACE.botsOn && RACE.state !== 'idle') { const t = Math.max(0, raceNow()); for (const b of bots.slice(0, RACE.botsN)) rows.push({ name: b.name, bot: true, fin: t >= b.finishT ? Math.round(b.finishT) : 0, prog: Math.min(FINISH_S, botAt(b, t).s) }); }
       rows.sort((a, b) => (a.fin && b.fin ? a.fin - b.fin : a.fin ? -1 : b.fin ? 1 : b.prog - a.prog));
       return rows;
     }
@@ -547,7 +550,7 @@
       // the bots
       const tRace = Math.max(0, raceNow());
       for (const b of bots) {
-        b.kay.g.visible = here && RACE.botsOn && RACE.state !== 'idle';
+        b.kay.g.visible = here && RACE.botsOn && RACE.state !== 'idle' && b.bi < RACE.botsN;
         if (!b.kay.g.visible) continue;
         const q = botAt(b, tRace);
         riverPoint(q.s, q.lat, _a);
@@ -638,11 +641,11 @@
 
     // ---------------------------------------------------------------- network
     const PHC = { idle: 0, count: 1, run: 2, over: 3 };
-    L.presence = () => ({ ky: [r3(K.x), r3(K.z), r3(K.yaw), Math.round(K.s * 10), RACE.id, Math.floor(RACE.startAt / 100) % 1e9, RACE.myFinish, PHC[RACE.state], Math.round(K.paddleAng * 100) / 100, state.mode === 'vr' ? 1 : 0] });
+    L.presence = () => ({ ky: [r3(K.x), r3(K.z), r3(K.yaw), Math.round(K.s * 10), RACE.id, Math.floor(RACE.startAt / 100) % 1e9, RACE.myFinish, PHC[RACE.state], Math.round(K.paddleAng * 100) / 100, state.mode === 'vr' ? 1 : 0, RACE.botsN] });
     L.readPresence = (rec, pres, st) => {
       const a = pres.ky;
       st.ok = false;
-      if (!(Array.isArray(a) && a.length === 10 && a.every((x) => typeof x === 'number' && isFinite(x)))) return;
+      if (!(Array.isArray(a) && a.length === 11 && a.every((x) => typeof x === 'number' && isFinite(x)))) return;
       const fin = Number.isInteger(a[6]) && a[6] >= 0 && a[6] < 3.6e6 ? a[6] : 0;
       if (fin !== st.fin || a[4] !== st.raceId) state.dirtyBoard = true;
       Object.assign(st, { ok: true, x: clamp(a[0], -400, 400), z: clamp(a[1], -600, 200), yaw: a[2], s: clamp(a[3] / 10, 0, TLEN), raceId: a[4], fin, paddle: clamp(a[8], -1, 1), vr: a[9] === 1 });
@@ -650,7 +653,8 @@
       if (a[4] > RACE.id && state.level === L.idx && state.mode !== 'menu') {
         const startAt = a[5] * 100 + Math.floor(Date.now() / 1e11) * 1e11;
         if (startAt > Date.now() - 500) {
-          Object.assign(RACE, { id: a[4], startAt, state: 'count', myFinish: 0, botsOn: false });
+          const nb = clamp(Math.round(a[10]), 0, bots.length);
+          Object.assign(RACE, { id: a[4], startAt, state: 'count', myFinish: 0, botsN: nb, botsOn: nb > 0 });
           toGrid(); boardKey = ''; showToast(`${rec.name} started a race! Get ready…`);
         }
       }

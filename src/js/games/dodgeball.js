@@ -1,7 +1,7 @@
   // ================================================================ LEVEL: GYM CLASS DODGEBALL
   // Red on one half of a gym, blue on the other, six foam balls on the centre line. Pick one up and throw it: a ball that hasn't
   // touched the floor sends whoever it hits to the sideline. Catch one instead and the thrower is out and a teammate comes back.
-  // Best of three rounds. Bots fill each team to four. The lowest-named player's page runs the rounds and the bots; every page
+  // Best of three rounds. Bots fill each team up to the number picked (four to start with). The lowest-named player's page runs the rounds and the bots; every page
   // judges hits on its own player.
   const dodgeball = (() => {
     const L = newLevel(17);
@@ -15,7 +15,7 @@
       sky: skyTexture([[0, '#2a2f4a'], [1, '#2a2f4a']]), bg: 0x2a2f4a, fog: [0x2a2f4a, 40, 120], hemi: [0xfff1dc, 0x6a5a48, 0.95],
       sun: [0xffffff, 0.35], sunDir: new V3(0.3, 1, 0.2), ambient: [0x806858, 0.4], sprite: null,
     };
-    const HW = 6, HD = 10, BR = 0.11, NB = 6, TEAM_SIZE = 4, WIN_ROUNDS = 2, ROUND_MS = 90000, COUNT_MS = 4000, OVER_MS = 6000;
+    const HW = 6, HD = 10, BR = 0.11, NB = 6, TEAM_SIZE = 5, WIN_ROUNDS = 2, ROUND_MS = 90000, COUNT_MS = 4000, OVER_MS = 6000;
     const DB_HEX = [0xe5453a, 0x3d82e8], DB_STR = ['#ff6a5a', '#6aa8ff'];
     const ST = { idle: 0, count: 1, play: 2, over: 3 }, ST_N = ['idle', 'count', 'play', 'over'];
     const _hd = new V3(), _t = new V3(), _v = new V3();
@@ -87,14 +87,14 @@
     const bots = [];
     for (let k = 0; k < 2 * TEAM_SIZE; k++) {
       const team = k < TEAM_SIZE ? 0 : 1, j = k % TEAM_SIZE;
-      const g = buildAvatar(team === 0 ? '#ff8a7a' : '#7ab0ff', [1, 2, 0, 1][j], [1, 2, 3, 1][j], true, 1, team === 0 ? 6 : 4);
-      const names = ['Dodger Dan', 'Wally Wham', 'Pitch Perfect', 'Duck Duck', 'Ace Ava', 'Bounce Betty', 'Slingshot Sid', 'Spin Cycle'];
+      const g = buildAvatar(team === 0 ? '#ff8a7a' : '#7ab0ff', [1, 2, 0, 1, 2][j], [1, 2, 3, 1, 0][j], true, 1, team === 0 ? 6 : 4);
+      const names = ['Dodger Dan', 'Wally Wham', 'Pitch Perfect', 'Duck Duck', 'Zing Zelda', 'Ace Ava', 'Bounce Betty', 'Slingshot Sid', 'Spin Cycle', 'Lob Larry'];
       const tag = new THREE.Sprite(new THREE.SpriteMaterial({ map: canvasTexture(256, 64, (c) => { rr(c, 4, 6, 248, 52, 26); c.fillStyle = 'rgba(20,16,32,0.8)'; c.fill(); c.fillStyle = '#fff'; c.font = `700 28px ${BODY}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(names[k], 128, 33, 230); }).tex, transparent: true, depthWrite: false }));
       tag.scale.set(0.9, 0.225, 1); tag.position.y = 0.42; g.add(tag); g.visible = false; G.add(g);
       bots.push({ k, team, j, g, active: false, out: false, x: 0, z: 0, ball: null, thrAt: 0, cool: 0, dodgeUntil: 0, dodgeDir: 0, skill: 0.5 + Math.random() * 0.4, vx: 0, name: names[k] });
     }
     L.dbBots = bots;
-    const botStart = (bt) => ({ x: -4.5 + bt.j * 3, z: bt.team === 0 ? 8.8 : -8.8 });
+    const botStart = (bt) => ({ x: -4.8 + bt.j * 2.4, z: bt.team === 0 ? 8.8 : -8.8 });
     const botOutSpot = (bt) => ({ x: bt.team === 0 ? 7.5 : -7.5, z: (bt.team === 0 ? 1 : -1) * (2 + bt.j * 1.7) });
     const aliveCount = (team) => humans().filter((h) => h.team === team && !h.out).length + bots.filter((b) => b.active && b.team === team && !b.out).length;
     function resetBalls() {
@@ -131,7 +131,7 @@
     function beginCount(now) {
       RS.round += 1; RS.st = 'count'; H.t0 = now; RS.left = COUNT_MS;
       const nh = [0, 0]; for (const h of humans()) nh[h.team] += 1;
-      for (const bt of bots) { bt.active = bt.j < Math.max(0, TEAM_SIZE - nh[bt.team]); bt.out = false; bt.ball = null; Object.assign(bt, botStart(bt)); bt.thrAt = 0; bt.cool = 0; }
+      for (const bt of bots) { bt.active = bt.j < Math.max(0, L.picker.n - nh[bt.team]); bt.out = false; bt.ball = null; Object.assign(bt, botStart(bt)); bt.thrAt = 0; bt.cool = 0; }
       resetBalls();
       forcePresence();
     }
@@ -318,6 +318,7 @@
     };
     makeButton(L, new V3(7.9, 1.0, 5.5), 0xb388ff, 'Switch team', () => switchTeam(), { faceYaw: -Math.PI / 2 });
     makeKiosk(L, 8.4, 8.2, -Math.PI / 2);
+    makePlayerPicker(L, { min: 1, max: TEAM_SIZE, def: 4, label: 'Per team', note: 'from the next round' });
 
     // ---------------------------------------------------------------- scoreboard, HUD, roster
     let boardKey = '';

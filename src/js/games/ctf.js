@@ -11,7 +11,7 @@
     L.grabless = true;
     L.teams = true; L.teamKey = 'fq';
     L.walkSpeed = 3.4;
-    const FX = 14, FZ = 24, WIN = 3, TEAM_SIZE = 4, FLAG_Z = 20.5, BASE_R = 3.0, PICK_R = 1.5, BOT_TAG_R = 0.95, HUMAN_TAG_R = 2.2, IMMUNE_MS = 3000;
+    const FX = 14, FZ = 24, WIN = 3, TEAM_SIZE = 6, FLAG_Z = 20.5, BASE_R = 3.0, PICK_R = 1.5, BOT_TAG_R = 0.95, HUMAN_TAG_R = 2.2, IMMUNE_MS = 3000;
     L.bounds = { minX: -FX, maxX: FX, minZ: -FZ, maxZ: FZ };
     L.env = {
       sky: skyTexture([[0, '#4a90d8'], [0.55, '#a8d4f0'], [1, '#e8f4fa']]),
@@ -74,6 +74,7 @@
     }
     L.pushOut = pushOut;
     makeKiosk(L, FX - 1.2, FZ - 1.6, Math.atan2(-(FX - 1.2), -(FZ - 1.6)));
+    makePlayerPicker(L, { min: 1, max: TEAM_SIZE, def: 4, label: 'Per team' });
     L.board = makeBoard(G, 720, 460, 3.2, 2.05, -FX - 1.2, 2.4, 0, Math.PI / 2);
 
     // ---------------------------------------------------------------- the flags
@@ -100,7 +101,7 @@
     }
 
     // ---------------------------------------------------------------- bots
-    const BOT_NAMES = ['Dash Darla', 'Sneaky Sam', 'Flag Fern', 'Tag Tony', 'Zippy Zoe', 'Rover Rex', 'Swift Sid', 'Bolt Bea'];
+    const BOT_NAMES = ['Dash Darla', 'Sneaky Sam', 'Flag Fern', 'Tag Tony', 'Quick Quin', 'Racer Rae', 'Zippy Zoe', 'Rover Rex', 'Swift Sid', 'Bolt Bea', 'Hop Hugo', 'Nippy Nell'];
     const bots = BOT_NAMES.map((name, k) => {
       const team = k < TEAM_SIZE ? 0 : 1;
       const g = buildAvatar(team ? '#7ab0ff' : '#ff8a7a', (k * 3 + 1) % HATS.length, k % FACES.length, true, (k * 2) % SHIRTS.length, team ? 4 : 6);
@@ -150,14 +151,14 @@
     function fillBots() {
       const n = [0, 0];
       for (const h of humanList()) n[h.team] += 1;
-      const want = [Math.max(0, TEAM_SIZE - n[0]), Math.max(0, TEAM_SIZE - n[1])];
+      const want = [Math.max(0, L.picker.n - n[0]), Math.max(0, L.picker.n - n[1])];
       for (const t of [0, 1]) {
         const tb = bots.filter((b) => b.team === t);
         tb.forEach((b, i) => {
           const was = b.active;
           b.active = i < want[t];
           // roles: keep at least one defender; with people on the team, bots lean toward defending
-          b.role = i === 0 ? 'def' : (n[t] > 0 ? (i % 2 ? 'def' : 'att') : (i % 2 ? 'att' : 'def'));
+          b.role = want[t] === 1 && n[t] === 0 ? 'att' : i === 0 ? 'def' : (n[t] > 0 ? (i % 2 ? 'def' : 'att') : (i % 2 ? 'att' : 'def'));
           b.speed = b.role === 'att' ? 3.95 : 3.7;
           if (b.active && !was) respawnBot(b, 0);
         });
@@ -165,7 +166,7 @@
     }
     function respawnBot(b, now) {
       const home = HOME[b.team];
-      b.x = clamp((b.k % TEAM_SIZE - 1.5) * 3 + (Math.random() - 0.5), -FX + 1, FX - 1); b.z = home.z + (b.team === 0 ? 2.5 : -2.5);
+      b.x = clamp((b.k % TEAM_SIZE - (TEAM_SIZE - 1) / 2) * 2.4 + (Math.random() - 0.5), -FX + 1, FX - 1); b.z = home.z + (b.team === 0 ? 2.5 : -2.5);
       b.rx = b.x; b.rz = b.z; b.downUntil = now + 1500;
     }
     function startPlay(now, full) {
@@ -453,6 +454,6 @@
     };
     L.onExit = () => { hudPlate.visible = false; if (ui.status) ui.status.hidden = true; statusKey = ''; for (const b of bots) b.g.visible = false; };
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.00008) * 0.5; camera.position.set(Math.sin(a) * 16 + 10, 9, 18); camera.lookAt(0, 0, 0); };
-    L.ctfInternals = { RS, H, me, bots, HOME, COVER, hostStep, tag, validTag, everyone, isHost, startPlay, pushOut, requestTag, ownHalf };
+    L.ctfInternals = { fillBots, RS, H, me, bots, HOME, COVER, hostStep, tag, validTag, everyone, isHost, startPlay, pushOut, requestTag, ownHalf };
     return L;
   })();

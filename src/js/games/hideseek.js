@@ -397,7 +397,9 @@
       let seekers, hiders;
       if (kind === 1) { seekers = [requester]; hiders = humans.filter((p) => p !== requester); }
       else { seekers = []; hiders = humans.slice(); }
-      const nb = kind === 1 ? Math.max(2, 4 - hiders.length) : Math.max(2, 3 - hiders.length);
+      // bots make up the numbers: everyone (you, friends, a bot seeker if there is one) adds up to the picker's count
+      const total = L.picker.n, seekersN = 1;
+      const nb = clamp(total - hiders.length - seekersN, kind === 1 && !hiders.length ? 1 : 0, 7);
       const spots = shuffle(SPOTS.slice());
       const names = shuffle([0, 1, 2, 3, 4, 5, 6, 7]);
       const look = () => [Math.floor(rand() * PLAYER_COLORS.length), Math.floor(rand() * HATS.length), Math.floor(rand() * FACES.length), Math.floor(rand() * SHIRTS.length), Math.floor(rand() * SHIRT_COLORS.length)];
@@ -590,6 +592,7 @@
     makeButton(L, new V3(1.3, 1.0, -8.6), 0x8bd450, 'I\u2019ll hide', () => request(2), { faceYaw: 0 });
     makeButton(L, new V3(3.4, 1.0, -8.6), 0x9a90b0, 'End round', () => request(3), { faceYaw: 0 });
     makeKiosk(L, -4.2, -6.4, 0);
+    makePlayerPicker(L, { min: 2, max: 9, def: 5, note: 'from the next round' });
     L.board = makeBoard(G, 720, 460, 2.2, 1.405, -6.8, 2.0, -9.2, 0.35);
     const sign = makeBoard(G, 720, 500, 1.9, 1.32, 6.6, 1.95, -9.2, -0.35);
     function drawSign() {
@@ -785,6 +788,7 @@
       camera.lookAt(0, 1.2, -16);
     };
     L.internals = { startRound, found, hostTag, EV, HOME_SPOT, request };
+    L.hsInternals = { startRound, bots, R };
     return L;
   })();
 

@@ -257,6 +257,7 @@
     redraws.push(drawSign);
     makeButton(L, new V3(2.8, 1.03, 2.75), 0xf5821f, 'Reset balls', () => resetBodies(L), { faceYaw: -Math.PI / 2 });
     makeKiosk(L, -4.2, 3.9, Math.PI * 0.75);
+    makePlayerPicker(L, { min: 2, max: 8, def: 4, label: 'Lightning players', note: 'from the next game' });
 
     // balls
     const ballTex = canvasTexture(256, 128, (g) => {
@@ -380,7 +381,8 @@
     // one right behind. Score before the person in front of you and they're out. First shot from the line;
     // after a miss, rebound and shoot from anywhere. Last one standing wins. Computer shooters fill the line.
     const FT_D = 3.9, FT = new V3(RIM.x, 0, RIM.z + FT_D);
-    const LT_BOTS = [{ name: 'Swish Sam', color: '#ffb36b', skill: 1.0 }, { name: 'Bricky Bo', color: '#8bd450', skill: 1.35 }, { name: 'Net Nadia', color: '#b388ff', skill: 0.85 }];
+    const LT_BOTS = [{ name: 'Swish Sam', color: '#ffb36b', skill: 1.0 }, { name: 'Bricky Bo', color: '#8bd450', skill: 1.35 }, { name: 'Net Nadia', color: '#b388ff', skill: 0.85 },
+      { name: 'Hoop Hana', color: '#4fc3f7', skill: 0.95 }, { name: 'Dunk Dex', color: '#ff6a9a', skill: 1.15 }, { name: 'Rim Rosa', color: '#ffd23f', skill: 1.05 }, { name: 'Layup Lou', color: '#5ad8b0', skill: 1.25 }];
     const LT = { ph: 0, gid: 0, order: [], line: [], front: '', chaser: '', out: [], winner: '', ballOf: {}, giveSeq: {}, frontShot: false, ev: [0, 0, '', ''] };
     L.lt = LT;
     const ltMe = { req: null, reqSeq: 0, reports: [], repSeq: 0, k: -1, giveSeen: -1, held: false, shots: 0 };
@@ -432,8 +434,8 @@
     function announceLT(code, a, b) { LT.ev = [LT.ev[0] + 1, code, a || '', b || '']; showEventLT(LT.ev); forcePresence(); }
     function startLightning(now) {
       const humans = herePeersLT();
-      // computer shooters only when you're on your own; with friends it's just the people here
-      const nb = humans.length === 1 ? 3 : 0;
+      // computer shooters make up the numbers to the picker's count (at least two players in all)
+      const nb = Math.min(bots.length, Math.max(humans.length < 2 ? 1 : 0, L.picker.n - humans.length));
       const order = [];
       for (let i = 0; i < Math.max(humans.length, nb); i++) { if (humans[i]) order.push(humans[i]); if (i < nb) order.push(bots[i].id); }
       Object.assign(LT, { gid: LT.gid + 1, ph: 1, order, out: [], winner: '', ballOf: {}, frontShot: false });

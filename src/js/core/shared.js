@@ -543,6 +543,67 @@
     L.group.add(post);
     void rx; void rz;
     makeButton(L, new V3(x, 1.02, z), KIOSK_COLORS[HUB], 'Go back', () => switchLevel(HUB), { faceYaw: yaw });
+    L.kioskAt = { x, z, yaw };
+  }
+
+  // ---------------------------------------------------------------- how many players: a -/+ stand (VR) and a HUD button (browser)
+  // o: { min, max, def, label ('Players' or 'Per team'), onChange(n), x, z, yaw } (by default the stand goes beside the kiosk).
+  // The number is the total: bots make up whatever friends don't. It's remembered per game, and shared with everyone in the
+  // game: whoever changed it last wins (presence key pc, read in net.js).
+  function makePlayerPicker(L, o) {
+    const saved = prefs.players && prefs.players[L.id];
+    const P = {
+      min: o.min, max: o.max, label: o.label || 'Players', onChange: o.onChange || null,
+      n: saved && Number.isInteger(saved.n) ? clamp(saved.n, o.min, o.max) : o.def, t: saved && saved.t > 0 ? saved.t : 0,
+    };
+    const text = () => `${P.label}: ${P.n}`;
+    let yaw = o.yaw, x = o.x, z = o.z;
+    if (x === undefined && L.kioskAt) {
+      const k = L.kioskAt, rx = Math.cos(k.yaw), rz = -Math.sin(k.yaw);
+      yaw = k.yaw; x = k.x + rx * 1.15; z = k.z + rz * 1.15;
+    }
+    // a stand with the number and two buttons (not for games you play sitting in a boat or kart: there the right
+    // thumbstick click, which works in every game, is the way to change it in VR)
+    let plate = null;
+    if (o.stand !== false && x !== undefined) {
+      const fx = Math.sin(yaw || 0), fz = Math.cos(yaw || 0), rx = Math.cos(yaw || 0), rz = -Math.sin(yaw || 0);
+      plate = makePlate(L.group, text(), 0.9, 0.2, new V3(x - fx * 0.05, 1.5, z - fz * 0.05), yaw || 0, { bg: '#16142e', fg: '#ffd23f', size: 0.62 });
+      const back = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.28, 0.06), legMat);
+      back.position.set(x - fx * 0.09, 1.5, z - fz * 0.09); back.rotation.y = yaw || 0; L.group.add(back);
+      makeButton(L, new V3(x - rx * 0.24, 1.02, z - rz * 0.24), 0xff7a3a, 'Fewer', () => P.set(P.n - 1), { faceYaw: yaw || 0 });
+      makeButton(L, new V3(x + rx * 0.24, 1.02, z + rz * 0.24), 0x8bd450, 'More', () => P.set(P.n + 1), { faceYaw: yaw || 0 });
+    }
+    let stickPrev = true;
+    P.tick = () => {
+      if (state.mode !== 'vr' || state.level !== L.idx) { stickPrev = true; return; }
+      const gp = vrHands.right && vrHands.right.source && vrHands.right.source.gamepad;
+      const down = !!(gp && gp.buttons && gp.buttons[3] && gp.buttons[3].pressed);
+      if (down && !stickPrev) P.set(P.n >= P.max ? P.min : P.n + 1);
+      stickPrev = down;
+    };
+    function apply(quiet) {
+      if (plate) plate.userData.draw(text());
+      prefs.players = prefs.players || {};
+      prefs.players[L.id] = { n: P.n, t: P.t };
+      savePrefs();
+      state.hudDirty = true; state.dirtyBoard = true;
+      if (!quiet) showToast(o.note ? `${text()} · ${o.note}` : text());
+      if (P.onChange) P.onChange(P.n);
+    }
+    P.set = (n) => {
+      n = clamp(n, P.min, P.max);
+      if (n === P.n) { showToast(n === P.max ? `${text()} (the most)` : `${text()} (the fewest)`); return; }
+      P.n = n; P.t = Date.now(); apply(false); forcePresence();
+    };
+    P.merge = (a) => {
+      if (!Array.isArray(a) || a.length !== 2 || !Number.isInteger(a[0]) || typeof a[1] !== 'number' || !(a[1] > P.t)) return;
+      const n = clamp(a[0], P.min, P.max);
+      P.t = a[1];
+      if (n !== P.n) { P.n = n; apply(false); } else apply(true);
+    };
+    P.hud = { label: () => `${text()} ▸`, run: () => P.set(P.n >= P.max ? P.min : P.n + 1) };
+    L.picker = P;
+    return P;
   }
 
   // ---------------------------------------------------------------- level registry

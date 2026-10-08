@@ -133,15 +133,17 @@ def main():
                 pg.evaluate("() => window.__fd.switchLevel(19)")
                 pg.locator("#btn-flat").click()
             time.sleep(1.5)
+            pages["pA"].evaluate("() => window.__fd.LEVELS[19].picker.set(4)")
+            time.sleep(1.0)
             pages["pA"].evaluate("() => window.__fd.LEVELS[19].kayakInternals.startRace()")
             time.sleep(1.2)
-            ra = pages["pA"].evaluate("() => { const R = window.__fd.LEVELS[19].race; return { id: R.id, state: R.state, startAt: R.startAt, bots: R.botsOn }; }")
-            rb = pages["pB"].evaluate("() => { const R = window.__fd.LEVELS[19].race; return { id: R.id, state: R.state, startAt: R.startAt, bots: R.botsOn }; }")
+            ra = pages["pA"].evaluate("() => { const R = window.__fd.LEVELS[19].race; return { id: R.id, state: R.state, startAt: R.startAt, bots: R.botsN }; }")
+            rb = pages["pB"].evaluate("() => { const R = window.__fd.LEVELS[19].race; return { id: R.id, state: R.state, startAt: R.startAt, bots: R.botsN }; }")
             print(f"kayak: pA {ra}, pB {rb}")
             checks += [
                 ("the other player joins the race", rb["id"] == ra["id"] and rb["state"] == "count"),
                 ("both have the same start time", abs(rb["startAt"] - ra["startAt"]) < 150),
-                ("no bots when two people race", not ra["bots"] and not rb["bots"]),
+                ("bots make up the numbers (two people, two bots for 4 racers), the same on both pages", ra["bots"] == 2 and rb["bots"] == 2),
             ]
             time.sleep(4)
             sa = pages["pA"].evaluate("() => window.__fd.LEVELS[19].race.state")

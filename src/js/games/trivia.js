@@ -20,9 +20,9 @@
     const QN = 10, FILL_TO = 4, SEATS = 8;
     const PH = { idle: 0, intro: 1, ask: 2, reveal: 3, final: 4 }, PH_N = ['idle', 'intro', 'ask', 'reveal', 'final'];
     const durOf = (ph) => (ph === 'intro' ? T.INTRO : ph === 'ask' ? T.ASK : ph === 'reveal' ? T.REVEAL : ph === 'final' ? T.FINAL : 1);
-    const BOT_NAMES = ['Brainy Brooke', 'Trivia Trev', 'Smarty Sal'];
-    const BOT_ACC = [0.74, 0.62, 0.55];
-    const BOT_COLORS = ['#ff7ac8', '#4fc3f7', '#ffd23f'];
+    const BOT_NAMES = ['Brainy Brooke', 'Trivia Trev', 'Smarty Sal', 'Quiz Kid Kim', 'Know-It-Ned', 'Puzzle Pia', 'Fact Finn'];
+    const BOT_ACC = [0.74, 0.62, 0.55, 0.68, 0.6, 0.7, 0.5];
+    const BOT_COLORS = ['#ff7ac8', '#4fc3f7', '#ffd23f', '#8bd450', '#ff8a4a', '#b388ff', '#5ad8b0'];
     const ANS_HEX = [0xe8453c, 0x3a7ae8, 0xf2c230, 0x3cb85a];
     const ANS_CSS = ['#e8453c', '#3a7ae8', '#f2c230', '#3cb85a'];
     const LET = ['A', 'B', 'C', 'D'];
@@ -107,6 +107,7 @@
       }
     }
     makeKiosk(L, -7.6, 3.6, Math.atan2(7.6, -2.6));
+    makePlayerPicker(L, { min: 1, max: SEATS, def: FILL_TO, note: 'from the next game' });
     // the side scoreboard
     L.board = makeBoard(G, 720, 460, 2.6, 1.66, -7.4, 2.4, -4.6, 0.85);
 
@@ -292,7 +293,7 @@
     }
     function beginGame(now) {
       const hs = humans().slice(0, SEATS);
-      const nb = Math.max(0, FILL_TO - hs.length);
+      const nb = Math.min(bots.length, Math.max(0, L.picker.n - hs.length));
       RS.order = shuffle(hs.slice()).concat(bots.slice(0, nb).map((b) => b.id));
       RS.scores = RS.order.map(() => 0);
       RS.choices = RS.order.map(() => -1); RS.gains = RS.order.map(() => 0);

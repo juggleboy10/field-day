@@ -1,6 +1,6 @@
 """Recess Rush with two players on one machine, through the same stand-in room as tests/multiplayer.py.
 
-- one starts a race; the other joins the countdown, with the same start time and no bots
+- one starts a race; the other joins the countdown, with the same start time and the same bots (making up the picker's number)
 - each sees the other in the standings
 - in the sack race, the other player is drawn in a sack
 
@@ -50,13 +50,15 @@ def main():
                 pg.locator("#btn-flat").click()
             A, B = pages["pA"], pages["pB"]
             time.sleep(3)
+            A.evaluate("() => window.__fd.LEVELS[24].picker.set(4)")
+            time.sleep(1.0)
             A.evaluate(f"() => {I}.startRace()")
             B.wait_for_function(f"() => {I}.RACE.state === 'count'", timeout=20000)
-            ra = A.evaluate(f"() => ({{ id: {I}.RACE.id, startAt: {I}.RACE.startAt, bots: {I}.RACE.botsOn }})")
-            rb = B.evaluate(f"() => ({{ id: {I}.RACE.id, startAt: {I}.RACE.startAt, bots: {I}.RACE.botsOn }})")
+            ra = A.evaluate(f"() => ({{ id: {I}.RACE.id, startAt: {I}.RACE.startAt, bots: {I}.RACE.botsN }})")
+            rb = B.evaluate(f"() => ({{ id: {I}.RACE.id, startAt: {I}.RACE.startAt, bots: {I}.RACE.botsN }})")
             print("race on pA:", ra, " on pB:", rb)
             checks += [("the other player joins the race", ra["id"] == rb["id"]), ("with the same start time", abs(ra["startAt"] - rb["startAt"]) < 150),
-                       ("no bots when two people race", not ra["bots"] and not rb["bots"])]
+                       ("bots make up the numbers (two people, two bots for 4 racers), the same on both pages", ra["bots"] == 2 and rb["bots"] == 2)]
             # pB jumps ahead to the sack race and stands there
             B.wait_for_function(f"() => {I}.RACE.state === 'run'", timeout=20000)
             B.evaluate(f"() => {{ const fd = window.__fd; fd.LEVELS[24].paused = true; fd.dolly.position.set(0, 0, -36); {I}.P.vel.set(0, 0, 0); {I}.step(1 / 60); }}")
@@ -65,7 +67,7 @@ def main():
             sackB = B.evaluate(f"() => {I}.P.sack")
             sackOnA = A.evaluate("() => window.__fd.LEVELS[24].group.children.filter((m) => m.isMesh && m.visible && m.geometry && m.geometry.type === 'CylinderGeometry' && m.geometry.parameters.radiusTop === 0.3 && m.geometry.parameters.openEnded && m.scale.x === 1).length")
             print("pA's standings:", seen, " pB in a sack:", sackB, " sacks pA can see:", sackOnA)
-            checks += [("each sees the other in the standings", len(seen["names"]) == 2 and seen["progB"] > 30),
+            checks += [("each sees the other (and the two bots) in the standings", len(seen["names"]) == 4 and seen["progB"] > 30),
                        ("the other player is drawn in a sack", sackB and sackOnA == 1)]
             for name, good in checks:
                 print(f"{'ok  ' if good else 'FAIL'}  {name}")

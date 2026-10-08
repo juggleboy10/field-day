@@ -389,12 +389,14 @@
     }
 
     // ---------------------------------------------------------------- the race
-    const RACE = { id: 0, state: 'idle', startAt: 0, botsOn: false, myFinish: 0 };
+    const RACE = { id: 0, state: 'idle', startAt: 0, botsOn: false, botsN: 0, myFinish: 0 };
     L.race = RACE;
     const BOT_DEF = [
       { name: 'Little Lily', color: '#ff8ad0', f: 0.78, hat: 3, face: 1 },
       { name: 'Speedy Sam', color: '#4ab0ff', f: 0.88, hat: 1, face: 2 },
       { name: 'Jumping Jo', color: '#ffd23f', f: 0.96, hat: 2, face: 3 },
+      { name: 'Tiny Tim', color: '#8bd450', f: 0.82, hat: 0, face: 0 },
+      { name: 'Bouncy Bea', color: '#ff8a4a', f: 0.9, hat: 1, face: 2 },
     ];
     // the bots' route: [x, y, z, speed getting there, how they move]
     const ROUTE = [
@@ -426,13 +428,14 @@
       tag.scale.set(0.9, 0.225, 1); tag.position.y = 0.5; g.add(tag); g.visible = false; G.add(g);
       return Object.assign({ g, sack: makeSack(), finishT: FIN_T / d.f, pos: new V3(), lane: 0 }, d);
     });
-    bots.forEach((b, i) => { b.lane = (i - 1) * 0.9; });
+    const LANES = [-0.9, 0, 0.9, -1.8, 1.8];
+    bots.forEach((b, i) => { b.bi = i; b.lane = LANES[i % LANES.length]; });
     const raceNow = () => (RACE.state === 'idle' ? 0 : Date.now() - RACE.startAt);
     const myProgress = () => { const [, bz] = bodyXZ(); return clamp(2 - bz, 0, 99.5); };
     function standings() {
       const rows = [{ name: state.name || 'You', me: true, fin: RACE.myFinish, prog: myProgress() }];
       for (const rec of remotes.values()) { const st = rec.lvState[L.id]; if (rec.lv === L.idx && st && st.rk && st.rk[0] === RACE.id) rows.push({ name: rec.name, fin: st.rk[2], prog: st.rk[4] / 10 }); }
-      if (RACE.botsOn) { const t = Math.max(0, raceNow()) / 1000; for (const b of bots) rows.push({ name: b.name, bot: true, fin: t >= b.finishT ? Math.round(b.finishT * 1000) : 0, prog: clamp(2 - routeAtZ(t, b.f), 0, 99.5) }); }
+      if (RACE.botsOn) { const t = Math.max(0, raceNow()) / 1000; for (const b of bots.slice(0, RACE.botsN)) rows.push({ name: b.name, bot: true, fin: t >= b.finishT ? Math.round(b.finishT * 1000) : 0, prog: clamp(2 - routeAtZ(t, b.f), 0, 99.5) }); }
       rows.sort((a, b) => (a.fin && b.fin ? a.fin - b.fin : a.fin ? -1 : b.fin ? 1 : b.prog - a.prog));
       return rows;
     }
@@ -467,7 +470,7 @@
     function startRace() {
       RACE.id = Math.floor(Date.now() / 1000); RACE.startAt = Date.now() + COUNT_MS; RACE.state = 'count'; RACE.myFinish = 0;
       const others = [...remotes.values()].filter((r) => r.lv === L.idx && r.inGame).length;
-      RACE.botsOn = others === 0;
+      RACE.botsN = clamp(L.picker.n - 1 - others, 0, bots.length); RACE.botsOn = RACE.botsN > 0;
       resetCourse(); toStart(); boardKey = '';
       showToast(RACE.botsOn ? 'Race the playground gang! Get ready…' : 'Race! Get ready…');
       forcePresence();
@@ -482,6 +485,7 @@
     makeButton(L, new V3(2.2, 1.0, 1.4), 0x8bd450, 'START race', () => startRace(), { faceYaw: 0 });
     makeButton(L, new V3(2.2, 1.0, 3.0), 0xff7a3a, 'Back to start', () => { toStart(); showToast('Back at the start'); }, { faceYaw: 0 });
     makeKiosk(L, -LANE + 0.6, 4.2, Math.atan2(LANE - 0.6, -2.2));
+    makePlayerPicker(L, { min: 1, max: 1 + BOT_DEF.length, def: 4, label: 'Racers', note: 'from the next race', x: -2.2, z: 0.9, yaw: 0 });
     const countSign = makePlate(G, 'Press START', 2.2, 0.42, new V3(0, 2.6, -0.45), 0, { bg: '#2a3a8a', fg: '#8bff6a', size: 0.6 });
 
     // ---------------------------------------------------------------- holds: the monkey bars
@@ -697,7 +701,7 @@
       // bots
       const pushers = [];
       for (const b of bots) {
-        b.g.visible = here && RACE.botsOn && (RACE.state === 'count' || RACE.state === 'run' || RACE.state === 'over');
+        b.g.visible = here && RACE.botsOn && b.bi < RACE.botsN && (RACE.state === 'count' || RACE.state === 'run' || RACE.state === 'over');
         b.sack.visible = false;
         if (!b.g.visible) continue;
         const t = Math.max(0, raceNow()) / 1000, mode = routeAt(t, b.f, b.pos);
@@ -782,7 +786,7 @@
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.00015); camera.position.set(5 + a * 2, 5, 6); camera.lookAt(0, 0.5, -30); };
 
     // ---------------------------------------------------------------- network
-    L.presence = () => ({ rk: [RACE.id, Math.floor(RACE.startAt / 100) % 1e9, RACE.myFinish, P.cpIdx, Math.round(myProgress() * 10), RACE.botsOn ? 1 : 0, (P.sack ? 1 : 0) | (P.crawl ? 2 : 0)] });
+    L.presence = () => ({ rk: [RACE.id, Math.floor(RACE.startAt / 100) % 1e9, RACE.myFinish, P.cpIdx, Math.round(myProgress() * 10), RACE.botsN, (P.sack ? 1 : 0) | (P.crawl ? 2 : 0)] });
     L.readPresence = (rec, pres, st) => {
       const a = pres.rk;
       if (!(Array.isArray(a) && a.length === 7 && a.every((x) => typeof x === 'number' && isFinite(x)))) { st.rk = null; return; }
@@ -791,7 +795,7 @@
       if (a[0] > RACE.id && state.level === L.idx) {
         const startAt = a[1] * 100 + Math.floor(Date.now() / 1e11) * 1e11;
         if (startAt > Date.now() - 500) {
-          RACE.id = a[0]; RACE.startAt = startAt; RACE.state = 'count'; RACE.myFinish = 0; RACE.botsOn = a[5] === 1;
+          RACE.id = a[0]; RACE.startAt = startAt; RACE.state = 'count'; RACE.myFinish = 0; RACE.botsN = clamp(Math.round(a[5]), 0, bots.length); RACE.botsOn = RACE.botsN > 0;
           resetCourse(); toStart(); boardKey = ''; showToast(`${rec.name} started a race! Get ready…`);
         }
       }

@@ -872,11 +872,11 @@
     // ================================================================ AI RACERS
     // Up to three computer racers fill the grid when there are fewer than four people. The host drives them;
     // everyone else sees them through the host's presence.
-    const BOT_NAMES = ['Turbo Tess', 'Pebble Pete', 'Captain Drift'];
-    const BOT_COLORS = ['#ff8a3a', '#8bd450', '#b388ff'];
-    const BOT_SKILL = [{ vmax: 17.4, line: -1.2 }, { vmax: 16.9, line: 1.4 }, { vmax: 16.4, line: 0.2 }];
+    const BOT_NAMES = ['Turbo Tess', 'Pebble Pete', 'Captain Drift', 'Zoom Zara', 'Skid Sid'];
+    const BOT_COLORS = ['#ff8a3a', '#8bd450', '#b388ff', '#4fc3f7', '#ffd23f'];
+    const BOT_SKILL = [{ vmax: 17.4, line: -1.2 }, { vmax: 16.9, line: 1.4 }, { vmax: 16.4, line: 0.2 }, { vmax: 16.7, line: -0.6 }, { vmax: 17.1, line: 0.9 }];
     const bots = [];
-    const botState = { on: prefs.kartBots !== false, req: null, reqSeq: 0 };
+    const botState = { on: true, req: null, reqSeq: 0 };
     L.bots = bots;
     L.botState = botState;
     // how sharply the track bends ahead of each point (signed: + bends left)
@@ -886,7 +886,8 @@
     });
     const humanCount = () => racers().length;
     const isHost = () => racers()[0] === state.myPeer;
-    const wantBots = () => (botState.on ? Math.max(0, Math.min(3, 4 - humanCount())) : 0);
+    makePlayerPicker(L, { min: 1, max: 1 + BOT_NAMES.length, def: 4, label: 'Racers', stand: false });
+    const wantBots = () => clamp(L.picker.n - humanCount(), 0, BOT_NAMES.length);
     function botKarts() { return bots.filter((b) => b.active); }
     L.botKarts = botKarts;
 
@@ -910,7 +911,7 @@
       bots.push(b);
       return b;
     }
-    for (let n = 0; n < 3; n++) makeBot(n);
+    for (let n = 0; n < BOT_NAMES.length; n++) makeBot(n);
     function placeBot(b, slot) {
       const back = Math.round((3.5 + Math.floor(slot / 2) * 4) / DS);
       const i = (N - back) % N, lat = (slot % 2 ? 1 : -1) * 2.2;
@@ -1129,8 +1130,8 @@
       const on = pres.kb[0] === 1;
       if (on !== botState.on) { botState.on = on; state.hudDirty = true; }
       const seen = new Set();
-      for (const a of pres.kb.slice(1, 4)) {
-        if (!Array.isArray(a) || a.length !== 12 || !a.every(finite) || !Number.isInteger(a[0]) || a[0] < 0 || a[0] > 2) continue;
+      for (const a of pres.kb.slice(1, 1 + bots.length)) {
+        if (!Array.isArray(a) || a.length !== 12 || !a.every(finite) || !Number.isInteger(a[0]) || a[0] < 0 || a[0] >= bots.length) continue;
         const b = bots[a[0]];
         seen.add(a[0]);
         const was = b.active;
@@ -1149,7 +1150,6 @@
       forcePresence();
     }
     L.setBots = setBots;
-    L.hudActions.push({ label: () => (botState.on ? 'Bots: on' : 'Bots: off'), run: () => setBots(!botState.on) });
     // the scoreboard lists the bots too
     const baseDraw = L.drawBoard;
     L.drawBoard = (rows) => {

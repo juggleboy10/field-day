@@ -26,6 +26,7 @@
       p.t.push([t.i, t.v, t.held ? (t.held.side === 'left' ? 1 : 2) : 0]);
     }
     Object.assign(p, L.presence());
+    if (L.picker) p.pc = [L.picker.n, L.picker.t];
     return p;
   }
   function netTick(now) {
@@ -91,6 +92,7 @@
     if (rec.lv !== state.level) return;
     const L = curLevel();
     const st = rec.lvState[L.id] || (rec.lvState[L.id] = {});
+    if (L.picker && pres.pc) L.picker.merge(pres.pc);
     L.readPresence(rec, pres, st);
     if (Array.isArray(pres.b)) for (const c of pres.b.slice(0, L.bodies.length)) applyClaim(peer.peer, c, L);
     if (Array.isArray(pres.t)) for (const c of pres.t.slice(0, L.tools.length)) applyToolClaim(peer.peer, c, L);
