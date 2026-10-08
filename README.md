@@ -17,7 +17,10 @@ src/
   js/app/              controls (VR and browser), switching places, networking, the menu, the HUD, the main loop
 build.sh               joins src/ into index.html
 tests/smoke.py         plays every place for a few seconds and fails on any page error
+tests/parkour.py       Skyline Sprint physics: landing on the stepping stones, climbing over the walls
 ```
+
+The tests open the page with `?test`, which makes the game expose its insides as `window.__fd`. Without `?test` nothing is exposed.
 
 All the code still runs as one script, in the order listed in `src/order.txt`. A file can use anything defined in a file above it.
 
@@ -26,6 +29,7 @@ All the code still runs as one script, in the order listed in `src/order.txt`. A
 ```
 ./build.sh
 python tests/smoke.py
+python tests/parkour.py
 ```
 
 The smoke test needs Playwright once: `pip install playwright && playwright install chromium`.

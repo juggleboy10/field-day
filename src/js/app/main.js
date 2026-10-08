@@ -40,4 +40,6 @@
   checkVR();
   initNet();
   updateNetUI();
+  // the tests in tests/ reach inside through this, only when the page is opened with ?test
+  try { if (new URLSearchParams(location.search).has('test')) window.__fd = { LEVELS, state, dolly, camera, switchLevel, startGame }; } catch (e) { /* ignore */ }
 })();

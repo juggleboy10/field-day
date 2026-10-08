@@ -16190,15 +16190,18 @@ kbd {
     const pegPts = [];
     function climbWall(x0, x1, zFace, yBase, yTop, wallTopY, mantleZ, seed) {
       const r = mulberry32(seed);
+      const Z = { kind: 'wall', z: zFace, nz: 1, x0, x1, y0: yBase, y1: wallTopY, topY: wallTopY, mantleZ };
       for (let row = 0, y = yBase; y <= yTop; row++, y += 0.7) for (let x = x0 + 0.3 + (row % 2) * 0.45; x <= x1 - 0.3; x += 0.9) {
         const p = new V3(x + (r() - 0.5) * 0.2, y + (r() - 0.5) * 0.15, zFace + 0.12);
-        pegPts.push(p); HOLDS.push({ a: p, b: p, r: 0.1 });
+        pegPts.push(p); HOLDS.push({ a: p, b: p, r: 0.1, wall: Z });
       }
-      HOLDS.push({ a: new V3(x0, wallTopY, zFace), b: new V3(x1, wallTopY, zFace), r: 0.12 });   // the lip at the top
-      ZONES.push({ kind: 'wall', z: zFace, nz: 1, x0, x1, y0: yBase, y1: wallTopY, topY: wallTopY, mantleZ });
+      HOLDS.push({ a: new V3(x0, wallTopY, zFace), b: new V3(x1, wallTopY, zFace), r: 0.12, wall: Z, lip: true });   // the lip at the top
+      // a bright strip along the lip, so it reads as something to grab
+      addBox(G, x1 - x0, 0.07, 0.1, lam(0xffd23f), (x0 + x1) / 2, wallTopY - 0.04, zFace + 0.055);
+      ZONES.push(Z);
     }
     climbWall(-2.7, 2.7, -41.4, 0.9, 6.6, 7, -43.2, 11);
-    climbWall(-2.7, 2.7, -168, 0.9, 7.8, 8.2, -170, 12);
+    climbWall(-2.7, 2.7, -168, 0.9, 7.95, 8.2, -170, 12);    // top row at 7.9, just under the lip
     { const im = new THREE.InstancedMesh(pegGeo, new THREE.MeshLambertMaterial({ color: 0xffffff }), pegPts.length), d = new THREE.Object3D(), c = new THREE.Color();
       pegPts.forEach((p, i) => { d.position.set(p.x, p.y, p.z - 0.06 + 0.0); d.updateMatrix(); im.setMatrixAt(i, d.matrix); im.setColorAt(i, c.setHSL((i * 0.137) % 1, 0.8, 0.6)); });
       im.frustumCulled = false; G.add(im); }
@@ -16443,6 +16446,22 @@ kbd {
       }
       P.vel.set(0, 0, 0);
     }
+    // VR: hanging from a wall's top row (or its lip) and pulling up until your eyes clear the top climbs you over,
+    // the way holding W at the top does in a browser
+    function tryMantle(head) {
+      let Z = null;
+      for (const side of SIDES) { const h = P.hand[side].hold; if (h && h.hold.wall && h.hold.a.y >= h.hold.wall.topY - 0.8) Z = h.hold.wall; }
+      if (!Z || head.y < Z.topY - 0.15) return false;
+      const dx = clamp(head.x, Z.x0 + 0.4, Z.x1 - 0.4) - head.x, dz = Z.mantleZ - head.z, dy = Z.topY - dolly.position.y;
+      dolly.position.x += dx; dolly.position.z += dz; dolly.position.y = Z.topY;
+      myHead.pos.x += dx; myHead.pos.y += dy; myHead.pos.z += dz;
+      // let go, and don't grab the lip again until the grip has been released
+      for (const side of SIDES) { P.hand[side].hold = null; P.hand[side].regrip = true; }
+      P.hist.length = 0; P.vel.set(0, 0, 0); P.wasHang = false; P.grounded = true; P.support = null;
+      sfx('whoosh', 0.6);
+      for (const side of SIDES) haptic(vrHands[side], 0.5, 60);
+      return true;
+    }
     // VR: hands. Grip a hold and pull; let go and you carry the motion.
     function vrHang(dt) {
       const deltas = [];
@@ -16450,7 +16469,8 @@ kbd {
         const mh = myHands[side], H = P.hand[side], gp = vrHands[side].source && vrHands[side].source.gamepad;
         const grip = !!(gp && gp.buttons && gp.buttons[1] && gp.buttons[1].pressed);
         if (!mh.ok) { H.hold = null; continue; }
-        if (!grip) { if (H.bottle) { const b = H.bottle; b.held = null; b.taken = false; b.g.position.copy(b.home); H.bottle = null; } H.hold = null; continue; }
+        if (!grip) { if (H.bottle) { const b = H.bottle; b.held = null; b.taken = false; b.g.position.copy(b.home); H.bottle = null; } H.hold = null; H.regrip = false; continue; }
+        if (H.regrip) continue;
         if (!H.hold && !H.bottle) {
           // a bottle first, if one is in your hand's reach
           const bt = bottles.find((b) => !b.taken && b.g.position.distanceTo(mh.pos) < 0.28);
@@ -16469,6 +16489,8 @@ kbd {
       dolly.position.add(d);
       P.hist.push({ d, dt }); while (P.hist.length > 5) P.hist.shift();
       P.vel.set(0, 0, 0);
+      camera.getWorldPosition(_cp);
+      if (tryMantle(_cp)) return false;
       return true;
     }
     function readVR(dt) {
@@ -16550,7 +16572,9 @@ kbd {
           dolly.position.x += P.vel.x * dt / n; dolly.position.z += P.vel.z * dt / n; dolly.position.y += P.vel.y * dt / n;
           pushOut();
           const [bx, bz] = bodyXZ(), fy = dolly.position.y;
-          const sup = supportAt(bx, bz, fy, (wasGrounded || P.grounded) ? STEP : Math.max(0.06, -P.vel.y * dt / n + 0.06));
+          // on the way down, a top you've just dipped below (coming in low over an edge) still catches you,
+          // the same step-up you get walking; otherwise you'd sink into the block and drop through it
+          const sup = supportAt(bx, bz, fy, (wasGrounded || P.grounded || P.vel.y <= 0) ? STEP : Math.max(0.06, -P.vel.y * dt / n + 0.06));
           if (sup && P.vel.y <= 0.001 && fy <= sup.y + 0.03) {
             if (!P.grounded && P.vel.y < -4) { sfx('slam', Math.min(0.5, -P.vel.y * 0.04)); haptic(vrHands.left, 0.3, 40); haptic(vrHands.right, 0.3, 40); }
             dolly.position.y = sup.y; P.grounded = true; P.support = sup;
@@ -16670,7 +16694,7 @@ kbd {
         }
       }
     };
-    L.parkourInternals = { SOL, RAMPS, HOLDS, ZONES, CPS, bottles, DRINK, startRace, step, grabFlat, releaseFlat, drinkNow, findHold, rampAt, supportAt, standings, ROUTE_T, bots, respawn, finishRace, routeAt };
+    L.parkourInternals = { SOL, RAMPS, HOLDS, ZONES, CPS, bottles, DRINK, startRace, step, grabFlat, releaseFlat, drinkNow, findHold, rampAt, supportAt, standings, ROUTE_T, bots, respawn, finishRace, routeAt, tryMantle };
     return L;
   })();
 
@@ -18351,6 +18375,8 @@ kbd {
   checkVR();
   initNet();
   updateNetUI();
+  // the tests in tests/ reach inside through this, only when the page is opened with ?test
+  try { if (new URLSearchParams(location.search).has('test')) window.__fd = { LEVELS, state, dolly, camera, switchLevel, startGame }; } catch (e) { /* ignore */ }
 })();
 </script>
 </body>
