@@ -521,17 +521,18 @@
     { id: 'ctf', name: 'Capture the Flag', short: 'Flag', glyph: '\u{1F6A9}', blurb: 'Red against blue in a park: grab their flag, get it home, tag raiders on your half. Friends or bots.' },
     { id: 'pirate', name: 'Pirate Cove', short: 'Pirates', glyph: '\u2620\uFE0F', blurb: 'A quest across a pirate island: cutlasses and crossbows against Captain Saltbeard\u2019s crew, for his treasure.' },
     { id: 'trivia', name: 'Quizzy\u2019s Trivia Night', short: 'Trivia', glyph: '\u2753', blurb: 'A game show: ten questions, four buttons on your podium, points for being right and quick. Friends or bots.' },
+    { id: 'recess', name: 'Recess Rush', short: 'Recess', glyph: '\u{1F938}', blurb: 'A playground obstacle race: hopscotch, tires, a sack race, the ball pit, a tunnel, monkey bars over lava and the big slide.' },
   ];
-  const KIOSK_COLORS = [0xf5821f, 0xe8e4d8, 0x8bd450, 0xb388ff, 0xff4d6a, 0x2ec4b6, 0x3fbf7f, 0xff9ad0, 0xffd27a, 0x4fc3f7, 0x4a8aff, 0xb06aff, 0xffb36b, 0xff9ad0, 0x8bd450, 0xd8f43a, 0xff7a3a, 0xe5453a, 0xe8a040, 0x2ec4d8, 0xf2c14e, 0xd84a3a, 0x2a8ab8, 0x9a6aff];
+  const KIOSK_COLORS = [0xf5821f, 0xe8e4d8, 0x8bd450, 0xb388ff, 0xff4d6a, 0x2ec4b6, 0x3fbf7f, 0xff9ad0, 0xffd27a, 0x4fc3f7, 0x4a8aff, 0xb06aff, 0xffb36b, 0xff9ad0, 0x8bd450, 0xd8f43a, 0xff7a3a, 0xe5453a, 0xe8a040, 0x2ec4d8, 0xf2c14e, 0xd84a3a, 0x2a8ab8, 0x9a6aff, 0x6ad04a];
   const LEVEL_CATS = [
     { id: 'ball', name: 'Ball sports', glyph: '\u26BD', games: [0, 1, 5, 15] },
     { id: 'battle', name: 'Team battles', glyph: '\u{1F3AF}', games: [14, 4, 17, 21] },
     { id: 'lanes', name: 'Golf and lanes', glyph: '\u26F3', games: [2, 6, 7, 20] },
     { id: 'adv', name: 'Adventures', glyph: '\u{1F5E1}\uFE0F', games: [3, 10, 11, 22] },
-    { id: 'race', name: 'Racing and parkour', glyph: '\u{1F3C1}', games: [9, 16, 19] },
+    { id: 'race', name: 'Racing and parkour', glyph: '\u{1F3C1}', games: [9, 16, 19, 24] },
     { id: 'party', name: 'Party games', glyph: '\u{1F389}', games: [13, 12, 18, 23] },
   ];
-  const PICKER_ORDER = [8, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 3, 10, 11, 0, 1, 2, 4, 5, 6, 7, 9];
+  const PICKER_ORDER = [8, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 3, 10, 11, 0, 1, 2, 4, 5, 6, 7, 9];
   function makeKiosk(L, x, z, yaw) {
     const fx = Math.sin(yaw), fz = Math.cos(yaw);   // direction the kiosk faces
     const rx = Math.cos(yaw), rz = -Math.sin(yaw);  // its right-hand side
