@@ -1,6 +1,6 @@
 # Field Day
 
-A multiplayer VR and browser game: a clubhouse and twenty-one games, all in one web page.
+A multiplayer VR and browser game: a clubhouse and twenty-three games, all in one web page.
 
 `index.html` is the finished game. It is **built** from the files in `src/`, so edit those and rebuild rather than editing `index.html` by hand.
 
@@ -22,6 +22,9 @@ tests/hotpotato.py     Hot potato: full rounds against the bots, your throws, st
 tests/kayak.py         Whitewater Rapids: paddling, steering, the VR blade, rocks and banks, a full run, a race
 tests/cornhole.py      Cornhole: where throws land for each power, full rounds and a game to 21 against Corny Carl
 tests/ctf.py           Capture the flag: tagging on each half, grabbing and capturing, bot defenders, a match to 3
+tests/piratecove.py    Pirate Cove: every wave spawns, gunners fire shot, parrots fly, the crew hurts you, the Captain
+tests/trivia.py        Trivia Night: a full game with bots, keyboard and HUD answers, scoring, no repeats, a new game
+tests/trivia_mp.py     Trivia Night with two players: the non-host's answers are scored, the host leaves mid-game
 tests/multiplayer.py   two players on one machine (a stand-in for Claude's room): hot potato, a kayak race, cornhole, a tag in capture the flag
 ```
 
@@ -33,7 +36,7 @@ All the code still runs as one script, in the order listed in `src/order.txt`. A
 
 ```
 ./build.sh
-for t in smoke parkour hotpotato kayak cornhole ctf multiplayer; do python tests/$t.py; done
+for t in smoke parkour hotpotato kayak cornhole ctf piratecove trivia trivia_mp multiplayer; do python tests/$t.py; done
 ```
 
 The smoke test needs Playwright once: `pip install playwright && playwright install chromium`.
