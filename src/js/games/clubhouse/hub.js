@@ -149,13 +149,16 @@
       for (let k = 0; k < 5; k++) { g.beginPath(); g.arc(64, 64, 12 + k * 11, k, k + 3.6); g.stroke(); }
     }).tex;
     swirl.center.set(0.5, 0.5);
+    // a wide arc; once there are too many to fit side by side, every portal gets a little narrower
+    const PORTAL_GAP = (9.5 * Math.PI * 1.16) / (PORTAL_LEVELS.length - 1);
+    const PORTAL_W = Math.min(1, (PORTAL_GAP - 0.08) / 2.08);
     const portals = PORTAL_LEVELS.map((lv, k) => {
-      // a wide arc, so even a long row of portals never overlaps
       const a = ((k / (PORTAL_LEVELS.length - 1)) - 0.5) * Math.PI * 1.16;
       const px = Math.sin(a) * 9.5, pz = -2 - Math.cos(a) * 9.5;
       const g = new THREE.Group();
       g.position.set(px, 0, pz);
       g.rotation.y = -a;
+      g.scale.x = PORTAL_W;
       const col = KIOSK_COLORS[lv];
       const frameMat = new THREE.MeshLambertMaterial({ color: col, emissive: new THREE.Color(col).multiplyScalar(0.25) });
       for (const sx of [-0.95, 0.95]) { const p = new THREE.Mesh(new THREE.BoxGeometry(0.18, 2.4, 0.3), frameMat); p.position.set(sx, 1.2, 0); g.add(p); }
@@ -169,6 +172,7 @@
       const lab = canvasTexture(320, 120);
       const plate = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 0.6), new THREE.MeshBasicMaterial({ map: lab.tex, transparent: true }));
       plate.position.set(0, 3.6, 0);
+      plate.scale.x = 1 / PORTAL_W;          // the label keeps its full width
       g.add(plate);
       G.add(g);
       return { lv, g, px, pz, a, surf, tex: t, lab, key: '' };
@@ -319,7 +323,7 @@
           _d.set(myHead.pos.x - p.px, 0, myHead.pos.z - p.pz);
           const lx = _d.x * Math.cos(p.a) + _d.z * Math.sin(p.a);
           const lz = -_d.x * Math.sin(p.a) + _d.z * Math.cos(p.a);
-          if (Math.abs(lx) < 0.8 && Math.abs(lz) < 0.35) { portalCool = now + 2000; sfx('whoosh', 1); switchLevel(p.lv); return; }
+          if (Math.abs(lx) < 0.8 * PORTAL_W && Math.abs(lz) < 0.35) { portalCool = now + 2000; sfx('whoosh', 1); switchLevel(p.lv); return; }
         }
       }
       if (now - (L.whoT || 0) > 1000) { L.whoT = now; drawWho(now); }

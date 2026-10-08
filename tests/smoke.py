@@ -1,4 +1,4 @@
-"""Smoke test for Field Day: opens index.html in headless Chromium, plays each of the 18 places
+"""Smoke test for Field Day: opens index.html in headless Chromium, plays each of the 20 places
 in browser mode for a few seconds (walking, a Space press, an E press), and fails on any page error.
 
 Usage:
@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parent.parent
 PAGE = ROOT / "index.html"
 THREE_JS = os.environ.get("THREE_JS")
 SECONDS_PER_PLACE = float(os.environ.get("SECONDS", "3"))
-EXPECTED_PLACES = 18
+EXPECTED_PLACES = 20
 EXPECTED_CATEGORIES = 6
 
 # messages from requests this test blocks on purpose (fonts, the peer-to-peer library)

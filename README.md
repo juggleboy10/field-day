@@ -1,6 +1,6 @@
 # Field Day
 
-A multiplayer VR and browser game: a clubhouse and seventeen games, all in one web page.
+A multiplayer VR and browser game: a clubhouse and nineteen games, all in one web page.
 
 `index.html` is the finished game. It is **built** from the files in `src/`, so edit those and rebuild rather than editing `index.html` by hand.
 
@@ -18,6 +18,9 @@ src/
 build.sh               joins src/ into index.html
 tests/smoke.py         plays every place for a few seconds and fails on any page error
 tests/parkour.py       Skyline Sprint physics: landing on the stepping stones, climbing over the walls
+tests/hotpotato.py     Hot potato: full rounds against the bots, your throws, staying on your spot
+tests/kayak.py         Whitewater Rapids: paddling, steering, the VR blade, rocks and banks, a full run, a race
+tests/multiplayer.py   two players on one machine (a stand-in for Claude's room): hot potato together, joining a kayak race
 ```
 
 The tests open the page with `?test`, which makes the game expose its insides as `window.__fd`. Without `?test` nothing is exposed.
@@ -28,8 +31,7 @@ All the code still runs as one script, in the order listed in `src/order.txt`. A
 
 ```
 ./build.sh
-python tests/smoke.py
-python tests/parkour.py
+for t in smoke parkour hotpotato kayak multiplayer; do python tests/$t.py; done
 ```
 
 The smoke test needs Playwright once: `pip install playwright && playwright install chromium`.
@@ -37,6 +39,6 @@ If the three.js CDN is not reachable, point the test at a local copy: `THREE_JS=
 
 ## Publishing
 
-1. Build, and run the smoke test.
+1. Build, and run the tests.
 2. Upload `index.html` to Hostinger as `field-day.html`, then hard refresh.
 3. Commit and push here.
