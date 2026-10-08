@@ -502,8 +502,6 @@
         if (state.mode === 'vr') { hudPlate.visible = true; if (txt !== hudKey) { hudKey = txt; hudPlate.userData.draw(txt); } }
         else { hudPlate.visible = false; if (ui.status) { ui.status.hidden = false; if (txt !== hudKey) { hudKey = txt; ui.status.textContent = txt; } } }
       } else hudPlate.visible = false;
-      // the grip effect, as a glow on your hands
-      state.hudDirty = false;
     };
     L.flatCamera = (dt) => {
       const k = state.keys, st = typeof stick !== 'undefined' ? stick : { x: 0, y: 0 };
