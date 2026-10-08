@@ -1,0 +1,71 @@
+</style>
+</head>
+<body>
+<canvas id="scene" aria-label="3D game world"></canvas>
+
+<section id="panel" class="panel" aria-labelledby="title">
+  <h1 id="title">Field Day</h1>
+  <p class="lede">A clubhouse and seventeen games to play with friends, in VR or right here in the browser. Everyone who has this page open can join you.</p>
+  <p id="net" class="net" data-state="connecting"><span class="dot" aria-hidden="true"></span><span id="net-text">Looking for other players…</span></p>
+  <fieldset class="levels">
+    <legend class="field-label">Pick a game</legend>
+    <div id="levels" class="level-list"></div>
+    <p id="level-blurb" class="level-blurb"></p>
+  </fieldset>
+  <label class="field-label" for="name">Your name</label>
+  <input id="name" maxlength="16" autocomplete="nickname" spellcheck="false">
+  <fieldset>
+    <legend class="field-label">Your color</legend>
+    <div id="swatches" class="swatch-row"></div>
+  </fieldset>
+  <fieldset>
+    <legend class="field-label">Your look</legend>
+    <div class="look-row">
+      <canvas id="look-preview" width="168" height="168" aria-hidden="true"></canvas>
+      <div class="look-opts">
+        <div class="chips" id="hat-chips" role="radiogroup" aria-label="Hat"><span class="chips-label">Hat</span></div>
+        <div class="chips" id="face-chips" role="radiogroup" aria-label="Face"><span class="chips-label">Face</span></div>
+        <div class="chips" id="shirt-chips" role="radiogroup" aria-label="Shirt"><span class="chips-label">Shirt</span></div>
+        <div class="chips" id="shirtc-chips" role="radiogroup" aria-label="Shirt color"><span class="chips-label">Dye</span></div>
+      </div>
+    </div>
+  </fieldset>
+  <label class="toggle"><input type="checkbox" id="music-toggle" checked> <span>Background music (quiet lo-fi)</span></label>
+  <label class="toggle"><input type="checkbox" id="voice-toggle"> <span>Voice chat (uses your microphone)</span></label>
+  <p id="voice-note" class="note" hidden>Voice chat works when Field Day runs on its own website, not inside Claude.</p>
+  <div class="actions">
+    <button id="btn-vr" class="btn primary" type="button">Enter VR</button>
+    <button id="btn-flat" class="btn" type="button">Play in browser</button>
+  </div>
+  <p id="vr-note" class="note" hidden></p>
+  <p id="load-error" class="note error" hidden>The 3D engine didn't load. Check your connection and reload the page.</p>
+</section>
+
+<div id="hud" hidden>
+  <div class="hud-left">
+    <p id="hud-title" class="hud-title"></p>
+    <ol id="hud-scores" class="hud-scores" aria-label="Scores"></ol>
+  </div>
+  <div class="hud-actions">
+    <span id="hud-level-actions"></span>
+    <button id="btn-mic" class="hud-btn" type="button" hidden>Mic: on</button>
+    <button id="btn-music" class="hud-btn" type="button">Music: on</button>
+    <button id="btn-menu" class="hud-btn" type="button">Menu</button>
+  </div>
+  <div id="hud-status" class="hud-status" role="status" hidden></div>
+  <div id="crosshair" aria-hidden="true"></div>
+  <div id="power" aria-hidden="true" hidden><div id="power-fill"></div></div>
+  <div id="hints" class="hints"></div>
+  <div id="touch" hidden>
+    <div id="stick" aria-hidden="true"><div id="stick-knob"></div></div>
+    <div class="touch-btns">
+      <button id="btn-grab" type="button">Grab</button>
+      <button id="btn-throw" type="button">Hold to throw</button>
+    </div>
+  </div>
+</div>
+<div id="hurt" aria-hidden="true"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>

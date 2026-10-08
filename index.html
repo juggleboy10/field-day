@@ -92,6 +92,27 @@ body {
 .level .glyph { font-size: 20px; }
 .level strong { display: block; font-size: 14px; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; }
 .level .count { display: block; font-size: 12px; font-weight: 700; color: var(--muted); white-space: nowrap; }
+.level[hidden] { display: none; }
+.hub-tile { grid-column: 1 / -1; padding: 12px 12px; border-width: 2px; background: var(--chip-bg, rgba(127,127,160,0.12)); }
+.hub-tile .glyph { font-size: 26px; }
+.hub-tile strong { font-size: 16px; }
+.cat { position: relative; display: flex; gap: 9px; align-items: center; text-align: left; font: inherit; color: inherit;
+  padding: 9px 10px; border: 1.5px solid var(--line); border-radius: 12px; background: none; cursor: pointer; min-width: 0; }
+.cat .glyph { font-size: 22px; line-height: 1; flex: none; }
+.cat .txt { flex: 1; min-width: 0; }
+.cat strong { display: block; font-size: 14px; line-height: 1.2; }
+.cat .sub { display: block; font-size: 12px; color: var(--muted); }
+.cat .badge, .join-bar .badge { font-size: 11.5px; font-weight: 800; padding: 2px 7px; border-radius: 999px; background: #2fbf71; color: #fff; white-space: nowrap; }
+.cat[aria-expanded="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.cat:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.cat-games { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 8px; border: 1.5px dashed var(--line); border-radius: 12px; }
+.cat-games[hidden] { display: none; }
+.level .count { color: #1f9d5c; }
+.join-bar { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; }
+.join-bar[hidden] { display: none; }
+.join-btn { display: inline-flex; gap: 6px; align-items: center; font: inherit; font-size: 13.5px; font-weight: 700; color: inherit;
+  padding: 6px 10px; border: 1.5px solid #2fbf71; border-radius: 999px; background: none; cursor: pointer; }
+.join-btn:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 .level-blurb { margin: 8px 0 0; font-size: 13.5px; color: var(--muted); min-height: 1.5em; }
 .look-row { display: flex; gap: 14px; align-items: center; }
 #look-preview { width: 96px; height: 96px; flex: none; border-radius: 14px; background: var(--chip-bg, rgba(127,127,160,0.12)); }
@@ -229,7 +250,7 @@ kbd {
 
 <section id="panel" class="panel" aria-labelledby="title">
   <h1 id="title">Field Day</h1>
-  <p class="lede">A clubhouse and fifteen games to play with friends, in VR or right here in the browser. Everyone who has this page open can join you.</p>
+  <p class="lede">A clubhouse and seventeen games to play with friends, in VR or right here in the browser. Everyone who has this page open can join you.</p>
   <p id="net" class="net" data-state="connecting"><span class="dot" aria-hidden="true"></span><span id="net-text">Looking for other players…</span></p>
   <fieldset class="levels">
     <legend class="field-label">Pick a game</legend>
@@ -1147,6 +1168,13 @@ kbd {
     { id: 'dodgeball', name: 'Gym Class Dodgeball', short: 'Dodgeball', glyph: '\u{1F534}', blurb: 'Red against blue in a school gym. Hit them, catch to bring a teammate back. Friends or bots.' },
   ];
   const KIOSK_COLORS = [0xf5821f, 0xe8e4d8, 0x8bd450, 0xb388ff, 0xff4d6a, 0x2ec4b6, 0x3fbf7f, 0xff9ad0, 0xffd27a, 0x4fc3f7, 0x4a8aff, 0xb06aff, 0xffb36b, 0xff9ad0, 0x8bd450, 0xd8f43a, 0xff7a3a, 0xe5453a];
+  const LEVEL_CATS = [
+    { id: 'ball', name: 'Ball sports', glyph: '\u26BD', games: [0, 1, 5, 15, 17] },
+    { id: 'lanes', name: 'Golf and lanes', glyph: '\u26F3', games: [2, 6, 7] },
+    { id: 'adv', name: 'Adventures', glyph: '\u{1F5E1}\uFE0F', games: [3, 10, 11] },
+    { id: 'race', name: 'Racing and parkour', glyph: '\u{1F3C1}', games: [9, 16] },
+    { id: 'party', name: 'Party and team games', glyph: '\u{1F389}', games: [13, 12, 14, 4] },
+  ];
   const PICKER_ORDER = [8, 17, 16, 15, 14, 13, 12, 3, 10, 11, 0, 1, 2, 4, 5, 6, 7, 9];
   function makeKiosk(L, x, z, yaw) {
     const fx = Math.sin(yaw), fz = Math.cos(yaw);   // direction the kiosk faces
@@ -17973,31 +18001,80 @@ kbd {
 
   // ---------------------------------------------------------------- start panel
   const levelEls = [];
-  PICKER_ORDER.forEach((i) => {
+  const catEls = [];
+  const joinBar = document.createElement('div'); joinBar.className = 'join-bar'; joinBar.hidden = true;
+  const catGrid = document.createDocumentFragment();
+  function makeTile(i) {
     const m = LEVEL_META[i];
     const label = document.createElement('label');
-    label.className = 'level';
+    label.className = 'level' + (i === HUB_IDX ? ' hub-tile' : '');
     const input = document.createElement('input');
     input.type = 'radio';
     input.name = 'level';
     input.value = String(i);
     const glyph = document.createElement('span'); glyph.className = 'glyph'; glyph.setAttribute('aria-hidden', 'true'); glyph.textContent = m.glyph;
     const txt = document.createElement('span'); txt.className = 'txt';
-    const strong = document.createElement('strong'); strong.textContent = m.short;
+    const strong = document.createElement('strong'); strong.textContent = i === HUB_IDX ? m.name : m.short;
     const count = document.createElement('span'); count.className = 'count';
     txt.append(strong, count);
     input.setAttribute('aria-label', m.name);
     label.title = m.blurb;
     label.append(input, glyph, txt);
-    ui.levels.append(label);
     input.addEventListener('change', () => { if (input.checked) switchLevel(i); });
     levelEls[i] = { label, input, count };
+    return label;
+  }
+  ui.levels.append(makeTile(HUB_IDX), joinBar);
+  LEVEL_CATS.forEach((c, ci) => {
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'cat'; btn.setAttribute('aria-expanded', 'false');
+    const glyph = document.createElement('span'); glyph.className = 'glyph'; glyph.setAttribute('aria-hidden', 'true'); glyph.textContent = c.glyph;
+    const txt = document.createElement('span'); txt.className = 'txt';
+    const strong = document.createElement('strong'); strong.textContent = c.name;
+    const sub = document.createElement('span'); sub.className = 'sub'; sub.textContent = c.games.map((g) => LEVEL_META[g].short).join(', ');
+    txt.append(strong, sub);
+    const badge = document.createElement('span'); badge.className = 'badge'; badge.hidden = true;
+    btn.append(glyph, txt, badge);
+    const panel = document.createElement('div'); panel.className = 'cat-games'; panel.hidden = true;
+    c.games.forEach((g) => panel.append(makeTile(g)));
+    btn.addEventListener('click', () => { state.catTouched = true; openCat(ci, btn.getAttribute('aria-expanded') !== 'true'); });
+    catEls[ci] = { btn, panel, badge, c };
+    ui.levels.append(btn);
   });
+  // a panel opens right after the row of cards it belongs to (two cards per row)
+  function placePanels() {
+    catEls.forEach((e, ci) => {
+      const rowEnd = Math.min(catEls.length - 1, ci - (ci % 2) + 1);
+      const anchor = catEls[rowEnd].btn;
+      let after = anchor;
+      catEls.forEach((o, oi) => { if (oi <= rowEnd && oi >= ci - (ci % 2) && oi !== ci) { /* siblings share the row */ } });
+      e.rowEnd = rowEnd;
+    });
+  }
+  placePanels();
+  catEls.forEach((e) => catEls[e.rowEnd].btn.after(e.panel));
+  function openCat(ci, open) {
+    catEls.forEach((e, k) => {
+      const on = open && k === ci;
+      e.btn.setAttribute('aria-expanded', on ? 'true' : 'false');
+      e.panel.hidden = !on;
+      if (on) catEls[e.rowEnd].btn.after(e.panel);
+    });
+  }
+  function catOf(i) { return LEVEL_CATS.findIndex((c) => c.games.includes(i)); }
+  function joinLevel(i) {
+    const ci = catOf(i);
+    if (ci >= 0) openCat(ci, true);
+    if (levelEls[i]) { levelEls[i].input.checked = true; switchLevel(i); syncLevelPicker(); }
+  }
+  PICKER_ORDER.forEach((i) => { if (!levelEls[i]) ui.levels.append(makeTile(i)); });
   function syncLevelPicker() {
     levelEls.forEach((el, i) => {
       el.input.checked = i === state.level;
       el.label.classList.toggle('on', i === state.level);
     });
+    const cur = catOf(state.level);
+    if (cur >= 0 && catEls[cur] && catEls[cur].btn.getAttribute('aria-expanded') !== 'true' && !state.catTouched) openCat(cur, true);
     if (ui.levelBlurb) ui.levelBlurb.textContent = `${LEVEL_META[state.level].name}: ${LEVEL_META[state.level].blurb}`;
   }
   function updateLevelCounts() {
@@ -18011,6 +18088,29 @@ kbd {
       const t = counts[i] ? `${counts[i]} playing` : '';
       if (el.count.textContent !== t) el.count.textContent = t;
     });
+    catEls.forEach((e) => {
+      const n = e.c.games.reduce((a, g) => a + counts[g], 0);
+      const t = n ? `${n} playing` : '';
+      e.badge.hidden = !n;
+      if (e.badge.textContent !== t) e.badge.textContent = t;
+    });
+    // Join buttons: busiest places first, up to three
+    const hot = counts.map((n, i) => ({ n, i })).filter((o) => o.n > 0).sort((a, b) => b.n - a.n).slice(0, 3);
+    const sig = hot.map((o) => o.i + ':' + o.n).join(',');
+    if (joinBar.dataset.sig !== sig) {
+      joinBar.dataset.sig = sig;
+      joinBar.replaceChildren();
+      for (const o of hot) {
+        const bt = document.createElement('button');
+        bt.type = 'button'; bt.className = 'join-btn';
+        bt.append('Join ' + LEVEL_META[o.i].short + ' ');
+        const bd = document.createElement('span'); bd.className = 'badge'; bd.textContent = String(o.n);
+        bt.append(bd);
+        bt.addEventListener('click', () => joinLevel(o.i));
+        joinBar.append(bt);
+      }
+      joinBar.hidden = hot.length === 0;
+    }
   }
   syncLevelPicker();
 
