@@ -250,7 +250,7 @@ kbd {
 
 <section id="panel" class="panel" aria-labelledby="title">
   <h1 id="title">Field Day</h1>
-  <p class="lede">A clubhouse and nineteen games to play with friends, in VR or right here in the browser. Everyone who has this page open can join you.</p>
+  <p class="lede">A clubhouse and twenty-one games to play with friends, in VR or right here in the browser. Everyone who has this page open can join you.</p>
   <p id="net" class="net" data-state="connecting"><span class="dot" aria-hidden="true"></span><span id="net-text">Looking for other players…</span></p>
   <fieldset class="levels">
     <legend class="field-label">Pick a game</legend>
@@ -1168,17 +1168,19 @@ kbd {
     { id: 'dodgeball', name: 'Gym Class Dodgeball', short: 'Dodgeball', glyph: '\u{1F534}', blurb: 'Red against blue in a school gym. Hit them, catch to bring a teammate back. Friends or bots.' },
     { id: 'potato', name: 'Harvest Hot Potato', short: 'Hot potato', glyph: '\u{1F954}', blurb: 'Pass the ticking potato before it pops. Last one standing wins. Friends or bots.' },
     { id: 'kayak', name: 'Whitewater Rapids', short: 'Kayak', glyph: '\u{1F6F6}', blurb: 'A kayak race down a river: paddle, dodge the rocks, ride the drops. In VR you paddle for real.' },
+    { id: 'cornhole', name: 'Lakeside Cornhole', short: 'Cornhole', glyph: '\u{1F33D}', blurb: 'Toss bean bags at the board: 1 on it, 3 through the hole. First to 21. A friend or Corny Carl.' },
+    { id: 'ctf', name: 'Capture the Flag', short: 'Flag', glyph: '\u{1F6A9}', blurb: 'Red against blue in a park: grab their flag, get it home, tag raiders on your half. Friends or bots.' },
   ];
-  const KIOSK_COLORS = [0xf5821f, 0xe8e4d8, 0x8bd450, 0xb388ff, 0xff4d6a, 0x2ec4b6, 0x3fbf7f, 0xff9ad0, 0xffd27a, 0x4fc3f7, 0x4a8aff, 0xb06aff, 0xffb36b, 0xff9ad0, 0x8bd450, 0xd8f43a, 0xff7a3a, 0xe5453a, 0xe8a040, 0x2ec4d8];
+  const KIOSK_COLORS = [0xf5821f, 0xe8e4d8, 0x8bd450, 0xb388ff, 0xff4d6a, 0x2ec4b6, 0x3fbf7f, 0xff9ad0, 0xffd27a, 0x4fc3f7, 0x4a8aff, 0xb06aff, 0xffb36b, 0xff9ad0, 0x8bd450, 0xd8f43a, 0xff7a3a, 0xe5453a, 0xe8a040, 0x2ec4d8, 0xf2c14e, 0xd84a3a];
   const LEVEL_CATS = [
     { id: 'ball', name: 'Ball sports', glyph: '\u26BD', games: [0, 1, 5, 15] },
-    { id: 'battle', name: 'Team battles', glyph: '\u{1F3AF}', games: [14, 4, 17] },
-    { id: 'lanes', name: 'Golf and lanes', glyph: '\u26F3', games: [2, 6, 7] },
+    { id: 'battle', name: 'Team battles', glyph: '\u{1F3AF}', games: [14, 4, 17, 21] },
+    { id: 'lanes', name: 'Golf and lanes', glyph: '\u26F3', games: [2, 6, 7, 20] },
     { id: 'adv', name: 'Adventures', glyph: '\u{1F5E1}\uFE0F', games: [3, 10, 11] },
     { id: 'race', name: 'Racing and parkour', glyph: '\u{1F3C1}', games: [9, 16, 19] },
     { id: 'party', name: 'Party games', glyph: '\u{1F389}', games: [13, 12, 18] },
   ];
-  const PICKER_ORDER = [8, 19, 18, 17, 16, 15, 14, 13, 12, 3, 10, 11, 0, 1, 2, 4, 5, 6, 7, 9];
+  const PICKER_ORDER = [8, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 3, 10, 11, 0, 1, 2, 4, 5, 6, 7, 9];
   function makeKiosk(L, x, z, yaw) {
     const fx = Math.sin(yaw), fz = Math.cos(yaw);   // direction the kiosk faces
     const rx = Math.cos(yaw), rz = -Math.sin(yaw);  // its right-hand side
@@ -1227,6 +1229,7 @@ kbd {
     Bbmaj7: [46, 57, 62, 65, 69], Ebmaj7: [39, 55, 58, 62, 65], Cm9: [36, 55, 58, 62, 63], Bb6: [46, 55, 58, 62, 65], Abmaj7: [44, 55, 60, 63, 67], Fm9: [41, 56, 60, 63, 67], G7sus: [43, 53, 58, 60, 65],
     Cmaj9: [36, 55, 59, 62, 64], B7sus: [47, 57, 59, 64, 66], E7: [40, 56, 59, 62, 68], Ebdim: [39, 54, 57, 60, 63],
     G: [43, 55, 59, 62, 67], 'C7': [36, 52, 55, 58, 64], 'A7': [45, 55, 61, 64, 67], D7: [38, 54, 57, 60, 66], D: [38, 54, 57, 62, 66], A: [45, 57, 61, 64, 69], Bm: [35, 54, 59, 62, 66], 'F#m': [42, 57, 61, 66, 69], E: [40, 56, 59, 64, 68],
+    Em: [40, 55, 59, 64, 67],
   };
   // ---------------------------------------------------------------- songs: public-domain tunes, played by our own synths
   // A melody is note names with lengths in sixteenths ("C5:4 R:2 ..."); every song's melody fills its chords exactly.
@@ -1321,6 +1324,8 @@ kbd {
     dodgeball: { gain: 0.9, bpm: 132, swing: 0.05, chords: ['C', 'Am', 'F', 'G'], comp: { inst: 'guitar', at: [0, 3, 6, 10, 12], dur: 0.25 }, bass: { at: [0, 4, 8, 12] }, drums: { k: 'x...x...x...x.x.', s: '....x.......x...', h: 'x-x-x-x-x-x-x-x-' }, lead: { inst: 'marimba', p: 0.35, up: 12 }, cut: 5200, crackle: 0.1 },
     potato: { gain: 0.9, bpm: 116, swing: 0.12, chords: ['G', 'C', 'D', 'G'], comp: { inst: 'guitar', at: [0, 4, 8, 12], dur: 0.2 }, lead: { inst: 'pizz', p: 0.3, up: 12 }, bass: { at: [0, 6, 8, 14] }, drums: { k: 'x.......x.......', s: '....x.......x...', sh: '-.-.-.-.-.-.-.-.' }, cut: 4400, crackle: 0.6 },
     kayak: { gain: 0.9, bpm: 104, swing: 0.06, chords: ['D', 'Bm', 'G', 'A'], comp: { inst: 'guitar', at: [0, 3, 6, 10, 12], dur: 0.25 }, arp: { inst: 'pluck', every: 2, order: [1, 2, 3, 4, 3, 2, 1, 2] }, bass: { at: [0, 6, 8, 14] }, drums: { k: 'x.....x...x.....', s: '....x.......x...', h: '-.x.-.x.-.x.-.x.' }, lead: { inst: 'marimba', p: 0.2, up: 12 }, cut: 4800, crackle: 0.3 },
+    cornhole: { gain: 0.9, bpm: 98, swing: 0.14, chords: ['G', 'Em', 'C', 'D'], comp: { inst: 'guitar', at: [0, 3, 6, 10, 12], dur: 0.3 }, lead: { inst: 'ep', p: 0.16, up: 12 }, bass: { at: [0, 8, 11] }, drums: { k: 'o.......o.o.....', s: '....x.......x...', sh: '-.-.-.-.-.-.-.-.' }, cut: 4200, crackle: 0.6 },
+    ctf: { gain: 0.9, bpm: 128, swing: 0.04, chords: ['Am', 'F', 'C', 'G'], comp: { inst: 'guitar', at: [0, 3, 6, 10, 12], dur: 0.22 }, bass: { at: [0, 3, 6, 8, 11, 14] }, drums: { k: 'x...x...x...x...', s: '....x.......x...', h: 'x-x-x-x-x-x-x-x-' }, lead: { inst: 'synth', p: 0.18, up: 0 }, cut: 5000, crackle: 0.2 },
     parkour: { gain: 0.9, bpm: 126, swing: 0.04, chords: ['Am', 'F', 'C', 'G'], comp: { inst: 'guitar', at: [0, 3, 6, 10, 12], dur: 0.25 }, arp: { inst: 'pluck', every: 2, order: [1, 2, 3, 2, 4, 3, 2, 3] }, bass: { at: [0, 3, 6, 8, 11, 14] }, drums: { k: 'x...x...x...x...', s: '....x.......x...', h: 'x-x-x-x-x-x-x-x-' }, lead: { inst: 'marimba', p: 0.3, up: 12 }, cut: 5200, crackle: 0.15 },
     pickleball: { gain: 0.9, bpm: 92, swing: 0.16, chords: ['Cmaj7', 'Am7', 'Dm7', 'G7'], comp: { inst: 'guitar', at: [0, 6, 10], dur: 0.3 }, lead: { inst: 'marimba', p: 0.2, up: 12 }, bass: { at: [0, 8, 11] }, drums: { k: 'o.......o.o.....', s: '....x.......x...', h: 'x.x.x.x.x.x.x.x.' }, cut: 4600, crackle: 0.5 },
     charades: { gain: 0.9, bpm: 96, swing: 0.22, chords: ['Fmaj7', 'Dm7', 'G7', 'Cmaj7'], comp: { inst: 'ep', at: [2, 7, 14], dur: 0.4 }, lead: { inst: 'vibes', p: 0.18, up: 12 }, bass: { walk: true }, drums: { r: 'x.-ox.-ox.-ox.-o', b: '....o.......o...', k: 'o.......o.......' }, cut: 3600, crackle: 0.9 },
@@ -1521,8 +1526,8 @@ kbd {
       const BS = T.barSteps || 16, pos = T.melody ? MUSIC.step % T.melody.len : MUSIC.step;
       const s = pos % BS, bar = Math.floor(pos / BS);
       const t = MUSIC.nextT + (s % 2 ? (T.swing || 0) * STEP : 0);
-      const chord = CH[T.chords[bar % T.chords.length]];
-      const nextChord = CH[T.chords[(bar + 1) % T.chords.length]];
+      const chord = CH[T.chords[bar % T.chords.length]] || CH.C;          // (an unknown chord name plays C rather than stopping the music)
+      const nextChord = CH[T.chords[(bar + 1) % T.chords.length]] || CH.C;
       // drums
       for (const [kind, pat] of Object.entries(T.drums || {})) { const v = P(pat)[s]; if (v) drum(c, d, t, kind, v * (0.85 + mrand() * 0.3)); }
       // bass: set hits, or a walking line on the beats
@@ -2140,7 +2145,7 @@ kbd {
         else { a.pos.addScaledVector(_n, -overlap / 2); b.pos.addScaledVector(_n, overlap / 2); }
         const rv = (b.vel.x - a.vel.x) * _n.x + (b.vel.y - a.vel.y) * _n.y + (b.vel.z - a.vel.z) * _n.z;
         if (rv < 0) {
-          const e = 0.8;
+          const e = L.bodyBounce !== undefined ? L.bodyBounce : 0.8;      // bean bags barely bounce off each other
           if (aFixed) b.vel.addScaledVector(_n, -(1 + e) * rv);
           else if (bFixed) a.vel.addScaledVector(_n, (1 + e) * rv);
           else {
@@ -18442,6 +18447,928 @@ kbd {
     };
     return L;
   })();
+  // ================================================================ LEVEL: LAKESIDE CORNHOLE
+  // Two regulation boards 27 ft apart on a lawn by a lake. Red and blue take turns throwing four bags each at the far
+  // board: on the board is 1, through the hole is 3, and only the difference counts each round. First to 21 wins.
+  // Play a friend, or Corny Carl when you're alone. Each round you throw from the other end.
+  // The lowest-named player's page runs the turns and the bot. A thrower's page says when its bag has landed; the
+  // host then tallies from where the bags are (their positions are shared like every ball in the game).
+  const cornhole = (() => {
+    const L = newLevel(20);
+    const G = L.group;
+    const rand = mulberry32(2020);
+    L.gravityScale = 1; L.airDrag = 0; L.rollFriction = 7; L.bodyBounce = 0.1;
+    L.walkSpeed = 2.6;
+    L.bounds = { minX: -9, maxX: 9, minZ: -11, maxZ: 11 };
+    L.env = {
+      sky: skyTexture([[0, '#4a7ac8'], [0.42, '#f0b888'], [0.5, '#ffe0b0'], [0.52, '#8aa860'], [1, '#4a6a34']]),
+      bg: 0xf0c8a0, fog: [0xf2d0b0, 40, 160], hemi: [0xfff0d8, 0x5a7a3a, 0.85],
+      sun: [0xffd8a0, 0.85], sunDir: new V3(0.5, 0.45, -0.6), ambient: [0x8a7a6a, 0.3],
+      sprite: { tex: paleSunTex, pos: new V3(110, 50, -150), scale: 50 },
+    };
+    const WIN = 21, BAGS = 4, BR = 0.07;
+    const FRONT = 4.115, LEN = 1.22, HALF_W = 0.305, H_FRONT = 0.08, H_BACK = 0.3, HOLE_V = 0.99, HOLE_R = 0.076;
+    const TH = Math.atan2(H_BACK - H_FRONT, LEN), CT = Math.cos(TH), ST = Math.sin(TH);
+    const PH = { idle: 0, play: 1, tally: 2, over: 3 }, PH_N = ['idle', 'play', 'tally', 'over'];
+    const SIDE_HEX = ['#e8453a', '#3d82e8'], SIDE_NAME = ['Red', 'Blue'];
+    const _a = new V3(), _b = new V3(), _q = new Q4(), _m = new THREE.Matrix4();
+
+    // ---------------------------------------------------------------- the lawn, the lake, the trees
+    const grass = canvasTexture(256, 256, (g) => {
+      g.fillStyle = '#6a9a3e'; g.fillRect(0, 0, 256, 256);
+      for (let k = 0; k < 8; k++) { g.fillStyle = k % 2 ? 'rgba(255,255,200,0.05)' : 'rgba(0,40,0,0.05)'; g.fillRect(0, k * 32, 256, 32); }
+      for (let i = 0; i < 3000; i++) { g.fillStyle = rand() < 0.5 ? 'rgba(255,255,190,0.07)' : 'rgba(20,50,10,0.1)'; g.fillRect(rand() * 256, rand() * 256, 2, 3); }
+    }).tex;
+    grass.wrapS = grass.wrapT = THREE.RepeatWrapping; grass.repeat.set(30, 30);
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshLambertMaterial({ map: grass }));
+    ground.rotation.x = -Math.PI / 2; G.add(ground);
+    const lake = new THREE.Mesh(new THREE.PlaneGeometry(120, 70), new THREE.MeshLambertMaterial({ color: 0x5a9ac0 }));
+    lake.rotation.x = -Math.PI / 2; lake.position.set(-85, 0.02, 0); G.add(lake);      // off past the trees
+    {
+      const trunk = lam(0x6a4a30), leaves = [lam(0x4a7a34), lam(0x5a8a3a), lam(0x3a6a2e)];
+      for (let k = 0; k < 30; k++) {
+        const a = rand() * Math.PI * 2, d = 16 + rand() * 30, x = Math.cos(a) * d, z = Math.sin(a) * d;
+        if (x < -24 && Math.abs(z) < 36) continue;     // (that's the lake)
+        const h = 2 + rand() * 2;
+        addCyl(G, 0.22, 0.3, h, 6, trunk, x, h / 2, z);
+        const c = new THREE.Mesh(new THREE.IcosahedronGeometry(1.5 + rand(), 1), leaves[k % 3]); c.position.set(x, h + 1.1, z); G.add(c);
+      }
+      // a picnic table, a cooler, string lights between two posts
+      const wood = lam(0xa8774a);
+      addBox(G, 1.8, 0.06, 0.8, wood, 5.5, 0.75, 0); for (const z of [-0.6, 0.6]) addBox(G, 1.8, 0.05, 0.28, wood, 5.5, 0.45, z);
+      addBox(G, 0.6, 0.4, 0.38, lam(0x3a8ac8), 5.4, 0.2, 1.6); addBox(G, 0.62, 0.06, 0.4, lam(0xf2f0e8), 5.4, 0.42, 1.6);
+      const bulb = new THREE.SpriteMaterial({ map: warmGlowTex, color: 0xffd890, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true });
+      for (const sx of [-1, 1]) addCyl(G, 0.05, 0.07, 3.2, 6, lam(0x6a4a30), sx * 3.2, 1.6, 0);
+      for (let j = 1; j < 14; j++) { const t = j / 14, s = new THREE.Sprite(bulb); s.position.set(-3.2 + 6.4 * t, 3.1 - Math.sin(t * Math.PI) * 0.5, 0); s.scale.set(0.28, 0.28, 1); G.add(s); }
+    }
+    makeKiosk(L, 4.5, -3.5, Math.atan2(-4.5, 3.5));
+    L.board = makeBoard(G, 720, 460, 2.6, 1.66, -4.2, 2.1, 0, Math.PI / 2);
+
+    // ---------------------------------------------------------------- the boards: d = -1 at the north end, +1 at the south
+    const boardTex = canvasTexture(128, 256, (g) => {
+      g.fillStyle = '#d8b07a'; g.fillRect(0, 0, 128, 256);
+      for (let k = 0; k < 40; k++) { g.fillStyle = `rgba(120,80,40,${0.05 + rand() * 0.08})`; g.fillRect(0, rand() * 256, 128, 1 + rand() * 2); }
+      g.fillStyle = '#1e5aa8'; g.fillRect(0, 0, 18, 256); g.fillRect(110, 0, 18, 256);
+      g.fillStyle = '#f4f2ec'; g.font = `800 26px ${DISPLAY}`; g.textAlign = 'center'; g.save(); g.translate(64, 200); g.fillText('FIELD DAY', 0, 0); g.restore();
+    }).tex;
+    const BOARDS = [-1, 1].map((d) => {
+      // front edge centre on the ground plane, the way "up the board" points (away from the middle)
+      const F = new V3(0, H_FRONT, d * FRONT), D = new V3(0, 0, d);
+      const along = new V3(0, ST, d * CT);            // up the slope
+      const n = new V3(0, CT, -d * ST);                 // the surface normal
+      const side = new V3(1, 0, 0);
+      const hole = F.clone().addScaledVector(along, HOLE_V);
+      // the top: a thin box tilted to the slope, with a dark disc for the hole
+      const g = new THREE.Group();
+      const mid = F.clone().addScaledVector(along, LEN / 2).addScaledVector(n, -0.01);
+      const top = new THREE.Mesh(new THREE.BoxGeometry(HALF_W * 2, 0.02, LEN), new THREE.MeshLambertMaterial({ map: boardTex }));
+      top.position.copy(mid); top.rotation.x = d > 0 ? -TH : TH; g.add(top);
+      const holeM = new THREE.Mesh(new THREE.CircleGeometry(HOLE_R, 24), new THREE.MeshBasicMaterial({ color: 0x0a0a0a }));
+      holeM.position.copy(hole).addScaledVector(n, 0.002); holeM.quaternion.setFromUnitVectors(new V3(0, 0, 1), n); g.add(holeM);
+      // the sides and the legs
+      const sideM = lam(0xb88a54);
+      for (const sx of [-1, 1]) {
+        const s = new THREE.Mesh(new THREE.BoxGeometry(0.02, 1, LEN), sideM);
+        s.position.set(sx * (HALF_W + 0.01), (H_FRONT + H_BACK) / 2 / 2, d * (FRONT + LEN * CT / 2)); s.scale.y = (H_FRONT + H_BACK) / 2; g.add(s);
+      }
+      addBox(g, HALF_W * 2 + 0.04, H_BACK, 0.02, sideM, 0, H_BACK / 2, d * (FRONT + LEN * CT));
+      addBox(g, HALF_W * 2 + 0.04, H_FRONT, 0.02, sideM, 0, H_FRONT / 2, d * FRONT);
+      G.add(g);
+      return { d, F, D, along, n, side, hole };
+    });
+    L.BOARDS = BOARDS;
+    // where a point is relative to a board: across (u), up the slope (v), above the surface (h)
+    function local(B, p, out) {
+      _a.subVectors(p, B.F);
+      out.u = _a.dot(B.side); out.v = _a.dot(B.along); out.h = _a.dot(B.n);
+      return out;
+    }
+    const _l = { u: 0, v: 0, h: 0 };
+    const onBoardRect = (l, pad) => Math.abs(l.u) <= HALF_W + (pad || 0) && l.v >= -(pad || 0) && l.v <= LEN + (pad || 0);
+
+    // ---------------------------------------------------------------- the bags
+    const bagTex = (hex) => canvasTexture(64, 64, (g) => {
+      g.fillStyle = hex; g.fillRect(0, 0, 64, 64);
+      for (let i = 0; i < 300; i++) { g.fillStyle = rand() < 0.5 ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.12)'; g.fillRect(rand() * 64, rand() * 64, 1, 1); }
+      g.strokeStyle = 'rgba(255,255,255,0.5)'; g.setLineDash([3, 3]); g.lineWidth = 2; g.strokeRect(4, 4, 56, 56);
+    }).tex;
+    const bagGeo = new THREE.BoxGeometry(0.15, 0.035, 0.15);
+    bagGeo.translate(0, 0, 0);
+    const bags = [];
+    for (let s = 0; s < 2; s++) for (let k = 0; k < BAGS; k++) {
+      const b = makeBody(L, { geo: bagGeo, tex: bagTex(SIDE_HEX[s]), r: BR, slot: new V3(0, 0.9, 0) });
+      b.gs = 1; b.ad = 0.02; b.side = s; b.k = k; b.yaw = rand() * 6;
+      bags.push(b);
+    }
+    L.bags = bags;
+
+    // ---------------------------------------------------------------- where everyone stands and the bags wait
+    // end 0: everyone throws from the south board at the north one; end 1: the other way
+    const throwZ = (end) => (end === 0 ? 1 : -1) * (FRONT + 0.55);
+    const spotOf = (side, end, out) => out.set((side === 0 ? -1 : 1) * (end === 0 ? 0.95 : -0.95), 0, throwZ(end));
+    const trayOf = (side, end) => ({ x: (side === 0 ? -1 : 1) * (end === 0 ? 1.55 : -1.55), z: throwZ(end) });
+    const trays = [0, 1].map(() => { const t = new THREE.Group(); addBox(t, 0.36, 0.04, 0.7, lam(0x8a6a44), 0, 0.78, 0); for (const sx of [-0.14, 0.14]) for (const sz of [-0.3, 0.3]) addBox(t, 0.03, 0.78, 0.03, lam(0x5a4430), sx, 0.39, sz); G.add(t); return t; });
+    function setSlots(end) {
+      for (const b of bags) { const t = trayOf(b.side, end); b.slot.set(t.x, 0.8 + BR, t.z + (b.k - 1.5) * 0.16); }
+      for (let s = 0; s < 2; s++) { const t = trayOf(s, end); trays[s].position.set(t.x, 0, t.z); }
+    }
+    setSlots(0);
+    for (const b of bags) { b.pos.copy(b.slot); b.mesh.position.copy(b.slot); }
+
+    // ---------------------------------------------------------------- physics on the boards
+    L.collide = (b, h) => {
+      let sup = false;
+      if (b.data.inHole) {
+        // inside the board under the hole: it stays there
+        const B = BOARDS[b.data.inHole - 1];
+        b.pos.x = clamp(b.pos.x, -HALF_W + BR, HALF_W - BR);
+        if (b.pos.y < BR) { b.pos.y = BR; if (b.vel.y < 0) b.vel.y = 0; b.vel.x *= 0.5; b.vel.z *= 0.5; sup = true; }
+        void B;
+        return sup;
+      }
+      for (const B of BOARDS) {
+        local(B, b.pos, _l);
+        if (!onBoardRect(_l, 0.02) || _l.h >= BR || _l.h < -0.25) continue;
+        // over the hole: it drops through
+        if (Math.hypot(_l.u, _l.v - HOLE_V) < HOLE_R - 0.004) {
+          // a bag that drops into the hole, or slides over it at anything short of a skid, goes in
+          const slide = Math.hypot(b.vel.x, b.vel.z);
+          if (!b.data.inHole && (_l.h < -0.02 || (_l.h < BR + 0.01 && slide < 2.6))) {
+            b.data.inHole = BOARDS.indexOf(B) + 1; b.vel.multiplyScalar(0.2);
+            tone(220, 120, 0.12, 'triangle', 0.25 / (1 + b.pos.distanceTo(myHead.pos) * 0.15));
+          }
+          continue;
+        }
+        // a bag that came in under the front lip just stops against it
+        if (_l.h < -0.06) { b.vel.multiplyScalar(0.2); continue; }
+        b.pos.addScaledVector(B.n, BR - _l.h);
+        const vn = b.vel.dot(B.n);
+        if (vn < 0) {
+          impact(b, -vn, 'wood');
+          b.vel.addScaledVector(B.n, -1.05 * vn);
+          // a bean bag is floppy: a real landing soaks up most of its slide
+          if (vn < -1.5) { const keep = 0.32; const t = _b.copy(b.vel).addScaledVector(B.n, -b.vel.dot(B.n)); b.vel.addScaledVector(t, keep - 1); }
+        }
+        // sliding: the board's grip slows it, and a slow bag sticks
+        const vt = _b.copy(b.vel).addScaledVector(B.n, -b.vel.dot(B.n)), sp = vt.length();
+        const nsp = Math.max(0, sp - 5.5 * h);
+        if (nsp < 0.05) b.vel.addScaledVector(vt, -1); else b.vel.addScaledVector(vt, -(1 - nsp / sp));
+        sup = true;
+      }
+      if (b.pos.y < BR) {
+        b.pos.y = BR;
+        if (b.vel.y < 0) { impact(b, -b.vel.y, 'grass'); b.vel.y = 0; b.vel.x *= 0.55; b.vel.z *= 0.55; }
+        sup = true;
+      }
+      return sup;
+    };
+    // a bag's score once it's still: through the hole 3, on the board 1 (resting on it, or on bags that are)
+    function bagPoints(b, end) {
+      const target = BOARDS[end === 0 ? 0 : 1];
+      if (b.data.inHole === BOARDS.indexOf(target) + 1) return 3;
+      if (b.data.inHole) return 0;
+      local(target, b.pos, _l);
+      return onBoardRect(_l, 0) && b.pos.y > BR + 0.04 ? 1 : 0;
+    }
+    L.bagPoints = bagPoints;
+
+    // ---------------------------------------------------------------- aiming (browser and bot)
+    function holeOf(end) { return BOARDS[end === 0 ? 0 : 1].hole; }
+    function lob(from, tx, tz, ty, angle) {
+      const dx = tx - from.x, dz = tz - from.z, d = Math.max(0.5, Math.hypot(dx, dz)), hgt = ty - from.y, c = Math.cos(angle);
+      const v = Math.sqrt((GRAVITY * d * d) / Math.max(0.05, 2 * c * c * (d * Math.tan(angle) - hgt)));
+      return new V3((dx / d) * c * v, Math.sin(angle) * v, (dz / d) * c * v);
+    }
+    // power: a charge near the middle lands on the hole; less falls short, more goes long. A little wobble either way.
+    function throwFor(from, end, power, yawOff) {
+      const H = holeOf(end), dx = H.x - from.x, dz = H.z - from.z, dHole = Math.hypot(dx, dz);
+      const e = power - 0.6, k = Math.abs(e) < 0.06 ? 0 : Math.sign(e) * (Math.abs(e) - 0.06) * 0.62;
+      const dist = dHole * (1 + k) + (Math.random() - 0.5) * 0.24;
+      const a = Math.atan2(dx, dz) + (yawOff || 0) + (Math.random() - 0.5) * 0.02;
+      return lob(from, from.x + Math.sin(a) * dist, from.z + Math.cos(a) * dist, H.y + 0.02, 0.72);
+    }
+    const _cq = new Q4(), _cd = new V3();
+    L.throwOverride = (obj, c) => {
+      if (!bags.includes(obj)) return null;
+      camera.getWorldQuaternion(_cq);
+      _cd.set(0, 0, -1).applyQuaternion(_cq);
+      const H = holeOf(RS.end), want = Math.atan2(H.x - obj.pos.x, H.z - obj.pos.z), look = Math.atan2(_cd.x, _cd.z);
+      let off = look - want; while (off > Math.PI) off -= Math.PI * 2; while (off < -Math.PI) off += Math.PI * 2;
+      // aim help: looking within about 10 degrees of the hole lines you up with it
+      off = Math.abs(off) < 0.18 ? off * 0.1 : off;
+      return throwFor(obj.pos, RS.end, c, off);
+    };
+
+    // ---------------------------------------------------------------- the game
+    const RS = { game: 0, round: 0, ph: 'idle', end: 0, turn: 0, first: 0, score: [0, 0], pts: [0, 0], winner: -1, players: ['', ''] };
+    const H = { phaseT: 0, botT: 0, done: -1, doneT: 0, botBag: null, botThrowT: 0 };
+    const me = { done: 0, doneRound: 0, doneTurn: -1, wins: 0, round: -1, game: -1, thrownTurn: -1, thrownT: 0, ph: '' };
+    L.ch = { RS, H, me };
+    const humans = () => { const ids = state.mode !== 'menu' ? [state.myPeer] : []; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort(); };
+    const hostId = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort()[0]; };
+    const isHost = () => hostId() === state.myPeer;
+    const BOT = 'bot';
+    const nameOf = (id) => (id === BOT ? 'Corny Carl' : id === state.myPeer ? 'You' : (remotes.get(id) || {}).name || 'Someone');
+    const mySide = () => RS.players.indexOf(state.myPeer);
+    const turnSide = () => (RS.first + RS.turn) % 2;
+    const turnBag = () => bags[turnSide() * BAGS + Math.floor(RS.turn / 2)];
+    const myTurn = () => RS.ph === 'play' && RS.turn < 8 && RS.players[turnSide()] === state.myPeer;
+
+    function newGame(now) {
+      const hs = humans();
+      RS.players = [hs[0] || '', hs[1] || BOT];
+      Object.assign(RS, { game: RS.game + 1, round: 0, score: [0, 0], winner: -1, first: 0 });
+      newRound(now, 0);
+    }
+    function newRound(now, end) {
+      Object.assign(RS, { round: RS.round + 1, end, turn: 0, pts: [0, 0], ph: 'play' });
+      setSlots(end);
+      for (const b of bags) { if (b.held && b.held.peer !== state.myPeer) continue; if (b.held) loseFromMyHand(b); b.data = {}; reclaimToSlot(b); b.data = {}; }
+      H.phaseT = now; H.done = -1; H.botBag = null;
+      forcePresence();
+    }
+    function tally(now) {
+      const pts = [0, 0];
+      for (const b of bags) pts[b.side] += bagPoints(b, RS.end);
+      RS.pts = pts;
+      const diff = pts[0] - pts[1];
+      if (diff > 0) { RS.score[0] += diff; RS.first = 0; } else if (diff < 0) { RS.score[1] -= diff; RS.first = 1; }
+      if (RS.score[0] >= WIN || RS.score[1] >= WIN) RS.winner = RS.score[0] >= WIN ? 0 : 1;
+      RS.ph = 'tally'; H.phaseT = now;
+      forcePresence();
+    }
+    function hostStep(now) {
+      if (L.paused) return;                 // (tests)
+      const hs = humans();
+      // players who left: the bot (or the next person waiting) takes their place
+      for (let s = 0; s < 2; s++) if (RS.players[s] && RS.players[s] !== BOT && !hs.includes(RS.players[s])) {
+        const free = hs.find((id) => !RS.players.includes(id));
+        RS.players[s] = free || (s === 1 || RS.players[1 - s] ? BOT : ''); forcePresence();
+      }
+      if (RS.ph === 'idle') { if (hs.length) newGame(now); return; }
+      // someone's waiting while Corny Carl has a seat: they take it, straight away if the game's only just begun
+      const waiting = hs.find((id) => !RS.players.includes(id)), botSeat = RS.players.indexOf(BOT);
+      if (waiting && botSeat >= 0 && RS.ph === 'play' && RS.round === 1 && RS.turn === 0 && !turnBag().held && !turnBag().data.thrownAt) { newGame(now); return; }
+      if (RS.ph === 'play') {
+        if (RS.turn >= 8) { if (now - H.doneT > 1200) tally(now); return; }
+        const side = turnSide(), who = RS.players[side], bag = turnBag();
+        if (who === BOT) botStep(now, bag);
+        // a turn nobody takes in 40 seconds is skipped
+        if (now - H.phaseT > 40000) { RS.turn += 1; H.phaseT = now; H.doneT = now; forcePresence(); }
+        return;
+      }
+      if (RS.ph === 'tally' && now - H.phaseT > 3200) {
+        if (RS.winner < 0 && waiting && botSeat >= 0) { newGame(now); return; }      // (or at the end of the round, with a fresh game)
+        if (RS.winner >= 0) { RS.ph = 'over'; H.phaseT = now; forcePresence(); }
+        else newRound(now, 1 - RS.end);
+        return;
+      }
+      if (RS.ph === 'over' && now - H.phaseT > 6000) { if (hs.length) newGame(now); else RS.ph = 'idle'; }
+    }
+    function turnDone(now) { RS.turn += 1; H.phaseT = now; H.doneT = now; H.botBag = null; forcePresence(); }
+    // Corny Carl: picks up his bag, takes a breath, and throws, usually pretty well
+    function botStep(now, bag) {
+      if (!H.botBag) { H.botBag = bag; H.botThrowT = now + 1100 + Math.random() * 700; return; }
+      if (H.botBag !== bag) { H.botBag = null; return; }
+      if (!bag.data.thrownAt && now > H.botThrowT) {
+        const s = spotOf(1, RS.end, _a), from = new V3(s.x + (RS.end === 0 ? 0.25 : -0.25), 0.95, s.z);
+        bag.v += 1; bag.owner = state.myPeer; bag.held = null; bag.pos.copy(from); bag.sleeping = false; bag.restT = 0; bag.data = { thrownAt: now };
+        const g = () => { let x = 0; for (let i = 0; i < 4; i++) x += Math.random(); return (x - 2) / 1.15; };
+        bag.vel.copy(throwFor(from, RS.end, 0.6 + g() * 0.14, g() * 0.045));     // good, but beatable
+        bag.throwFrom.copy(from);
+        sfx('whoosh', 0.5);
+        forcePresence();
+        return;
+      }
+      if (bag.data.thrownAt && settled(bag)) turnDone(now);
+    }
+    // measured in the bag's own flight time, so a slow device can't call a bag landed while it's still in the air
+    const settled = (b) => !b.held && b.data.flyT > 0.7 && (b.sleeping || b.vel.lengthSq() < 0.003 || b.data.flyT > 6);
+
+    // ---------------------------------------------------------------- your throws
+    L.canGrab = (b) => {
+      if (!bags.includes(b)) return false;
+      return myTurn() && b === turnBag() && me.thrownTurn !== `${RS.game}:${RS.round}:${RS.turn}`;
+    };
+    L.autoGrab = () => { if (!myTurn()) return null; const b = turnBag(); return b && !b.held && L.canGrab(b) && b.pos.distanceTo(myHead.pos) < 3 ? b : null; };
+    // watch your own bag: when it leaves your hand and comes to rest, your turn's done
+    function watchMyThrow(now) {
+      if (!myTurn()) return;
+      const b = turnBag(), key = `${RS.game}:${RS.round}:${RS.turn}`;
+      if (me.thrownTurn !== key) {
+        if (b.held && b.held.peer === state.myPeer) me.holding = true;
+        else if (me.holding && !b.held) { me.holding = false; me.thrownTurn = key; b.data.thrownAt = now; }
+        return;
+      }
+      if (settled(b) && me.doneTurn !== key) {
+        me.doneTurn = key;
+        if (isHost()) turnDone(now);
+        else { me.done += 1; me.doneRound = RS.round; me.doneTurnIdx = RS.turn; forcePresence(); }
+      }
+    }
+
+    // ---------------------------------------------------------------- standing at the line
+    function toSpot() {
+      const s = mySide();
+      if (s < 0) return;
+      const p = spotOf(s, RS.end, _a), yaw = RS.end === 0 ? 0 : Math.PI;
+      if (state.mode === 'vr') { camera.getWorldQuaternion(_q); const e = new THREE.Euler().setFromQuaternion(_q, 'YXZ'); snapTurn(yaw - e.y); }
+      else { state.yaw = yaw; state.pitch = -0.1; }
+      camera.getWorldPosition(_b);
+      dolly.position.x += p.x - _b.x; dolly.position.z += p.z - _b.z;
+    }
+    L.clampPlayer = (p) => {
+      const B = L.bounds;
+      let x = clamp(p.x, B.minX + 0.4, B.maxX - 0.4), z = clamp(p.z, B.minZ + 0.4, B.maxZ - 0.4);
+      const s = mySide();
+      if (s >= 0 && (RS.ph === 'play' || RS.ph === 'tally')) {
+        const q = spotOf(s, RS.end, _a), dx = x - q.x, dz = z - q.z, d = Math.hypot(dx, dz);
+        if (d > 0.55) { x = q.x + dx * 0.55 / d; z = q.z + dz * 0.55 / d; }
+      } else if (Math.abs(x) < 1.0 && Math.abs(z) < FRONT + 1.6) x = x < 0 ? -1.0 : 1.0;   // off the lane
+      return [x - p.x, z - p.z];
+    };
+
+    // ---------------------------------------------------------------- per frame
+    const botBody = buildAvatar('#ffb04a', 1, 1, true, 2, 5);
+    const botTag = new THREE.Sprite(new THREE.SpriteMaterial({ map: canvasTexture(256, 64, (c) => { rr(c, 4, 6, 248, 52, 26); c.fillStyle = 'rgba(20,16,32,0.8)'; c.fill(); c.fillStyle = '#fff'; c.font = `700 28px ${BODY}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('Corny Carl', 128, 33); }).tex, transparent: true, depthWrite: false }));
+    botTag.scale.set(0.9, 0.225, 1); botTag.position.y = 0.42; botBody.add(botTag);
+    botBody.visible = false; G.add(botBody);
+    const floats = BOARDS.map(() => { const c = canvasTexture(256, 96); const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: c.tex, transparent: true, depthWrite: false })); s.scale.set(1.2, 0.45, 1); s.visible = false; G.add(s); return { c, s }; });
+    let statusKey = '', boardKey = '';
+    const hudPlate = makePlate(camera, 'Your throw', 0.5, 0.1, new V3(0, -0.2, -0.6), 0, { bg: '#16142e', fg: '#ffd23f', size: 0.6 });
+    hudPlate.material.depthTest = false; hudPlate.renderOrder = 999; hudPlate.visible = false;
+    L.update = (dt, now) => {
+      const here = state.level === L.idx && state.mode !== 'menu';
+      if (!here) { hudPlate.visible = false; botBody.visible = false; return; }
+      if (isHost()) {
+        hostStep(now);
+        // a remote thrower said their bag has landed
+        for (const rec of remotes.values()) {
+          const st = rec.lvState[L.id];
+          if (!st || !st.cq || rec.peer !== RS.players[turnSide()] || RS.ph !== 'play') continue;
+          if (st.cq[0] > (st.doneSeen || 0) && st.cq[1] === RS.round && st.cq[2] === RS.turn) { st.doneSeen = st.cq[0]; turnDone(now); }
+        }
+      }
+      for (const b of bags) if (b.data.thrownAt && !b.held) b.data.flyT = (b.data.flyT || 0) + Math.min(dt, 0.05);
+      watchMyThrow(now);
+      if (RS.game !== me.game || RS.round !== me.round) { me.game = RS.game; me.round = RS.round; toSpot(); state.dirtyBoard = true; if (mySide() >= 0) showToast(RS.round === 1 ? `Cornhole! You're ${SIDE_NAME[mySide()]}. First to ${WIN}` : `Round ${RS.round}: throw from the other end`); }
+      if (RS.ph !== me.ph) {
+        if (RS.ph === 'tally') {
+          const [a, b] = RS.pts, d = a - b;
+          showToast(d === 0 ? `${a} to ${b}: they cancel out` : `${SIDE_NAME[d > 0 ? 0 : 1]} scores ${Math.abs(d)} (${a} to ${b})`);
+          sfx(d === 0 ? 'click' : 'chime', 0.7);
+        }
+        if (RS.ph === 'over' && RS.winner >= 0) {
+          const w = RS.players[RS.winner];
+          if (w === state.myPeer) { me.wins += 1; showToast(`You win ${RS.score[RS.winner]} to ${RS.score[1 - RS.winner]}!`); sfx('fanfare', 0.9); }
+          else showToast(`${nameOf(w)} wins ${RS.score[RS.winner]} to ${RS.score[1 - RS.winner]}`);
+        }
+        if (RS.ph === 'play' && myTurn() && RS.turn < 2) sfx('beep', 0.6);
+        me.ph = RS.ph; state.dirtyBoard = true; state.hudDirty = true;
+      }
+      if (me.lastTurnKey !== `${RS.round}:${RS.turn}`) { me.lastTurnKey = `${RS.round}:${RS.turn}`; if (myTurn()) { sfx('beep', 0.5); haptic(vrHands.right, 0.3, 40); } state.dirtyBoard = true; }
+      // bags lie flat on whatever they're resting on
+      for (const b of bags) {
+        let n = null;
+        for (const B of BOARDS) { local(B, b.pos, _l); if (!b.data.inHole && onBoardRect(_l, 0.02) && _l.h < BR + 0.03) n = B.n; }
+        if (b.held) { b.mesh.quaternion.identity(); continue; }
+        if (!b.sleeping || !b.data.laid) {
+          _q.setFromUnitVectors(_a.set(0, 1, 0), n || _a.clone());
+          if (!n) _q.identity();
+          b.mesh.quaternion.copy(_q).multiply(new Q4().setFromAxisAngle(_b.set(0, 1, 0), b.yaw));
+          b.data.laid = b.sleeping;
+        }
+        b.mesh.position.copy(b.pos).addScaledVector(n || _a.set(0, 1, 0), -(BR - 0.018));
+      }
+      // Corny Carl stands at his spot when he's playing
+      botBody.visible = RS.players[1] === BOT && RS.ph !== 'idle';
+      if (botBody.visible) { const s = spotOf(1, RS.end, _a); botBody.position.set(s.x, 1.5 + (myTurn() ? 0 : Math.abs(Math.sin(now * 0.003)) * 0.02), s.z); botBody.rotation.y = RS.end === 0 ? 0 : Math.PI; }
+      // the round's points over each board while it's being tallied
+      floats.forEach((f, k) => {
+        f.s.visible = RS.ph === 'tally' && k === (RS.end === 0 ? 0 : 1);
+        if (!f.s.visible) return;
+        const key = RS.pts.join('-');
+        if (f.key !== key) { f.key = key; const g = f.c.g; g.clearRect(0, 0, 256, 96); rr(g, 4, 4, 248, 88, 30); g.fillStyle = 'rgba(20,16,32,0.85)'; g.fill(); g.font = `800 60px ${DISPLAY}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = SIDE_HEX[0]; g.fillText(String(RS.pts[0]), 70, 52); g.fillStyle = '#fff'; g.fillText('-', 128, 50); g.fillStyle = SIDE_HEX[1]; g.fillText(String(RS.pts[1]), 186, 52); f.c.tex.needsUpdate = true; }
+        f.s.position.copy(BOARDS[k].hole).add(_a.set(0, 1.1, 0));
+      });
+      // what to do now
+      const mine = myTurn();
+      hudPlate.visible = state.mode === 'vr' && mine;
+      if (state.mode === 'flat' && ui.status) {
+        const s = mySide();
+        const a = `Red ${RS.score[0]} · Blue ${RS.score[1]}`;
+        const b = RS.ph !== 'play' ? (RS.ph === 'over' ? `${nameOf(RS.players[RS.winner])} won` : '') : mine ? `Your throw: bag ${Math.floor(RS.turn / 2) + 1} of ${BAGS}` : RS.turn < 8 ? `${nameOf(RS.players[turnSide()])} is throwing` : 'Counting…';
+        const c = s < 0 ? 'Watching' : '';
+        const key = `${a}|${b}|${c}`;
+        if (key !== statusKey) { statusKey = key; ui.status.hidden = false; ui.status.replaceChildren(); for (const [t, col] of [[a, '#ffd23f'], [b, mine ? '#8bd450' : null], [c, null]]) { if (!t) continue; const sp = document.createElement('span'); sp.textContent = t; if (col) sp.style.color = col; ui.status.append(sp); } }
+      }
+    };
+    L.drawBoard = () => {
+      const key = JSON.stringify([RS.players, RS.score, RS.round, RS.ph, me.wins]);
+      if (key === boardKey) return;
+      boardKey = key;
+      const g = L.board.g, W = 720, Hd = 460;
+      g.fillStyle = '#1e2a3a'; g.fillRect(0, 0, W, Hd);
+      g.strokeStyle = '#ffd23f'; g.lineWidth = 8; g.strokeRect(4, 4, W - 8, Hd - 8);
+      g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillStyle = '#ffd23f'; g.font = `800 56px ${DISPLAY}`; g.fillText('CORNHOLE', W / 2, 58);
+      for (let s = 0; s < 2; s++) {
+        const x = s ? W - 180 : 180;
+        g.fillStyle = SIDE_HEX[s]; g.font = `800 120px ${DISPLAY}`; g.fillText(String(RS.score[s]), x, 200);
+        g.font = `700 30px ${BODY}`; g.fillText(RS.players[s] ? nameOf(RS.players[s]) : 'Open', x, 290, 300);
+      }
+      g.fillStyle = '#c8d4e4'; g.font = `400 26px ${BODY}`;
+      g.fillText(RS.ph === 'idle' ? 'Walk up to play' : `Round ${RS.round} · first to ${WIN}`, W / 2, 360);
+      g.fillText('Board 1 · Hole 3 · only the difference counts', W / 2, 410);
+      L.board.tex.needsUpdate = true;
+    };
+    L.rowFor = (st, isMe) => { const id = isMe ? state.myPeer : st && st.peer, s = RS.players.indexOf(id); return { text: s < 0 ? 'watching' : SIDE_NAME[s] }; };
+    L.sortRows = () => 0;
+    L.hints = [['Grip', 'pick up your bag'], ['Throw', 'underhand, let go'], ['Board', '1'], ['Hole', '3']];
+    L.hintsFor = () => (state.mode === 'flat' ? [['E', 'pick up your bag'], ['Hold Space', 'power: the middle is the hole'], ['Drag', 'aim']] : L.hints);
+
+    // ---------------------------------------------------------------- network
+    L.presence = () => {
+      const p = { cq: [me.done, me.doneRound || 0, me.doneTurnIdx === undefined ? -1 : me.doneTurnIdx, me.wins] };
+      if (isHost()) p.ch = [RS.game, RS.round, PH[RS.ph], RS.end, RS.turn, RS.first, RS.score[0], RS.score[1], RS.pts[0], RS.pts[1], RS.winner], p.chp = RS.players.slice();
+      return p;
+    };
+    L.readPresence = (rec, pres, st) => {
+      st.peer = rec.peer;
+      if (Array.isArray(pres.cq) && pres.cq.length === 4 && pres.cq.every(Number.isInteger)) { if (!st.cqInit) { st.doneSeen = pres.cq[0]; st.cqInit = true; } st.cq = pres.cq; }
+      if (rec.peer !== hostId() || isHost()) return;
+      const a = pres.ch, pl = pres.chp;
+      if (!Array.isArray(a) || a.length !== 11 || !a.every(Number.isInteger)) return;
+      if (!Array.isArray(pl) || pl.length !== 2 || !pl.every((x) => typeof x === 'string' && x.length < 64)) return;
+      const newEnd = a[3] !== RS.end;
+      Object.assign(RS, { game: a[0], round: a[1], ph: PH_N[clamp(a[2], 0, 3)], end: a[3] ? 1 : 0, turn: clamp(a[4], 0, 8), first: a[5] ? 1 : 0, score: [a[6], a[7]], pts: [a[8], a[9]], winner: a[10], players: pl.slice() });
+      if (newEnd) setSlots(RS.end);
+    };
+    L.spawn = () => { dolly.position.set(2.4, 0, 6.5); state.yaw = 0.3; };
+    L.onEnter = () => { me.round = -1; me.game = -1; me.ph = ''; statusKey = ''; boardKey = ''; if (hostId() === state.myPeer) RS.ph = 'idle'; state.dirtyBoard = true; };
+    L.onExit = () => { hudPlate.visible = false; botBody.visible = false; if (ui.status) ui.status.hidden = true; statusKey = ''; };
+    L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0001) * 0.5; camera.position.set(3 + Math.sin(a) * 2, 2.2, 7.5); camera.lookAt(0, 0.3, -4); };
+    L.cornholeInternals = { RS, H, me, bags, BOARDS, bagPoints, throwFor, lob, hostStep, isHost, turnBag, myTurn, setSlots, local };
+    return L;
+  })();
+  // ================================================================ LEVEL: CAPTURE THE FLAG
+  // Red holds the south half of a park, blue the north. Run into their half, grab their flag from its stand, and get
+  // it back to your base. On your own half you can tag anyone from the other team: tagged players go back to their
+  // base, and a tagged carrier drops the flag, which springs home. First to 3 captures wins. Bots fill each team to 4.
+  // The lowest-named player's page is the referee: it runs the bots, decides pickups and captures, and checks every
+  // tag someone asks for. Events (tags, pickups, captures) go out in its presence for everyone to show.
+  const ctf = (() => {
+    const L = newLevel(21);
+    const G = L.group;
+    const rand = mulberry32(2121);
+    L.grabless = true;
+    L.teams = true; L.teamKey = 'fq';
+    L.walkSpeed = 3.4;
+    const FX = 14, FZ = 24, WIN = 3, TEAM_SIZE = 4, FLAG_Z = 20.5, BASE_R = 3.0, PICK_R = 1.5, BOT_TAG_R = 0.95, HUMAN_TAG_R = 2.2, IMMUNE_MS = 3000;
+    L.bounds = { minX: -FX, maxX: FX, minZ: -FZ, maxZ: FZ };
+    L.env = {
+      sky: skyTexture([[0, '#4a90d8'], [0.55, '#a8d4f0'], [1, '#e8f4fa']]),
+      bg: 0xa8d4f0, fog: [0xc0e0f0, 50, 170], hemi: [0xffffff, 0x5a7a3a, 0.8],
+      sun: [0xfff4e0, 0.95], sunDir: new V3(0.3, 1, 0.4), ambient: [0x8a9aaa, 0.32], sprite: null,
+    };
+    const TEAM_HEX = [0xe5453a, 0x3d82e8], TEAM_STR = ['#ff6a5a', '#6aa8ff'];
+    const homeOf = (t) => new V3(0, 0, t === 0 ? FLAG_Z : -FLAG_Z);
+    const HOME = [homeOf(0), homeOf(1)];
+    const ownHalf = (t, z) => (t === 0 ? z > 0 : z < 0);
+    const _a = new V3(), _b = new V3(), _q = new Q4();
+
+    // ---------------------------------------------------------------- the field
+    const grass = canvasTexture(256, 256, (g) => {
+      g.fillStyle = '#5f9a3a'; g.fillRect(0, 0, 256, 256);
+      for (let k = 0; k < 8; k++) { g.fillStyle = k % 2 ? 'rgba(255,255,220,0.06)' : 'rgba(0,30,0,0.06)'; g.fillRect(0, k * 32, 256, 32); }
+      for (let i = 0; i < 2500; i++) { g.fillStyle = rand() < 0.5 ? 'rgba(255,255,200,0.06)' : 'rgba(10,40,0,0.08)'; g.fillRect(rand() * 256, rand() * 256, 2, 3); }
+    }).tex;
+    grass.wrapS = grass.wrapT = THREE.RepeatWrapping; grass.repeat.set(20, 20);
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(160, 160), new THREE.MeshLambertMaterial({ map: grass }));
+    ground.rotation.x = -Math.PI / 2; G.add(ground);
+    const tint = (hex) => new THREE.MeshBasicMaterial({ color: hex, transparent: true, opacity: 0.13, depthWrite: false });
+    for (const t of [0, 1]) {
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(FX * 2, FZ), tint(TEAM_HEX[t]));
+      m.rotation.x = -Math.PI / 2; m.position.set(0, 0.01, t === 0 ? FZ / 2 : -FZ / 2); G.add(m);
+      const ring = new THREE.Mesh(new THREE.RingGeometry(BASE_R - 0.12, BASE_R, 48), new THREE.MeshBasicMaterial({ color: TEAM_HEX[t], transparent: true, opacity: 0.8, depthWrite: false }));
+      ring.rotation.x = -Math.PI / 2; ring.position.set(HOME[t].x, 0.02, HOME[t].z); G.add(ring);
+    }
+    const chalk = new THREE.MeshBasicMaterial({ color: 0xf4f2ec });
+    addBox(G, FX * 2, 0.01, 0.16, chalk, 0, 0.015, 0);
+    for (const sz of [-1, 1]) addBox(G, FX * 2, 0.01, 0.1, chalk, 0, 0.015, sz * FZ);
+    for (const sx of [-1, 1]) addBox(G, 0.1, 0.01, FZ * 2, chalk, sx * FX, 0.015, 0);
+    // cones along the edge, trees beyond
+    const coneM = lam(0xff8a2a);
+    for (let k = -6; k <= 6; k++) for (const sx of [-1, 1]) { const c = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.42, 10), coneM); c.position.set(sx * (FX + 0.4), 0.21, k * 4); G.add(c); }
+    {
+      const trunk = lam(0x6a4a30), leaves = [lam(0x3e7a34), lam(0x4a8a3a), lam(0x2e6a2e)];
+      for (let k = 0; k < 60; k++) {
+        const a = rand() * Math.PI * 2, d = 32 + rand() * 30, x = Math.cos(a) * d * 0.7, z = Math.sin(a) * d;
+        const h = 2.5 + rand() * 2.5;
+        addCyl(G, 0.25, 0.32, h, 6, trunk, x, h / 2, z);
+        const c = new THREE.Mesh(new THREE.IcosahedronGeometry(1.8 + rand() * 1.2, 1), leaves[k % 3]); c.position.set(x, h + 1.3, z); G.add(c);
+      }
+    }
+    // cover: hay bales and hedges, the same on both halves
+    const HALF_COVER = [[-8, 7, 2.6, 1.1], [7, 11, 1.1, 3.0], [-3, 14.5, 3.0, 1.1], [9.5, 17.5, 1.4, 1.4], [-10, 18.5, 1.4, 1.4], [3, 4.5, 1.4, 1.4], [0, 10, 1.2, 1.2]];
+    const COVER = [];
+    for (const m of [1, -1]) for (const [x, z, w, d] of HALF_COVER) COVER.push({ x0: x * m - w / 2, x1: x * m + w / 2, z0: z * m - d / 2, z1: z * m + d / 2 });
+    const hayTex = canvasTexture(128, 64, (g) => { g.fillStyle = '#d8b050'; g.fillRect(0, 0, 128, 64); for (let i = 0; i < 400; i++) { g.strokeStyle = rand() < 0.5 ? 'rgba(255,240,160,0.5)' : 'rgba(140,90,30,0.4)'; g.beginPath(); const x = rand() * 128, y = rand() * 64; g.moveTo(x, y); g.lineTo(x + 8, y + (rand() - 0.5) * 3); g.stroke(); } }).tex;
+    const hayM = new THREE.MeshLambertMaterial({ map: hayTex }), hedgeM = lam(0x3a7a30);
+    COVER.forEach((c, k) => addBox(G, c.x1 - c.x0, k % 2 ? 1.1 : 0.9, c.z1 - c.z0, k % 2 ? hedgeM : hayM, (c.x0 + c.x1) / 2, k % 2 ? 0.55 : 0.45, (c.z0 + c.z1) / 2));
+    function pushOut(x, z, r) {
+      for (const c of COVER) {
+        if (x > c.x0 - r && x < c.x1 + r && z > c.z0 - r && z < c.z1 + r) {
+          const dl = x - (c.x0 - r), dr = c.x1 + r - x, db = z - (c.z0 - r), df = c.z1 + r - z, m = Math.min(dl, dr, db, df);
+          if (m === dl) x = c.x0 - r; else if (m === dr) x = c.x1 + r; else if (m === db) z = c.z0 - r; else z = c.z1 + r;
+        }
+      }
+      return [clamp(x, -FX + r, FX - r), clamp(z, -FZ + r, FZ - r)];
+    }
+    L.pushOut = pushOut;
+    makeKiosk(L, FX - 1.2, FZ - 1.6, Math.atan2(-(FX - 1.2), -(FZ - 1.6)));
+    L.board = makeBoard(G, 720, 460, 3.2, 2.05, -FX - 1.2, 2.4, 0, Math.PI / 2);
+
+    // ---------------------------------------------------------------- the flags
+    function makeFlag(t) {
+      const g = new THREE.Group();
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.8, 8), lam(0xd8dce8)); pole.position.y = 0.9; g.add(pole);
+      const ball = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 8), lam(0xffd23f)); ball.position.y = 1.82; g.add(ball);
+      const geo = new THREE.PlaneGeometry(0.9, 0.55, 8, 1); geo.translate(0.45, 0, 0);
+      const cloth = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ color: TEAM_HEX[t], side: THREE.DoubleSide }));
+      cloth.position.y = 1.45; g.add(cloth);
+      G.add(g);
+      return { g, cloth, base: geo.attributes.position.array.slice() };
+    }
+    const flags = [makeFlag(0), makeFlag(1)];
+    for (const t of [0, 1]) {
+      addCyl(G, 0.35, 0.45, 0.25, 16, lam(0x4a4a5a), HOME[t].x, 0.125, HOME[t].z);
+      const glow = new THREE.Mesh(new THREE.CircleGeometry(PICK_R, 32), new THREE.MeshBasicMaterial({ color: TEAM_HEX[t], transparent: true, opacity: 0.25, depthWrite: false }));
+      glow.rotation.x = -Math.PI / 2; glow.position.set(HOME[t].x, 0.02, HOME[t].z); G.add(glow);
+    }
+    function waveFlag(f, now) {
+      const pos = f.cloth.geometry.attributes.position;
+      for (let i = 0; i < pos.count; i++) { const x = f.base[i * 3]; pos.setZ(i, Math.sin(now * 0.006 + x * 5) * 0.08 * x); }
+      pos.needsUpdate = true;
+    }
+
+    // ---------------------------------------------------------------- bots
+    const BOT_NAMES = ['Dash Darla', 'Sneaky Sam', 'Flag Fern', 'Tag Tony', 'Zippy Zoe', 'Rover Rex', 'Swift Sid', 'Bolt Bea'];
+    const bots = BOT_NAMES.map((name, k) => {
+      const team = k < TEAM_SIZE ? 0 : 1;
+      const g = buildAvatar(team ? '#7ab0ff' : '#ff8a7a', (k * 3 + 1) % HATS.length, k % FACES.length, true, (k * 2) % SHIRTS.length, team ? 4 : 6);
+      const tag = new THREE.Sprite(new THREE.SpriteMaterial({ map: canvasTexture(256, 64, (c) => { rr(c, 4, 6, 248, 52, 26); c.fillStyle = 'rgba(20,16,32,0.8)'; c.fill(); c.fillStyle = TEAM_STR[team]; c.font = `700 28px ${BODY}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(name, 128, 33, 230); }).tex, transparent: true, depthWrite: false }));
+      tag.scale.set(0.9, 0.225, 1); tag.position.y = 0.42; g.add(tag);
+      g.visible = false; G.add(g);
+      return { id: `bot:${k}`, k, team, name, g, active: false, x: 0, z: 0, rx: 0, rz: 0, role: 'def', downUntil: 0, patrol: rand() * 6, speed: 3.7 };
+    });
+    const isBot = (id) => typeof id === 'string' && id.startsWith('bot:');
+    const botOf = (id) => bots[Number(id.slice(4))];
+
+    // ---------------------------------------------------------------- state
+    const PH = { idle: 0, play: 1, cap: 2, over: 3 }, PH_N = ['idle', 'play', 'cap', 'over'];
+    const RS = { ph: 'idle', score: [0, 0], carrier: ['', ''], winner: -1, match: 0 };
+    const H = { phaseT: 0, evSeq: 0, events: [], immune: new Map() };
+    const me = { team: -1, tseq: 0, tTarget: '', tagCool: 0, evSeen: -1, ph: '', match: -1 };
+    L.me = me; L.ctf = { RS, H };
+    const humanList = () => {
+      const out = [];
+      if (state.mode !== 'menu' && me.team >= 0) out.push({ id: state.myPeer, team: me.team, pos: myHead.pos });
+      for (const rec of remotes.values()) {
+        if (rec.lv !== L.idx || !rec.inGame || !rec.hasH) continue;
+        const st = rec.lvState[L.id];
+        if (st && (st.team === 0 || st.team === 1)) out.push({ id: rec.peer, team: st.team, pos: rec.cur.h.pos });
+      }
+      return out;
+    };
+    const hostId = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort()[0]; };
+    const isHost = () => hostId() === state.myPeer;
+    const nameOf = (id) => (id === state.myPeer ? 'You' : isBot(id) ? botOf(id).name : (remotes.get(id) || {}).name || 'Someone');
+    const teamOf = (id) => { if (id === state.myPeer) return me.team; if (isBot(id)) return botOf(id).team; const rec = remotes.get(id), st = rec && rec.lvState[L.id]; return st && (st.team === 0 || st.team === 1) ? st.team : -1; };
+    // everyone in the game right now: id, team, where they are
+    function everyone() {
+      const out = humanList();
+      for (const b of bots) if (b.active) out.push({ id: b.id, team: b.team, pos: _a.set(b.x, 1.5, b.z).clone(), bot: b });
+      return out;
+    }
+    const carrying = (id) => RS.carrier.indexOf(id);        // which flag someone has, or -1
+
+    // ---------------------------------------------------------------- the referee (host)
+    function emit(type, a, b) {
+      // (carry on numbering from the last event we heard, in case we've just taken over as referee)
+      H.evSeq = Math.max(H.evSeq, H.events.length ? H.events[H.events.length - 1][0] : 0) + 1; H.events.push([H.evSeq, type, a || '', b === undefined ? '' : String(b)]);
+      while (H.events.length > 8) H.events.shift();
+      forcePresence();
+    }
+    function fillBots() {
+      const n = [0, 0];
+      for (const h of humanList()) n[h.team] += 1;
+      const want = [Math.max(0, TEAM_SIZE - n[0]), Math.max(0, TEAM_SIZE - n[1])];
+      for (const t of [0, 1]) {
+        const tb = bots.filter((b) => b.team === t);
+        tb.forEach((b, i) => {
+          const was = b.active;
+          b.active = i < want[t];
+          // roles: keep at least one defender; with people on the team, bots lean toward defending
+          b.role = i === 0 ? 'def' : (n[t] > 0 ? (i % 2 ? 'def' : 'att') : (i % 2 ? 'att' : 'def'));
+          b.speed = b.role === 'att' ? 3.95 : 3.7;
+          if (b.active && !was) respawnBot(b, 0);
+        });
+      }
+    }
+    function respawnBot(b, now) {
+      const home = HOME[b.team];
+      b.x = clamp((b.k % TEAM_SIZE - 1.5) * 3 + (Math.random() - 0.5), -FX + 1, FX - 1); b.z = home.z + (b.team === 0 ? 2.5 : -2.5);
+      b.rx = b.x; b.rz = b.z; b.downUntil = now + 1500;
+    }
+    function startPlay(now, full) {
+      if (full) { RS.score = [0, 0]; RS.winner = -1; RS.match += 1; }
+      RS.carrier = ['', '']; RS.ph = 'cap'; H.phaseT = now;
+      fillBots();
+      for (const b of bots) if (b.active) respawnBot(b, now);
+      emit(4, '', RS.match);                           // everyone back to base
+    }
+    function tag(id, by, now) {
+      if ((H.immune.get(id) || 0) > now) return false;
+      H.immune.set(id, now + IMMUNE_MS);
+      const f = carrying(id);
+      if (f >= 0) RS.carrier[f] = '';
+      if (isBot(id)) respawnBot(botOf(id), now);
+      emit(1, id, by);
+      return true;
+    }
+    function hostStep(now) {
+      if (RS.ph === 'idle') { if (humanList().length) startPlay(now, true); return; }
+      if (RS.ph === 'cap') { if (now - H.phaseT > 3000) { RS.ph = 'play'; forcePresence(); } return; }
+      if (RS.ph === 'over') { if (now - H.phaseT > 6000) startPlay(now, true); return; }
+      if (now - (H.fillT || 0) > 1000) { H.fillT = now; fillBots(); }
+      const all = everyone();
+      // a carrier who left drops the flag
+      for (const t of [0, 1]) if (RS.carrier[t] && !all.some((p) => p.id === RS.carrier[t])) { RS.carrier[t] = ''; forcePresence(); }
+      for (const p of all) {
+        if (p.bot && now < p.bot.downUntil) continue;
+        const enemy = 1 - p.team;
+        // grab their flag off its stand
+        if (!RS.carrier[enemy] && carrying(p.id) < 0 && Math.hypot(p.pos.x - HOME[enemy].x, p.pos.z - HOME[enemy].z) < PICK_R) { RS.carrier[enemy] = p.id; emit(2, p.id, enemy); }
+        // bring it home
+        if (RS.carrier[enemy] === p.id && Math.hypot(p.pos.x - HOME[p.team].x, p.pos.z - HOME[p.team].z) < BASE_R) {
+          RS.score[p.team] += 1; RS.carrier[enemy] = '';
+          emit(3, p.id, p.team);
+          if (RS.score[p.team] >= WIN) { RS.winner = p.team; RS.ph = 'over'; H.phaseT = now; forcePresence(); return; }
+          startPlay(now, false);
+          return;
+        }
+      }
+      // bots tag anyone from the other team who's on their half and within reach
+      for (const p of all) {
+        if (!p.bot || now < p.bot.downUntil || !ownHalf(p.team, p.pos.z)) continue;
+        for (const q of all) {
+          if (q.team === p.team || !ownHalf(p.team, q.pos.z)) continue;
+          if (Math.hypot(q.pos.x - p.pos.x, q.pos.z - p.pos.z) < BOT_TAG_R && tag(q.id, p.id, now)) break;
+        }
+      }
+      for (const b of bots) if (b.active) botStep(b, all, now);
+    }
+    // the bots: attackers go for the flag and dodge defenders; defenders guard and chase; carriers run home
+    function botStep(b, all, now) {
+      const dt = Math.min(0.05, (now - (b.lastT || now)) / 1000); b.lastT = now;
+      if (now < b.downUntil) return;
+      const enemy = 1 - b.team;
+      let tx, tz, speed = b.speed;
+      const enemies = all.filter((p) => p.team === enemy);
+      const mine = carrying(b.id);
+      if (mine >= 0) {
+        tx = HOME[b.team].x; tz = HOME[b.team].z; speed = 3.55;
+      } else if (b.role === 'att' && !RS.carrier[enemy]) {
+        tx = HOME[enemy].x; tz = HOME[enemy].z;
+      } else if (RS.carrier[b.team]) {
+        // someone has our flag: chase them (we can only tag them on our half)
+        const c = all.find((p) => p.id === RS.carrier[b.team]);
+        if (c) { tx = c.pos.x; tz = c.pos.z; } else { tx = HOME[b.team].x; tz = HOME[b.team].z; }
+      } else {
+        // defend: go for the nearest intruder near our flag, otherwise patrol round it
+        let best = null, bd = 12;
+        for (const q of enemies) { if (!ownHalf(b.team, q.pos.z)) continue; const d = Math.hypot(q.pos.x - HOME[b.team].x, q.pos.z - HOME[b.team].z); if (d < bd) { bd = d; best = q; } }
+        if (best) { tx = best.pos.x; tz = best.pos.z; }
+        else { const a = now * 0.0004 + b.patrol; tx = HOME[b.team].x + Math.cos(a) * 5; tz = HOME[b.team].z + (b.team === 0 ? -1 : 1) * (3 + Math.abs(Math.sin(a)) * 3); }
+      }
+      let dx = tx - b.x, dz = tz - b.z;
+      const d = Math.hypot(dx, dz) || 1;
+      dx /= d; dz /= d;
+      // on their half (or carrying), steer away from defenders who are close
+      if (!ownHalf(b.team, b.z) || mine >= 0) {
+        for (const q of enemies) {
+          if (!ownHalf(enemy, q.pos.z) && mine < 0) continue;
+          const ex = b.x - q.pos.x, ez = b.z - q.pos.z, ed = Math.hypot(ex, ez);
+          if (ed < 4.5 && ed > 0.01) { const w = (4.5 - ed) / 4.5 * 1.4; dx += (ex / ed) * w; dz += (ez / ed) * w; }
+        }
+        const l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l;
+      }
+      const step = Math.min(d, speed * dt);
+      const ox = b.x, oz = b.z;
+      [b.x, b.z] = pushOut(b.x + dx * step, b.z + dz * step, 0.3);
+      // stuck on a hay bale: slide sideways round it
+      if (Math.hypot(b.x - ox, b.z - oz) < step * 0.3 && step > 0.01) [b.x, b.z] = pushOut(b.x - dz * step, b.z + dx * step, 0.3);
+      b.face = Math.atan2(-(b.x - ox), -(b.z - oz)) || b.face || 0;
+    }
+
+    // ---------------------------------------------------------------- tagging (you)
+    function requestTag(id) {
+      const now = performance.now();
+      if (now < me.tagCool) return;
+      me.tagCool = now + 600;
+      if (isHost()) { if (validTag(state.myPeer, id, now)) tag(id, state.myPeer, now); }
+      else { me.tseq += 1; me.tTarget = id; forcePresence(); }
+      sfx('whoosh', 0.5);
+    }
+    function validTag(by, id, now) {
+      if (RS.ph !== 'play') return false;
+      const all = everyone(), p = all.find((x) => x.id === by), q = all.find((x) => x.id === id);
+      if (!p || !q || p.team === q.team || !ownHalf(p.team, p.pos.z) || !ownHalf(p.team, q.pos.z)) return false;
+      return Math.hypot(q.pos.x - p.pos.x, q.pos.z - p.pos.z) < HUMAN_TAG_R + 0.6;
+    }
+    const _cf = new V3(), _cp = new V3();
+    L.onUse = () => {
+      if (state.mode !== 'flat' || me.team < 0) return false;
+      camera.getWorldQuaternion(_q); camera.getWorldPosition(_cp);
+      _cf.set(0, 0, -1).applyQuaternion(_q);
+      let best = null, bestA = 0.9;
+      for (const p of everyone()) {
+        if (p.team === me.team) continue;
+        const vx = p.pos.x - _cp.x, vz = p.pos.z - _cp.z, d = Math.hypot(vx, vz);
+        if (d > HUMAN_TAG_R) continue;
+        const ang = Math.acos(clamp((vx * _cf.x + vz * _cf.z) / (d * Math.hypot(_cf.x, _cf.z) || 1), -1, 1));
+        if (ang < bestA) { bestA = ang; best = p.id; }
+      }
+      if (best) { if (!ownHalf(me.team, myHead.pos.z)) showToast('You can only tag on your own half'); else requestTag(best); }
+      return true;
+    };
+    function vrTags() {
+      if (state.mode !== 'vr' || me.team < 0 || RS.ph !== 'play' || !ownHalf(me.team, myHead.pos.z)) return;
+      for (const s of SIDES) {
+        const h = myHands[s];
+        if (!h.ok) continue;
+        for (const p of everyone()) {
+          if (p.team === me.team) continue;
+          const dxz = Math.hypot(h.pos.x - p.pos.x, h.pos.z - p.pos.z);
+          if (dxz < 0.45 && h.pos.y < p.pos.y + 0.25 && h.pos.y > p.pos.y - 1.3) { requestTag(p.id); haptic(vrHands[s], 0.7, 50); return; }
+        }
+      }
+    }
+
+    // ---------------------------------------------------------------- you
+    function toBase() {
+      if (me.team < 0) return;
+      const home = HOME[me.team], z = home.z + (me.team === 0 ? 2.6 : -2.6), x = (Math.random() - 0.5) * 6;
+      const yaw = me.team === 0 ? 0 : Math.PI;
+      if (state.mode === 'vr') { camera.getWorldQuaternion(_q); const e = new THREE.Euler().setFromQuaternion(_q, 'YXZ'); snapTurn(yaw - e.y); }
+      else { state.yaw = yaw; state.pitch = -0.05; }
+      camera.getWorldPosition(_b);
+      dolly.position.x += x - _b.x; dolly.position.z += z - _b.z;
+    }
+    function switchTeam(balance) {
+      if (me.team < 0) return;
+      if (carrying(state.myPeer) >= 0) { showToast('Not while you have the flag'); return; }
+      me.team = 1 - me.team; toBase();
+      sfx('zap', 1); showToast(balance ? `Teams balanced: you're on ${TEAM_NAMES[me.team]}` : `You're on ${TEAM_NAMES[me.team]} now`);
+      state.dirtyBoard = true; state.hudDirty = true; forcePresence();
+    }
+    L.clampPlayer = (p) => { const [x, z] = pushOut(p.x, p.z, 0.3); return [x - p.x, z - p.z]; };
+
+    // ---------------------------------------------------------------- what happened, for everyone
+    function showEvent(type, a, b) {
+      const mine = a === state.myPeer;
+      if (type === 1) {
+        if (mine) { showToast(`Tagged by ${nameOf(b)}! Back to base`); sfx('tagged', 0.9); for (const s of SIDES) haptic(vrHands[s], 0.8, 120); toBase(); }
+        else if (b === state.myPeer) { showToast(`You tagged ${nameOf(a)}!`); sfx('coin', 0.8); }
+        else { sfx('click', 0.4); }
+      } else if (type === 2) {
+        const t = Number(b);
+        if (mine) { showToast('You have the flag! Get it home'); sfx('chime', 0.9); }
+        else showToast(t === me.team ? `${nameOf(a)} took our flag!` : `${nameOf(a)} has their flag!`);
+      } else if (type === 3) {
+        const t = Number(b);
+        showToast(mine ? 'You captured the flag!' : `${TEAM_NAMES[t]} captured the flag! (${nameOf(a)})`);
+        sfx(t === me.team ? 'fanfare' : 'buzzer', 0.8);
+      } else if (type === 4) { toBase(); }
+      state.dirtyBoard = true; state.hudDirty = true;
+    }
+
+    // ---------------------------------------------------------------- per frame
+    const carriedFlag = [null, null];
+    const hudPlate = makePlate(camera, 'You have the flag!', 0.55, 0.1, new V3(0, -0.2, -0.6), 0, { bg: '#16142e', fg: '#ffd23f', size: 0.55 });
+    hudPlate.material.depthTest = false; hudPlate.renderOrder = 999; hudPlate.visible = false;
+    let statusKey = '', boardKey = '';
+    function carrierPos(id, out) {
+      if (id === state.myPeer) return out.copy(myHead.pos);
+      if (isBot(id)) { const b = botOf(id); return out.set(b.rx, 1.5, b.rz); }
+      const rec = remotes.get(id);
+      return rec && rec.hasH ? out.copy(rec.cur.h.pos) : null;
+    }
+    L.update = (dt, now) => {
+      const here = state.level === L.idx && state.mode !== 'menu';
+      if (!here) { hudPlate.visible = false; return; }
+      autoBalance(L, me, now, switchTeam);
+      if (me.team < 0) { me.team = pickTeam(L); toBase(); forcePresence(); }
+      if (isHost()) hostStep(now);
+      // events from the referee
+      for (const e of H.events) if (e[0] > me.evSeen) { if (me.evSeen >= 0) showEvent(e[1], e[2], e[3]); }
+      if (H.events.length) me.evSeen = Math.max(me.evSeen, H.events[H.events.length - 1][0]); else if (me.evSeen < 0) me.evSeen = 0;
+      vrTags();
+      // the bots
+      const k = 1 - Math.exp(-dt * (isHost() ? 30 : 10));
+      for (const b of bots) {
+        b.g.visible = b.active && RS.ph !== 'idle';
+        if (!b.g.visible) continue;
+        if (Math.hypot(b.rx - b.x, b.rz - b.z) > 6) { b.rx = b.x; b.rz = b.z; }
+        const mx = b.x - b.rx, mz = b.z - b.rz;
+        b.rx += mx * k; b.rz += mz * k;
+        const moving = Math.hypot(mx, mz) > 0.02;
+        if (moving) b.face = Math.atan2(-mx, -mz);
+        b.g.position.set(b.rx, 1.5 + (moving ? Math.abs(Math.sin(now * 0.016 + b.k)) * 0.06 : 0), b.rz);
+        b.g.rotation.y = b.face || (b.team === 0 ? 0 : Math.PI);
+      }
+      // the flags: on their stands, or on someone's back
+      for (const t of [0, 1]) {
+        const f = flags[t], c = RS.carrier[t];
+        waveFlag(f, now + t * 500);
+        if (c && carrierPos(c, _a)) { f.g.position.set(_a.x, _a.y - 1.05, _a.z); f.g.scale.setScalar(0.75); f.g.rotation.y = now * 0.002; }
+        else { f.g.position.copy(HOME[t]).setY(0.25); f.g.scale.setScalar(1); f.g.rotation.y = 0; }
+        carriedFlag[t] = c;
+      }
+      const iHave = carrying(state.myPeer) >= 0;
+      hudPlate.visible = state.mode === 'vr' && iHave;
+      if (state.mode === 'flat' && ui.status) {
+        const a = `Red ${RS.score[0]} · Blue ${RS.score[1]}`;
+        const b = RS.ph === 'cap' ? 'Get ready…' : RS.ph === 'over' ? `${TEAM_NAMES[RS.winner]} wins!` : iHave ? 'You have the flag! Get it home' : RS.carrier[me.team] ? `${nameOf(RS.carrier[me.team])} has our flag!` : !ownHalf(me.team, myHead.pos.z) ? 'Their half: don’t get tagged' : 'Your half: tag intruders (E)';
+        const key = `${a}|${b}|${me.team}`;
+        if (key !== statusKey) { statusKey = key; ui.status.hidden = false; ui.status.replaceChildren(); for (const [t, col] of [[me.team >= 0 ? TEAM_NAMES[me.team] : '', TEAM_STR[me.team]], [a, '#ffd23f'], [b, iHave ? '#8bd450' : null]]) { if (!t) continue; const s = document.createElement('span'); s.textContent = t; if (col) s.style.color = col; ui.status.append(s); } }
+      }
+      if (RS.ph !== me.ph) { if (RS.ph === 'play' && me.ph === 'cap') { sfx('whistle', 0.9); showToast('Go!'); } me.ph = RS.ph; state.dirtyBoard = true; }
+    };
+    L.drawBoard = () => {
+      const key = JSON.stringify([RS.score, RS.ph, RS.winner, me.team]);
+      if (key === boardKey) return;
+      boardKey = key;
+      const g = L.board.g, W = 720, Hd = 460;
+      g.fillStyle = '#1b2a1e'; g.fillRect(0, 0, W, Hd);
+      g.strokeStyle = '#ffd23f'; g.lineWidth = 8; g.strokeRect(4, 4, W - 8, Hd - 8);
+      g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillStyle = '#ffd23f'; g.font = `800 52px ${DISPLAY}`; g.fillText('CAPTURE THE FLAG', W / 2, 56);
+      g.font = `800 130px ${DISPLAY}`; g.fillStyle = TEAM_STR[0]; g.fillText(String(RS.score[0]), 180, 200); g.fillStyle = TEAM_STR[1]; g.fillText(String(RS.score[1]), W - 180, 200);
+      g.font = `700 30px ${BODY}`; g.fillStyle = TEAM_STR[0]; g.fillText('RED', 180, 290); g.fillStyle = TEAM_STR[1]; g.fillText('BLUE', W - 180, 290);
+      g.fillStyle = '#d8e4d8'; g.font = `400 24px ${BODY}`;
+      g.fillText(`First to ${WIN}. Grab their flag, bring it home.`, W / 2, 360);
+      g.fillText('Tag them on your half: they go back to base.', W / 2, 400);
+      L.board.tex.needsUpdate = true;
+    };
+    L.rowFor = (st, isMe) => { const t = isMe ? me.team : st.team; const id = isMe ? state.myPeer : st.peer; return { team: t, text: `${t >= 0 ? TEAM_NAMES[t] : ''}${id && carrying(id) >= 0 ? ' \u{1F6A9}' : ''}`, color: TEAM_STR[t] }; };
+    L.sortRows = (a, b) => a.team - b.team;
+    L.hudActions = [{ label: () => 'Switch team', run: () => switchTeam() }];
+    L.hints = [['Thumbstick', 'run'], ['Touch', 'tag someone on your half'], ['Their stand', 'walk in to grab the flag']];
+    L.hintsFor = () => (state.mode === 'flat' ? [['WASD', 'run (Shift sprints)'], ['E', 'tag someone on your half'], ['Their stand', 'walk in to grab the flag']] : L.hints);
+
+    // ---------------------------------------------------------------- network
+    L.presence = () => {
+      const p = { fq: [me.team, me.tseq, me.tTarget] };
+      if (isHost()) {
+        p.fh = [PH[RS.ph], RS.score[0], RS.score[1], RS.winner, RS.match];
+        p.ff = RS.carrier.slice();
+        p.fb = bots.map((b) => [b.active ? 1 : 0, Math.round(b.x * 10), Math.round(b.z * 10)]);
+        p.fe = H.events.slice();
+      }
+      return p;
+    };
+    L.readPresence = (rec, pres, st) => {
+      st.peer = rec.peer;
+      const q = pres.fq;
+      if (Array.isArray(q) && q.length === 3 && (q[0] === 0 || q[0] === 1 || q[0] === -1) && Number.isInteger(q[1]) && typeof q[2] === 'string') {
+        st.team = q[0];
+        if (isHost() && q[1] > (st.tseq || 0)) { if (st.tInit) { const now = performance.now(); if (validTag(rec.peer, q[2], now)) tag(q[2], rec.peer, now); } st.tseq = q[1]; }
+        st.tInit = true;
+      }
+      if (rec.peer !== hostId() || isHost()) return;
+      const h = pres.fh, f = pres.ff, fb = pres.fb, fe = pres.fe;
+      if (Array.isArray(h) && h.length === 5 && h.every(Number.isInteger)) Object.assign(RS, { ph: PH_N[clamp(h[0], 0, 3)], score: [h[1], h[2]], winner: h[3], match: h[4] });
+      if (Array.isArray(f) && f.length === 2 && f.every((x) => typeof x === 'string' && x.length < 64)) RS.carrier = f.slice();
+      if (Array.isArray(fb) && fb.length === bots.length) fb.forEach((x, k) => { if (Array.isArray(x) && x.length === 3 && x.every(Number.isFinite)) { const b = bots[k]; if (!b.active && x[0]) { b.rx = x[1] / 10; b.rz = x[2] / 10; } b.active = x[0] === 1; b.x = x[1] / 10; b.z = x[2] / 10; } });
+      if (Array.isArray(fe)) {
+        const ok = fe.filter((e) => Array.isArray(e) && e.length === 4 && Number.isInteger(e[0]) && Number.isInteger(e[1]) && typeof e[2] === 'string' && typeof e[3] === 'string');
+        if (me.evSeen < 0 && ok.length) me.evSeen = ok[ok.length - 1][0];      // arriving: don't replay old news
+        H.events = ok;
+      }
+    };
+    L.spawn = () => { if (me.team < 0) me.team = pickTeam(L); toBase(); };
+    L.onEnter = () => {
+      me.team = pickTeam(L); me.evSeen = -1; me.ph = ''; L.enteredAt = performance.now(); statusKey = ''; boardKey = ''; state.dirtyBoard = true;
+      if (isHost()) { RS.ph = 'idle'; H.events = []; }
+      toBase(); forcePresence();
+    };
+    L.onExit = () => { hudPlate.visible = false; if (ui.status) ui.status.hidden = true; statusKey = ''; for (const b of bots) b.g.visible = false; };
+    L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.00008) * 0.5; camera.position.set(Math.sin(a) * 16 + 10, 9, 18); camera.lookAt(0, 0, 0); };
+    L.ctfInternals = { RS, H, me, bots, HOME, COVER, hostStep, tag, validTag, everyone, isHost, startPlay, pushOut, requestTag, ownHalf };
+    return L;
+  })();
   // ---------------------------------------------------------------- VR controllers
   const myHandMat = new THREE.MeshLambertMaterial({ color: PLAYER_COLORS[state.colorIdx].hex });
   function newHand(side) {
@@ -19672,7 +20599,7 @@ kbd {
   baseball.lockWhileHolding = true;
   discgolf.walkSpeed = 3.4;
   // the places where a little hop is on (J in a browser)
-  for (const id of ['hoops', 'baseball', 'lasertag', 'hub', 'hideseek', 'paintball', 'dodgeball']) { const Lv = LEVELS.find((l) => l && l.id === id); if (Lv) Lv.canHop = true; }
+  for (const id of ['hoops', 'baseball', 'lasertag', 'hub', 'hideseek', 'paintball', 'dodgeball', 'ctf']) { const Lv = LEVELS.find((l) => l && l.id === id); if (Lv) Lv.canHop = true; }
   curLevel().group.visible = true;
   applyEnv(curLevel().env);
 

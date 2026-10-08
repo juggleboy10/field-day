@@ -14,6 +14,7 @@
     Bbmaj7: [46, 57, 62, 65, 69], Ebmaj7: [39, 55, 58, 62, 65], Cm9: [36, 55, 58, 62, 63], Bb6: [46, 55, 58, 62, 65], Abmaj7: [44, 55, 60, 63, 67], Fm9: [41, 56, 60, 63, 67], G7sus: [43, 53, 58, 60, 65],
     Cmaj9: [36, 55, 59, 62, 64], B7sus: [47, 57, 59, 64, 66], E7: [40, 56, 59, 62, 68], Ebdim: [39, 54, 57, 60, 63],
     G: [43, 55, 59, 62, 67], 'C7': [36, 52, 55, 58, 64], 'A7': [45, 55, 61, 64, 67], D7: [38, 54, 57, 60, 66], D: [38, 54, 57, 62, 66], A: [45, 57, 61, 64, 69], Bm: [35, 54, 59, 62, 66], 'F#m': [42, 57, 61, 66, 69], E: [40, 56, 59, 64, 68],
+    Em: [40, 55, 59, 64, 67],
   };
   // ---------------------------------------------------------------- songs: public-domain tunes, played by our own synths
   // A melody is note names with lengths in sixteenths ("C5:4 R:2 ..."); every song's melody fills its chords exactly.
@@ -108,6 +109,8 @@
     dodgeball: { gain: 0.9, bpm: 132, swing: 0.05, chords: ['C', 'Am', 'F', 'G'], comp: { inst: 'guitar', at: [0, 3, 6, 10, 12], dur: 0.25 }, bass: { at: [0, 4, 8, 12] }, drums: { k: 'x...x...x...x.x.', s: '....x.......x...', h: 'x-x-x-x-x-x-x-x-' }, lead: { inst: 'marimba', p: 0.35, up: 12 }, cut: 5200, crackle: 0.1 },
     potato: { gain: 0.9, bpm: 116, swing: 0.12, chords: ['G', 'C', 'D', 'G'], comp: { inst: 'guitar', at: [0, 4, 8, 12], dur: 0.2 }, lead: { inst: 'pizz', p: 0.3, up: 12 }, bass: { at: [0, 6, 8, 14] }, drums: { k: 'x.......x.......', s: '....x.......x...', sh: '-.-.-.-.-.-.-.-.' }, cut: 4400, crackle: 0.6 },
     kayak: { gain: 0.9, bpm: 104, swing: 0.06, chords: ['D', 'Bm', 'G', 'A'], comp: { inst: 'guitar', at: [0, 3, 6, 10, 12], dur: 0.25 }, arp: { inst: 'pluck', every: 2, order: [1, 2, 3, 4, 3, 2, 1, 2] }, bass: { at: [0, 6, 8, 14] }, drums: { k: 'x.....x...x.....', s: '....x.......x...', h: '-.x.-.x.-.x.-.x.' }, lead: { inst: 'marimba', p: 0.2, up: 12 }, cut: 4800, crackle: 0.3 },
+    cornhole: { gain: 0.9, bpm: 98, swing: 0.14, chords: ['G', 'Em', 'C', 'D'], comp: { inst: 'guitar', at: [0, 3, 6, 10, 12], dur: 0.3 }, lead: { inst: 'ep', p: 0.16, up: 12 }, bass: { at: [0, 8, 11] }, drums: { k: 'o.......o.o.....', s: '....x.......x...', sh: '-.-.-.-.-.-.-.-.' }, cut: 4200, crackle: 0.6 },
+    ctf: { gain: 0.9, bpm: 128, swing: 0.04, chords: ['Am', 'F', 'C', 'G'], comp: { inst: 'guitar', at: [0, 3, 6, 10, 12], dur: 0.22 }, bass: { at: [0, 3, 6, 8, 11, 14] }, drums: { k: 'x...x...x...x...', s: '....x.......x...', h: 'x-x-x-x-x-x-x-x-' }, lead: { inst: 'synth', p: 0.18, up: 0 }, cut: 5000, crackle: 0.2 },
     parkour: { gain: 0.9, bpm: 126, swing: 0.04, chords: ['Am', 'F', 'C', 'G'], comp: { inst: 'guitar', at: [0, 3, 6, 10, 12], dur: 0.25 }, arp: { inst: 'pluck', every: 2, order: [1, 2, 3, 2, 4, 3, 2, 3] }, bass: { at: [0, 3, 6, 8, 11, 14] }, drums: { k: 'x...x...x...x...', s: '....x.......x...', h: 'x-x-x-x-x-x-x-x-' }, lead: { inst: 'marimba', p: 0.3, up: 12 }, cut: 5200, crackle: 0.15 },
     pickleball: { gain: 0.9, bpm: 92, swing: 0.16, chords: ['Cmaj7', 'Am7', 'Dm7', 'G7'], comp: { inst: 'guitar', at: [0, 6, 10], dur: 0.3 }, lead: { inst: 'marimba', p: 0.2, up: 12 }, bass: { at: [0, 8, 11] }, drums: { k: 'o.......o.o.....', s: '....x.......x...', h: 'x.x.x.x.x.x.x.x.' }, cut: 4600, crackle: 0.5 },
     charades: { gain: 0.9, bpm: 96, swing: 0.22, chords: ['Fmaj7', 'Dm7', 'G7', 'Cmaj7'], comp: { inst: 'ep', at: [2, 7, 14], dur: 0.4 }, lead: { inst: 'vibes', p: 0.18, up: 12 }, bass: { walk: true }, drums: { r: 'x.-ox.-ox.-ox.-o', b: '....o.......o...', k: 'o.......o.......' }, cut: 3600, crackle: 0.9 },
@@ -308,8 +311,8 @@
       const BS = T.barSteps || 16, pos = T.melody ? MUSIC.step % T.melody.len : MUSIC.step;
       const s = pos % BS, bar = Math.floor(pos / BS);
       const t = MUSIC.nextT + (s % 2 ? (T.swing || 0) * STEP : 0);
-      const chord = CH[T.chords[bar % T.chords.length]];
-      const nextChord = CH[T.chords[(bar + 1) % T.chords.length]];
+      const chord = CH[T.chords[bar % T.chords.length]] || CH.C;          // (an unknown chord name plays C rather than stopping the music)
+      const nextChord = CH[T.chords[(bar + 1) % T.chords.length]] || CH.C;
       // drums
       for (const [kind, pat] of Object.entries(T.drums || {})) { const v = P(pat)[s]; if (v) drum(c, d, t, kind, v * (0.85 + mrand() * 0.3)); }
       // bass: set hits, or a walking line on the beats

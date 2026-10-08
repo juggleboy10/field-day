@@ -517,17 +517,19 @@
     { id: 'dodgeball', name: 'Gym Class Dodgeball', short: 'Dodgeball', glyph: '\u{1F534}', blurb: 'Red against blue in a school gym. Hit them, catch to bring a teammate back. Friends or bots.' },
     { id: 'potato', name: 'Harvest Hot Potato', short: 'Hot potato', glyph: '\u{1F954}', blurb: 'Pass the ticking potato before it pops. Last one standing wins. Friends or bots.' },
     { id: 'kayak', name: 'Whitewater Rapids', short: 'Kayak', glyph: '\u{1F6F6}', blurb: 'A kayak race down a river: paddle, dodge the rocks, ride the drops. In VR you paddle for real.' },
+    { id: 'cornhole', name: 'Lakeside Cornhole', short: 'Cornhole', glyph: '\u{1F33D}', blurb: 'Toss bean bags at the board: 1 on it, 3 through the hole. First to 21. A friend or Corny Carl.' },
+    { id: 'ctf', name: 'Capture the Flag', short: 'Flag', glyph: '\u{1F6A9}', blurb: 'Red against blue in a park: grab their flag, get it home, tag raiders on your half. Friends or bots.' },
   ];
-  const KIOSK_COLORS = [0xf5821f, 0xe8e4d8, 0x8bd450, 0xb388ff, 0xff4d6a, 0x2ec4b6, 0x3fbf7f, 0xff9ad0, 0xffd27a, 0x4fc3f7, 0x4a8aff, 0xb06aff, 0xffb36b, 0xff9ad0, 0x8bd450, 0xd8f43a, 0xff7a3a, 0xe5453a, 0xe8a040, 0x2ec4d8];
+  const KIOSK_COLORS = [0xf5821f, 0xe8e4d8, 0x8bd450, 0xb388ff, 0xff4d6a, 0x2ec4b6, 0x3fbf7f, 0xff9ad0, 0xffd27a, 0x4fc3f7, 0x4a8aff, 0xb06aff, 0xffb36b, 0xff9ad0, 0x8bd450, 0xd8f43a, 0xff7a3a, 0xe5453a, 0xe8a040, 0x2ec4d8, 0xf2c14e, 0xd84a3a];
   const LEVEL_CATS = [
     { id: 'ball', name: 'Ball sports', glyph: '\u26BD', games: [0, 1, 5, 15] },
-    { id: 'battle', name: 'Team battles', glyph: '\u{1F3AF}', games: [14, 4, 17] },
-    { id: 'lanes', name: 'Golf and lanes', glyph: '\u26F3', games: [2, 6, 7] },
+    { id: 'battle', name: 'Team battles', glyph: '\u{1F3AF}', games: [14, 4, 17, 21] },
+    { id: 'lanes', name: 'Golf and lanes', glyph: '\u26F3', games: [2, 6, 7, 20] },
     { id: 'adv', name: 'Adventures', glyph: '\u{1F5E1}\uFE0F', games: [3, 10, 11] },
     { id: 'race', name: 'Racing and parkour', glyph: '\u{1F3C1}', games: [9, 16, 19] },
     { id: 'party', name: 'Party games', glyph: '\u{1F389}', games: [13, 12, 18] },
   ];
-  const PICKER_ORDER = [8, 19, 18, 17, 16, 15, 14, 13, 12, 3, 10, 11, 0, 1, 2, 4, 5, 6, 7, 9];
+  const PICKER_ORDER = [8, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 3, 10, 11, 0, 1, 2, 4, 5, 6, 7, 9];
   function makeKiosk(L, x, z, yaw) {
     const fx = Math.sin(yaw), fz = Math.cos(yaw);   // direction the kiosk faces
     const rx = Math.cos(yaw), rz = -Math.sin(yaw);  // its right-hand side

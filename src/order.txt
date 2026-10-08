@@ -42,6 +42,8 @@ js/games/parkour.js
 js/games/dodgeball.js
 js/games/hotpotato.js
 js/games/kayak.js
+js/games/cornhole.js
+js/games/ctf.js
 js/app/vr-controls.js
 js/app/flat-controls.js
 js/app/modes.js

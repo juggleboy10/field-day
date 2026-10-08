@@ -214,7 +214,7 @@
         else { a.pos.addScaledVector(_n, -overlap / 2); b.pos.addScaledVector(_n, overlap / 2); }
         const rv = (b.vel.x - a.vel.x) * _n.x + (b.vel.y - a.vel.y) * _n.y + (b.vel.z - a.vel.z) * _n.z;
         if (rv < 0) {
-          const e = 0.8;
+          const e = L.bodyBounce !== undefined ? L.bodyBounce : 0.8;      // bean bags barely bounce off each other
           if (aFixed) b.vel.addScaledVector(_n, -(1 + e) * rv);
           else if (bFixed) a.vel.addScaledVector(_n, (1 + e) * rv);
           else {

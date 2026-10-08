@@ -1,4 +1,4 @@
-"""Two players on one machine: two pages joined through a stand-in for Claude's room (a BroadcastChannel),
+"""Two players on one machine (hot potato, kayak, cornhole, capture the flag): two pages joined through a stand-in for Claude's room (a BroadcastChannel),
 served over http so they share an origin.
 
 - Hot potato: both players end up in the same round on the same spots; whoever isn't hosting can still throw
@@ -147,6 +147,54 @@ def main():
             sa = pages["pA"].evaluate("() => window.__fd.LEVELS[19].race.state")
             sb = pages["pB"].evaluate("() => window.__fd.LEVELS[19].race.state")
             checks.append(("the race starts on both pages", sa == "run" and sb == "run"))
+
+            # ---------------------------------------------------------------- cornhole: two people, turns alternate
+            for pg in pages.values():
+                pg.keyboard.press("Escape")
+                pg.evaluate("() => window.__fd.switchLevel(20)")
+                pg.locator("#btn-flat").click()
+            CH = "() => { const I = window.__fd.LEVELS[20].cornholeInternals, RS = I.RS; return { round: RS.round, ph: RS.ph, turn: RS.turn, players: RS.players.join(','), mine: I.myTurn(), held: !!window.__fd.state.held }; }"
+            t_end = time.time() + 400
+            b_throws, tallied, both_play = 0, False, False
+            while time.time() < t_end and not tallied:
+                for who, pg in pages.items():
+                    s = pg.evaluate(CH)
+                    if "pA" in s["players"] and "pB" in s["players"]:
+                        both_play = True
+                    if both_play and (s["ph"] == "tally" or s["round"] >= 2):
+                        tallied = True
+                    if s["mine"] and not s["held"]:
+                        pg.keyboard.press("KeyE"); pg.wait_for_timeout(250)
+                        if pg.evaluate(CH)["held"]:
+                            pg.keyboard.down("Space"); pg.wait_for_timeout(600); pg.keyboard.up("Space")
+                            if who == "pB": b_throws += 1
+                time.sleep(0.2)
+            print(f"cornhole: both playing {both_play}, pB threw {b_throws} times, a round was tallied: {tallied}")
+            checks += [("two people play cornhole against each other", both_play),
+                       ("the non-host's throws move the game on", b_throws >= 3 and tallied)]
+
+            # ---------------------------------------------------------------- capture the flag: the referee accepts the non-host's tag
+            for pg in pages.values():
+                pg.keyboard.press("Escape")
+                pg.evaluate("() => window.__fd.switchLevel(21)")
+                pg.locator("#btn-flat").click()
+            pages["pA"].wait_for_function("() => window.__fd.LEVELS[21].ctfInternals.RS.ph === 'play'", timeout=40000)
+            tb = pages["pB"].evaluate("() => window.__fd.LEVELS[21].ctfInternals.me.team")
+            ta = pages["pA"].evaluate("() => window.__fd.LEVELS[21].ctfInternals.me.team")
+            sgn = 1 if tb == 0 else -1
+            # pB stands on its own half; the referee (pA) puts an enemy bot right beside pB, frozen
+            pages["pB"].evaluate(f"() => {{ const fd = window.__fd, v = new THREE.Vector3(); fd.camera.getWorldPosition(v); fd.dolly.position.x += 5 - v.x; fd.dolly.position.z += {sgn} * 6 - v.z; }}")
+            time.sleep(1.5)
+            bot = pages["pA"].evaluate(f"""() => {{ const I = window.__fd.LEVELS[21].ctfInternals, b = I.bots.find((x) => x.active && x.team !== {tb});
+              for (const x of I.bots) if (x.active) x.downUntil = performance.now() + 8000;
+              b.x = 5.5; b.z = {sgn} * 6; I.H.immune.clear(); return b.id; }}""")
+            time.sleep(1.0)
+            pages["pB"].evaluate(f"() => {{ const I = window.__fd.LEVELS[21].ctfInternals; I.me.tagCool = 0; I.requestTag('{bot}'); }}")
+            time.sleep(1.5)
+            evs = pages["pA"].evaluate("() => window.__fd.LEVELS[21].ctfInternals.H.events.map((e) => [e[1], e[2], e[3]])")
+            print(f"flag: teams pA {ta}, pB {tb}; referee's events: {evs[-3:]}")
+            checks.append(("the referee accepts the non-host's tag", any(e[0] == 1 and e[1] == bot and e[2] == "pB" for e in evs)))
+            checks.append(("the two players are put on different teams", ta != tb))
             for name, good in checks:
                 print(f"{'ok  ' if good else 'FAIL'}  {name}")
                 ok &= bool(good)

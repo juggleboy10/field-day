@@ -4,7 +4,7 @@
   baseball.lockWhileHolding = true;
   discgolf.walkSpeed = 3.4;
   // the places where a little hop is on (J in a browser)
-  for (const id of ['hoops', 'baseball', 'lasertag', 'hub', 'hideseek', 'paintball', 'dodgeball']) { const Lv = LEVELS.find((l) => l && l.id === id); if (Lv) Lv.canHop = true; }
+  for (const id of ['hoops', 'baseball', 'lasertag', 'hub', 'hideseek', 'paintball', 'dodgeball', 'ctf']) { const Lv = LEVELS.find((l) => l && l.id === id); if (Lv) Lv.canHop = true; }
   curLevel().group.visible = true;
   applyEnv(curLevel().env);
 
