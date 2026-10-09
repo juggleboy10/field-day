@@ -228,7 +228,7 @@
     const wrist = canvasTexture(256, 96);
     const wristMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.13, 0.049), new THREE.MeshBasicMaterial({ map: wrist.tex, transparent: true, depthWrite: false }));
     wristMesh.visible = false;
-    scene.add(wristMesh);
+    L.overlay.add(wristMesh);
     let wristText = '';
     function drawWrist() {
       const s = L.stats;

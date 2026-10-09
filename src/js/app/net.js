@@ -27,6 +27,7 @@
     }
     Object.assign(p, L.presence());
     if (L.picker) p.pc = [L.picker.n, L.picker.t];
+    if (L.sitOut) p.so = L.sitOut.on ? 1 : 0;
     return p;
   }
   function netTick(now) {
@@ -93,6 +94,7 @@
     const L = curLevel();
     const st = rec.lvState[L.id] || (rec.lvState[L.id] = {});
     if (L.picker && pres.pc) L.picker.merge(pres.pc);
+    if (L.sitOut) { if (pres.so === 1 !== !!st.sitOut) state.dirtyBoard = true; st.sitOut = pres.so === 1; }
     L.readPresence(rec, pres, st);
     if (Array.isArray(pres.b)) for (const c of pres.b.slice(0, L.bodies.length)) applyClaim(peer.peer, c, L);
     if (Array.isArray(pres.t)) for (const c of pres.t.slice(0, L.tools.length)) applyToolClaim(peer.peer, c, L);

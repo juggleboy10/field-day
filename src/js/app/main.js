@@ -29,8 +29,10 @@
     }
     updateRemotes(dt);
     updateBodies(L, dt, now);
+    for (const Lv of LEVELS) if (Lv && Lv.overlay) Lv.overlay.visible = Lv === L && state.mode !== 'menu';
     L.update(dt, now);
     if (L.picker) L.picker.tick();
+    if (L.sitOut) L.sitOut.tick(dt);
     updateButtons(L, now);
     updateFloats(now);
     updateUi(now);

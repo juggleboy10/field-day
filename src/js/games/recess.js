@@ -604,11 +604,12 @@
       const rim = new THREE.Mesh(new THREE.TorusGeometry(TS.CR, 0.03, 8, 24), rimM); rim.rotation.x = Math.PI / 2; rim.position.set(TS.can.x, TS.CH, TS.can.z); G.add(rim);
       solid(TS.can.x - TS.CR, TS.can.x + TS.CR, 0, TS.CH, TS.can.z - TS.CR, TS.can.z + TS.CR, null);
       // the ball basket by the line
-      addCyl(G, 0.3, 0.26, 0.5, 14, lam(0xb86a3a), 1.7, 0.25, TS.line + 1.0);
+      addCyl(G, 0.06, 0.09, 0.92, 10, lam(0xb86a3a), 1.7, 0.46, TS.line + 1.0);
+      const cup = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.025, 8, 18), lam(0xffd23f)); cup.rotation.x = Math.PI / 2; cup.position.set(1.7, 0.94, TS.line + 1.0); G.add(cup);
     }
     const ballM = new THREE.Mesh(new THREE.SphereGeometry(TS.R, 16, 12), new THREE.MeshLambertMaterial({ map: canvasTexture(64, 32, (g) => { g.fillStyle = '#e8453c'; g.fillRect(0, 0, 64, 32); g.fillStyle = '#ffd23f'; g.fillRect(0, 13, 64, 6); }).tex }));
     G.add(ballM);
-    const RACK = new V3(1.7, 0.5 + TS.R, TS.line + 1.0);
+    const RACK = new V3(1.7, 0.94 + TS.R * 0.6, TS.line + 1.0);
     const TB = { st: 'rack', pos: RACK.clone(), vel: new V3(), bounces: 0, t: 0, hand: null, done: false, prevY: 0 };
     function ballToRack() { TB.st = 'rack'; TB.pos.copy(RACK); TB.vel.set(0, 0, 0); TB.bounces = 0; TB.hand = null; }
     // the browser throw: a lob aimed at the can (if you're roughly facing it), as hard as the charge says
@@ -777,7 +778,7 @@
     // ---------------------------------------------------------------- holding: the ball and the bottle
     // In a browser you pick them up just by walking up (the ball behind the line, the bottle at the table), and
     // hold Space for power. In VR you grip them and throw (or flip with a flick of the wrist) for real.
-    const STN = { charge: 0, holding: '', qPrev: [new Q4(), new Q4()], spin: [0, 0], marker: null };
+    const STN = { charge: 0, holding: '', qPrev: [new Q4(), new Q4()], spin: [0, 0], marker: null, prevGrip: [false, false], prevTrig: [false, false], btn: 1 };
     const inTrick = (bx, bz) => !TB.done && bz > TS.line && bz < TS.line + 2.4;
     const atTable = (bx, bz) => !BT.done && bz > BF.table + BF.half[1] - 0.1 && bz < BF.table + BF.half[1] + 1.4 && Math.abs(bx) < BF.half[0] + 0.6;
     const _hp2 = new V3(), _hv2 = new V3();
@@ -807,19 +808,28 @@
         }
         return true;     // (Space charges instead of jumping while you hold something)
       }
-      // VR: grip near the ball or bottle to pick it up; let go to throw
+      // VR: standing in the trick-shot or flip area, squeeze grip or trigger and it's in that hand (or reach for
+      // it anywhere it's lying); let go of that button to throw
       let busy = false;
+      const [hx, hz] = bodyXZ();
       for (let si = 0; si < 2; si++) {
         const side = SIDES[si], mh = myHands[side], gp = vrHands[side].source && vrHands[side].source.gamepad;
-        const grip = !!(gp && gp.buttons && gp.buttons[1] && gp.buttons[1].pressed);
+        const btnDown = (i) => !!(gp && gp.buttons && gp.buttons[i] && gp.buttons[i].pressed);
+        const gripNow = btnDown(1), trigNow = btnDown(0);
+        const pressed = (gripNow && !STN.prevGrip[si]) ? 1 : (trigNow && !STN.prevTrig[si]) ? 0 : -1;
+        STN.prevGrip[si] = gripNow; STN.prevTrig[si] = trigNow;
         if (!mh.ok) continue;
+        const grip = STN.holding && STN.hand === side ? btnDown(STN.btn) : gripNow || trigNow;
         // how fast the hand is turning (for the bottle's spin)
         const dq = Math.abs(STN.qPrev[si].dot(mh.quat));
         const ang = 2 * Math.acos(Math.min(1, dq)) / Math.max(dt, 1e-3);
         STN.spin[si] = STN.spin[si] * 0.6 + ang * 0.4; STN.qPrev[si].copy(mh.quat);
-        if (grip && !STN.holding) {
-          if ((TB.st === 'rack' || (TB.st === 'fly' && TB.pos.y < 0.3)) && !TB.done && mh.pos.distanceTo(TB.pos) < 0.22) { STN.holding = 'ball'; STN.hand = side; TB.st = 'held'; haptic(vrHands[side], 0.4, 30); }
-          else if ((BT.st === 'table' || BT.st === 'fallen') && !BT.done && mh.pos.distanceTo(BT.pos) < 0.2) { STN.holding = 'bottle'; STN.hand = side; BT.st = 'held'; haptic(vrHands[side], 0.4, 30); }
+        if (pressed >= 0 && !STN.holding) {
+          const ballFree = !TB.done && (TB.st === 'rack' || (TB.st === 'fly' && TB.pos.y < 0.3));
+          const bottleFree = !BT.done && (BT.st === 'table' || BT.st === 'fallen');
+          const take = (what) => { STN.holding = what; STN.hand = side; STN.btn = pressed === 1 ? 1 : 0; if (what === 'ball') TB.st = 'held'; else BT.st = 'held'; haptic(vrHands[side], 0.4, 30); sfx('click', 0.5); };
+          if (ballFree && (inTrick(hx, hz) || mh.pos.distanceTo(TB.pos) < 0.35)) take('ball');
+          else if (bottleFree && (atTable(hx, hz) || mh.pos.distanceTo(BT.pos) < 0.3)) take('bottle');
         }
         if (STN.holding && STN.hand === side) {
           busy = true;
@@ -1010,8 +1020,8 @@
       else if (P.hang) parts.push('W to swing along');
       else if (P.inPit) parts.push('Wading');
       else if (P.slow < 0.5 && bz < Z.tire[0]) parts.push('Muddy! Step in the tires');
-      else if (inTrick(0, bz)) parts.push(state.mode === 'vr' ? 'Grab the ball: one bounce, then in the can' : 'One bounce into the can: hold Space for power');
-      else if (atTable(0, bz)) parts.push(state.mode === 'vr' ? 'Grab the bottle and flip it onto the table' : 'Flip it onto the table: hold Space for power');
+      else if (inTrick(0, bz)) parts.push(state.mode === 'vr' ? 'Squeeze to take the ball, throw: one bounce, then in' : 'One bounce into the can: hold Space for power');
+      else if (atTable(0, bz)) parts.push(state.mode === 'vr' ? 'Squeeze to take the bottle, flip it onto the table' : 'Flip it onto the table: hold Space for power');
       else if (!DDS.done && Math.abs(bz - DD.c.z) < 2.2) parts.push(`Double dutch ${DDS.clears} / ${DD.need}: jump as each rope comes under you`);
       return parts.join('  ·  ') || 'Recess Rush';
     }

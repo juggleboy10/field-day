@@ -253,9 +253,10 @@
     const RS = { game: 0, ph: 'idle', qn: 0, qi: -1, perm: [0, 1, 2, 3], left: 0, order: [], scores: [], choices: [], gains: [] };
     const H = { phaseT: 0, ans: new Map(), plan: [], allT: 0, mine: false, recent: [] };
     const me = { choice: -1, ms: 0, key: '', wins: 0, ph: '', phKey: '', synced: false, heardHost: false, tickS: -1, seat: -1, finalSeen: -1 };
+    const SIT = makeSitOut(L, { outMsg: 'Sitting out: walk about as you like, and your podium frees up at the next question. Join in to play again', inMsg: 'You’ll get a podium at the next question' });
     const humans = () => {
-      const ids = state.mode !== 'menu' ? [state.myPeer] : [];
-      for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer);
+      const ids = state.mode !== 'menu' && !SIT.on ? [state.myPeer] : [];
+      for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame && !SIT.out(rec)) ids.push(rec.peer);
       return ids.sort();
     };
     const hostId = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort()[0]; };
@@ -377,7 +378,7 @@
 
     // ---------------------------------------------------------------- answering
     const mySeat = () => seatOfK(kOf(state.myPeer));
-    const canAnswer = () => RS.ph === 'ask' && kOf(state.myPeer) >= 0 && me.choice < 0 && RS.left > 0;
+    const canAnswer = () => !SIT.on && RS.ph === 'ask' && kOf(state.myPeer) >= 0 && me.choice < 0 && RS.left > 0;
     function answer(slot) {
       if (!canAnswer() || !(slot >= 0 && slot < 4)) return false;
       me.choice = slot; me.ms = Math.round(clamp(T.ASK - RS.left, 0, T.ASK));
@@ -447,7 +448,7 @@
       const B = L.bounds;
       let x = clamp(p.x, B.minX + 0.4, B.maxX - 0.4), z = clamp(p.z, B.minZ + 0.4, B.maxZ - 0.4);
       const s = mySeat();
-      if (s >= 0 && RS.ph !== 'idle') {
+      if (s >= 0 && RS.ph !== 'idle' && !SIT.on) {
         // stay at your podium
         const sp = spotOf(seatAt(s), _a), dx = x - sp.x, dz = z - sp.z, d = Math.hypot(dx, dz);
         if (d > 0.45) { x = sp.x + dx * 0.45 / d; z = sp.z + dz * 0.45 / d; }

@@ -470,7 +470,7 @@
     }
     const cardBackTex = canvasTexture(256, 160, (g) => { g.fillStyle = '#c23b4a'; g.fillRect(0, 0, 256, 160); g.fillStyle = '#ffd23f'; g.font = `800 90px ${DISPLAY}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('?', 128, 84); }).tex;
     const myCard = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 0.125), new THREE.MeshBasicMaterial({ map: cardFace.tex, side: THREE.DoubleSide }));
-    myCard.visible = false; scene.add(myCard);
+    myCard.visible = false; L.overlay.add(myCard);
     const otherCard = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 0.125), new THREE.MeshBasicMaterial({ map: cardBackTex, side: THREE.DoubleSide }));
     otherCard.visible = false; G.add(otherCard);
 

@@ -153,6 +153,70 @@ def main():
           return c.balls.slice(0, 3).map((b) => ({ z: +b.pos.z.toFixed(2), y: +b.pos.y.toFixed(2), x: +(b.pos.x - c.x).toFixed(2) })); }""")
         print("pop-a-shot balls dropped by the hoop end up at:", ramp)
         checks.append(("pop-a-shot: the ramp rolls balls back into the tray", all(16.0 < b["z"] < 16.55 and abs(b["y"] - 0.968) < 0.03 and abs(b["x"]) < 0.72 for b in ramp)))
+        # ---------------------------------------------------------------- laser tag: bigger, start game, scoreboards, jump; its gun stays in laser tag
+        page.evaluate("() => window.__fd.switchLevel(4)")
+        page.wait_for_timeout(1500)
+        lt = page.evaluate("""() => { const fd = window.__fd, L = fd.LEVELS[4], I = L.ltInternals, now = performance.now();
+          const r0 = I.me.round; fd.dolly.position.set(0, 0, 0); L.startGame();
+          const base = I.me.team === 0 ? I.BASE_Z : -I.BASE_Z, c = L.clampPlayer({ x: 0, z: 0 });
+          const n0 = I.beams.length; I.me.cool = 0; I.fire(performance.now());
+          const boards = L.group.children.filter((m) => m.isMesh && m.geometry.type === 'PlaneGeometry' && m.geometry.parameters.width === 8).length;
+          return { w: I.AR.maxX - I.AR.minX, d: I.AR.maxZ - I.AR.minZ, round: I.me.round - r0, counting: I.counting(performance.now()), atBase: Math.abs(fd.dolly.position.z - base) < 2,
+                   held: Math.abs(c[1]) > 5, firedInCount: I.beams.length > n0, boards, vrHop: !!L.vrHop, label: L.hudActions[0].label() }; }""")
+        page.wait_for_timeout(3600)
+        lt2 = page.evaluate("""() => { const fd = window.__fd, L = fd.LEVELS[4], I = L.ltInternals; const n0 = I.beams.length; I.me.cool = 0; I.me.tagged = false; I.fire(performance.now()); return { counting: I.counting(performance.now()), fired: I.beams.length > n0 }; }""")
+        page.evaluate("() => window.__fd.switchLevel(0)")
+        page.wait_for_timeout(800)
+        gun = page.evaluate("() => { const L4 = window.__fd.LEVELS[4]; let v = true; L4.overlay.traverseAncestors((a) => { if (!a.visible) v = false; }); return { overlayShown: L4.overlay.visible, inOverlay: L4.overlay.children.length > 0 }; }")
+        print("laser tag:", lt, lt2, "gun in another level:", gun)
+        checks += [("laser tag: the arena is bigger (40 by 33 m)", lt["w"] >= 38 and lt["d"] >= 31),
+                   ("laser tag: Start game begins a new game with everyone back at base", lt["label"] == "Start game" and lt["round"] == 1 and lt["counting"] and lt["atBase"] and lt["held"]),
+                   ("laser tag: no shooting during the countdown, then you can", not lt["firedInCount"] and not lt2["counting"] and lt2["fired"]),
+                   ("laser tag: two big scoreboards over the end walls", lt["boards"] == 2),
+                   ("laser tag: you can jump in VR (A or X)", lt["vrHop"]),
+                   ("the laser tag gun doesn't show up in other games", gun["inOverlay"] and not gun["overlayShown"])]
+
+        # ---------------------------------------------------------------- cornhole in VR: the laser picks out your bag, not one lying on top of it
+        page.evaluate("() => window.__fd.switchLevel(20)")
+        page.wait_for_timeout(1200)
+        ct = page.evaluate("""() => { const L = window.__fd.LEVELS[20], bags = L.bags; const s = bags.map((b) => b.slot.clone());
+          let gap = 9; for (let i = 0; i < s.length; i++) for (let j = i + 1; j < s.length; j++) if (Math.abs(s[i].x - s[j].x) < 0.01) gap = Math.min(gap, s[i].distanceTo(s[j]));
+          return { same: bags.every((b) => L.canTarget(b) === L.canGrab(b)), gap: +gap.toFixed(2) }; }""")
+        print("cornhole targeting:", ct)
+        checks.append(("cornhole: in VR only a bag you can pick up is targeted, and tray bags are spread out", ct["same"] and ct["gap"] >= 0.19))
+
+        # ---------------------------------------------------------------- recess in VR: grab the trick-shot ball from anywhere in the area
+        page.evaluate("() => window.__fd.switchLevel(24)")
+        page.wait_for_timeout(1200)
+        rv = page.evaluate("""() => { const fd = window.__fd, L = fd.LEVELS[24], I = L.recessInternals, st = fd.state, v = I.vr(), m0 = st.mode;
+          I.resetCourse(); L.paused = true; fd.dolly.position.set(0, 0, -81.4); I.P.vel.set(0, 0, 0);
+          const h = v.vrHands.right, src0 = h.source, btn = [{ pressed: false }, { pressed: false }]; h.source = { gamepad: { buttons: btn } };
+          let held = '';
+          try { st.mode = 'vr'; v.myHead.pos.set(0, 1.6, -81.4); const mh = v.myHands.right; mh.ok = true; mh.pos.set(0.3, 1.1, -81.7);
+            I.step(1 / 60); btn[1].pressed = true; v.myHead.pos.set(0, 1.6, -81.4); I.step(1 / 60); held = I.STN.holding; }
+          finally { st.mode = m0; h.source = src0; I.STN.holding = ''; I.resetCourse(); L.paused = false; }
+          return { held, dist: +I.TB.pos.distanceTo(new THREE.Vector3(0.3, 1.1, -81.7)).toFixed(2) }; }""")
+        print("recess VR ball pick-up:", rv)
+        checks.append(("recess: in VR, squeezing anywhere in the trick-shot area picks up the ball", rv["held"] == "ball"))
+
+        # ---------------------------------------------------------------- trivia and hot potato: sit out to leave your spot
+        page.evaluate("() => window.__fd.switchLevel(18)")
+        page.wait_for_function("() => { const I = window.__fd.LEVELS[18].potatoInternals; return I.RS.ph !== 'idle' && I.RS.alive.includes(window.__fd.state.myPeer); }", timeout=20000)
+        hp = page.evaluate("""() => { const fd = window.__fd, L = fd.LEVELS[18], I = L.potatoInternals, me = fd.state.myPeer;
+          const pinned = L.clampPlayer({ x: 0, z: 0 }); L.sitOut.toggle(); I.hostStep(performance.now());
+          const free = L.clampPlayer({ x: 0, z: 0 }); const r = { out: !I.RS.alive.includes(me), pinned: Math.hypot(...pinned) > 0.5, free: Math.hypot(...free) < 0.01, label: L.sitOut.hud.label() };
+          L.sitOut.toggle(); return r; }""")
+        page.evaluate("() => window.__fd.switchLevel(23)")
+        page.wait_for_function("() => { const I = window.__fd.LEVELS[23].triviaInternals; return I.RS.ph !== 'idle' && I.mySeat() >= 0; }", timeout=30000)
+        tv = page.evaluate("""() => { const fd = window.__fd, L = fd.LEVELS[23], I = L.triviaInternals;
+          const far = (p) => { let m = 0; for (const [dx, dz] of [[2, 0], [-2, 0], [0, 2], [0, -2]]) { const q = { x: p.x + dx, z: p.z + dz }, c = L.clampPlayer(q); m = Math.max(m, Math.hypot(q.x + c[0] - p.x, q.z + c[1] - p.z)); } return m; };
+          const p = { x: fd.dolly.position.x, z: fd.dolly.position.z }; const before = far(p);
+          L.sitOut.toggle(); const after = far(p); const answered = I.answer(0);
+          I.RS.ph = 'reveal'; I.H.phaseT = -1e9; I.hostStep(performance.now()); I.hostStep(performance.now());
+          const r = { before: +before.toFixed(2), after: +after.toFixed(2), answered, seat: I.mySeat() }; L.sitOut.toggle(); return r; }""")
+        print("sit out: hot potato", hp, " trivia", tv)
+        checks += [("hot potato: Sit out takes you out of the round and lets you walk into the ring", hp["pinned"] and hp["out"] and hp["free"] and hp["label"] == "Join in"),
+                   ("trivia: Sit out frees you from your podium (and you can't answer)", tv["before"] < 0.5 and tv["after"] > 1.0 and tv["answered"] is False)]
         for name, good in checks:
             print(f"{'ok  ' if good else 'FAIL'}  {name}")
             ok &= bool(good)

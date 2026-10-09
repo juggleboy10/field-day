@@ -72,12 +72,12 @@ def main():
         # you tag a bot
         tag = page.evaluate("""() => { const fd = window.__fd, L = fd.LEVELS[4], I = L.ltInternals, st = fd.state;
           const b = I.lbots.find((x) => x.active && x.team !== I.me.team);
-          b.x = 2; b.z = 0.0; b.x = -8; b.z = I.me.team === 0 ? 2 : -2; b.tagged = false; b.invUntil = 0;
-          fd.dolly.position.set(-8, 0, I.me.team === 0 ? 6 : -6); fd.camera.position.set(0, 1.6, 0);
+          b.x = 2; b.z = 0.0; b.x = -6.5; b.z = I.me.team === 0 ? 2 : -2; b.tagged = false; b.invUntil = 0;
+          fd.dolly.position.set(-6.5, 0, I.me.team === 0 ? 6 : -6); fd.camera.position.set(0, 1.6, 0);
           const dx = b.x - fd.dolly.position.x, dz = b.z - fd.dolly.position.z, dy = 1.25 - 1.6;
           st.yaw = Math.atan2(-dx, -dz); st.pitch = Math.atan2(dy, Math.hypot(dx, dz)); fd.camera.rotation.set(st.pitch, st.yaw, 0, 'YXZ'); fd.camera.updateMatrixWorld(true);
           fd.LEVELS[4].me.cool = 0; fd.LEVELS[4].me.tagged = false;
-          const t0 = I.me.tags, clear = I.clearLine(new THREE.Vector3(-8, 1.6, fd.dolly.position.z), new THREE.Vector3(b.x, 1.25, b.z));
+          const t0 = I.me.tags, clear = I.clearLine(new THREE.Vector3(-6.5, 1.6, fd.dolly.position.z), new THREE.Vector3(b.x, 1.25, b.z));
           I.fire(performance.now() + 1e6);
           return { clear, tagged: b.tagged, myTags: I.me.tags - t0, team: I.scores()[I.me.team] }; }""")
         print("you shoot a bot:", tag)
@@ -85,12 +85,12 @@ def main():
         if D:
             page.evaluate("() => { window.__fd.LEVELS[4].paused = false; }")
             page.wait_for_timeout(4000)
-            page.evaluate("() => { const fd = window.__fd; fd.dolly.position.set(-12, 0, 10); fd.state.yaw = -2.4; fd.state.pitch = -0.15; }")
+            page.evaluate("() => { const fd = window.__fd; fd.dolly.position.set(-17, 0, 14); fd.state.yaw = -2.4; fd.state.pitch = -0.15; }")
             page.wait_for_timeout(1500)
             page.screenshot(path=f"{D}/lasertag-bots.png")
             page.evaluate("() => { window.__fd.LEVELS[4].paused = true; }")
         # let them play: you stand in the open on your own half
-        page.evaluate("() => { const fd = window.__fd, I = fd.LEVELS[4].ltInternals; fd.dolly.position.set(-8.5, 0, I.me.team === 0 ? 3 : -3); }")
+        page.evaluate("() => { const fd = window.__fd, I = fd.LEVELS[4].ltInternals; fd.dolly.position.set(-6, 0, I.me.team === 0 ? 3 : -3); }")
         r = page.evaluate(PLAY, [90])
         print("90 s of 3-a-side (you in the open on your half):", r)
         checks += [("the bots move about and shoot", r["moved"] > 3 and r["shots"] > 20),

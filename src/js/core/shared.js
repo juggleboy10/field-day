@@ -546,6 +546,34 @@
     L.kioskAt = { x, z, yaw };
   }
 
+  // ---------------------------------------------------------------- sitting out (games that put you on a spot)
+  // While you sit out the game leaves you out (the host treats you as not here), you can walk anywhere, and new rounds
+  // don't put you back until you join in. Browser: a HUD button. VR: hold B or Y for a second (you're on your spot, so
+  // a button in the world might be out of reach). Shared through presence (so, read in net.js).
+  function makeSitOut(L, o) {
+    const S = { on: false, holdT: 0 };
+    S.toggle = () => {
+      S.on = !S.on;
+      showToast(S.on ? (o && o.outMsg) || 'Sitting out: walk anywhere you like. Join in to play again' : (o && o.inMsg) || 'You\u2019re in from the next round');
+      sfx('click', 0.6);
+      state.hudDirty = true; state.dirtyBoard = true; forcePresence();
+      if (o && o.onChange) o.onChange(S.on);
+    };
+    S.hud = { label: () => (S.on ? 'Join in' : 'Sit out'), run: () => S.toggle() };
+    S.tick = (dt) => {
+      if (state.mode !== 'vr' || state.level !== L.idx) { S.holdT = 0; return; }
+      const b = (h) => { const gp = h.source && h.source.gamepad; return !!(gp && gp.buttons && gp.buttons[5] && gp.buttons[5].pressed); };
+      if (b(vrHands.left) || b(vrHands.right)) {
+        const before = S.holdT; S.holdT += dt;
+        if (before < 1 && S.holdT >= 1) { S.toggle(); for (const s of SIDES) haptic(vrHands[s], 0.5, 60); }
+      } else S.holdT = 0;
+    };
+    // is this remote player sitting out?
+    S.out = (rec) => { const st = rec.lvState[L.id]; return !!(st && st.sitOut); };
+    L.sitOut = S;
+    return S;
+  }
+
   // ---------------------------------------------------------------- how many players: a -/+ stand (VR) and a HUD button (browser)
   // o: { min, max, def, label ('Players' or 'Per team'), onChange(n), x, z, yaw } (by default the stand goes beside the kiosk).
   // The number is the total: bots make up whatever friends don't. It's remembered per game, and shared with everyone in the
@@ -612,8 +640,13 @@
     const group = new THREE.Group();
     group.visible = false;
     scene.add(group);
+    // things a game puts in the world outside its own scenery (a blaster in your hand, other players' putters, a wrist
+    // panel): they only show while you're in that game (main.js), so nothing from one game turns up in another
+    const overlay = new THREE.Group();
+    overlay.visible = false;
+    scene.add(overlay);
     const L = {
-      idx, id: LEVEL_META[idx].id, meta: LEVEL_META[idx], group,
+      idx, id: LEVEL_META[idx].id, meta: LEVEL_META[idx], group, overlay,
       bodies: [], tools: [], buttons: [], hudActions: [], hints: [],
       bounds: { minX: -10, maxX: 10, minZ: -10, maxZ: 10 },
       drag: 0,

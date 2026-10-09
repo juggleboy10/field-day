@@ -161,7 +161,16 @@
       if (!o || o.kind !== 'tool' || !o.obj.holdToDrop || !squeezing) { h.dropT = 0; continue; }
       if (now - h.dropT > o.obj.holdToDrop) { h.dropT = 0; h.holding = null; dropTool(o.obj); haptic(h, 0.4, 40); }
     }
-    if (HOP.air) { dolly.position.y = HOP.base; HOP.air = false; }     // no hopping in VR
+    if (L.vrHop) {
+      // a hop on A or X, in the places that allow it (the same little hop as J in a browser)
+      let pressed = false;
+      for (const side of SIDES) { const gp = vrHands[side].source && vrHands[side].source.gamepad; if (gp && gp.buttons && gp.buttons[4] && gp.buttons[4].pressed) pressed = true; }
+      if (pressed && !HOP.vrPrev && !HOP.air && !(L.me && (L.me.down || L.me.tagged)) && !(L.hopBlocked && L.hopBlocked())) {
+        HOP.air = true; HOP.vy = 4.6; HOP.base = dolly.position.y; sfx('whoosh', 0.25);
+      }
+      HOP.vrPrev = pressed;
+      if (HOP.air) { HOP.vy -= 13 * dt; dolly.position.y += HOP.vy * dt; if (dolly.position.y <= HOP.base) { dolly.position.y = HOP.base; HOP.air = false; HOP.vy = 0; } }
+    } else if (HOP.air) { dolly.position.y = HOP.base; HOP.air = false; }     // no hopping in VR elsewhere
     for (const side of SIDES) {
       const h = vrHands[side], mh = myHands[side];
       const space = h.grip && h.grip.visible ? h.grip : (h.ray && h.ray.visible ? h.ray : null);
@@ -208,7 +217,7 @@
       holdPoint(mh.pos, mh.quat, _hp);
       let best = null, bestD = 0.22, far = false, farDist = 0;
       for (const b of L.bodies) {
-        if (b.held) continue;
+        if (b.held || (L.canTarget && !L.canTarget(b))) continue;
         const d = b.pos.distanceTo(_hp);
         if (d < bestD) { bestD = d; best = { kind: 'body', obj: b }; }
       }
@@ -229,7 +238,7 @@
           const c = _tb.dot(_rd) / dist;
           if (c > bestC) { bestC = c; best = { kind, obj }; far = true; farDist = dist; }
         };
-        for (const b of L.bodies) if (!b.held) consider('body', b, b.pos, L.grabRange || 14);
+        for (const b of L.bodies) if (!b.held && (!L.canTarget || L.canTarget(b))) consider('body', b, b.pos, L.grabRange || 14);
         for (const t of L.tools) if (!t.held) consider('tool', t, toolGrip(t, _tg), 8);
       }
       h.target = best;

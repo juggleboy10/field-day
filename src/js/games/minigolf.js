@@ -257,7 +257,7 @@
     const HEAD_OFF = new V3(0, 0, -0.9);
     const putter = makePutter();
     putter.visible = false;
-    scene.add(putter);
+    L.overlay.add(putter);
     const ballGeo = new THREE.SphereGeometry(BR, 16, 12);
     const myBallMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
     const ballMesh = new THREE.Mesh(ballGeo, myBallMat);
@@ -532,7 +532,7 @@
           rec.mgBall.userData.p = new V3(st.bx, 0, st.bz);
           G.add(rec.mgBall);
           rec.putter = makePutter();
-          scene.add(rec.putter);
+          L.overlay.add(rec.putter);
         }
         if (PLAYER_COLORS[rec.colorIdx]) rec.mgBall.material.color.set(PLAYER_COLORS[rec.colorIdx].hex).lerp(new THREE.Color(0xffffff), 0.55);
         const p = rec.mgBall.userData.p;

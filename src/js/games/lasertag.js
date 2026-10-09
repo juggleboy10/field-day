@@ -6,12 +6,13 @@
     L.teams = true;
     L.teamKey = 'lq';
     L.grabless = true;
-    const AR = { minX: -14, maxX: 14, minZ: -11.5, maxZ: 11.5 };
+    const AR = { minX: -20, maxX: 20, minZ: -16.5, maxZ: 16.5 };
+    const BASE_Z = 14.5;          // the team bases: red at +z, blue at -z
     const WIN = 15;
     L.bounds = AR;
     L.env = {
       sky: skyTexture([[0, '#05040e'], [0.5, '#1a1240'], [1, '#05040e']]),
-      bg: 0x090b1a, fog: [0x0b0b20, 22, 80], hemi: [0x6070c0, 0x10101a, 0.65],
+      bg: 0x090b1a, fog: [0x0b0b20, 34, 110], hemi: [0x6070c0, 0x10101a, 0.65],
       sun: [0x8090ff, 0.35], sunDir: new V3(0.2, 1, 0.3), ambient: [0x303060, 0.45],
       sprite: null,
     };
@@ -25,16 +26,16 @@
       for (let i = 32; i < 512; i += 64) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i, 512); g.moveTo(0, i); g.lineTo(512, i); g.stroke(); }
     });
     grid.tex.wrapS = grid.tex.wrapT = THREE.RepeatWrapping;
-    grid.tex.repeat.set(28 / 8, 23 / 8);
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(28, 23), new THREE.MeshBasicMaterial({ map: grid.tex }));
+    grid.tex.repeat.set(40 / 8, 33 / 8);
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(40, 33), new THREE.MeshBasicMaterial({ map: grid.tex }));
     floor.rotation.x = -Math.PI / 2;
     G.add(floor);
-    const mid = new THREE.Mesh(new THREE.PlaneGeometry(28, 0.08), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 }));
+    const mid = new THREE.Mesh(new THREE.PlaneGeometry(40, 0.08), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 }));
     mid.rotation.x = -Math.PI / 2; mid.position.y = 0.005;
     G.add(mid);
     // team bases
     for (const t of [0, 1]) {
-      const z = t === 0 ? 10 : -10;
+      const z = t === 0 ? BASE_Z : -BASE_Z;
       const pad = new THREE.Mesh(new THREE.CircleGeometry(1.6, 32), new THREE.MeshBasicMaterial({ color: TEAM_COLORS[t], transparent: true, opacity: 0.35 }));
       pad.rotation.x = -Math.PI / 2; pad.position.set(0, 0.006, z);
       const ring = new THREE.Mesh(new THREE.RingGeometry(1.55, 1.7, 40), new THREE.MeshBasicMaterial({ color: TEAM_COLORS[t] }));
@@ -45,18 +46,22 @@
     const wallMat = new THREE.MeshLambertMaterial({ color: 0x141833, emissive: 0x05060f });
     const trimMats = [new THREE.MeshBasicMaterial({ color: TEAM_COLORS[0] }), new THREE.MeshBasicMaterial({ color: TEAM_COLORS[1] }), new THREE.MeshBasicMaterial({ color: 0xb388ff })];
     const WALL_H = 2.6;
-    addBox(G, 28.6, WALL_H, 0.3, wallMat, 0, WALL_H / 2, AR.maxZ + 0.15);
-    addBox(G, 28.6, WALL_H, 0.3, wallMat, 0, WALL_H / 2, AR.minZ - 0.15);
-    addBox(G, 0.3, WALL_H, 23.6, wallMat, AR.minX - 0.15, WALL_H / 2, 0);
-    addBox(G, 0.3, WALL_H, 23.6, wallMat, AR.maxX + 0.15, WALL_H / 2, 0);
-    addBox(G, 28.6, 0.06, 0.34, trimMats[0], 0, WALL_H, AR.maxZ + 0.15);
-    addBox(G, 28.6, 0.06, 0.34, trimMats[1], 0, WALL_H, AR.minZ - 0.15);
-    for (const x of [AR.minX - 0.15, AR.maxX + 0.15]) addBox(G, 0.34, 0.06, 23.6, trimMats[2], x, WALL_H, 0);
+    const AW = AR.maxX - AR.minX + 0.6, AD = AR.maxZ - AR.minZ + 0.6;
+    addBox(G, AW, WALL_H, 0.3, wallMat, 0, WALL_H / 2, AR.maxZ + 0.15);
+    addBox(G, AW, WALL_H, 0.3, wallMat, 0, WALL_H / 2, AR.minZ - 0.15);
+    addBox(G, 0.3, WALL_H, AD, wallMat, AR.minX - 0.15, WALL_H / 2, 0);
+    addBox(G, 0.3, WALL_H, AD, wallMat, AR.maxX + 0.15, WALL_H / 2, 0);
+    addBox(G, AW, 0.06, 0.34, trimMats[0], 0, WALL_H, AR.maxZ + 0.15);
+    addBox(G, AW, 0.06, 0.34, trimMats[1], 0, WALL_H, AR.minZ - 0.15);
+    for (const x of [AR.minX - 0.15, AR.maxX + 0.15]) addBox(G, 0.34, 0.06, AD, trimMats[2], x, WALL_H, 0);
     // cover blocks: [x, z, w, d, h]
+    // (the same on both halves, turned half way round)
     const BLOCKS = [
-      [0, 0, 4, 1, 1.3], [-6, 3.5, 1, 4, 2.2], [6, -3.5, 1, 4, 2.2], [-6, -5.5, 3, 1, 1.3], [6, 5.5, 3, 1, 1.3],
-      [-11, 0, 1, 5, 2.2], [11, 0, 1, 5, 2.2], [0, 6.5, 3, 1, 2.2], [0, -6.5, 3, 1, 2.2], [-3, -2.5, 1.4, 1.4, 1.5],
-      [3, 2.5, 1.4, 1.4, 1.5], [-10.5, 8, 2, 1.2, 1.4], [10.5, -8, 2, 1.2, 1.4], [-10.5, -8, 2, 1.2, 1.4], [10.5, 8, 2, 1.2, 1.4],
+      [0, 0, 5, 1.25, 1.3], [-8.7, 5.1, 1.25, 5, 2.2], [8.7, -5.1, 1.25, 5, 2.2], [-8.7, -8, 3.75, 1.25, 1.3], [8.7, 8, 3.75, 1.25, 1.3],
+      [-16, 0, 1.25, 6.25, 2.2], [16, 0, 1.25, 6.25, 2.2], [0, 9.4, 3.75, 1.25, 2.2], [0, -9.4, 3.75, 1.25, 2.2], [-4.4, -3.6, 1.75, 1.75, 1.5],
+      [4.4, 3.6, 1.75, 1.75, 1.5], [-15.2, 11.6, 2.5, 1.5, 1.4], [15.2, -11.6, 2.5, 1.5, 1.4], [-15.2, -11.6, 2.5, 1.5, 1.4], [15.2, 11.6, 2.5, 1.5, 1.4],
+      [-12, 4.5, 1.75, 1.75, 1.5], [12, -4.5, 1.75, 1.75, 1.5], [12.5, 5, 1.25, 3, 2.2], [-12.5, -5, 1.25, 3, 2.2],
+      [-4.8, 12.6, 2.5, 1, 1.3], [4.8, -12.6, 2.5, 1, 1.3],
     ];
     const blockMat = new THREE.MeshLambertMaterial({ color: 0x1b2046, emissive: 0x080a1c });
     L.boxes = BLOCKS.map(([x, z, w, d, h]) => {
@@ -68,15 +73,19 @@
       return { min: new V3(x - w / 2, 0, z - d / 2), max: new V3(x + w / 2, h, z + d / 2) };
     });
     // a few glowing lights overhead
-    for (const [x, z, c] of [[0, 8, TEAM_COLORS[0]], [0, -8, TEAM_COLORS[1]], [-8, 0, 0xb388ff], [8, 0, 0xb388ff]]) {
-      const l = new THREE.PointLight(c, 0.9, 16, 1.5);
+    for (const [x, z, c] of [[0, 12, TEAM_COLORS[0]], [0, -12, TEAM_COLORS[1]], [-12, 0, 0xb388ff], [12, 0, 0xb388ff], [0, 0, 0xb388ff]]) {
+      const l = new THREE.PointLight(c, 0.9, 22, 1.5);
       l.position.set(x, 3.2, z);
       G.add(l);
     }
 
     // kiosk, team switch, boards
-    L.board = makeBoard(G, 720, 460, 2.6, 1.66, AR.minX + 0.02, 1.75, 0, Math.PI / 2, false);
-    const sign = makeBoard(G, 720, 500, 2.0, 1.39, AR.maxX - 0.02, 1.6, -3.8, -Math.PI / 2, false);
+    // two big scoreboards up above the end walls, so whichever way you face down the arena you can see the score
+    const BW = 8, BH = 4, BY = WALL_H + 0.3 + BH / 2;
+    L.board = makeBoard(G, 1024, 512, BW, BH, 0, BY, AR.maxZ + 0.1, Math.PI, false);
+    const board2 = makeBoard(G, 1024, 512, BW, BH, 0, BY, AR.minZ - 0.1, 0, false);
+    for (const z of [AR.maxZ + 0.15, AR.minZ - 0.15]) for (const x of [-BW / 2 + 0.6, BW / 2 - 0.6]) addBox(G, 0.16, 0.5, 0.16, wallMat, x, WALL_H + 0.25, z);
+    const sign = makeBoard(G, 720, 560, 2.0, 1.56, AR.maxX - 0.02, 1.6, -4.4, -Math.PI / 2, false);
     function drawSign() {
       const g = sign.g;
       g.fillStyle = '#0d0f24'; g.fillRect(0, 0, 720, 500);
@@ -84,9 +93,9 @@
       g.fillStyle = '#b388ff'; g.font = `800 58px ${DISPLAY}`;
       g.fillText('How to play', 36, 78);
       const sections = [
-        ['In VR', 'Pull either trigger to fire from that hand. Aim with the laser. Move with the left stick and duck behind cover.'],
-        ['In a browser', 'Click or press Space to fire at the crosshair.'],
-        ['Rules', `A tag knocks someone out for 3 seconds. First team to ${WIN} tags wins the round. You can\u2019t tag your own team.`],
+        ['In VR', 'Pull either trigger to fire from that hand. Move with the left stick, press A or X to jump, and duck behind cover.'],
+        ['In a browser', 'Click or press Space to fire at the crosshair. J jumps.'],
+        ['Rules', `Press Start game: everyone goes back to base for a countdown. A tag knocks someone out for 3 seconds. First team to ${WIN} tags wins.`],
       ];
       let y = 122;
       for (const [label, body] of sections) {
@@ -102,9 +111,13 @@
     redraws.push(drawSign);
     makeKiosk(L, AR.maxX - 0.7, 1.8, -Math.PI / 2);
     makeButton(L, new V3(AR.maxX - 0.7, 1.0, 3.6), 0xb388ff, 'Switch team', () => switchTeam(), { faceYaw: -Math.PI / 2 });
+    makeButton(L, new V3(AR.maxX - 0.7, 1.0, 5.2), 0x8bd450, 'Start game', () => startGame(), { faceYaw: -Math.PI / 2 });
+    // and one at each base, by the back wall
+    makeButton(L, new V3(2.8, 1.0, AR.maxZ - 0.6), 0x8bd450, 'Start game', () => startGame(), { faceYaw: Math.PI });
+    makeButton(L, new V3(-2.8, 1.0, AR.minZ + 0.6), 0x8bd450, 'Start game', () => startGame(), { faceYaw: 0 });
 
     // ---------------------------------------------------------------- me
-    L.me = { team: -1, tags: 0, round: 0, tagged: false, taggedUntil: 0, invUntil: 0, cool: 0, hand: 'right', lsSeq: 0, ls: [], lhSeq: 0, lh: [], practice: 0, winT: 0 };
+    L.me = { team: -1, tags: 0, round: 0, countUntil: 0, countN: -1, tagged: false, taggedUntil: 0, invUntil: 0, cool: 0, hand: 'right', lsSeq: 0, ls: [], lhSeq: 0, lh: [], practice: 0, winT: 0 };
     const me = L.me;
     function switchTeam(balance) {
       if (me.team < 0) return;
@@ -118,7 +131,7 @@
       forcePresence();
     }
     function spawnAtBase() {
-      const z = me.team === 0 ? 9.6 : -9.6;
+      const z = me.team === 0 ? BASE_Z - 0.5 : -BASE_Z + 0.5;
       camera.getWorldPosition(_hd);
       dolly.position.x += (rand() - 0.5) * 2 - _hd.x;
       dolly.position.z += z - _hd.z;
@@ -133,6 +146,30 @@
     };
     L.onEnter = () => { if (me.team < 0) me.team = pickTeam(L); L.enteredAt = performance.now(); state.dirtyBoard = true; };
     L.switchTeam = switchTeam;
+    L.vrHop = true;
+
+    // ---------------------------------------------------------------- starting a game
+    // Round 0 is a warm-up (tags count, but nobody wins). Start game moves everyone on to a new round: back to your base
+    // for a 3-2-1 countdown, with no shooting until it's done. Other players see the newer round and do the same.
+    const COUNT_MS = 3000;
+    const counting = (now) => now < me.countUntil;
+    function beginRound(now) {
+      me.tags = 0; me.winT = 0; me.tagged = false; me.invUntil = 0;
+      me.countUntil = now + COUNT_MS; me.countN = -1;
+      if (state.level === L.idx && state.mode !== 'menu') spawnAtBase();
+      if (L.ltResetBots) L.ltResetBots();
+      showToast(me.round > 1 ? `Game ${me.round}: back to base!` : 'Game on: back to base!');
+      state.dirtyBoard = true; state.hudDirty = true; forcePresence();
+    }
+    function startGame() {
+      const now = performance.now();
+      if (counting(now) || state.mode === 'menu') return;
+      let r = me.round;
+      for (const rec of remotes.values()) { const st = rec.lvState[L.id]; if (rec.lv === L.idx && st && st.round > r) r = st.round; }
+      me.round = r + 1;
+      beginRound(now);
+    }
+    L.startGame = startGame;
 
     // my blaster
     function makeBlaster() {
@@ -151,7 +188,7 @@
     }
     const blaster = makeBlaster();
     blaster.visible = false;
-    scene.add(blaster);
+    L.overlay.add(blaster);
 
     // beams (mine and everyone else's)
     const beams = [];
@@ -223,7 +260,7 @@
     }
     const _o = new V3(), _d = new V3(), _end = new V3(), _cq = new Q4(), _cp = new V3();
     function fire(now) {
-      if (me.tagged || now < me.cool || state.mode === 'menu') return;
+      if (me.tagged || now < me.cool || state.mode === 'menu' || counting(now)) return;
       me.cool = now + 260;
       blasterPose();
       _d.set(0, 0, -1).applyQuaternion(blaster.quaternion);
@@ -233,7 +270,7 @@
         _end.set(0, 0, -40).applyQuaternion(_cq).add(_cp);
         _d.subVectors(_end, _o).normalize();
       }
-      let maxT = 45;
+      let maxT = 60;
       for (const b of L.boxes) maxT = Math.min(maxT, rayBox(_o, _d, b, maxT));
       for (const t of [(AR.minX - _o.x) / _d.x, (AR.maxX - _o.x) / _d.x, (AR.minZ - _o.z) / _d.z, (AR.maxZ - _o.z) / _d.z, -_o.y / _d.y]) if (t > 0 && t < maxT) maxT = t;
       let hitRec = null, hitT = maxT;
@@ -298,7 +335,7 @@
         _end.set(0, 0, -40).applyQuaternion(_cq).add(_cp);
         _d.subVectors(_end, _o).normalize();
       }
-      let maxT = 45;
+      let maxT = 60;
       for (const b of L.boxes) maxT = Math.min(maxT, rayBox(_o, _d, b, maxT));
       for (const t of [(AR.minX - _o.x) / _d.x, (AR.maxX - _o.x) / _d.x, (AR.minZ - _o.z) / _d.z, (AR.maxZ - _o.z) / _d.z, -_o.y / _d.y]) if (t > 0 && t < maxT) maxT = t;
       return maxT;
@@ -415,23 +452,36 @@
       // adopt a newer round if someone is already on it
       for (const rec of remotes.values()) {
         const st = rec.lvState[L.id];
-        if (rec.lv === L.idx && st && st.round > me.round) { me.round = st.round; me.tags = 0; me.winT = 0; state.dirtyBoard = true; forcePresence(); }
+        if (rec.lv === L.idx && st && st.round > me.round) { me.round = st.round; if (now - (L.enteredAt || 0) > 2000) beginRound(now); else { me.tags = 0; me.winT = 0; state.dirtyBoard = true; forcePresence(); } }
       }
       const s = scores();
-      if (!me.winT && (s[0] >= WIN || s[1] >= WIN)) {
+      if (!me.winT && me.round > 0 && (s[0] >= WIN || s[1] >= WIN)) {
         me.winT = now;
         const w = s[0] >= WIN ? 0 : 1;
         sfx(w === me.team ? 'fanfare' : 'buzzer', 1);
         showToast(`${TEAM_NAMES[w]} team wins ${s[w]} to ${s[1 - w]}!`);
         spawnFloat(`${TEAM_NAMES[w]} wins!`, myHead.pos.clone().add(new V3(0, 0.6, 0).add(new V3(0, 0, -2).applyQuaternion(myHead.quat))), TEAM_HEX[w]);
       }
-      if (me.winT && now - me.winT > 6000) { me.round += 1; me.tags = 0; me.winT = 0; state.dirtyBoard = true; forcePresence(); }
+      if (me.winT && now - me.winT > 6000) { me.round += 1; beginRound(now); }
+      // the countdown
+      if (me.countUntil) {
+        const n = Math.ceil((me.countUntil - now) / 1000);
+        if (n !== me.countN) {
+          me.countN = n; state.dirtyBoard = true;
+          if (state.level === L.idx && state.mode !== 'menu') {
+            const at = myHead.pos.clone().add(new V3(0, 0.25, -1.6).applyQuaternion(myHead.quat));
+            if (n > 0) { sfx('beep', 1); spawnFloat(String(n), at, '#ffffff'); }
+            else { sfx('whistle', 1); spawnFloat('Go!', at, TEAM_HEX[me.team] || '#ffffff'); }
+          }
+          if (n <= 0) me.countUntil = 0;
+        }
+      }
       // drones
       const practice = opponents() === 0 && !(L.ltEnemyBots && L.ltEnemyBots());
       drones.forEach((dr, i) => {
         if (!dr.alive && now > dr.respawn) dr.alive = true;
         const t = now * 0.00035 + dr.phase;
-        dr.pos.set(Math.sin(t * (1 + i * 0.13)) * 9, 1.4 + Math.sin(t * 2.1 + i) * 0.5, Math.cos(t * 0.8 + i) * 7);
+        dr.pos.set(Math.sin(t * (1 + i * 0.13)) * 13, 1.4 + Math.sin(t * 2.1 + i) * 0.5, Math.cos(t * 0.8 + i) * 10);
         dr.m.position.copy(dr.pos);
         dr.m.rotation.y += dt * 2;
         dr.m.visible = practice && dr.alive && state.level === L.idx;
@@ -449,7 +499,7 @@
       for (const rec of remotes.values()) {
         const st = rec.lvState[L.id];
         const show = inMyLevel(rec) && rec.hasH && st && st.team >= 0;
-        if (!rec.blaster && show) { rec.blaster = makeBlaster(); scene.add(rec.blaster); }
+        if (!rec.blaster && show) { rec.blaster = makeBlaster(); L.overlay.add(rec.blaster); }
         if (!rec.blaster) continue;
         rec.blaster.visible = show;
         if (!show) continue;
@@ -463,17 +513,18 @@
       tagPlate.visible = state.mode === 'vr' && me.tagged;
       if (tagPlate.visible && left !== tagLeft) { tagLeft = left; tagPlate.userData.draw(`Tagged! Back in ${left}`); }
       const scoreLine = `Red ${s[0]}, Blue ${s[1]}`;
-      wrist.update(me.team >= 0 ? `${TEAM_NAMES[me.team]} team` : 'Laser tag', TEAM_HEX[me.team], me.tagged ? `Tagged! Back in ${left}` : scoreLine);
+      const cd = counting(now) ? Math.ceil((me.countUntil - now) / 1000) : 0;
+      wrist.update(me.team >= 0 ? `${TEAM_NAMES[me.team]} team` : 'Laser tag', TEAM_HEX[me.team], cd ? `Starting in ${cd}` : me.tagged ? `Tagged! Back in ${left}` : scoreLine);
       if (ui.hurt && state.mode === 'flat') { ui.hurt.style.opacity = me.tagged ? '0.6' : '0'; ui.hurt.classList.toggle('down', false); }
       if (ui.status) {
         const show = state.mode === 'flat';
         ui.status.hidden = !show;
-        const key = `${me.team}|${scoreLine}|${me.tagged ? left : ''}|${practice}`;
+        const key = `${me.team}|${scoreLine}|${me.tagged ? left : ''}|${practice}|${cd}|${me.round > 0}`;
         if (show && key !== statusKey) {
           statusKey = key;
           const t = document.createElement('span'); t.textContent = `${TEAM_NAMES[me.team] || ''} team`; t.style.color = TEAM_HEX[me.team] || '';
           const sc = document.createElement('span'); sc.textContent = scoreLine;
-          const o = document.createElement('span'); o.className = 'obj'; o.textContent = me.tagged ? `Tagged! Back in ${left}` : practice ? 'Practice: shoot the drones' : `First to ${WIN}`;
+          const o = document.createElement('span'); o.className = 'obj'; o.textContent = cd ? `Starting in ${cd}` : me.tagged ? `Tagged! Back in ${left}` : practice ? 'Practice: shoot the drones' : me.round > 0 ? `First to ${WIN}` : 'Warm-up: press Start game';
           ui.status.replaceChildren(t, sc, o);
         }
       }
@@ -494,23 +545,55 @@
       return { team, tags, text: `${tags} tags`, color: TEAM_HEX[team] || '#888' };
     };
     L.sortRows = (a, b) => (a.team - b.team) || (b.tags - a.tags);
+    function boardStatus(now) {
+      const s = scores();
+      if (counting(now)) return [`Starting in ${Math.ceil((me.countUntil - now) / 1000)}`, '#ffffff'];
+      if (me.winT) { const w = s[0] >= WIN ? 0 : 1; return [`${TEAM_NAMES[w]} wins! Next game soon`, TEAM_HEX[w]]; }
+      if (me.round === 0) return ['Warm-up: press Start game', '#ffd23f'];
+      return [`Game ${me.round}: first to ${WIN}`, '#c9c4e8'];
+    }
     L.drawBoard = (rows) => {
-      const g = L.board.g, W = 720, H = 460;
+      const g = L.board.g, W = 1024, H = 512;
       const s = scores();
       g.fillStyle = '#0d0f24'; g.fillRect(0, 0, W, H);
-      g.strokeStyle = '#b388ff'; g.lineWidth = 8; g.strokeRect(4, 4, W - 8, H - 8);
-      g.textBaseline = 'alphabetic';
-      g.textAlign = 'left'; g.fillStyle = TEAM_HEX[0]; g.font = `800 72px ${DISPLAY}`; g.fillText(`Red ${s[0]}`, 36, 88);
-      g.textAlign = 'right'; g.fillStyle = TEAM_HEX[1]; g.fillText(`${s[1]} Blue`, W - 36, 88);
-      g.textAlign = 'center'; g.fillStyle = '#c9c4e8'; g.font = `400 24px ${BODY}`; g.fillText(`Neon laser tag, first to ${WIN}`, W / 2, 124);
-      drawRows(g, rows.map((r) => Object.assign({}, r, { color: r.color })), 180, 46, W);
+      g.strokeStyle = '#b388ff'; g.lineWidth = 10; g.strokeRect(5, 5, W - 10, H - 10);
+      g.fillStyle = 'rgba(255,77,106,0.16)'; g.fillRect(10, 10, W / 2 - 10, 230);
+      g.fillStyle = 'rgba(79,140,255,0.16)'; g.fillRect(W / 2, 10, W / 2 - 10, 230);
+      g.textBaseline = 'alphabetic'; g.textAlign = 'center';
+      g.font = `800 44px ${DISPLAY}`;
+      g.fillStyle = TEAM_HEX[0]; g.fillText('RED', W / 4, 62);
+      g.fillStyle = TEAM_HEX[1]; g.fillText('BLUE', W * 3 / 4, 62);
+      g.font = `800 170px ${DISPLAY}`;
+      g.fillStyle = TEAM_HEX[0]; g.fillText(String(s[0]), W / 4, 220);
+      g.fillStyle = TEAM_HEX[1]; g.fillText(String(s[1]), W * 3 / 4, 220);
+      const [st, sc] = boardStatus(performance.now());
+      g.fillStyle = sc; g.font = `800 50px ${DISPLAY}`; g.fillText(st, W / 2, 300, W - 60);
+      // who's on each team
+      g.font = `400 30px ${BODY}`;
+      for (const t of [0, 1]) {
+        const x0 = t === 0 ? 40 : W / 2 + 20, list = rows.filter((r) => r.team === t).concat(lbots.filter((b) => b.active && b.team === t).map((b) => ({ name: b.name, tags: b.tags, team: t }))).slice(0, 5);
+        list.forEach((r, i) => {
+          const y = 350 + i * 34;
+          g.textAlign = 'left'; g.fillStyle = r.me ? '#ffffff' : '#c9c4e8'; g.font = `${r.me ? 700 : 400} 28px ${BODY}`;
+          g.fillText(r.me ? `${r.name} (you)` : r.name, x0, y, W / 2 - 160);
+          g.textAlign = 'right'; g.fillStyle = TEAM_HEX[t]; g.font = `800 30px ${DISPLAY}`;
+          g.fillText(String(r.tags), x0 + W / 2 - 70, y);
+        });
+      }
       L.board.tex.needsUpdate = true;
+      board2.g.drawImage(g.canvas, 0, 0);
+      board2.tex.needsUpdate = true;
     };
-    L.hudActions = [{ label: () => 'Switch team', run: () => switchTeam() }];
+    L.hudActions = [{ label: () => 'Start game', run: () => startGame() }, { label: () => 'Switch team', run: () => switchTeam() }];
     L.hints = [['Click', 'fire'], ['WASD', 'move'], ['Drag', 'aim']];
     L.clampPlayer = (p) => {
       const m = 0.3;
       let x = clamp(p.x, AR.minX + m, AR.maxX - m), z = clamp(p.z, AR.minZ + m, AR.maxZ - m);
+      if (counting(performance.now()) && me.team >= 0) {
+        // wait at your base until the countdown's done
+        const bz = me.team === 0 ? BASE_Z : -BASE_Z, dx = x, dz = z - bz, d = Math.hypot(dx, dz);
+        if (d > 2.2) { x = dx * 2.2 / d; z = bz + dz * 2.2 / d; }
+      }
       for (const b of L.boxes) {
         if (x > b.min.x - m && x < b.max.x + m && z > b.min.z - m && z < b.max.z + m) {
           const dl = x - (b.min.x - m), dr = b.max.x + m - x, dn = z - (b.min.z - m), df = b.max.z + m - z;
@@ -522,7 +605,7 @@
     };
     L.attract = (now) => {
       const a = reduceMotion ? 0.5 : 0.5 + now * 0.00005;
-      camera.position.set(Math.sin(a) * 13, 6, Math.cos(a) * 10);
+      camera.position.set(Math.sin(a) * 19, 8, Math.cos(a) * 15);
       camera.lookAt(0, 0.5, 0);
     };
     // ---------------------------------------------------------------- computer players
@@ -547,8 +630,8 @@
     const LB = { seq: 0, shots: [], hitSeq: 0, hits: [], round: -1 };
     L.ltBots = lbots;
     function spawnBot(b) {
-      const z = b.team === 0 ? 9.6 : -9.6;
-      b.x = b.rx = (rand() - 0.5) * 6; b.z = b.rz = z + (rand() - 0.5) * 1.5; b.vx = b.vz = 0; b.goal = null; b.yaw = b.team === 0 ? 0 : Math.PI;
+      const z = b.team === 0 ? BASE_Z - 0.5 : -BASE_Z + 0.5;
+      b.x = b.rx = (rand() - 0.5) * 8; b.z = b.rz = z + (rand() - 0.5) * 1.5; b.vx = b.vz = 0; b.goal = null; b.yaw = b.team === 0 ? 0 : Math.PI;
     }
     function fillLtBots() {
       const nh = [0, 0];
@@ -579,11 +662,11 @@
       const side = b.team === 0 ? 1 : -1;
       for (let i = 0; i < 12; i++) {
         const bx = L.boxes[Math.floor(rand() * L.boxes.length)], cx = (bx.min.x + bx.max.x) / 2, cz = (bx.min.z + bx.max.z) / 2;
-        if (cz * side < -6 && rand() < 0.7) continue;          // mostly stay out of their back third
+        if (cz * side < -8.7 && rand() < 0.7) continue;          // mostly stay out of their back third
         const a = rand() * Math.PI * 2, r = Math.max(bx.max.x - bx.min.x, bx.max.z - bx.min.z) / 2 + 0.7;
         return new V3(clamp(cx + Math.cos(a) * r, AR.minX + 0.6, AR.maxX - 0.6), 0, clamp(cz + Math.sin(a) * r, AR.minZ + 0.6, AR.maxZ - 0.6));
       }
-      return new V3((rand() - 0.5) * 20, 0, side * (2 + rand() * 6));
+      return new V3((rand() - 0.5) * 28, 0, side * (3 + rand() * 9));
     }
     const _bh = new V3(), _th = new V3(), _se = new V3();
     function botHead(b, out) { return out.set(b.x, 1.5, b.z); }
@@ -597,7 +680,7 @@
       // a miss goes a little wide
       if (!hit) { _th.x += (Math.random() - 0.5) * 1.6; _th.y += (Math.random() - 0.3) * 0.8; _th.z += (Math.random() - 0.5) * 1.6; }
       _ld.subVectors(_th, _bh).normalize();
-      let maxT = 45;
+      let maxT = 60;
       for (const bx of L.boxes) maxT = Math.min(maxT, rayBox(_bh, _ld, bx, maxT));
       const end = _se.copy(_bh).addScaledVector(_ld, hit ? Math.min(maxT, d) : Math.min(maxT, d + 4));
       showBeam(_bh, end, b.team);
@@ -623,13 +706,14 @@
       state.dirtyBoard = true; forcePresence();
     }
     function stepLtBots(dt, now) {
+      if (counting(now)) { for (const b of lbots) b.vx = b.vz = 0; return; }      // everyone waits at base for the countdown
       const hs = ltHumans();
       for (const b of lbots) {
         if (!b.active) continue;
         if (b.tagged) { if (now > b.taggedUntil) { b.tagged = false; b.invUntil = now + 1500; forcePresence(); } else { b.vx = b.vz = 0; continue; } }
         // the nearest enemy it can see
         botHead(b, _bh);
-        let tgt = null, td = 26;
+        let tgt = null, td = 36;
         for (const h of hs) if (h.team !== b.team && !h.tagged) { const d = Math.hypot(h.head.x - b.x, h.head.z - b.z); if (d < td && clearLine(_bh, h.head)) { td = d; tgt = h; } }
         for (const o of lbots) if (o.active && o.team !== b.team && !o.tagged) { const oh = botHead(o, new V3()); const d = Math.hypot(o.x - b.x, o.z - b.z); if (d < td && clearLine(_bh, oh)) { td = d; tgt = { id: o.id, head: oh, bot: o }; } }
         // move: to its goal, strafing a little when it has someone in its sights
@@ -666,6 +750,8 @@
       if (ltHost()) tagBot(b, now);
       else { LB.hits.push([++LB.hitSeq, b.k]); if (LB.hits.length > 6) LB.hits.shift(); b.tagged = true; b.taggedUntil = now + 3000; }
     };
+    // a new game: the host puts its bots back at their bases with no tags
+    L.ltResetBots = () => { if (!ltHost()) return; LB.round = me.round; for (const b of lbots) { b.tags = 0; b.tagged = false; b.invUntil = 0; if (b.active) spawnBot(b); } forcePresence(); };
     L.ltEnemyBots = () => lbots.some((b) => b.active && b.team !== me.team);
     L.ltBotTags = () => { const s = [0, 0]; for (const b of lbots) if (b.active) s[b.team] += b.tags; return s; };
     let fillT = 0;
@@ -742,7 +828,7 @@
       };
     }
     L.onExit = ((base) => () => { base(); for (const b of lbots) b.g.visible = false; })(L.onExit);
-    L.ltInternals = { beams, lbots, fillLtBots, stepLtBots, rayHitsBot, botFire, ltHost, LB, me, scores, fire: (now) => fire(now), clearLine };
+    L.ltInternals = { AR, BASE_Z, startGame, counting: (now) => counting(now), beams, lbots, fillLtBots, stepLtBots, rayHitsBot, botFire, ltHost, LB, me, scores, fire: (now) => fire(now), clearLine };
     return L;
   })();
 

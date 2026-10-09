@@ -118,9 +118,9 @@
     const throwZ = (end) => (end === 0 ? 1 : -1) * (FRONT + 0.55);
     const spotOf = (side, end, out) => out.set((side === 0 ? -1 : 1) * (end === 0 ? 0.95 : -0.95), 0, throwZ(end));
     const trayOf = (side, end) => ({ x: (side === 0 ? -1 : 1) * (end === 0 ? 1.55 : -1.55), z: throwZ(end) });
-    const trays = [0, 1].map(() => { const t = new THREE.Group(); addBox(t, 0.36, 0.04, 0.7, lam(0x8a6a44), 0, 0.78, 0); for (const sx of [-0.14, 0.14]) for (const sz of [-0.3, 0.3]) addBox(t, 0.03, 0.78, 0.03, lam(0x5a4430), sx, 0.39, sz); G.add(t); return t; });
+    const trays = [0, 1].map(() => { const t = new THREE.Group(); addBox(t, 0.36, 0.04, 0.9, lam(0x8a6a44), 0, 0.78, 0); for (const sx of [-0.14, 0.14]) for (const sz of [-0.4, 0.4]) addBox(t, 0.03, 0.78, 0.03, lam(0x5a4430), sx, 0.39, sz); G.add(t); return t; });
     function setSlots(end) {
-      for (const b of bags) { const t = trayOf(b.side, end); b.slot.set(t.x, 0.8 + BR, t.z + (b.k - 1.5) * 0.16); }
+      for (const b of bags) { const t = trayOf(b.side, end); b.slot.set(t.x, 0.8 + BR, t.z + (b.k - 1.5) * 0.2); }
       for (let s = 0; s < 2; s++) { const t = trayOf(s, end); trays[s].position.set(t.x, 0, t.z); }
     }
     setSlots(0);
@@ -301,6 +301,9 @@
       if (!bags.includes(b)) return false;
       return myTurn() && b === turnBag() && me.thrownTurn !== `${RS.game}:${RS.round}:${RS.turn}`;
     };
+    // (the same test, without side effects: VR and the browser only reach for the bag you're allowed to throw, so a
+    // neighbouring bag in the tray never gets in the way)
+    L.canTarget = (b) => !bags.includes(b) || L.canGrab(b);
     L.autoGrab = () => { if (!myTurn()) return null; const b = turnBag(); return b && !b.held && L.canGrab(b) && b.pos.distanceTo(myHead.pos) < 3 ? b : null; };
     // watch your own bag: when it leaves your hand and comes to rest, your turn's done
     function watchMyThrow(now) {
@@ -348,6 +351,8 @@
     botBody.visible = false; G.add(botBody);
     const floats = BOARDS.map(() => { const c = canvasTexture(256, 96); const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: c.tex, transparent: true, depthWrite: false })); s.scale.set(1.2, 0.45, 1); s.visible = false; G.add(s); return { c, s }; });
     let statusKey = '', boardKey = '';
+    const myBagGlow = new THREE.Mesh(new THREE.RingGeometry(0.1, 0.14, 24), new THREE.MeshBasicMaterial({ color: 0x8bff6a, transparent: true, opacity: 0.9, depthWrite: false, side: THREE.DoubleSide }));
+    myBagGlow.rotation.x = -Math.PI / 2; myBagGlow.visible = false; G.add(myBagGlow);
     const hudPlate = makePlate(camera, 'Your throw', 0.5, 0.1, new V3(0, -0.2, -0.6), 0, { bg: '#16142e', fg: '#ffd23f', size: 0.6 });
     hudPlate.material.depthTest = false; hudPlate.renderOrder = 999; hudPlate.visible = false;
     L.update = (dt, now) => {
@@ -404,6 +409,9 @@
         }
         b.mesh.position.copy(b.pos).addScaledVector(n || _a.set(0, 1, 0), -(BR - 0.018));
       }
+      // your bag glows when it's your turn to throw it
+      { const tb = myTurn() ? turnBag() : null; myBagGlow.visible = !!tb && !tb.held && L.canGrab(tb);
+        if (myBagGlow.visible) { myBagGlow.position.set(tb.pos.x, tb.pos.y - BR + 0.02, tb.pos.z); const k = 1 + 0.15 * Math.sin(now * 0.008); myBagGlow.scale.set(k, k, k); } }
       // Corny Carl stands at his spot when he's playing
       botBody.visible = RS.players[1] === BOT && RS.ph !== 'idle';
       if (botBody.visible) { const s = spotOf(1, RS.end, _a); botBody.position.set(s.x, 1.5 + (myTurn() ? 0 : Math.abs(Math.sin(now * 0.003)) * 0.02), s.z); botBody.rotation.y = RS.end === 0 ? 0 : Math.PI; }

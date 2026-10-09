@@ -173,9 +173,10 @@
     const H = { phaseT: 0, fuseEnd: 0, fuseTotal: 1, catchT: 0, botHoldUntil: 0, botWins: bots.map(() => 0) };
     const me = { wins: 0, tseq: 0, tTarget: -1, catchT: 0, pendingUntil: 0, round: -1, popSeen: 0, winSeen: -1, wasHolder: false, ph: '', side: 'right', swingArmed: true };
     L.potato = { RS, H, me };
+    const SIT = makeSitOut(L, { outMsg: 'Sitting out: you\u2019re out of the game and free to walk about. Join in to play again' });
     const humans = () => {
-      const ids = state.mode !== 'menu' ? [state.myPeer] : [];
-      for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer);
+      const ids = state.mode !== 'menu' && !SIT.on ? [state.myPeer] : [];
+      for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame && !SIT.out(rec)) ids.push(rec.peer);
       return ids.sort();
     };
     const hostId = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort()[0]; };
@@ -379,11 +380,11 @@
       const B = L.bounds;
       let x = clamp(p.x, B.minX + 0.4, B.maxX - 0.4), z = clamp(p.z, B.minZ + 0.4, B.maxZ - 0.4);
       const live = RS.ph === 'count' || RS.ph === 'play' || RS.ph === 'pop';
-      if (live && imIn()) {
+      if (live && imIn() && !SIT.on) {
         // stay on your spot
         const s = myMarkPos(_a), dx = x - s.x, dz = z - s.z, d = Math.hypot(dx, dz);
         if (d > 0.6) { x = s.x + dx * 0.6 / d; z = s.z + dz * 0.6 / d; }
-      } else if (live) {
+      } else if (live && !SIT.on) {
         // keep out of the ring while it's on
         const R = ringR(RS.order.length) + 1.0, d = Math.hypot(x, z);
         if (d < R) { const k = R / Math.max(0.01, d); x *= k; z *= k; }
@@ -400,7 +401,7 @@
         showToast('POP! You’re out. Cheer them on from the hay bales');
         for (const s of SIDES) haptic(vrHands[s], 1, 250);
         if (ui.hurt && state.mode === 'flat') { ui.hurt.style.opacity = '0.55'; setTimeout(() => { ui.hurt.style.opacity = '0'; }, 500); }
-        setTimeout(() => { if (state.level === L.idx && state.mode !== 'menu' && !imIn()) toSpot(); }, 900);
+        setTimeout(() => { if (state.level === L.idx && state.mode !== 'menu' && !imIn() && !SIT.on) toSpot(); }, 900);
       } else showToast(`POP! ${nameOf(victim)} is out`);
       spawnFloat('POP!', at.clone().add(_c.set(0, 0.4, 0)), '#ff6a3a');
       state.dirtyBoard = true;

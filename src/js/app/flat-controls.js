@@ -69,7 +69,7 @@
       if (ang < tol && ang < bestA) { bestA = ang; best = { kind, obj }; }
     };
     if (!state.held && !L.grabless) {
-      for (const b of L.bodies) if (!b.held) consider('body', b, b.pos, L.grabRange || 14);
+      for (const b of L.bodies) if (!b.held && (!L.canTarget || L.canTarget(b))) consider('body', b, b.pos, L.grabRange || 14);
       for (const t of L.tools) if (!t.held) consider('tool', t, toolGrip(t, _tg), 8);
     }
     for (const btn of L.buttons) consider('button', btn, btn.pos, 5);
