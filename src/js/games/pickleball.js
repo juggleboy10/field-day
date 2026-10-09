@@ -98,6 +98,7 @@
       const x = endX(s) + (s === 0 ? -1.4 : 1.4), z = HW + 0.9;
       addBox(G, 0.9, 0.8, 0.5, lam(0x2b2d42), x, 0.4, z);
       const t = makeTool(L, new V3(x, 0.82, z), rackQ, 'pbpaddle');
+      t.holdToDrop = 700;      // VR: squeeze and hold to put it down, so a bump of the grip doesn't drop it
       t.pbSide = s;
       return t;
     });
@@ -142,7 +143,8 @@
     const serveZ = () => { const right = PB.score[PB.server] % 2 === 0; const zr = PB.server === 0 ? 1 : -1; return (right ? zr : -zr) * HW / 2; };
 
     // ---------------------------------------------------------------- the rules (run by whoever has the ball)
-    function newGame() { Object.assign(PB, { score: [0, 0], server: rand() < 0.5 ? 0 : 1, overT: 0, winner: -1 }); startServe(); }
+    const oppKey = () => otherHuman() || 'bot';
+    function newGame() { Object.assign(PB, { score: [0, 0], server: rand() < 0.5 ? 0 : 1, overT: 0, winner: -1, opp: oppKey() }); startServe(); }
     function startServe() {
       Object.assign(PB, { ph: 'serve', lastHit: -1, need: -1, bounced: false, hits: 0 });
       Object.assign(PB.b, { x: endX(PB.server) * 1.04, y: 0.75, z: serveZ(), vx: 0, vy: 0, vz: 0 });
@@ -384,8 +386,15 @@
       const at = players()[s];
       if (at && at !== state.myPeer) { showToast(`The ${SIDE_NAME[s].toLowerCase()} side is taken`); return false; }
       PB.mySide = s;
-      if (!otherHuman() || PB.ph === 'idle') newGame();
-      showToast(otherHuman() ? `Pickleball! First to ${WIN}, win by 2` : `Pickleball against Dink Daisy. First to ${WIN}, win by 2`);
+      // picking your paddle back up (same opponent, game not finished) carries on where you left off
+      const started = PB.score[0] + PB.score[1] > 0 || PB.ph === 'serve' || PB.ph === 'rally' || PB.ph === 'dead';
+      if (started && PB.winner < 0 && PB.opp === oppKey()) {
+        if (PB.ph === 'idle') startServe();
+        showToast(`Back in the game: ${PB.score[s]}–${PB.score[1 - s]}`);
+      } else {
+        if (!otherHuman() || PB.ph === 'idle') newGame();
+        showToast(otherHuman() ? `Pickleball! First to ${WIN}, win by 2` : `Pickleball against Dink Daisy. First to ${WIN}, win by 2`);
+      }
       sfx('chime', 0.6);
       state.hudDirty = true; state.dirtyBoard = true;
       forcePresence();
@@ -507,6 +516,7 @@
       PB.botOn = a[19] === 1;
       if (PB.mySide < 0 && PB.botOn) { PB.bot.x = a[20]; PB.bot.z = a[21]; }
     };
+    L.hudActions = [{ label: () => 'New game', show: () => botSide() >= 0, run: () => { newGame(); showToast(`New game against Dink Daisy. First to ${WIN}, win by 2`); } }];
     PB.internals = { HL, HW, KITCH, NET_H, paddles, takeSide, leaveCourt, newGame, startServe, onHit, onBounce, stepBall, hitBall, aimed, target, players, botSide, iAmAuth, serveZ };
     return L;
   })();

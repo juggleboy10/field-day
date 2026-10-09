@@ -306,6 +306,8 @@
     function watchMyThrow(now) {
       if (!myTurn()) return;
       const b = turnBag(), key = `${RS.game}:${RS.round}:${RS.turn}`;
+      // holding is per turn: a bag you were holding when a game or round was reset isn't this turn's throw
+      if (me.holdKey !== key) { me.holdKey = key; me.holding = false; }
       if (me.thrownTurn !== key) {
         if (b.held && b.held.peer === state.myPeer) me.holding = true;
         else if (me.holding && !b.held) { me.holding = false; me.thrownTurn = key; b.data.thrownAt = now; }
@@ -383,6 +385,17 @@
         let n = null;
         for (const B of BOARDS) { local(B, b.pos, _l); if (!b.data.inHole && onBoardRect(_l, 0.02) && _l.h < BR + 0.03) n = B.n; }
         if (b.held) { b.mesh.quaternion.identity(); continue; }
+        // in the air: a flat spin, tipped to follow the arc (nose up on the way up, down on the way down)
+        const sp2 = b.vel.x * b.vel.x + b.vel.z * b.vel.z;
+        if (b.pos.y > BR + 0.06 && sp2 > 1.5 && !b.data.inHole) {
+          b.yaw += Math.min(dt, 0.05) * (b.k % 2 ? 1 : -1) * (8 + ((b.k * 7 + b.side * 3) % 5));
+          const hz = Math.sqrt(sp2), pitch = clamp(Math.atan2(b.vel.y, hz) * 0.45, -0.5, 0.5);
+          _q.setFromAxisAngle(_a.set(b.vel.z / hz, 0, -b.vel.x / hz), -pitch);
+          b.mesh.quaternion.copy(_q).multiply(new Q4().setFromAxisAngle(_b.set(0, 1, 0), b.yaw));
+          b.mesh.position.copy(b.pos);
+          b.data.laid = false;
+          continue;
+        }
         if (!b.sleeping || !b.data.laid) {
           _q.setFromUnitVectors(_a.set(0, 1, 0), n || _a.clone());
           if (!n) _q.identity();
@@ -456,7 +469,7 @@
       if (newEnd) setSlots(RS.end);
     };
     L.spawn = () => { dolly.position.set(2.4, 0, 6.5); state.yaw = 0.3; };
-    L.onEnter = () => { me.round = -1; me.game = -1; me.ph = ''; statusKey = ''; boardKey = ''; if (hostId() === state.myPeer) RS.ph = 'idle'; state.dirtyBoard = true; };
+    L.onEnter = () => { me.holding = false; me.holdKey = ''; me.round = -1; me.game = -1; me.ph = ''; statusKey = ''; boardKey = ''; if (hostId() === state.myPeer) RS.ph = 'idle'; state.dirtyBoard = true; };
     L.onExit = () => { hudPlate.visible = false; botBody.visible = false; if (ui.status) ui.status.hidden = true; statusKey = ''; };
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0001) * 0.5; camera.position.set(3 + Math.sin(a) * 2, 2.2, 7.5); camera.lookAt(0, 0.3, -4); };
     L.cornholeInternals = { RS, H, me, bags, BOARDS, bagPoints, throwFor, lob, hostStep, isHost, turnBag, myTurn, setSlots, local };

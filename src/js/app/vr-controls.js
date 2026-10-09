@@ -53,6 +53,8 @@
       const o = h.holding;
       if (o.kind === 'tool' && o.obj.sticky) {
         if (btn === 'select') { if (L.onTrigger) L.onTrigger(o.obj, h); }
+        // some tools (a pickleball paddle) only drop on a long squeeze, so a bump of the grip doesn't lose them
+        else if (o.obj.holdToDrop) { h.dropT = performance.now(); haptic(h, 0.15, 15); }
         else { h.holding = null; dropTool(o.obj); haptic(h, 0.2, 20); }
       }
       return;
@@ -152,6 +154,13 @@
   const _hp = new V3(), _ro = new V3(), _rd = new V3(), _tb = new V3(), _rq = new Q4(), _right = new V3(), _mf = new V3(), _tg = new V3();
   function vrUpdate(dt, now) {
     const L = curLevel();
+    for (const side of SIDES) {
+      const h = vrHands[side], o = h.holding;
+      if (!h.dropT) continue;
+      const gp = h.source && h.source.gamepad, squeezing = !!(gp && gp.buttons && gp.buttons[1] && gp.buttons[1].pressed);
+      if (!o || o.kind !== 'tool' || !o.obj.holdToDrop || !squeezing) { h.dropT = 0; continue; }
+      if (now - h.dropT > o.obj.holdToDrop) { h.dropT = 0; h.holding = null; dropTool(o.obj); haptic(h, 0.4, 40); }
+    }
     if (HOP.air) { dolly.position.y = HOP.base; HOP.air = false; }     // no hopping in VR
     for (const side of SIDES) {
       const h = vrHands[side], mh = myHands[side];

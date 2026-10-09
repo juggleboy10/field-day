@@ -478,7 +478,7 @@
     function finishRace() {
       RACE.myFinish = Math.round(raceNow()); RACE.state = 'over';
       const rank = standings().findIndex((r) => r.me) + 1;
-      showToast(`Finished in ${(RACE.myFinish / 1000).toFixed(1)} s! ${rank === 1 ? '1st place!' : `Place ${rank}`}`);
+      showToast(`Finished in ${(RACE.myFinish / 1000).toFixed(1)} s! ${rank === 1 ? '1st place!' : `Place ${rank}`} \u00B7 Race again or head home just ahead`);
       sfx('fanfare', 1); setTimeout(() => sfx('cheer', 0.8), 250);
       forcePresence();
     }
@@ -486,6 +486,16 @@
     makeButton(L, new V3(2.2, 1.0, 3.0), 0xff7a3a, 'Back to start', () => { toStart(); showToast('Back at the start'); }, { faceYaw: 0 });
     makeKiosk(L, -LANE + 0.6, 4.2, Math.atan2(LANE - 0.6, -2.2));
     makePlayerPicker(L, { min: 1, max: 1 + BOT_DEF.length, def: 4, label: 'Racers', note: 'from the next race', x: -2.2, z: 0.9, yaw: 0 });
+    // past the finish: race again, the results, the way back to the clubhouse, and a wall at the end of the lane
+    {
+      const FZ = Z.finish - 3.2;
+      makeButton(L, new V3(1.3, 1.0, FZ), 0x8bd450, 'Race again', () => { startRace(); }, { faceYaw: 0 });
+      makeKiosk(L, -1.3, FZ, 0);
+      const res = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 1.24), new THREE.MeshBasicMaterial({ map: boardC.tex }));
+      res.position.set(0, 2.5, FZ - 1.6); G.add(res);
+      for (const sx of [-1, 1]) addBox(G, 0.08, 2.5, 0.08, lam(0xf2ead8), sx * 1.1, 1.25, FZ - 1.65);
+      solid(-LANE - 0.5, LANE + 0.5, 0, 1.4, FZ - 2.3, FZ - 2.1, lam(0xff5a5a));
+    }
     const countSign = makePlate(G, 'Press START', 2.2, 0.42, new V3(0, 2.6, -0.45), 0, { bg: '#2a3a8a', fg: '#8bff6a', size: 0.6 });
 
     // ---------------------------------------------------------------- holds: the monkey bars

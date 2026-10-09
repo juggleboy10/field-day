@@ -46,19 +46,31 @@
     G.add(outer);
     // boards, with a tall see-through net above them
     const boardMat = lam(0xf2f0e8), adMat = lam(0x2b3a7a);
+    // the sideline area: a strip outside the west boards, through a gap, with the kiosk and the settings
+    const GATE = [10, 13], SIDE_X = [-HW - 2.3, -HW];
+    const boardRuns = (s) => (s < 0 ? [[-HL, GATE[0]], [GATE[1], HL]] : [[-HL, HL]]);
     for (const s of [-1, 1]) {
-      addBox(G, 0.15, 0.9, 2 * HL, boardMat, s * (HW + 0.08), 0.45, 0);
-      addBox(G, 0.16, 0.3, 2 * HL, adMat, s * (HW + 0.08), 0.7, 0);
+      for (const [z0, z1] of boardRuns(s)) {
+        addBox(G, 0.15, 0.9, z1 - z0, boardMat, s * (HW + 0.08), 0.45, (z0 + z1) / 2);
+        addBox(G, 0.16, 0.3, z1 - z0, adMat, s * (HW + 0.08), 0.7, (z0 + z1) / 2);
+      }
       for (const side of [-1, 1]) addBox(G, HW - GW, 0.9, 0.15, boardMat, side * (GW + (HW - GW) / 2), 0.45, s * (HL + 0.08));
     }
     const netT = hoops.linkTex.clone();
     netT.needsUpdate = true;
     netT.repeat.set(40 / 0.2, 3 / 0.2);
     const netMat = new THREE.MeshBasicMaterial({ map: netT, transparent: true, opacity: 0.35, side: THREE.DoubleSide, depthWrite: false, color: 0xdde4ee });
-    for (const s of [-1, 1]) {
-      const n = new THREE.Mesh(new THREE.PlaneGeometry(2 * HL, 3), netMat);
-      n.rotation.y = Math.PI / 2; n.position.set(s * (HW + 0.08), 2.4, 0);
+    for (const s of [-1, 1]) for (const [z0, z1] of boardRuns(s)) {
+      const n = new THREE.Mesh(new THREE.PlaneGeometry(z1 - z0, 3), netMat);
+      n.rotation.y = Math.PI / 2; n.position.set(s * (HW + 0.08), 2.4, (z0 + z1) / 2);
       G.add(n);
+    }
+    // gate posts and a sign over the gap, and a path out to the sideline
+    for (const z of GATE) addBox(G, 0.2, 3.9, 0.2, lam(0xffd23f), -HW - 0.08, 1.95, z);
+    makePlate(G, 'Sideline: Clubhouse & settings', 3.0, 0.36, new V3(-HW - 0.02, 3.6, (GATE[0] + GATE[1]) / 2), Math.PI / 2, { bg: '#123524', fg: '#ffd23f', size: 0.5 });
+    {
+      const path = new THREE.Mesh(new THREE.PlaneGeometry(SIDE_X[1] - SIDE_X[0], 2 * HL - 2), lam(0x8a7a5a));
+      path.rotation.x = -Math.PI / 2; path.position.set((SIDE_X[0] + SIDE_X[1]) / 2, 0.004, 0); G.add(path);
     }
     // goals
     const postMat = lam(0xffffff);
@@ -92,18 +104,14 @@
         addBox(G, 1.0, 0.5 + row * 0.5, 44, lam(seatCols[row % 3]), s * (HW + 3 + row * 1.0), (0.5 + row * 0.5) / 2, 0);
       }
     }
-    // kiosk and buttons in a corner, with colliders so the ball bounces off them
-    const KX = -HW + 1.3, KZ = HL - 3.2;
+    // the kiosk and buttons stand along the sideline, off the pitch
+    const KX = SIDE_X[0] + 0.45, KZ = 15.4;
     makeKiosk(L, KX, KZ, Math.PI / 2);
-    makeButton(L, new V3(KX, 1.0, KZ - 2.2), 0xb388ff, 'Switch team', () => switchTeam(), { faceYaw: Math.PI / 2 });
-    const COLLIDERS = [
-      box(KX - 0.35, 0, KZ - 1.2, KX + 0.35, 1.75, KZ + 1.2, 0.4, 'wall'),
-      box(KX - 0.2, 0, KZ - 2.4, KX + 0.2, 1.05, KZ - 2.0, 0.4, 'wall'),
-    ];
+    makeButton(L, new V3(KX, 1.0, 8.3), 0xb388ff, 'Switch team', () => switchTeam(), { faceYaw: Math.PI / 2 });
+    const COLLIDERS = [];
     L.board = makeBoard(G, 720, 460, 6.4, 4.09, -(HW + 7.6), 5.6, 0, Math.PI / 2, false);
     addBox(G, 0.3, 4.4, 6.8, legMat, -(HW + 7.8), 5.6, 0);
-    const sign = makeBoard(G, 720, 500, 2.0, 1.39, HW - 0.25, 1.7, HL - 3.5, -Math.PI / 2 + 0.3);
-    COLLIDERS.push(box(HW - 0.6, 0, HL - 4.6, HW, 2.4, HL - 2.4, 0.4, 'wall'));
+    const sign = makeBoard(G, 720, 500, 2.0, 1.39, SIDE_X[0] + 0.2, 1.7, (GATE[0] + GATE[1]) / 2, Math.PI / 2);
     function drawSign() {
       const g = sign.g;
       g.fillStyle = '#123524'; g.fillRect(0, 0, 720, 500);
@@ -433,12 +441,18 @@
     };
     L.hudActions = [{ label: () => 'Switch team', run: () => switchTeam() }];
     L.hints = [['Walk into it', 'dribble'], ['Click', 'tap kick'], ['Space', 'hold for a big kick'], ['WASD', 'move']];
+    // you can be on the pitch, on the sideline strip, or in the gap between them: the nearest of those to where you're going
     L.clampPlayer = (p) => {
       const m = 0.3;
       const inGoal = Math.abs(p.x) < GW - m && Math.abs(p.z) > HL - m;
-      const x = clamp(p.x, -HW + m, HW - m);
-      const z = inGoal ? clamp(p.z, -(HL + GD - m), HL + GD - m) : clamp(p.z, -HL + m, HL - m);
-      return [x - p.x, z - p.z];
+      const cand = [
+        [clamp(p.x, -HW + m, HW - m), inGoal ? clamp(p.z, -(HL + GD - m), HL + GD - m) : clamp(p.z, -HL + m, HL - m)],
+        [clamp(p.x, SIDE_X[0] + m, SIDE_X[1] - m), clamp(p.z, -HL + 1, HL - 1)],
+        [clamp(p.x, SIDE_X[1] - 0.4, -HW + 0.4), clamp(p.z, GATE[0] + m, GATE[1] - m)],
+      ];
+      let best = cand[0], bd = Infinity;
+      for (const c of cand) { const d = Math.hypot(c[0] - p.x, c[1] - p.z); if (d < bd) { bd = d; best = c; } }
+      return [best[0] - p.x, best[1] - p.z];
     };
     L.attract = (now) => {
       const a = reduceMotion ? 0 : Math.sin(now * 0.00007) * 0.6;
@@ -447,7 +461,7 @@
     };
     L.hudActions = L.hudActions || [];
     L.hudActions.push({ label: () => (SOC.big ? 'Ball: bubble' : 'Ball: classic'), run: () => setBall(!SOC.big) });
-    makeButton(L, new V3(-HW - 1.2, 1.0, 1.5), 0xffd23f, 'Big / small ball', () => setBall(!SOC.big), { faceYaw: Math.PI / 2 });
+    makeButton(L, new V3(KX, 1.0, 6.5), 0xffd23f, 'Big / small ball', () => setBall(!SOC.big), { faceYaw: Math.PI / 2 });
     {
       const baseP = L.presence, baseR = L.readPresence;
       L.presence = () => { const p = baseP ? baseP() : {}; if (SOC.seq) p.sbs = [SOC.seq, SOC.big ? 1 : 0]; return p; };
@@ -462,7 +476,7 @@
     // Bots make up each team to the picker's number. The lowest-named player's page runs them: when a bot touches the
     // ball that page claims it (as anyone touching it does), so the ball's physics and goals work as they always have.
     // Each team's bots share out the jobs: a keeper (when the side has three or more), a chaser for the ball, and supports.
-    makePlayerPicker(L, { min: 1, max: 5, def: 3, label: 'Per team', x: KX, z: KZ + 2.4, yaw: Math.PI / 2 });
+    makePlayerPicker(L, { min: 1, max: 5, def: 3, label: 'Per team', x: KX, z: KZ + 2.1, yaw: Math.PI / 2 });
     const SB_NAMES = ['Kicky Kai', 'Nutmeg Nia', 'Header Hal', 'Volley Val', 'Corner Cora', 'Striker Stu', 'Dribble Di', 'Goalie Gus', 'Pass Patti', 'Wing Wes'];
     const sbots = SB_NAMES.map((name, k) => {
       const team = k < 5 ? 0 : 1;

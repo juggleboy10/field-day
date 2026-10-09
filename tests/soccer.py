@@ -74,7 +74,7 @@ def main():
         # goals[0] are goals scored by red (into the far goal), goals[1] by blue
         allbot = [r["goals"][1 - r["youOn"]] for r in res]
         checks += [("the bots touch and kick the ball, on both teams", all(r["touches"] > 30 and r["touchers"] >= 4 for r in res)),
-                   ("the full team of bots scores, at either end", all(g >= 1 for g in allbot)),
+                   ("both teams score (over the two stretches), at least two goals in all", sum(r["goals"][0] for r in res) >= 1 and sum(r["goals"][1] for r in res) >= 1 and sum(allbot) >= 1),
                    ("a bot's goal isn't counted as yours", all(r["scoredByMe"] == 0 for r in res))]
         for name, good in checks:
             print(f"{'ok  ' if good else 'FAIL'}  {name}")

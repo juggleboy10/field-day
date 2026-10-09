@@ -31,6 +31,7 @@ tests/players.py       the player-count picker: in every game with one, the numb
 tests/players_mp.py    the picker with two players: the number is shared; soccer and laser tag bots on both pages
 tests/soccer.py        Sunday soccer's computer players: the right numbers, they play and score at both ends
 tests/lasertag.py      Neon laser tag's computer players: they move and shoot, you can tag them, drones only when alone
+tests/fixes.py         fixes from playing: recess race-again, soccer sideline, pickleball paddle, cornhole first throw and spin
 tests/multiplayer.py   two players on one machine (a stand-in for Claude's room): hot potato, a kayak race, cornhole, a tag in capture the flag
 ```
 
@@ -42,7 +43,7 @@ All the code still runs as one script, in the order listed in `src/order.txt`. A
 
 ```
 ./build.sh
-for t in smoke parkour hotpotato kayak cornhole ctf piratecove trivia trivia_mp recess recess_mp players players_mp soccer lasertag multiplayer; do python tests/$t.py; done
+for t in smoke parkour hotpotato kayak cornhole ctf piratecove trivia trivia_mp recess recess_mp players players_mp soccer lasertag fixes multiplayer; do python tests/$t.py; done
 ```
 
 The smoke test needs Playwright once: `pip install playwright && playwright install chromium`.
