@@ -296,6 +296,8 @@
       if (sup && b.pos.y <= b.r + 0.012) b.dbLive = false;      // it touched the floor: it's dead
       return sup;
     };
+    // you have to be close to a ball to pick it up (pointing at one across the gym doesn't fetch it)
+    L.grabRange = 1.5;
     L.canGrab = (b) => {
       if (!balls.includes(b)) return false;
       if (me.out || me.team < 0 || RS.st !== 'play' || b.dbCarrier != null) return false;
@@ -303,7 +305,7 @@
     };
     L.autoGrab = () => {
       if (me.out || RS.st !== 'play' || me.team < 0) return null;
-      let best = null, bd = 2.4;
+      let best = null, bd = 1.4;
       for (const b of balls) { if (b.held || b.dbCarrier != null) continue; const d = Math.hypot(b.pos.x - myHead.pos.x, b.pos.z - myHead.pos.z) + Math.abs(b.pos.y - 1.0) * 0.4; if (d < bd && L.canGrab(b)) { bd = d; best = b; } }
       return best;
     };

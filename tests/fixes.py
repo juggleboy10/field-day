@@ -120,6 +120,29 @@ def main():
           L.paused = false; return { off: +c.distanceTo(mid).toFixed(2), len: +m.position.distanceTo(b.spark.position).toFixed(2) }; }""")
         print("laser tag beam: its middle is", bm["off"], "m from halfway between the muzzle and the hit; length", bm["len"])
         checks.append(("laser tag: the beam runs from the blaster to where it hits (not backwards)", bm["off"] < 0.1 and bm["len"] > 1))
+        # ---------------------------------------------------------------- dodgeball reach; pop-a-shot walls
+        page.evaluate("() => window.__fd.switchLevel(17)")
+        page.wait_for_timeout(1500)
+        page.evaluate("() => { const fd = window.__fd, L = fd.LEVELS[17]; fd.dolly.position.set(0, 0, L.me.team === 0 ? 5 : -5); }")
+        page.wait_for_timeout(800)
+        db = page.evaluate("""() => { const fd = window.__fd, L = fd.LEVELS[17], I = L.dbInternals; I.RS.st = 'play'; L.me.out = false;
+          const b = I.balls[0]; b.held = null; b.dbCarrier = null;
+          const head = new THREE.Vector3(); fd.camera.getWorldPosition(head);
+          b.pos.set(head.x + 2.2, b.r, head.z); const far = L.autoGrab();
+          b.pos.set(head.x + 0.7, b.r, head.z); const near = L.autoGrab();
+          return { range: L.grabRange, far: !!far, near: !!near }; }""")
+        print("dodgeball reach:", db)
+        checks += [("dodgeball: a ball 2 m away can't be grabbed", db["range"] <= 1.6 and not db["far"]), ("dodgeball: one at your feet can", db["near"])]
+        page.evaluate("() => window.__fd.switchLevel(8)")
+        page.wait_for_timeout(1200)
+        pop = page.evaluate("""() => { const L = window.__fd.LEVELS[8], I = L.popInternals, c = L.pops[0];
+          const walk = (x, z, tx, tz) => { let p = { x, z }; for (let i = 0; i < 400; i++) { const dx = tx - p.x, dz = tz - p.z, d = Math.hypot(dx, dz); if (d < 0.05) break; const s = Math.min(0.05, d); const q = { x: p.x + dx / d * s, z: p.z + dz / d * s }; const cc = L.clampPlayer(q); p = { x: q.x + cc[0], z: q.z + cc[1] }; } return p.z; };
+          const b = c.balls[0]; b.held = null; b.pos.set(c.x, 1.6, 16.6); b.vel.set(6, 0, 0); b.sleeping = false; let bounced = false;
+          for (let f = 0; f < 20; f++) { I.popCollide(b, 1 / 60); b.pos.addScaledVector(b.vel, 1 / 60); if (b.vel.x < 0) bounced = true; }
+          return { reached: +walk(c.x, 14.5, c.x, 17.2).toFixed(2), bounced, inside: Math.abs(b.pos.x - c.x) < I.WALL_X }; }""")
+        print("pop-a-shot:", pop)
+        checks += [("pop-a-shot: you can't walk up between the rack and the hoop", pop["reached"] <= 15.31),
+                   ("pop-a-shot: the ball bounces off the side walls", pop["bounced"] and pop["inside"])]
         for name, good in checks:
             print(f"{'ok  ' if good else 'FAIL'}  {name}")
             ok &= bool(good)

@@ -8,6 +8,8 @@
     const RYh = 1.45, RR = 0.125, BALL_R = 0.058, BOARD_Z = 17.43;
     const CABS = [{ x: -8.6, col: 0xff8a3a, name: 'Pop-a-Shot A' }, { x: -5.4, col: 0x4fc3f7, name: 'Pop-a-Shot B' }].map((c, i) => Object.assign(c, { i, rz: BOARD_Z - 0.03 - RR, balls: [], round: null, finalT: 0, last: 0, lastName: '', shown: '' }));
     const SPOT_Z = 15.0;                                   // about where you stand
+    const WALL_X = 0.72, WALL_Z0 = 15.55, WALL_H = 2.4;      // the side walls (the ball bounces off them)
+    const STAND_Z = 15.3;                                   // you stay behind this, out of the way of the rack and the hoop
     const frameMat = lam(0x232640), steelMat = lam(0xc8ccd6);
     const ballTex = canvasTexture(128, 64, (g) => { g.fillStyle = '#e8772e'; g.fillRect(0, 0, 128, 64); g.strokeStyle = '#2b1608'; g.lineWidth = 3; g.beginPath(); g.moveTo(0, 32); g.lineTo(128, 32); g.moveTo(32, 0); g.lineTo(32, 64); g.moveTo(96, 0); g.lineTo(96, 64); g.stroke(); g.beginPath(); g.arc(32, 32, 24, -1.1, 1.1); g.arc(96, 32, 24, Math.PI - 1.1, Math.PI + 1.1); g.stroke(); }).tex;
     const ballGeo = new THREE.SphereGeometry(BALL_R, 16, 12);
@@ -40,7 +42,16 @@
       panel.position.set(cx, 2.32, 17.49); panel.rotation.y = Math.PI; G.add(panel);
       makePlate(G, cab.name, 1.2, 0.2, new V3(cx, 0.45, 17.56), Math.PI, { bg: '#232640', fg: `#${cab.col.toString(16).padStart(6, '0')}`, size: 0.6 });
       // START, off to the side of where you shoot from
-      makeButton(L, new V3(cx - 0.95, 1.0, 15.7), cab.col, `Start ${cab.i ? 'B' : 'A'}`, () => startRound(cab), { faceYaw: 0 });
+      makeButton(L, new V3(cx - 0.95, 1.0, 15.35), cab.col, `Start ${cab.i ? 'B' : 'A'}`, () => startRound(cab), { faceYaw: 0 });
+      // side walls from just in front of the rack to the backboard: a solid lower panel with clear plexiglass above
+      for (const sx of [-1, 1]) {
+        const wx = cx + sx * WALL_X, zc = (WALL_Z0 + 17.6) / 2, len = 17.6 - WALL_Z0;
+        addBox(G, 0.06, 0.9, len, frameMat, wx, 0.45, zc);
+        const glass = new THREE.Mesh(new THREE.BoxGeometry(0.03, WALL_H - 0.9, len), new THREE.MeshLambertMaterial({ color: 0xbfe8ff, transparent: true, opacity: 0.22, depthWrite: false }));
+        glass.position.set(wx, 0.9 + (WALL_H - 0.9) / 2, zc); G.add(glass);
+        addBox(G, 0.08, 0.06, len, ledMat(cab.col), wx, WALL_H, zc);
+        addBox(G, 0.08, WALL_H, 0.08, frameMat, wx, WALL_H / 2, WALL_Z0);
+      }
       void BOARD_Z;
     }
     L.pops = CABS;
@@ -97,6 +108,14 @@
           b.pos.x += nx * (min - d); b.pos.y += ny * (min - d); b.pos.z += nz * (min - d);
           const vn = b.vel.x * nx + b.vel.y * ny + b.vel.z * nz;
           if (vn < 0) { b.vel.x -= 1.5 * vn * nx; b.vel.y -= 1.5 * vn * ny; b.vel.z -= 1.5 * vn * nz; if (-vn > 0.8) tone(760, 420, 0.07, 'triangle', Math.min(0.25, -vn * 0.04)); }
+        }
+      }
+      // the side walls
+      if (b.pos.z > WALL_Z0 - b.r && b.pos.z < 17.6 && b.pos.y < WALL_H + b.r) {
+        const dx = b.pos.x - cx, ax = Math.abs(dx), sgn = Math.sign(dx) || 1;
+        if (ax > WALL_X - b.r && ax < WALL_X + 0.15) {
+          b.pos.x = cx + sgn * (WALL_X - b.r);
+          if (b.vel.x * sgn > 0) { if (Math.abs(b.vel.x) > 0.8) tone(260, 160, 0.06, 'sine', Math.min(0.25, Math.abs(b.vel.x) * 0.04)); b.vel.x *= -0.7; }
         }
       }
       // the backboard
@@ -208,7 +227,15 @@
         else st.paFinalT = 0;
       } else st.pa = null;
     };
-    L.popInternals = { startRound, endRound, basket, popCollide, roundOf, myRound, RYh, RR, ROUND_MS };
+    // you shoot from behind the rack: no standing beside it, or between it and the hoop
+    L.clampPlayer = ((base) => (p) => {
+      const d = base ? base(p) : [0, 0];
+      const x = p.x + d[0], z = p.z + d[1];
+      const x0 = CABS[0].x - WALL_X - 0.3, x1 = CABS[CABS.length - 1].x + WALL_X + 0.3;
+      if (x > x0 && x < x1 && z > STAND_Z) return [d[0], STAND_Z - p.z];
+      return d;
+    })(L.clampPlayer);
+    L.popInternals = { WALL_X, WALL_Z0, STAND_Z,  startRound, endRound, basket, popCollide, roundOf, myRound, RYh, RR, ROUND_MS };
     return CABS;
   })(hub);
 

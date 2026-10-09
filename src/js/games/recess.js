@@ -20,7 +20,7 @@
     const GRAV = 16, RUN = 4.8, JUMP_V = 6.2, STEP = 0.4, R = 0.28, LANE = 2.9, COUNT_MS = 4000;
     const Z = {
       hop: [-3.5, -11.5], gate: -12.6, tire: [-14.8, -27.2], sack: [-29, -45], pit: [-47.6, -56.4], tun: [-58.6, -67.4],
-      barsStart: [-68.4, -70.4], bars: [-70.6, -78.6], barsEnd: [-77.8, -79.8], stairs: -80.4, tower: [-83.5, -85.6], slideEnd: -95, finish: -97.5,
+      barsStart: [-68.4, -70.4], bars: [-70.6, -78.6], barsEnd: [-77.8, -79.8], stairs: -102.4, tower: [-105.5, -107.6], slideEnd: -117, finish: -119.5,
     };
     const BAR_Y = 2.55, PLAT_Y = 0.7, TOWER_Y = 2.5;
     const _t = new V3(), _u = new V3(), _cp = new V3(), _cq = new Q4(), _fw = new V3();
@@ -40,18 +40,18 @@
       for (let i = 0; i < 600; i++) { g.fillStyle = rand() < 0.5 ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,40,0.08)'; g.fillRect(rand() * 128, rand() * 128, 2, 2); }
     }).tex;
     matT.wrapS = matT.wrapT = THREE.RepeatWrapping; matT.repeat.set(3, 55);
-    const lane = new THREE.Mesh(new THREE.PlaneGeometry(LANE * 2 + 0.4, 112), new THREE.MeshLambertMaterial({ map: matT, polygonOffset: true, polygonOffsetFactor: -1 }));
-    lane.rotation.x = -Math.PI / 2; lane.position.set(0, 0.002, -48); G.add(lane);
+    const lane = new THREE.Mesh(new THREE.PlaneGeometry(LANE * 2 + 0.4, 136), new THREE.MeshLambertMaterial({ map: matT, polygonOffset: true, polygonOffsetFactor: -1 }));
+    lane.rotation.x = -Math.PI / 2; lane.position.set(0, 0.002, -60); G.add(lane);
     const white = lam(0xffffff);
-    for (const s of [-1, 1]) addBox(G, 0.08, 0.01, 112, white, s * (LANE + 0.16), 0.008, -48);
+    for (const s of [-1, 1]) addBox(G, 0.08, 0.01, 136, white, s * (LANE + 0.16), 0.008, -60);
     // a low picket fence down both sides, in rainbow colours
     {
       const cols = [0xff5a5a, 0xffa23a, 0xffd23f, 0x6ad04a, 0x4ab0ff, 0xa07aff].map(lam);
-      for (const s of [-1, 1]) for (let z = 5; z > -104; z -= 0.45) {
+      for (const s of [-1, 1]) for (let z = 5; z > -128; z -= 0.45) {
         const p = addBox(G, 0.1, 0.75, 0.06, cols[Math.floor((5 - z) / 0.45) % cols.length], s * (LANE + 0.45), 0.375, z);
         void p;
       }
-      for (const s of [-1, 1]) for (const y of [0.25, 0.6]) addBox(G, 0.04, 0.06, 109, white, s * (LANE + 0.42), y, -49.5);
+      for (const s of [-1, 1]) for (const y of [0.25, 0.6]) addBox(G, 0.04, 0.06, 133, white, s * (LANE + 0.42), y, -61.5);
     }
     // the school, trees, a swing set and a seesaw out on the grass
     {
@@ -278,7 +278,7 @@
     const overLava = (x, z) => z < Z.barsStart[1] && z > Z.barsEnd[0];
 
     // 7. stairs up the tower, and the big slide down to the finish
-    stationSign(7, 'THE BIG SLIDE', 'Up the stairs and down you go', -80);
+    stationSign(10, 'THE BIG SLIDE', 'Up the stairs and down you go', Z.stairs + 0.4);
     const SLIDE = { x0: -0.62, x1: 0.62, zTop: Z.tower[1], zBot: Z.slideEnd, yTop: TOWER_Y, yBot: 0.08 };
     RAMPS.push(SLIDE);
     {
@@ -332,7 +332,10 @@
       { x: 0, y: 0, z: -46.5, from: Z.sack[1] - 0.3, name: 'the ball pit' },
       { x: 0, y: 0, z: -57.6, from: Z.pit[1] - 0.3, name: 'the tunnel' },
       { x: 0, y: PLAT_Y, z: -69.6, from: Z.barsStart[0] - 0.2, name: 'the monkey bars' },
-      { x: 0, y: 0.35, z: -80.05, from: Z.barsEnd[1] - 0.6, name: 'the big slide' },
+      { x: 0, y: 0, z: -81.0, from: Z.barsEnd[1] - 0.6, name: 'the trick shot' },
+      { x: 0, y: 0, z: -89.3, from: -88.9, name: 'the bottle flip' },
+      { x: 0, y: 0, z: -95.4, from: -95.0, name: 'double dutch' },
+      { x: 0, y: 0, z: -101.9, from: -101.6, name: 'the big slide' },
     ];
     const HOP_START = { x: 0, y: 0, z: -2.6 };
 
@@ -407,17 +410,22 @@
     for (let i = 0; i < 12; i++) { const [x, z] = TIRES[i * 2 + (i % 2)]; ROUTE.push([x, 0, z, 3.0, 'hop']); }
     ROUTE.push([0, 0, -28.9, 4, 'run'], [0, 0, -45.1, 2.2, 'sack'], [0, 0, -47.4, 4, 'run'], [0, 0, -56.6, 2.0, 'wade'], [0, 0, -58.4, 4, 'run'],
       [0, 0, -67.6, 1.8, 'crawl'], [0, 0.35, -68.1, 3, 'run'], [0, PLAT_Y, -70.4, 3, 'run'], [0, PLAT_Y, -78.6, 1.7, 'bars'], [0, PLAT_Y, -79.6, 3, 'run'],
-      [0, 0, -80.3, 3, 'run'], [0, TOWER_Y, -83.7, 2.0, 'run'], [0, TOWER_Y, -85.5, 3, 'run'], [0, 0.1, -95, 6.5, 'slide'], [0, 0, -99.5, 4.5, 'run']);
-    const ROUTE_T = [0];
-    for (let i = 1; i < ROUTE.length; i++) { const a = ROUTE[i - 1], b = ROUTE[i]; ROUTE_T.push(ROUTE_T[i - 1] + Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]) / b[3]); }
+      [0, 0, -80.3, 3, 'run'], [0, 0, -82.2, 3, 'run', 2.6, 'throw'], [1.3, 0, -87.6, 3.5, 'run'], [0, 0, -91.5, 3.5, 'run', 2.8, 'flip'],
+      [1.4, 0, -92.6, 3, 'run'], [0, 0, -95, 3, 'run'], [0, 0, -99.6, 3, 'run', 3.8, 'skip'], [0, 0, -102.3, 3.5, 'run'],
+      [0, TOWER_Y, -105.7, 2.0, 'run'], [0, TOWER_Y, -107.5, 3, 'run'], [0, 0.1, -117, 6.5, 'slide'], [0, 0, -121.5, 4.5, 'run']);
+    // ROUTE_T[i]: when a bot leaves point i (it arrives, then waits there if the point has a wait: [5] seconds doing [6])
+    const ROUTE_T = [0], ARRIVE = [0];
+    for (let i = 1; i < ROUTE.length; i++) { const a = ROUTE[i - 1], b = ROUTE[i]; ARRIVE.push(ROUTE_T[i - 1] + Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]) / b[3]); ROUTE_T.push(ARRIVE[i] + (b[5] || 0)); }
     const FIN_I = ROUTE.findIndex((r) => r[2] <= Z.finish);
-    const FIN_T = ROUTE_T[FIN_I - 1] + (ROUTE_T[FIN_I] - ROUTE_T[FIN_I - 1]) * (ROUTE[FIN_I - 1][2] - Z.finish) / (ROUTE[FIN_I - 1][2] - ROUTE[FIN_I][2]);
+    const FIN_T = ROUTE_T[FIN_I - 1] + (ARRIVE[FIN_I] - ROUTE_T[FIN_I - 1]) * (ROUTE[FIN_I - 1][2] - Z.finish) / (ROUTE[FIN_I - 1][2] - ROUTE[FIN_I][2]);
     function routeAt(t, f, out) {
       const tt = t * f;
       if (tt <= 0) { out.set(ROUTE[0][0], ROUTE[0][1], ROUTE[0][2]); return 'stand'; }
       if (tt >= ROUTE_T[ROUTE_T.length - 1]) { const e = ROUTE[ROUTE.length - 1]; out.set(e[0], e[1], e[2]); return 'done'; }
       let i = 1; while (ROUTE_T[i] < tt) i++;
-      const k = (tt - ROUTE_T[i - 1]) / (ROUTE_T[i] - ROUTE_T[i - 1]), a = ROUTE[i - 1], b = ROUTE[i];
+      const a = ROUTE[i - 1], b = ROUTE[i];
+      if (tt > ARRIVE[i]) { out.set(b[0], b[1], b[2]); return b[6] || 'stand'; }
+      const k = (tt - ROUTE_T[i - 1]) / Math.max(1e-6, ARRIVE[i] - ROUTE_T[i - 1]);
       out.set(a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k);
       return b[4];
     }
@@ -462,6 +470,7 @@
     function resetCourse() {
       for (const s of squares) { s.lit = false; s.mat.color.setHex(0xffffff); }
       P.lit = 0; P.gateOpen = false; gate.off = false; ribbon.visible = true; gateSign.userData.draw('0 / 10');
+      stationsReset();
     }
     function toStart() {
       dolly.position.set((Math.random() - 0.5) * 2, 0, 2); dolly.rotation.y = 0; state.yaw = 0; state.pitch = 0;
@@ -562,8 +571,312 @@
       // a real hop: your head jumping up fast
       const hy = camera.position.y, vy = (hy - P.headY) / Math.max(dt, 1e-3);
       P.headVy = P.headVy * 0.5 + vy * 0.5; P.headY = hy;
-      if (P.headVy > 1.1 && P.sack) P.in.jump = true;
+      if (P.headVy > 1.1 && (P.sack || inCircle(myHead.pos.x, myHead.pos.z))) P.in.jump = true;
     }
+
+    // ================================================================ stations 7-9: trick shot, bottle flip, double dutch
+    // Each one has a ribbon across the lane that drops when you've done it. Your ball and bottle are yours alone
+    // (nobody else sees them), so the physics are simple and local.
+    const TS = { line: -82.6, can: new V3(0, 0, -87.6), CR: 0.48, CH: 0.75, R: 0.11, E: 0.72 };
+    const BF = { table: -92.6, top: 0.75, half: [0.95, 0.45], gate: -94.2, tol: 0.5 };
+    const DD = { c: new V3(0, 0, -99.6), r: 0.7, gate: -101.4, need: 6, T: 1.4, hand: 2.35, y: 0.95, ropeR: 0.92 };
+    function ribbonGate(z, text) {
+      const sol = solid(-LANE, LANE, 0, 2.2, z - 0.08, z + 0.08, null);
+      const grp = new THREE.Group(); G.add(grp);
+      const rm = new THREE.MeshLambertMaterial({ color: 0xff3a6a });
+      for (const y of [0.55, 1.05]) addBox(grp, LANE * 2, 0.12, 0.03, rm, 0, y, z);
+      for (const s of [-1, 1]) addCyl(G, 0.08, 0.08, 2.2, 8, lam(0xffd23f), s * (LANE + 0.1), 1.1, z);
+      const sign = makePlate(G, text, 1.5, 0.3, new V3(-LANE + 0.95, 1.45, z + 0.03), 0, { bg: '#ff3a6a', fg: '#ffffff', size: 0.6 });
+      const g = { sol, grp, sign, text, open: false };
+      g.setOpen = (o, label) => { g.open = o; sol.off = o; grp.visible = !o; sign.userData.draw(label || (o ? 'GO!' : g.text)); };
+      return g;
+    }
+
+    // ---------------------------------------------------------------- 7. the trick shot: bounce it into the can
+    stationSign(7, 'TRICK SHOT', 'One bounce, then in the can', -80.7);
+    addBox(G, LANE * 2, 0.012, 0.12, white, 0, 0.01, TS.line + 0.25);          // the throwing line
+    const trickGate = ribbonGate(TS.line, 'Bounce it in!');
+    {
+      const canM = lam(0x3a8a5a), rimM = lam(0xd8dce4);
+      const can = new THREE.Mesh(new THREE.CylinderGeometry(TS.CR, TS.CR * 0.9, TS.CH, 20, 1, true), new THREE.MeshLambertMaterial({ color: 0x3a8a5a, side: THREE.DoubleSide }));
+      can.position.set(TS.can.x, TS.CH / 2, TS.can.z); G.add(can);
+      const bot = new THREE.Mesh(new THREE.CircleGeometry(TS.CR * 0.9, 20), canM); bot.rotation.x = -Math.PI / 2; bot.position.set(TS.can.x, 0.02, TS.can.z); G.add(bot);
+      const rim = new THREE.Mesh(new THREE.TorusGeometry(TS.CR, 0.03, 8, 24), rimM); rim.rotation.x = Math.PI / 2; rim.position.set(TS.can.x, TS.CH, TS.can.z); G.add(rim);
+      solid(TS.can.x - TS.CR, TS.can.x + TS.CR, 0, TS.CH, TS.can.z - TS.CR, TS.can.z + TS.CR, null);
+      // the ball basket by the line
+      addCyl(G, 0.3, 0.26, 0.5, 14, lam(0xb86a3a), 1.7, 0.25, TS.line + 1.0);
+    }
+    const ballM = new THREE.Mesh(new THREE.SphereGeometry(TS.R, 16, 12), new THREE.MeshLambertMaterial({ map: canvasTexture(64, 32, (g) => { g.fillStyle = '#e8453c'; g.fillRect(0, 0, 64, 32); g.fillStyle = '#ffd23f'; g.fillRect(0, 13, 64, 6); }).tex }));
+    G.add(ballM);
+    const RACK = new V3(1.7, 0.5 + TS.R, TS.line + 1.0);
+    const TB = { st: 'rack', pos: RACK.clone(), vel: new V3(), bounces: 0, t: 0, hand: null, done: false, prevY: 0 };
+    function ballToRack() { TB.st = 'rack'; TB.pos.copy(RACK); TB.vel.set(0, 0, 0); TB.bounces = 0; TB.hand = null; }
+    // the browser throw: a lob aimed at the can (if you're roughly facing it), as hard as the charge says
+    function trickVel(p, from, out) {
+      const q = 0.6 * p, dx = TS.can.x - from.x, dz = TS.can.z - from.z, D = Math.hypot(dx, dz) || 1;
+      const f = facingXZ(); let ax = f.x, az = f.z;
+      if (Math.acos(clamp((ax * dx + az * dz) / D, -1, 1)) < 0.25) { ax = dx / D; az = dz / D; }
+      const h = (1.6 + 3.4 * q) * (D / 5.2);
+      return out.set(ax * h, 4.2 + 2.6 * q, az * h);
+    }
+    function throwBall(vel) {
+      TB.st = 'fly'; TB.vel.copy(vel); TB.bounces = 0; TB.t = 0; TB.hand = null;
+      sfx('whoosh', 0.5);
+    }
+    function trickStep(dt) {
+      if (TB.st === 'miss-in') { TB.wait -= dt; if (TB.wait <= 0) ballToRack(); return; }
+      if (TB.st === 'held' || TB.st === 'rack' || TB.st === 'in') return;
+      TB.t += dt;
+      const p = TB.pos, v = TB.vel, R = TS.R, n = 3, h = dt / n;
+      for (let i = 0; i < n; i++) {
+        const py = p.y;
+        p.addScaledVector(v, h); v.y -= 9.8 * h;
+        if (p.y < R) { p.y = R; if (v.y < 0) { if (v.y < -1.2) { TB.bounces++; tone(220, 140, 0.06, 'sine', 0.2); } v.y = -v.y * TS.E; v.x *= 0.88; v.z *= 0.88; } }
+        if (Math.abs(p.x) > LANE - R) { p.x = Math.sign(p.x) * (LANE - R); v.x *= -0.6; }
+        const dx = p.x - TS.can.x, dz = p.z - TS.can.z, d = Math.hypot(dx, dz);
+        // in: dropping through the top, inside the rim
+        if (py > TS.CH && p.y <= TS.CH && d < TS.CR - R * 0.5) {
+          if (TB.bounces > 0) { TB.st = 'in'; p.set(TS.can.x + dx * 0.5, 0.3, TS.can.z + dz * 0.5); trickMade(); return; }
+          showToast('In! But it has to bounce first. Try again'); sfx('click', 0.5);
+          TB.st = 'miss-in'; p.set(TS.can.x, 0.3, TS.can.z); TB.wait = 1.2; return;
+        }
+        // the can's side (and the rim from outside)
+        if (p.y < TS.CH + R * 0.3 && d < TS.CR + R && d > TS.CR - R) {
+          const nx = dx / (d || 1), nz = dz / (d || 1), vn = v.x * nx + v.z * nz;
+          p.x = TS.can.x + nx * (TS.CR + R); p.z = TS.can.z + nz * (TS.CR + R);
+          if (vn < 0) { v.x -= 1.6 * vn * nx; v.z -= 1.6 * vn * nz; if (-vn > 1) tone(500, 300, 0.05, 'triangle', 0.12); }
+        }
+      }
+      // stopped, or gone: back to the basket
+      const slow = v.length() < 0.4 && p.y < R + 0.02;
+      if (slow || TB.t > 6 || p.z > TS.line + 2.5 || p.z < BF.table) ballToRack();
+    }
+    function trickMade() {
+      TB.done = true; trickGate.setOpen(true);
+      sfx('chime', 0.9); sfx('cheer', 0.5); showToast('Trick shot! One bounce and in');
+      for (const s of SIDES) haptic(vrHands[s], 0.6, 120);
+    }
+
+    // ---------------------------------------------------------------- 8. the bottle flip: land it standing up on the table
+    stationSign(8, 'BOTTLE FLIP', 'Land it standing on the table', -89.0);
+    const flipGate = ribbonGate(BF.gate, 'Land the flip!');
+    {
+      const wood = lam(0xc8864a), leg = lam(0x7a5a3a);
+      solid(-BF.half[0], BF.half[0], BF.top - 0.06, BF.top, BF.table - BF.half[1], BF.table + BF.half[1], wood);
+      for (const sx of [-1, 1]) for (const sz of [-1, 1]) addBox(G, 0.07, BF.top - 0.06, 0.07, leg, sx * (BF.half[0] - 0.1), (BF.top - 0.06) / 2, BF.table + sz * (BF.half[1] - 0.1));
+      // the table's legs and skirt block you walking through it
+      solid(-BF.half[0], BF.half[0], 0, BF.top - 0.06, BF.table - BF.half[1], BF.table + BF.half[1], null);
+      // a target spot on the table
+      const spot = new THREE.Mesh(new THREE.RingGeometry(0.1, 0.14, 24), new THREE.MeshBasicMaterial({ color: 0xffd23f })); spot.rotation.x = -Math.PI / 2; spot.position.set(0, BF.top + 0.003, BF.table); G.add(spot);
+    }
+    const bottle = new THREE.Group();
+    {
+      const body = new THREE.Mesh(new THREE.CylinderGeometry(0.036, 0.038, 0.2, 14), new THREE.MeshLambertMaterial({ color: 0xbfe8ff, transparent: true, opacity: 0.55 }));
+      const water = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.034, 0.07, 14), lam(0x3a9ae8)); water.position.y = -0.06;
+      const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.022, 0.04, 10), lam(0x2a6ad0)); cap.position.y = 0.12;
+      const label = new THREE.Mesh(new THREE.CylinderGeometry(0.0375, 0.0385, 0.06, 14, 1, true), lam(0xff5a5a)); label.position.y = 0.02;
+      body.position.y = 0; bottle.add(body, water, cap, label);
+    }
+    G.add(bottle);
+    const BH = 0.11;                                        // half the bottle's height (its centre sits this high when standing)
+    const BHOME = new V3(0, BF.top + BH, BF.table + BF.half[1] - 0.15);
+    const BT = { st: 'table', pos: BHOME.clone(), vel: new V3(), ang: 0, w: 0, t: 0, back: 0, hand: null, done: false };
+    function bottleHome() { BT.st = 'table'; BT.pos.copy(BHOME); BT.vel.set(0, 0, 0); BT.ang = 0; BT.w = 0; BT.hand = null; }
+    // the browser flip: from your hand, straight up and over toward the middle of the table; the charge sets how
+    // high and how fast it turns. About half is right.
+    function flipFrom(p, from) {
+      const vy = 2.2 + 1.8 * p, w = 6 + 5 * p;
+      const t = (vy + Math.sqrt(vy * vy + 2 * 9.8 * Math.max(0, from.y - (BF.top + BH)))) / 9.8;
+      return { vel: new V3((0 - from.x) / t, vy, (BF.table - from.z) / t), w };
+    }
+    function flipBottle(vel, w) { BT.st = 'fly'; BT.vel.copy(vel); BT.w = w; BT.ang = 0; BT.t = 0; BT.hand = null; sfx('whoosh', 0.4); }
+    const angOff = (a) => { const k = ((a % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2); return Math.min(k, Math.PI * 2 - k); };
+    function flipStep(dt) {
+      if (BT.st === 'fly') {
+        BT.t += dt;
+        BT.pos.addScaledVector(BT.vel, dt); BT.vel.y -= 9.8 * dt; BT.ang += BT.w * dt;
+        const onTable = Math.abs(BT.pos.x) < BF.half[0] && Math.abs(BT.pos.z - BF.table) < BF.half[1];
+        const floorY = onTable ? BF.top : 0;
+        if (BT.vel.y < 0 && BT.pos.y <= floorY + BH) {
+          if (onTable && angOff(BT.ang) < BF.tol) {
+            BT.st = 'stood'; BT.pos.y = BF.top + BH; BT.ang = 0;
+            if (!BT.done) { BT.done = true; flipGate.setOpen(true); sfx('chime', 0.9); sfx('cheer', 0.6); showToast('Bottle flip! It landed standing up'); for (const s of SIDES) haptic(vrHands[s], 0.6, 120); }
+          } else {
+            const turned = BT.ang;
+            BT.st = 'fallen'; BT.pos.y = floorY + 0.04; BT.ang = Math.PI / 2; BT.wait = 1.3;
+            tone(180, 120, 0.08, 'sine', 0.2);
+            showToast(!onTable ? 'Missed the table!' : turned < Math.PI * 2 - BF.tol ? 'Not enough flip: a little more power' : turned < Math.PI * 4 - BF.tol ? 'Too much flip: a little less power' : 'Wild! Try a gentler flip');
+          }
+        }
+        if (BT.t > 4) bottleHome();
+      } else if (BT.st === 'fallen') { BT.wait -= dt; if (BT.wait <= 0) bottleHome(); }
+    }
+
+    // ---------------------------------------------------------------- 9. double dutch: jump the ropes six times
+    stationSign(9, 'DOUBLE DUTCH', 'Stand in the circle, jump 6', -95.6);
+    const ddGate = ribbonGate(DD.gate, 'Jump 6 ropes!');
+    {
+      const ring = new THREE.Mesh(new THREE.RingGeometry(DD.r - 0.06, DD.r, 32), new THREE.MeshBasicMaterial({ color: 0xffffff, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 }));
+      ring.rotation.x = -Math.PI / 2; ring.position.set(DD.c.x, 0.012, DD.c.z); G.add(ring);
+    }
+    // the two kids turning the ropes
+    const turners = [-1, 1].map((s, i) => {
+      const g = buildAvatar(i ? '#ff8ad0' : '#8bd450', i ? 2 : 0, i + 1, true, i + 2, i ? 3 : 5);
+      g.scale.setScalar(0.85); g.position.set(s * (DD.hand + 0.35), 1.3, DD.c.z); g.rotation.y = s > 0 ? Math.PI / 2 : -Math.PI / 2; G.add(g);
+      return g;
+    });
+    const ROPE_N = 18, ropeMat = [lam(0xffd23f), lam(0x4ab0ff)];
+    const ropeGeo = new THREE.CylinderGeometry(0.018, 0.018, 1, 6); ropeGeo.rotateX(Math.PI / 2); ropeGeo.translate(0, 0, 0.5);
+    const ropes = [0, 1].map((k) => { const segs = []; for (let i = 0; i < ROPE_N; i++) { const m = new THREE.Mesh(ropeGeo, ropeMat[k]); G.add(m); segs.push(m); } return segs; });
+    const DDS = { t: 0, k: -1, clears: 0, pause: 0, done: false };
+    const _r0 = new V3(), _r1 = new V3();
+    function ropePoint(k, s, ph, out) {
+      const r = DD.ropeR * Math.sin(Math.PI * s), a = k ? -ph + Math.PI : ph;
+      return out.set(-DD.hand + 2 * DD.hand * s, Math.max(0.02, DD.y + r * Math.cos(a)), DD.c.z + (k ? 0.04 : -0.04) + r * Math.sin(a));
+    }
+    function drawRopes() {
+      const ph = (2 * Math.PI * DDS.t) / DD.T;
+      for (let k = 0; k < 2; k++) for (let i = 0; i < ROPE_N; i++) {
+        ropePoint(k, i / ROPE_N, ph, _r0); ropePoint(k, (i + 1) / ROPE_N, ph, _r1);
+        const m = ropes[k][i]; m.position.copy(_r0); m.lookAt(_r1); m.scale.set(1, 1, _r0.distanceTo(_r1));
+      }
+      turners.forEach((g, i) => { g.rotation.z = Math.sin(ph + i * Math.PI) * 0.08; });
+    }
+    const inCircle = (x, z) => Math.hypot(x - DD.c.x, z - DD.c.z) < DD.r;
+    function ddStep(dt, now) {
+      if (DDS.pause > 0) { DDS.pause -= dt; drawRopes(); return; }
+      DDS.t += dt;
+      // every half turn one of the two ropes sweeps along the ground
+      const k = Math.floor((2 * DDS.t) / DD.T);
+      if (k !== DDS.k) {
+        const first = DDS.k < 0;
+        DDS.k = k;
+        if (!first) {
+          const [bx, bz] = bodyXZ();
+          if (Math.abs(bz - DD.c.z) < 8) tone(330, 260, 0.04, 'triangle', 0.1);
+          if (!DDS.done && inCircle(bx, bz)) {
+            if (dolly.position.y + P.duck > 0.06) {
+              DDS.clears += 1; tone(600 + DDS.clears * 60, 0, 0.08, 'sine', 0.16);
+              ddGate.sign.userData.draw(`${DDS.clears} / ${DD.need}`);
+              if (DDS.clears >= DD.need) { DDS.done = true; ddGate.setOpen(true); sfx('chime', 0.9); sfx('cheer', 0.6); showToast('Double dutch! Six in a row'); }
+            } else {
+              // caught by the rope: start the count again
+              if (DDS.clears > 0 || !DDS.warned) showToast(DDS.clears ? `Tripped at ${DDS.clears}! Jump as the rope comes under you` : 'Jump as the rope swings under your feet');
+              DDS.warned = true; DDS.clears = 0; DDS.pause = 0.7;
+              ddGate.sign.userData.draw(`0 / ${DD.need}`);
+              sfx('thump', 0.5); for (const s of SIDES) haptic(vrHands[s], 0.5, 80);
+            }
+          }
+        }
+      }
+      drawRopes();
+    }
+    // when the next rope reaches the ground (for the tests' autopilot)
+    const ddNext = () => (DD.T / 2) * (Math.floor((2 * DDS.t) / DD.T) + 1) - DDS.t;
+
+    // ---------------------------------------------------------------- holding: the ball and the bottle
+    // In a browser you pick them up just by walking up (the ball behind the line, the bottle at the table), and
+    // hold Space for power. In VR you grip them and throw (or flip with a flick of the wrist) for real.
+    const STN = { charge: 0, holding: '', qPrev: [new Q4(), new Q4()], spin: [0, 0], marker: null };
+    const inTrick = (bx, bz) => !TB.done && bz > TS.line && bz < TS.line + 2.4;
+    const atTable = (bx, bz) => !BT.done && bz > BF.table + BF.half[1] - 0.1 && bz < BF.table + BF.half[1] + 1.4 && Math.abs(bx) < BF.half[0] + 0.6;
+    const _hp2 = new V3(), _hv2 = new V3();
+    function holdPos(out) {
+      if (state.mode === 'vr') return out;
+      camera.getWorldQuaternion(_cq); camera.getWorldPosition(_cp);
+      return out.set(0.26, -0.34, -0.6).applyQuaternion(_cq).add(_cp);
+    }
+    function stationsInput(dt) {
+      const [bx, bz] = bodyXZ(), vr = state.mode === 'vr';
+      if (!vr) {
+        // pick up by walking up
+        if (!STN.holding && inTrick(bx, bz) && TB.st === 'rack') { STN.holding = 'ball'; TB.st = 'held'; }
+        if (!STN.holding && atTable(bx, bz) && BT.st === 'table') { STN.holding = 'bottle'; BT.st = 'held'; }
+        if (STN.holding === 'ball' && !inTrick(bx, bz)) { STN.holding = ''; ballToRack(); }
+        if (STN.holding === 'bottle' && !atTable(bx, bz)) { STN.holding = ''; bottleHome(); }
+        if (!STN.holding) { STN.charge = 0; return false; }
+        // Space: charge, then let go to throw or flip
+        if (P.in.jump) STN.charge = Math.min(1.2, STN.charge + dt);
+        else if (STN.charge > 0) {
+          const p = Math.min(1, STN.charge / 1.0); STN.charge = 0;
+          holdPos(_hp2);
+          // (from a set height, so the same charge always does the same thing)
+          if (STN.holding === 'ball') { _hp2.y = 1.3; TB.pos.copy(_hp2); throwBall(trickVel(p, _hp2, new V3())); }
+          else { _hp2.y = 1.15; BT.pos.copy(_hp2); const f = flipFrom(p, _hp2); flipBottle(f.vel, f.w); }
+          STN.holding = '';
+        }
+        return true;     // (Space charges instead of jumping while you hold something)
+      }
+      // VR: grip near the ball or bottle to pick it up; let go to throw
+      let busy = false;
+      for (let si = 0; si < 2; si++) {
+        const side = SIDES[si], mh = myHands[side], gp = vrHands[side].source && vrHands[side].source.gamepad;
+        const grip = !!(gp && gp.buttons && gp.buttons[1] && gp.buttons[1].pressed);
+        if (!mh.ok) continue;
+        // how fast the hand is turning (for the bottle's spin)
+        const dq = Math.abs(STN.qPrev[si].dot(mh.quat));
+        const ang = 2 * Math.acos(Math.min(1, dq)) / Math.max(dt, 1e-3);
+        STN.spin[si] = STN.spin[si] * 0.6 + ang * 0.4; STN.qPrev[si].copy(mh.quat);
+        if (grip && !STN.holding) {
+          if ((TB.st === 'rack' || (TB.st === 'fly' && TB.pos.y < 0.3)) && !TB.done && mh.pos.distanceTo(TB.pos) < 0.22) { STN.holding = 'ball'; STN.hand = side; TB.st = 'held'; haptic(vrHands[side], 0.4, 30); }
+          else if ((BT.st === 'table' || BT.st === 'fallen') && !BT.done && mh.pos.distanceTo(BT.pos) < 0.2) { STN.holding = 'bottle'; STN.hand = side; BT.st = 'held'; haptic(vrHands[side], 0.4, 30); }
+        }
+        if (STN.holding && STN.hand === side) {
+          busy = true;
+          if (STN.holding === 'ball') TB.pos.copy(mh.pos); else BT.pos.copy(mh.pos);
+          if (!grip) {
+            handVelocity(vrHands[side], _hv2);
+            if (STN.holding === 'ball') { if (_hv2.length() > 1.2) throwBall(_hv2.clone().multiplyScalar(1.1)); else ballToRack(); }
+            else { if (_hv2.y > 0.6) flipBottle(_hv2.clone(), clamp(STN.spin[si], 0, 25)); else bottleHome(); }
+            STN.holding = '';
+          }
+        }
+      }
+      return busy;
+    }
+    function stationsStep(dt, now) {
+      trickStep(dt); flipStep(dt); ddStep(dt, now);
+    }
+    function stationsDraw() {
+      if (STN.holding && state.mode !== 'vr') holdPos(STN.holding === 'ball' ? TB.pos : BT.pos);
+      ballM.position.copy(TB.pos);
+      if (TB.st === 'fly') { ballM.rotation.x += 0.2; ballM.rotation.z += 0.13; }
+      bottle.position.copy(BT.pos); bottle.rotation.set(BT.ang, 0, 0);
+      // the power meter (browser), with the sweet spot marked
+      if (state.mode === 'flat' && ui.power) {
+        const on = STN.holding && STN.charge > 0;
+        if (!STN.marker) { STN.marker = document.createElement('div'); Object.assign(STN.marker.style, { position: 'absolute', top: '-3px', bottom: '-3px', width: '8%', background: 'rgba(139,255,106,0.45)', border: '2px solid #8bff6a', borderRadius: '4px', pointerEvents: 'none' }); ui.power.style.position = ui.power.style.position || 'relative'; ui.power.appendChild(STN.marker); }
+        if (on) { ui.power.hidden = false; ui.powerFill.style.width = `${Math.round(Math.min(1, STN.charge / 1.0) * 100)}%`; STN.marker.style.display = 'block'; STN.marker.style.left = `${Math.round((STN.holding === 'ball' ? SWEET.ball : SWEET.bottle) * 100 - 4)}%`; }
+        else if (STN.wasOn) { ui.power.hidden = true; STN.marker.style.display = 'none'; }
+        STN.wasOn = on;
+      }
+    }
+    function stationsReset() {
+      TB.done = false; ballToRack(); trickGate.setOpen(false);
+      BT.done = false; bottleHome(); flipGate.setOpen(false);
+      DDS.done = false; DDS.clears = 0; ddGate.setOpen(false); ddGate.sign.userData.draw(ddGate.text);
+      STN.holding = ''; STN.charge = 0;
+    }
+    // where the browser charge lands best (worked out once by trying every charge, from a typical spot)
+    const SWEET = (() => {
+      const best = (f) => { let lo = -1, hi = -1; for (let p = 0; p <= 1.0001; p += 0.01) { if (f(p)) { if (lo < 0) lo = p; hi = p; } } return lo < 0 ? 0.5 : (lo + hi) / 2; };
+      const ballIn = (p) => {
+        const from = new V3(0.15, 1.3, TS.line + 0.45), v = new V3();
+        const q = 0.6 * p, D = Math.hypot(TS.can.x - from.x, TS.can.z - from.z), h = (1.6 + 3.4 * q) * (D / 5.2);
+        v.set((TS.can.x - from.x) / D * h, 4.2 + 2.6 * q, (TS.can.z - from.z) / D * h);
+        const pos = from.clone(); let bounces = 0;
+        for (let i = 0; i < 1200; i++) {
+          const dt = 1 / 240, py = pos.y; pos.addScaledVector(v, dt); v.y -= 9.8 * dt;
+          if (pos.y < TS.R) { pos.y = TS.R; if (v.y < 0) { if (v.y < -1.2) bounces++; v.y = -v.y * TS.E; v.x *= 0.88; v.z *= 0.88; } }
+          const d = Math.hypot(pos.x - TS.can.x, pos.z - TS.can.z);
+          if (py > TS.CH && pos.y <= TS.CH && d < TS.CR - TS.R * 0.5) return bounces > 0;
+          if (pos.y < TS.CH && d < TS.CR + TS.R) return false;
+        }
+        return false;
+      };
+      const flipIn = (p) => { const from = new V3(0, 1.15, BF.table + BF.half[1] + 0.35), f = flipFrom(p, from); const t = (f.vel.y + Math.sqrt(f.vel.y * f.vel.y + 2 * 9.8 * (from.y - BF.top - BH))) / 9.8; return angOff(f.w * t) < BF.tol; };
+      return { ball: best(ballIn), bottle: best(flipIn) };
+    })();
 
     // ---------------------------------------------------------------- one step of the player
     function backTo(c, why) {
@@ -586,7 +899,8 @@
       dolly.position.y += P.duck; P.duck = 0;
       if (vr) readVR(dt);
       if (RACE.state === 'count') { P.vel.set(0, 0, 0); P.jumpPrev = P.in.jump; return; }
-      const jumpEdge = P.in.jump && !P.jumpPrev; P.jumpPrev = P.in.jump;
+      const busy = stationsInput(dt);
+      const jumpEdge = !busy && P.in.jump && !P.jumpPrev; P.jumpPrev = P.in.jump;
       if (P.hopCool > 0) P.hopCool -= dt;
       const [bx0, bz0] = bodyXZ();
       // where you are decides how you move
@@ -633,7 +947,7 @@
             P.wasSliding = false;
             const k = 1 - Math.exp(-dt * 14);
             P.vel.x += (dir.x * spd - P.vel.x) * k; P.vel.z += (dir.z * spd - P.vel.z) * k;
-            if (jumpEdge && !P.crawl) { P.vel.y = P.inPit ? JUMP_V * 0.7 : mud ? JUMP_V * 0.75 : JUMP_V; P.grounded = false; P.support = null; sfx('whoosh', 0.35); }
+            if (jumpEdge && !P.crawl) { P.vel.y = inCircle(bx0, bz0) ? 3.4 : P.inPit ? JUMP_V * 0.7 : mud ? JUMP_V * 0.75 : JUMP_V; P.grounded = false; P.support = null; sfx('whoosh', 0.35); }
           }
         } else if (!P.sack) {
           const k = 1 - Math.exp(-dt * 2);
@@ -672,6 +986,7 @@
       // checkpoints (furthest one you've passed, standing on the ground)
       if (P.grounded) for (let i = P.cpIdx + 1; i < CPS.length; i++) if (bz < CPS[i].from && bz > CPS[i].from - 2.5) { P.cpIdx = i; sfx('chime', 0.4); }
       if (fy < -3) respawn();
+      stationsStep(dt, performance.now());
       if (RACE.state === 'run' && bz < Z.finish) finishRace();
       // VR: duck the view for a seated crawler holding B / Y
       if (vr && P.crawl && P.in.duck && camera.position.y > 0.75) { P.duck = camera.position.y - 0.7; dolly.position.y -= P.duck; }
@@ -695,6 +1010,9 @@
       else if (P.hang) parts.push('W to swing along');
       else if (P.inPit) parts.push('Wading');
       else if (P.slow < 0.5 && bz < Z.tire[0]) parts.push('Muddy! Step in the tires');
+      else if (inTrick(0, bz)) parts.push(state.mode === 'vr' ? 'Grab the ball: one bounce, then in the can' : 'One bounce into the can: hold Space for power');
+      else if (atTable(0, bz)) parts.push(state.mode === 'vr' ? 'Grab the bottle and flip it onto the table' : 'Flip it onto the table: hold Space for power');
+      else if (!DDS.done && Math.abs(bz - DD.c.z) < 2.2) parts.push(`Double dutch ${DDS.clears} / ${DD.need}: jump as each rope comes under you`);
       return parts.join('  ·  ') || 'Recess Rush';
     }
     L.update = (dt, now) => {
@@ -722,6 +1040,8 @@
         else if (mode === 'hop') y += Math.abs(Math.sin(ph * 0.8)) * 0.3;
         else if (mode === 'sack') { y += Math.abs(Math.sin(ph * 0.75)) * 0.4; b.sack.visible = true; b.sack.position.set(x, y - 1.05, b.pos.z); }
         else if (mode === 'wade') y += Math.sin(ph) * 0.04;
+        else if (mode === 'skip') y += Math.abs(Math.sin(ph * 1.6)) * 0.32;
+        else if (mode === 'throw' || mode === 'flip') y += Math.max(0, Math.sin(ph * 0.9)) * 0.05;
         else if (mode === 'crawl') { y = 0.5; tilt = 0.9; }
         else if (mode === 'bars') { y = BAR_Y - 0.55 + Math.sin(ph) * 0.04; }
         else if (mode === 'slide') { y = b.pos.y + 0.8; tilt = -0.4; }
@@ -732,6 +1052,7 @@
       const [bx, bz] = bodyXZ();
       mySack.visible = here && P.sack;
       if (mySack.visible) mySack.position.set(bx, dolly.position.y + P.duck + 0.42, bz);
+      if (here) stationsDraw();
       if (here && P.inPit) pushers.push({ x: bx, z: bz, up: P.grounded ? 0 : 0.4 });
       // other players: their sacks, and the balls they push
       for (const rec of remotes.values()) {
@@ -783,7 +1104,7 @@
       { label: () => (P.sack ? 'Hop' : 'Jump'), run: () => { P.jumpPulse = true; } },
       { label: () => 'Back to checkpoint', run: () => respawn() },
     ];
-    L.hintsFor = () => (state.mode === 'flat' ? [['WASD', 'run'], ['Space', 'jump / hop'], ['E', 'grab the monkey bars'], ['R', 'back to checkpoint']] : L.hints);
+    L.hintsFor = () => (state.mode === 'flat' ? [['WASD', 'run'], ['Space', 'jump / hop / hold to throw'], ['E', 'grab the monkey bars'], ['R', 'back to checkpoint']] : L.hints);
     L.hints = [['Stick', 'run'], ['A / X', 'jump (or really hop in the sack)'], ['Grip', 'the monkey bars'], ['Duck', 'crawl the tunnel (or hold B / Y)']];
     L.spawn = () => { toStart(); };
     L.onEnter = () => { RACE.state = 'idle'; RACE.myFinish = 0; resetCourse(); toStart(); hudKey = ''; boardKey = ''; };
@@ -810,6 +1131,6 @@
         }
       }
     };
-    L.recessInternals = { P, RACE, Z, CPS, SOL, HOLDS, squares, TIRES, BARS, bots, ROUTE, ROUTE_T, FIN_T, startRace, step, grabFlat, letGo, respawn, standings, routeAt, supportAt, inTire, onSquare, tunnelZone, finishRace, resetCourse, gate, ballOff, NB, vr: () => ({ myHands, vrHands, myHead }) };
+    L.recessInternals = { P, RACE, Z, CPS, SOL, HOLDS, squares, TIRES, BARS, bots, ROUTE, ROUTE_T, FIN_T, startRace, step, grabFlat, letGo, respawn, standings, routeAt, supportAt, inTire, onSquare, tunnelZone, finishRace, resetCourse, gate, ballOff, NB, vr: () => ({ myHands, vrHands, myHead }), TB, BT, DDS, DD, TS, BF, SWEET, STN, throwBall, trickVel, flipFrom, flipBottle, ddNext, inCircle, gates: () => [trickGate, flipGate, ddGate] };
     return L;
   })();

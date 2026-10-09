@@ -9,6 +9,7 @@ and doesn't depend on how fast the headless browser draws.
 - ball pit: slow going; the balls get pushed about
 - crawl tunnel: you get down low inside, and there's no way round the hill
 - monkey bars (browser): grab, swing along, drop onto the far platform; let go over the lava and you go back
+- trick shot (one bounce into the can), bottle flip (land it standing), double dutch (six jumps): each ribbon drops when done
 - the tower can't be walked round; up the stairs and down the slide crosses the finish
 - a full race: the autopilot's time, against the bots'
 
@@ -35,6 +36,32 @@ window.__pilot = (legs, maxT) => {
   for (const leg of legs) {
     const [x, z, how] = leg;
     let lt = 0;
+    if (how === 'charge') {
+      // stand still holding Space for the charge (x = the fraction of a full charge), let go; repeat until the gate's open
+      const which = z, gate = I.gates()[which];
+      for (let tries = 0; tries < 4 && !gate.open; tries++) {
+        const frames = Math.round(x * 60);
+        for (let f = 0; f < frames; f++) { P.in.fwd = 0; P.in.side = 0; P.in.jump = true; I.step(dt); t += dt; }
+        P.in.jump = false; I.step(dt); t += dt;                     // (the throw happens as you let go)
+        for (let f = 0; f < 480 && !gate.open && I.STN.holding === ''; f++) { I.step(dt); t += dt; }
+      }
+      log.push({ leg: ['charge', which], open: gate.open, t: +t.toFixed(1) });
+      continue;
+    }
+    if (how === 'dd') {
+      // stand in the circle and jump as each rope comes round
+      let lastJ = -1;
+      for (let f = 0; f < 60 * 25 && !I.DDS.done; f++) {
+        const nxt = I.ddNext();
+        P.in.fwd = 0; P.in.side = 0;
+        P.in.jump = P.grounded && nxt < 0.22 && nxt > 0.05 && f - lastJ > 10;
+        if (P.in.jump) lastJ = f;
+        I.step(dt); t += dt;
+        P.in.jump = false;
+      }
+      log.push({ leg: ['dd'], done: I.DDS.done, t: +t.toFixed(1) });
+      continue;
+    }
     if (how === 'bars') {
       const ok = I.grabFlat();
       log.push({ leg: 'grab', ok });
@@ -200,10 +227,10 @@ def main():
         # ---------------------------------------------------------------- no way round
         page.evaluate(PLACE, [2.2, 0, -57.8])
         r = pilot([[2.2, -68, "walk"]], 5)
-        page.evaluate(PLACE, [2.2, 0, -80.5])
-        r2 = pilot([[2.2, -96, "walk"]], 6)
+        page.evaluate(PLACE, [2.2, 0, -102.5])
+        r2 = pilot([[2.2, -118, "walk"]], 6)
         print(f"walking round the tunnel hill stops at z {r['z']:.2f}; round the tower at z {r2['z']:.2f}")
-        checks += [("no way round the tunnel hill", r["z"] > -59), ("no way round the tower", r2["z"] > -83.6)]
+        checks += [("no way round the tunnel hill", r["z"] > -59), ("no way round the tower", r2["z"] > -105.6)]
 
         # ---------------------------------------------------------------- monkey bars and the slide
         page.evaluate(PLACE, [0, 0.7, -69.6])
@@ -218,11 +245,49 @@ def main():
           return {{ letGoAt: +z.toFixed(2), z: +fd.dolly.position.z.toFixed(2), y: +fd.dolly.position.y.toFixed(2) }}; }}""")
         print("letting go over the lava:", midway)
         checks.append(("letting go over the lava sends you back to the start of the bars", midway["letGoAt"] < -71 and midway["z"] > -70.4 and abs(midway["y"] - 0.7) < 0.05))
-        page.evaluate(PLACE, [0, 0.35, -80.05])
-        r = pilot([[0, -84.5, "walk"], [0, -99, "walk"]], 12)
+        page.evaluate(f"() => {{ for (const g of {I}.gates()) g.setOpen(true); }}")
+        page.evaluate(PLACE, [0, 0, -101.9])
+        r = pilot([[0, -106.5, "walk"], [0, -121, "walk"]], 12)
         print("stairs and slide:", r["log"])
         top = r["log"][0]["at"][1]
-        checks += [("the stairs take you up the tower", abs(top - 2.5) < 0.05), ("the slide takes you down past the finish", r["z"] < -97.5)]
+        checks += [("the stairs take you up the tower", abs(top - 2.5) < 0.05), ("the slide takes you down past the finish", r["z"] < -119.5)]
+        page.evaluate(f"() => {I}.resetCourse()")
+
+        # ---------------------------------------------------------------- trick shot, bottle flip, double dutch
+        sw = page.evaluate(f"() => {I}.SWEET")
+        print("sweet spots (fraction of a full charge):", sw)
+        page.evaluate(f"() => {I}.resetCourse()")
+        # the trick shot: blocked until it's made; too soft doesn't go in; the sweet spot does
+        page.evaluate(PLACE, [0, 0, -81.4])
+        blocked = pilot([[0, -84, "walk"]], 3)
+        soft = page.evaluate(f"""() => {{ const I = {I}, P = I.P; for (let f = 0; f < 6; f++) I.step(1 / 60);
+          const held = I.STN.holding; for (let f = 0; f < 6; f++) {{ P.in.jump = true; I.step(1 / 60); }} P.in.jump = false;
+          for (let f = 0; f < 400; f++) I.step(1 / 60); return {{ held, open: I.gates()[0].open }}; }}""")
+        r = pilot([[sw["ball"], 0, "charge"]])
+        print(f"trick shot: walking past the line stops at z {blocked['z']:.2f}; a soft throw {soft}; at the sweet spot {r['log']}")
+        checks += [("trick shot: you can't walk past the line until it's made", blocked["z"] > -82.7),
+                   ("trick shot: you pick the ball up just by being there", soft["held"] == "ball"),
+                   ("trick shot: a soft throw doesn't go in", not soft["open"]),
+                   ("trick shot: a bounce shot at the sweet spot goes in and opens the ribbon", r["log"][-1]["open"])]
+        # the bottle flip
+        page.evaluate(PLACE, [0, 0, -91.6])
+        weak = page.evaluate(f"""() => {{ const I = {I}, P = I.P; for (let f = 0; f < 6; f++) I.step(1 / 60);
+          for (let f = 0; f < 8; f++) {{ P.in.jump = true; I.step(1 / 60); }} P.in.jump = false;
+          for (let f = 0; f < 50; f++) I.step(1 / 60); return {{ st: I.BT.st, open: I.gates()[1].open }}; }}""")
+        page.evaluate(f"() => {{ const I = {I}; for (let f = 0; f < 120; f++) I.step(1 / 60); }}")
+        r = pilot([[sw["bottle"], 1, "charge"]])
+        stood = page.evaluate(f"() => {I}.BT.st")
+        print(f"bottle flip: a weak flip {weak}; at the sweet spot {r['log']} (bottle {stood})")
+        checks += [("bottle flip: a weak flip topples", weak["st"] in ("fallen", "table") and not weak["open"]),
+                   ("bottle flip: at the sweet spot it lands standing and opens the ribbon", r["log"][-1]["open"] and stood == "stood")]
+        # double dutch: standing still you get caught; jumping in time clears six
+        page.evaluate(PLACE, [0, 0, -99.6])
+        still = page.evaluate(f"() => {{ const I = {I}, P = I.P; for (let f = 0; f < 240; f++) {{ P.in.jump = false; I.step(1 / 60); }} return {{ clears: I.DDS.clears, done: I.DDS.done }}; }}")
+        r = pilot([[0, 0, "dd"]])
+        print(f"double dutch: standing still {still}; jumping in time {r['log']}")
+        checks += [("double dutch: standing still, the rope catches you", still["clears"] == 0 and not still["done"]),
+                   ("double dutch: jumping in time clears six and opens the ribbon", r["log"][-1]["done"] and page.evaluate(f"() => {I}.gates()[2].open"))]
+        page.evaluate(f"() => {I}.resetCourse()")
 
         # ---------------------------------------------------------------- VR (simulated headset)
         t = page.evaluate(VR, ["tunnel"])
@@ -240,25 +305,27 @@ def main():
         # ---------------------------------------------------------------- a full race against the bots
         page.evaluate(f"() => {{ const I = {I}; I.startRace(); I.RACE.startAt = Date.now() - 1; I.RACE.state = 'run'; }}")
         tires = page.evaluate(f"() => {I}.TIRES")
+        SW = page.evaluate(f"() => {I}.SWEET")
         legs = [[x, z, "exact"] for x, z in SQUARES] + [[0, -14.2, "walk"]]
         legs += [[tires[i * 2 + (i % 2)][0], tires[i * 2 + (i % 2)][1], "walk"] for i in range(12)]
         legs += [[0, -28.6, "walk"], [0, -45.4, "hop"], [0, -57.8, "walk"], [0, -68.2, "walk"], [0, -69.6, "walk"], [0, 0, "bars"],
-                 [0, -80.2, "walk"], [0, -84.5, "walk"], [0, -99, "walk"]]
+                 [0, -80.4, "walk"], [0, -81.6, "walk"], [SW["ball"], 0, "charge"], [1.3, -87.6, "walk"], [0, -91.6, "walk"], [SW["bottle"], 1, "charge"],
+                 [1.5, -93.0, "walk"], [0, -95.5, "walk"], [0, -99.6, "exact"], [0, 0, "dd"], [0, -102.0, "walk"], [0, -106.5, "walk"], [0, -121, "walk"]]
         page.evaluate(f"() => {{ window.__t0 = Date.now(); }}")
         r = pilot(legs)
         race = page.evaluate(f"() => ({{ state: {I}.RACE.state, mine: {I}.RACE.myFinish, bots: {I}.bots.map((b) => [b.name, +b.finishT.toFixed(1)]) }})")
         print(f"full run by the autopilot: {r['t']} s of play; race state {race['state']}; bots finish in {race['bots']}")
-        stuck = [l for l in r["log"] if isinstance(l.get("leg"), list) and l["leg"][2] != "bars" and abs(l["at"][2] - l["leg"][1]) > 0.6]
+        stuck = [l for l in r["log"] if isinstance(l.get("leg"), list) and len(l["leg"]) == 3 and l["leg"][2] not in ("bars",) and "at" in l and abs(l["at"][2] - l["leg"][1]) > 0.6]
         if stuck: print("legs that didn't arrive:", json.dumps(stuck)[:600])
-        checks += [("the autopilot gets round the whole course", r["z"] < -97.5 and not stuck),
+        checks += [("the autopilot gets round the whole course", r["z"] < -119.5 and not stuck),
                    ("crossing the line finishes the race", race["state"] == "over"),
-                   ("the bots are a fair race (slower than a perfect run, under 70 s)", all(r["t"] * 1.15 < t < 70 for _, t in race["bots"]))]
+                   ("the bots are a fair race (slower than a perfect run, under 100 s)", all(r["t"] * 1.15 < t < 100 for _, t in race["bots"]))]
 
         if D:
             page.evaluate("() => { window.__fd.LEVELS[24].paused = false; }")
             page.evaluate(f"() => {{ const I = {I}; I.startRace(); I.RACE.startAt = Date.now() - 22000; I.RACE.state = 'run'; }}")
             for name, (x, y, z, yaw, pitch) in {"start": (0, 0, 3, 0, -0.15), "hop": (1.5, 0, -2, 0.35, -0.45), "sack": (0, 0, -27, 0, -0.2),
-                                                "pit": (0.5, 0, -46, 0, -0.35), "tunnel": (0, 0, -56, 0, -0.1), "bars": (-1.6, 0.7, -68.8, -0.25, 0.05), "slide": (0, 2.5, -85.2, 0, -0.3)}.items():
+                                                "pit": (0.5, 0, -46, 0, -0.35), "tunnel": (0, 0, -56, 0, -0.1), "bars": (-1.6, 0.7, -68.8, -0.25, 0.05), "trick": (-0.6, 0, -81.2, 0.05, -0.12), "flip": (-0.4, 0, -91.5, 0.1, -0.5), "dd": (0.3, 0, -96.8, 0, -0.15), "slide": (0, 2.5, -107.2, 0, -0.3)}.items():
                 page.evaluate(f"() => {{ const fd = window.__fd, P = {I}.P; P.hang = false; fd.dolly.position.set({x}, {y}, {z}); P.vel.set(0, 0, 0); fd.state.yaw = {yaw}; fd.state.pitch = {pitch}; }}")
                 page.wait_for_timeout(1500)
                 page.screenshot(path=f"{D}/recess-{name}.png")
