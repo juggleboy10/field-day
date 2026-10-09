@@ -7,7 +7,7 @@
     const G = L.group;
     const rand = mulberry32(4114);
     const HL = 6.705, HW = 3.05, NET_H = 0.88, KITCH = 2.13, BR = 0.037;   // half length (x), half width (z)
-    const GRAV = 9.8, DRAG = 0.06, WIN = 11;   // drag from a real ball: 26 g, 7.4 cm, holes and all
+    const GRAV = 9.8, DRAG = 0.06, WIN = 11, MAG = 0.5;   // MAG: how hard spin bends the ball (Magnus)   // drag from a real ball: 26 g, 7.4 cm, holes and all
     const R = { minX: -11, maxX: 11, minZ: -7, maxZ: 7 };
     L.bounds = R;
     L.env = {
@@ -116,9 +116,9 @@
 
     // ---------------------------------------------------------------- state
     const PB = {
-      mySide: -1, ver: 0, auth: '', b: { x: 0, y: 1, z: 0, vx: 0, vy: 0, vz: 0 },
+      mySide: -1, ver: 0, auth: '', b: { x: 0, y: 1, z: 0, vx: 0, vy: 0, vz: 0, wx: 0, wy: 0, wz: 0 },
       ph: 'idle', server: 0, lastHit: -1, need: -1, bounced: false, hits: 0, score: [0, 0], pointSeq: 0, deadT: 0, overT: 0, winner: -1,
-      swingUntil: 0, serveT: 0, serveVer: -1, botOn: false, bot: { x: HL - 0.5, z: 0, decided: false, missing: false, swingT: 0 },
+      swingUntil: 0, swingFrom: 0, swingHeld: false, swingPow: 0, spinMode: 0, serveT: 0, serveVer: -1, botOn: false, bot: { x: HL - 0.5, z: 0, vx: 0, vz: 0, decided: false, missing: false, swingT: 0, hitKey: '', reactAt: 0, ex: 0, ez: 0 },
     };
     L.pb = PB;
     function players() {
@@ -147,7 +147,7 @@
     function newGame() { Object.assign(PB, { score: [0, 0], server: rand() < 0.5 ? 0 : 1, overT: 0, winner: -1, opp: oppKey() }); startServe(); }
     function startServe() {
       Object.assign(PB, { ph: 'serve', lastHit: -1, need: -1, bounced: false, hits: 0 });
-      Object.assign(PB.b, { x: endX(PB.server) * 1.04, y: 0.75, z: serveZ(), vx: 0, vy: 0, vz: 0 });
+      Object.assign(PB.b, { x: endX(PB.server) * 1.04, y: 0.75, z: serveZ(), vx: 0, vy: 0, vz: 0, wx: 0, wy: 0, wz: 0 });
       PB.auth = players()[PB.server] || state.myPeer;
       PB.ver += 1; PB.bot.decided = false;
       forcePresence();
@@ -210,12 +210,12 @@
       const b = PB.b;
       if (PB.ph !== 'rally') return;
       const sp = Math.hypot(b.vx, b.vy, b.vz);
-      b.vx -= DRAG * sp * b.vx * h; b.vy -= (GRAV + DRAG * sp * b.vy) * h; b.vz -= DRAG * sp * b.vz * h;
+      airStep(b, h, sp);
       const px = b.x;
       b.x += b.vx * h; b.y += b.vy * h; b.z += b.vz * h;
       if ((px < 0) !== (b.x < 0) && b.y < NET_H + BR && Math.abs(b.z) < HW + 0.3) { b.x = px < 0 ? -BR : BR; b.vx *= -0.1; b.vz *= 0.4; tone(220, 0, 0.06, 'triangle', 0.1); }
       if (b.y < BR && b.vy < 0) {
-        b.y = BR; b.vy = -b.vy * 0.72; b.vx *= 0.82; b.vz *= 0.82;
+        bounceSpin(b);
         tick(0.6);
         if (!simOnly) onBounce(b.x, b.z);
       }
@@ -223,23 +223,41 @@
       // a ball that has stopped is dead
       if (!simOnly && PB.ph === 'rally' && b.y < BR + 0.01 && sp < 0.6) { if (PB.bounced) point(PB.lastHit, 'Missed it'); else point(1 - PB.lastHit, 'Out'); }
     }
-    // a shot that lands at (tx, tz) and clears the net: start from the no-air answer, then fly it (with drag) and correct
+    // drag, gravity and spin over one small step. Spin (w, at most 1 long) pushes the ball along w x v: topspin dips it,
+    // backspin floats it, sidespin curves it. It wears off slowly in the air.
+    function airStep(p, h, sp) {
+      const wx = p.wx || 0, wy = p.wy || 0, wz = p.wz || 0;
+      const ax = MAG * (wy * p.vz - wz * p.vy), ay = MAG * (wz * p.vx - wx * p.vz), az = MAG * (wx * p.vy - wy * p.vx);
+      p.vx += (ax - DRAG * sp * p.vx) * h; p.vy += (ay - GRAV - DRAG * sp * p.vy) * h; p.vz += (az - DRAG * sp * p.vz) * h;
+      if (wx || wy || wz) { const f = 1 - 0.12 * h; p.wx = wx * f; p.wy = wy * f; p.wz = wz * f; }
+    }
+    // on the bounce: topspin skids through low and quick, backspin sits up and slows down
+    function bounceSpin(b) {
+      const hs = Math.hypot(b.vx, b.vz) || 1, ux = b.vx / hs, uz = b.vz / hs;
+      const ts = clamp((b.wx || 0) * uz - (b.wz || 0) * ux, -1, 1);     // + topspin, - backspin
+      const keep = 0.82 + 0.14 * ts;
+      b.y = BR; b.vy = -b.vy * (0.72 - 0.14 * ts); b.vx *= keep; b.vz *= keep;
+      b.wx = (b.wx || 0) * 0.4; b.wy = (b.wy || 0) * 0.4; b.wz = (b.wz || 0) * 0.4;
+    }
+    // a shot that lands at (tx, tz) and clears the net: start from the no-air answer, then fly it (with drag and spin) and correct
     function flyTo(from, v) {
-      const p = { x: from.x, y: from.y, z: from.z, vx: v.vx, vy: v.vy, vz: v.vz };
+      const p = { x: from.x, y: from.y, z: from.z, vx: v.vx, vy: v.vy, vz: v.vz, wx: v.wx || 0, wy: v.wy || 0, wz: v.wz || 0 };
       let netY = 99;
       for (let k = 0; k < 480; k++) {
         const sp = Math.hypot(p.vx, p.vy, p.vz), h = 1 / 120, px = p.x;
-        p.vx -= DRAG * sp * p.vx * h; p.vy -= (GRAV + DRAG * sp * p.vy) * h; p.vz -= DRAG * sp * p.vz * h;
+        airStep(p, h, sp);
         p.x += p.vx * h; p.y += p.vy * h; p.z += p.vz * h;
         if ((px < 0) !== (p.x < 0)) netY = p.y;
         if (p.y < BR) break;
       }
       return { x: p.x, z: p.z, netY };
     }
-    function aimed(from, tx, tz, speed) {
+    // spin: [wx, wy, wz] the shot will carry (the aim allows for it, so it still lands where you meant, just with a different flight)
+    function aimed(from, tx, tz, speed, spin) {
       const dx = tx - from.x, dz = tz - from.z, d = Math.hypot(dx, dz);
       const T = clamp(d / speed, 0.45, 1.9);
-      const out = { vx: dx / T, vy: (BR - from.y + 0.5 * GRAV * T * T) / T, vz: dz / T };
+      const w = spin || [0, 0, 0];
+      const out = { vx: dx / T, vy: (BR - from.y + 0.5 * GRAV * T * T) / T, vz: dz / T, wx: w[0], wy: w[1], wz: w[2] };
       for (let i = 0; i < 6; i++) {
         const f = flyTo(from, out);
         if (f.netY < NET_H + 0.12) { out.vy += 0.4; continue; }
@@ -258,6 +276,7 @@
       const b = PB.b, s = Math.hypot(v.vx, v.vy, v.vz), k = s > 16 ? 16 / s : 1;
       if (PB.ph === 'serve') PB.serveFromZ = b.z;
       b.vx = v.vx * k; b.vy = v.vy * k; b.vz = v.vz * k;
+      b.wx = v.wx || 0; b.wy = v.wy || 0; b.wz = v.wz || 0;
       onHit(side);
       tone(520, 380, 0.05, 'square', 0.25);
       PB.ver += 1;
@@ -293,8 +312,12 @@
           // your swing sets the pace and direction; the help keeps it in the court
           const speed = clamp(Math.hypot(vb.x, vb.z), 4, 14);
           const tg = target(PB.mySide, HL * clamp(0.35 + speed / 22, 0.45, 0.92), PB.b.z + vb.z * 0.35);
-          const aim = aimed(PB.b, tg.x, tg.z, speed);
-          hitBall(PB.mySide, { vx: vb.x * 0.3 + aim.vx * 0.7, vy: vb.y * 0.3 + aim.vy * 0.7, vz: vb.z * 0.3 + aim.vz * 0.7 });
+          // brushing up the back of the ball gives topspin, chopping down gives backspin, across gives sidespin
+          const vt = vp.clone().addScaledVector(_pn, -vp.dot(_pn)), dOut = vb.clone().normalize();
+          const w = vt.cross(dOut).multiplyScalar(0.27); if (w.length() > 1) w.normalize();
+          if (w.length() < 0.15) w.set(0, 0, 0);
+          const aim = aimed(PB.b, tg.x, tg.z, speed, [w.x, w.y, w.z]);
+          hitBall(PB.mySide, { vx: vb.x * 0.3 + aim.vx * 0.7, vy: vb.y * 0.3 + aim.vy * 0.7, vz: vb.z * 0.3 + aim.vz * 0.7, wx: w.x, wy: w.y, wz: w.z });
           haptic(vrHands[t.held.side], 0.5, 25);
           break;
         }
@@ -312,21 +335,33 @@
       mh.ok = true;
       return true;
     };
-    L.deskSwing = () => { if (myPaddle()) PB.swingUntil = performance.now() + 500; };
-    L.deskRelease = () => {};
+    // hold Space (or the button) for a harder shot: a tap is a soft dink, about a second is a full drive
+    const SPINS = ['No spin', 'Topspin', 'Backspin', 'Slice left', 'Slice right'];
+    L.deskSwing = (now) => { if (!myPaddle()) return; PB.swingFrom = now || performance.now(); PB.swingHeld = true; PB.swingUntil = Infinity; };
+    L.deskRelease = (now) => { if (!PB.swingHeld) return; PB.swingHeld = false; PB.swingPow = swingPower(now || performance.now()); PB.swingUntil = (now || performance.now()) + 450; };
+    const swingPower = (now) => clamp((now - PB.swingFrom) / 900, 0, 1);
+    function cycleSpin() { PB.spinMode = (PB.spinMode + 1) % SPINS.length; showToast(`Shot: ${SPINS[PB.spinMode].toLowerCase()}`); sfx('click', 0.6); state.hudDirty = true; }
+    L.onKey = (code) => { if (code === 'KeyR' && PB.mySide >= 0) { cycleSpin(); return true; } return false; };
     function deskHit(now) {
       if (state.mode !== 'flat' || !myPaddle() || now > PB.swingUntil || !iAmAuth() || !hittable(PB.mySide)) return;
       const b = PB.b;
       if (Math.hypot(b.x - myHead.pos.x, b.z - myHead.pos.z) > 1.8 || b.y > 2.2 || (PB.ph === 'rally' && b.y < BR + 0.02 && Math.abs(b.vy) < 0.3)) return;
       // the browser plays by the rules for you: wait for the bounce when the two-bounce rule says so, and never volley from the kitchen
       if (PB.ph === 'rally' && !PB.bounced && (PB.hits < 3 || (Math.abs(myHead.pos.x) < KITCH))) return;
+      const pow = PB.swingHeld ? swingPower(now) : PB.swingPow;
       PB.swingUntil = 0;
       camera.getWorldQuaternion(_q); camera.getWorldPosition(_cp);
       const dir = new V3(0, 0, -1).applyQuaternion(_q);
       let wx, wz;
       if (dir.y < -0.02) { const tt = -_cp.y / dir.y; wx = _cp.x + dir.x * tt; wz = _cp.z + dir.z * tt; }
       const tg = target(PB.mySide, wx === undefined ? undefined : Math.abs(wx), wz);
-      hitBall(PB.mySide, aimed(b, tg.x, tg.z, PB.ph === 'serve' ? 8 : 10));
+      const speed = PB.ph === 'serve' ? 6.5 + pow * 3.5 : 6.5 + pow * 7.5;
+      // the spin you picked, turned to suit the direction of the shot (sidespin's sign is which way it curves)
+      const hx = tg.x - b.x, hz = tg.z - b.z, hl = Math.hypot(hx, hz) || 1, ux = hx / hl, uz = hz / hl;
+      const m = PB.spinMode, w = m === 1 ? [0.8 * uz, 0, -0.8 * ux] : m === 2 ? [-0.7 * uz, 0, 0.7 * ux] : m === 3 ? [0, 0.8, 0] : m === 4 ? [0, -0.8, 0] : [0, 0, 0];
+      const v = aimed(b, tg.x, tg.z, speed, w);
+      hitBall(PB.mySide, v);
+      PB.swingHeld = false;
     }
 
     // ---------------------------------------------------------------- Dink Daisy, the court bot
@@ -335,7 +370,7 @@
       const s = { ...PB.b };
       for (let k = 0; k < 400; k++) {
         const sp = Math.hypot(s.vx, s.vy, s.vz), h = 1 / 120;
-        s.vx -= DRAG * sp * s.vx * h; s.vy -= (GRAV + DRAG * sp * s.vy) * h; s.vz -= DRAG * sp * s.vz * h;
+        airStep(s, h, sp);
         s.x += s.vx * h; s.y += s.vy * h; s.z += s.vz * h;
         if (s.y < BR) return s;
       }
@@ -347,10 +382,31 @@
       if (s < 0) { paddles.forEach((t) => { t.g.visible = true; }); return; }
       let tx = endX(s) * 0.85, tz = 0;
       const coming = PB.ph === 'rally' && PB.lastHit !== s;
-      if (coming) { const land = predictLanding(); tx = clamp(land.x + (s === 0 ? -0.9 : 0.9), s === 0 ? -HL - 1.5 : 0.8, s === 0 ? -0.8 : HL + 1.5); tz = clamp(land.z, -HW - 1, HW + 1); }
-      if (PB.ph === 'serve' && PB.server === s) { tx = b.x + (s === 0 ? -0.4 : 0.4); tz = b.z; }
-      const dx = tx - bt.x, dz = tz - bt.z, d = Math.hypot(dx, dz), step = Math.min(d, 4.2 * dt);
-      if (d > 0.01) { bt.x += (dx / d) * step; bt.z += (dz / d) * step; }
+      // a new shot her way: she takes a moment to read it, and her first guess at where it's going is off (more so for
+      // fast or spinning shots), getting better as it comes
+      const hk = `${PB.pointSeq}:${PB.hits}`;
+      if (coming && hk !== bt.hitKey) {
+        bt.hitKey = hk; bt.reactAt = now + 300 + rand() * 220;
+        const hard = Math.hypot(b.vx, b.vz) / 10 + Math.hypot(b.wx || 0, b.wy || 0, b.wz || 0) * 0.6;
+        bt.ex = (rand() - 0.5) * (1.0 + hard * 1.4); bt.ez = (rand() - 0.5) * (1.0 + hard * 1.4); bt.err0 = Math.abs(b.x) + 0.5;
+      }
+      let speedCap = 3.0;
+      if (coming) {
+        if (now < bt.reactAt) { tx = bt.x; tz = bt.z; }
+        else {
+          const land = predictLanding(), left = clamp(Math.abs(b.x - land.x) / Math.max(1, HL), 0, 1);
+          tx = clamp(land.x + (s === 0 ? -0.9 : 0.9) + bt.ex * left, s === 0 ? -HL - 1.5 : 0.8, s === 0 ? -0.8 : HL + 1.5);
+          tz = clamp(land.z + bt.ez * left, -HW - 1, HW + 1);
+        }
+      } else speedCap = 2.2;
+      if (PB.ph === 'serve' && PB.server === s) { tx = b.x + (s === 0 ? -0.4 : 0.4); tz = b.z; speedCap = 4; }
+      // she speeds up and slows down rather than darting (about 3 m/s flat out)
+      const dx = tx - bt.x, dz = tz - bt.z, d = Math.hypot(dx, dz);
+      const want = d > 0.05 ? Math.min(speedCap, d * 2.5) : 0, kx = d > 0.05 ? dx / d : 0, kz = d > 0.05 ? dz / d : 0;
+      const acc = Math.min(1, 7 * dt / Math.max(0.1, speedCap));
+      bt.vx += (kx * want - bt.vx) * acc * 2; bt.vz += (kz * want - bt.vz) * acc * 2;
+      const vs = Math.hypot(bt.vx, bt.vz); if (vs > speedCap) { bt.vx *= speedCap / vs; bt.vz *= speedCap / vs; }
+      bt.x += bt.vx * dt; bt.z += bt.vz * dt;
       botBody.position.set(bt.x, 1.5, bt.z); botBody.rotation.y = s === 0 ? -Math.PI / 2 : Math.PI / 2;
       const swing = now - bt.swingT < 250 ? Math.sin(((now - bt.swingT) / 250) * Math.PI) * 0.6 : 0;
       void swing;
@@ -369,9 +425,13 @@
       if (PB.ph === 'serve' && PB.server === s) { if (now - PB.serveT > 1400) botHit(s, true); return; }
       if (!coming) { bt.decided = false; return; }
       if (!hittable(s) || !PB.bounced) return;
-      if (!bt.decided) { bt.decided = true; bt.missing = rand() < 0.14 + Math.max(0, Math.hypot(b.vx, b.vz) - 7) * 0.06; }
+      if (!bt.decided) {
+        // harder to get back: fast balls, spin, and ones she had to run for
+        bt.decided = true;
+        bt.missing = rand() < 0.1 + Math.max(0, Math.hypot(b.vx, b.vz) - 4.5) * 0.08 + Math.hypot(b.wx || 0, b.wy || 0, b.wz || 0) * 0.12 + Math.min(0.2, Math.abs(bt.z - b.z) * 0.06);
+      }
       if (bt.missing) return;
-      if (Math.hypot(b.x - bt.x, b.z - bt.z) < 1.3 && b.y > 0.25 && b.y < 1.6 && b.vy < 1.5) botHit(s, false);
+      if (Math.hypot(b.x - bt.x, b.z - bt.z) < 1.2 && b.y > 0.25 && b.y < 1.6 && b.vy < 1.5) botHit(s, false);
     }
     function botHit(s, serve) {
       // softer and less precise than before, with the odd one long
@@ -440,10 +500,10 @@
     L.spawn = () => { dolly.position.set(-HL - 1.6, 0, HW + 2.2); state.yaw = -Math.PI * 0.75; state.pitch = -0.05; };
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0001) * 0.4; camera.position.set(Math.sin(a) * 9, 5, 9); camera.lookAt(0, 0.5, 0); };
     L.hintsFor = () => {
-      if (PB.mySide >= 0 && state.mode === 'flat') return [['WASD', 'move'], ['Hold Space', 'hit as the ball comes'], ['Look', 'aim'], ['E', 'put the paddle back']];
+      if (PB.mySide >= 0 && state.mode === 'flat') return [['WASD', 'move'], ['Hold Space', 'longer hits harder'], ['Look', 'aim'], ['R', SPINS[PB.spinMode].toLowerCase()], ['E', 'put the paddle back']];
       return [['WASD', 'move'], ['Drag', 'look'], ['E', 'at a paddle rack to play']];
     };
-    L.onExit = () => { putDown(myPaddle()); leaveCourt(); };
+    L.onExit = () => { putDown(myPaddle()); leaveCourt(); PB.swingHeld = false; if (powShown) { powShown = false; ui.power.hidden = true; } };
 
     // ---------------------------------------------------------------- per frame
     function drawScore() {
@@ -462,7 +522,12 @@
     L.rowFor = () => ({ text: '' });
     L.sortRows = () => 0;
     let scoreKey = '';
+    let powShown = false;
     L.update = (dt, now) => {
+      // the power bar while you hold the swing in a browser
+      const showPow = state.mode === 'flat' && PB.swingHeld && !!myPaddle();
+      if (showPow) { ui.power.hidden = false; ui.powerFill.style.width = `${Math.round(swingPower(now) * 100)}%`; powShown = true; }
+      else if (powShown) { powShown = false; if (state.charge === null) ui.power.hidden = true; }
       if (PB.mySide >= 0 && !myPaddle()) leaveCourt();
       if (PB.ph === 'serve' && PB.serveVer !== PB.ver) { PB.serveVer = PB.ver; PB.serveT = now; }
       if (iAmAuth() && PB.ph === 'serve') { const sv = players()[PB.server]; if (sv && sv !== state.myPeer) { PB.auth = sv; PB.ver += 1; forcePresence(); } }
@@ -495,18 +560,19 @@
     L.presence = () => {
       if (PB.mySide < 0) return {};
       const b = PB.b;
-      return { pb: [PB.mySide, PB.ver, PB.auth, r3(b.x), r3(b.y), r3(b.z), r3(b.vx), r3(b.vy), r3(b.vz), PHC[PB.ph], PB.server, PB.lastHit, PB.need, PB.bounced ? 1 : 0, PB.hits, PB.score[0], PB.score[1], PB.pointSeq, PB.winner, botSide() >= 0 ? 1 : 0, r3(PB.bot.x), r3(PB.bot.z), r3(PB.serveFromZ || 0)] };
+      return { pb: [PB.mySide, PB.ver, PB.auth, r3(b.x), r3(b.y), r3(b.z), r3(b.vx), r3(b.vy), r3(b.vz), PHC[PB.ph], PB.server, PB.lastHit, PB.need, PB.bounced ? 1 : 0, PB.hits, PB.score[0], PB.score[1], PB.pointSeq, PB.winner, botSide() >= 0 ? 1 : 0, r3(PB.bot.x), r3(PB.bot.z), r3(PB.serveFromZ || 0), r3(b.wx || 0), r3(b.wy || 0), r3(b.wz || 0)] };
     };
     L.readPresence = (rec, pres, st) => {
       const a = pres.pb;
       st.pbSide = -1;
-      if (!Array.isArray(a) || a.length !== 23 || (a[0] !== 0 && a[0] !== 1) || !Number.isInteger(a[1]) || typeof a[2] !== 'string' || !a.slice(3, 9).every((x) => finite(x) && Math.abs(x) < 60)) return;
+      if (!Array.isArray(a) || (a.length !== 23 && a.length !== 26) || (a[0] !== 0 && a[0] !== 1) || !Number.isInteger(a[1]) || typeof a[2] !== 'string' || !a.slice(3, 9).every((x) => finite(x) && Math.abs(x) < 60)) return;
       const side = a[0];
       if (side === PB.mySide) { if (rec.peer < state.myPeer) { showToast(`${rec.name} took that side first`); putDown(myPaddle()); leaveCourt(); } else return; }
       st.pbSide = side;
       if (a[1] > PB.ver) {
         const before = PB.pointSeq;
-        Object.assign(PB.b, { x: a[3], y: a[4], z: a[5], vx: a[6], vy: a[7], vz: a[8] });
+        const sw = (i) => (finite(a[i]) ? clamp(a[i], -1, 1) : 0);
+        Object.assign(PB.b, { x: a[3], y: a[4], z: a[5], vx: a[6], vy: a[7], vz: a[8], wx: sw(23), wy: sw(24), wz: sw(25) });
         Object.assign(PB, { ver: a[1], auth: a[2], ph: PHN[clamp(a[9] | 0, 0, 3)], server: a[10] ? 1 : 0, lastHit: a[11] | 0, need: a[12] | 0, bounced: a[13] === 1, hits: a[14] | 0, score: [a[15] | 0, a[16] | 0], pointSeq: a[17] | 0, winner: a[18] | 0, serveFromZ: a[22] });
         if (PB.pointSeq > before && PB.mySide >= 0) announce(PB.score[0] > (st.pbS0 || 0) ? 0 : 1, '');
         if (PB.winner >= 0 && !PB.overT) PB.overT = performance.now();
@@ -516,8 +582,8 @@
       PB.botOn = a[19] === 1;
       if (PB.mySide < 0 && PB.botOn) { PB.bot.x = a[20]; PB.bot.z = a[21]; }
     };
-    L.hudActions = [{ label: () => 'New game', show: () => botSide() >= 0, run: () => { newGame(); showToast(`New game against Dink Daisy. First to ${WIN}, win by 2`); } }];
-    PB.internals = { HL, HW, KITCH, NET_H, paddles, takeSide, leaveCourt, newGame, startServe, onHit, onBounce, stepBall, hitBall, aimed, target, players, botSide, iAmAuth, serveZ };
+    L.hudActions = [{ label: () => `Shot: ${SPINS[PB.spinMode]} \u25b8`, show: () => PB.mySide >= 0, run: () => cycleSpin() }, { label: () => 'New game', show: () => botSide() >= 0, run: () => { newGame(); showToast(`New game against Dink Daisy. First to ${WIN}, win by 2`); } }];
+    PB.internals = { airStep, predictLanding, botStep, SPINS, deskHit: (now) => deskHit(now), HL, HW, KITCH, NET_H, paddles, takeSide, leaveCourt, newGame, startServe, onHit, onBounce, stepBall, hitBall, aimed, target, players, botSide, iAmAuth, serveZ };
     return L;
   })();
 

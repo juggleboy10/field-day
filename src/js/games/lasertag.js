@@ -261,7 +261,7 @@
     const _o = new V3(), _d = new V3(), _end = new V3(), _cq = new Q4(), _cp = new V3();
     function fire(now) {
       if (me.tagged || now < me.cool || state.mode === 'menu' || counting(now)) return;
-      me.cool = now + 260;
+      me.cool = now + 420;
       blasterPose();
       _d.set(0, 0, -1).applyQuaternion(blaster.quaternion);
       _o.copy(blaster.position).addScaledVector(_d, 0.24);
@@ -488,7 +488,7 @@
       });
       // beams fade
       for (let i = beams.length - 1; i >= 0; i--) {
-        const b = beams[i], k = (now - b.t0) / 380;
+        const b = beams[i], k = (now - b.t0) / 520;
         if (k >= 1) { G.remove(b.m, b.glow, b.spark, b.flash); for (const x of [b.m, b.glow, b.spark, b.flash]) x.material.dispose(); beams.splice(i, 1); continue; }
         const f = 1 - k * k;            // stays bright, then fades fast
         b.m.material.opacity = f; b.glow.material.opacity = 0.55 * f;
@@ -694,7 +694,7 @@
       }
       LB.shots.push([++LB.seq, r3(_bh.x), r3(_bh.y), r3(_bh.z), r3(end.x), r3(end.y), r3(end.z), victim, b.k]);
       if (LB.shots.length > 6) LB.shots.shift();
-      b.cool = now + 900 + Math.random() * 700;
+      b.cool = now + 1100 + Math.random() * 800;
       state.dirtyBoard = true;
       forcePresence();
     }

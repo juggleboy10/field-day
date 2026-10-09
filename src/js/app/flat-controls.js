@@ -229,7 +229,7 @@
     else if (e.code === 'Space') startCharge();
     else if (e.code === 'Escape') toMenu();
     else if (e.code === 'KeyM' && VOICE.stream && state.mode === 'flat') setMuted(!VOICE.muted);
-    else if (curLevel().onKey) curLevel().onKey(e.code);
+    else if (curLevel().onKey && curLevel().onKey(e.code) !== false) { /* handled */ }
     else if (/^Digit[1-9]$/.test(e.code) && Number(e.code.slice(5)) <= LEVEL_META.length) switchLevel(Number(e.code.slice(5)) - 1);
   });
   window.addEventListener('keyup', (e) => {

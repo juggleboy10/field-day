@@ -79,6 +79,36 @@ def main():
         checks += [("pickleball: putting the paddle down and picking it up keeps the score", pk["kept"] == pk["before"]),
                    ("pickleball: after a finished game you get a fresh one", pk["fresh"] == [0, 0]),
                    ("pickleball: in VR the paddle needs a long squeeze to put down", pk["long"])]
+        # pickleball: spin bends the ball; aimed shots with spin still land on target; Daisy reacts late and moves at a human pace
+        sp = page.evaluate("""() => { const PB = window.__fd.LEVELS[15].pb, I = PB.internals;
+          const fly = (w) => { const p = { x: -5, y: 1, z: 0, vx: 10, vy: 2.5, vz: 0, wx: w[0], wy: w[1], wz: w[2] }; for (let k = 0; k < 1200 && p.y > 0.037; k++) { I.airStep(p, 1 / 240, Math.hypot(p.vx, p.vy, p.vz)); p.x += p.vx / 240; p.y += p.vy / 240; p.z += p.vz / 240; } return [+p.x.toFixed(2), +p.z.toFixed(2)]; };
+          const land = (v) => { const p = { x: -5, y: 1, z: 0, ...v }; for (let k = 0; k < 1200 && p.y > 0.037; k++) { I.airStep(p, 1 / 240, Math.hypot(p.vx, p.vy, p.vz)); p.x += p.vx / 240; p.y += p.vy / 240; p.z += p.vz / 240; } return Math.hypot(p.x - 4.5, p.z - 1); };
+          const err = [[0, 0, -0.8], [0, 0, 0.7], [0, 0.8, 0]].map((w) => +land(I.aimed({ x: -5, y: 1, z: 0 }, 4.5, 1, 10, w)).toFixed(2));
+          return { flat: fly([0, 0, 0]), top: fly([0, 0, -0.8]), back: fly([0, 0, 0.7]), left: fly([0, 0.8, 0]), err }; }""")
+        page.evaluate("() => { const fd = window.__fd, I = fd.LEVELS[15].pb.internals, t = I.paddles[0]; fd.dolly.position.set(t.rackPos.x, 0, t.rackPos.z + 0.6); }")
+        page.wait_for_timeout(500)
+        page.keyboard.press("KeyE")
+        page.wait_for_timeout(800)
+        bot = page.evaluate("""() => { const fd = window.__fd, L = fd.LEVELS[15], PB = L.pb, I = PB.internals, bt = PB.bot;
+          if (I.botSide() !== 1) return { side: I.botSide() };
+          Object.assign(PB, { ph: 'rally', lastHit: 0, need: 1, hits: 3, bounced: false }); Object.assign(PB.b, { x: -3, y: 1, z: 0, vx: 9, vy: 2, vz: 2.5, wx: 0, wy: 0, wz: 0 });
+          bt.x = I.HL * 0.85; bt.z = -2; bt.vx = bt.vz = 0; bt.hitKey = '';
+          let t = 1e7, top = 0; const path = [];
+          for (let f = 1; f <= 72; f++) { const x0 = bt.x, z0 = bt.z; t += 1000 / 60; I.botStep(1 / 60, t); top = Math.max(top, Math.hypot(bt.x - x0, bt.z - z0) * 60); if (f === 15 || f === 72) path.push(+Math.hypot(bt.x - I.HL * 0.85, bt.z + 2).toFixed(2)); }
+          PB.ph = 'dead'; return { side: 1, at250ms: path[0], at1200ms: path[1], top: +top.toFixed(2) }; }""")
+        pw = page.evaluate("""() => { const fd = window.__fd, L = fd.LEVELS[15], PB = L.pb, I = PB.internals;
+          const shot = (holdMs) => { const now = performance.now();
+            Object.assign(PB, { ph: 'rally', lastHit: 1, need: 0, hits: 4, bounced: true, auth: fd.state.myPeer });
+            const h = window.__fd.camera.getWorldPosition(new THREE.Vector3()); Object.assign(PB.b, { x: h.x + 0.4, y: 1, z: h.z, vx: -1, vy: 0.5, vz: 0 });
+            L.deskSwing(now - holdMs); L.deskRelease(now); I.deskHit(now);
+            const v = Math.hypot(PB.b.vx, PB.b.vz); PB.ph = 'dead'; return +v.toFixed(1); };
+          return { tap: shot(20), full: shot(1000), spin: I.SPINS.length, hud: L.hudActions[0].label() }; }""")
+        print("pickleball spin:", sp, " Daisy:", bot, " power:", pw)
+        checks += [("pickleball: topspin dips the ball short, backspin carries it long, slice curves it", sp["top"][0] < sp["flat"][0] - 0.5 and sp["back"][0] > sp["flat"][0] + 0.5 and sp["left"][1] < -0.5),
+                   ("pickleball: spin shots still land where you aimed", max(sp["err"]) < 0.4),
+                   ("pickleball: Daisy takes a moment to react to your shot", bot["side"] == 1 and bot["at250ms"] < 0.05 and bot["at1200ms"] > 1.0),
+                   ("pickleball: Daisy moves at a human pace (3 m/s at most)", bot["top"] <= 3.05),
+                   ("pickleball: in a browser, holding the swing longer hits harder", pw["full"] > pw["tap"] + 4 and pw["hud"].startswith("Shot:"))]
 
         # ---------------------------------------------------------------- cornhole: first throw, and spin
         page.evaluate("() => window.__fd.switchLevel(20)")
