@@ -62,9 +62,9 @@ def main():
         checks.append(("bots make up each team to the number picked", all(c["bots"][mine] == n - 1 and c["bots"][1 - mine] == n for n, c in counts.items())))
         # drones only when nobody's on the other side
         dr = page.evaluate("""() => { const fd = window.__fd, L = fd.LEVELS[4], I = L.ltInternals; const n0 = L.picker.n;
-          L.picker.set(1); I.fillLtBots(); for (const b of I.lbots) b.active = false; L.update(1 / 60, performance.now());
+          L.picker.set(1); I.fillLtBots(); for (const b of I.lbots) b.active = false; L.update(1 / 60, 0);   /* (time 0: no bot top-up in between) */
           const alone = L.group.children.filter((m) => m.isMesh && m.geometry && m.geometry.type === 'IcosahedronGeometry' && m.visible).length;
-          L.picker.set(n0); I.fillLtBots(); L.update(1 / 60, performance.now());
+          L.picker.set(n0); I.fillLtBots(); L.update(1 / 60, 0);
           const withBots = L.group.children.filter((m) => m.isMesh && m.geometry && m.geometry.type === 'IcosahedronGeometry' && m.visible).length;
           return { alone, withBots }; }""")
         print("practice drones:", dr)
@@ -89,10 +89,10 @@ def main():
             page.wait_for_timeout(1500)
             page.screenshot(path=f"{D}/lasertag-bots.png")
             page.evaluate("() => { window.__fd.LEVELS[4].paused = true; }")
-        # let them play: you stand at your base
-        page.evaluate("() => { const fd = window.__fd, I = fd.LEVELS[4].ltInternals; fd.dolly.position.set(0, 0, I.me.team === 0 ? 9.6 : -9.6); }")
+        # let them play: you stand in the open on your own half
+        page.evaluate("() => { const fd = window.__fd, I = fd.LEVELS[4].ltInternals; fd.dolly.position.set(-8.5, 0, I.me.team === 0 ? 3 : -3); }")
         r = page.evaluate(PLAY, [90])
-        print("90 s of 3-a-side (you at your base):", r)
+        print("90 s of 3-a-side (you in the open on your half):", r)
         checks += [("the bots move about and shoot", r["moved"] > 3 and r["shots"] > 20),
                    ("both teams score tags", r["scores"][0] > 0 and r["scores"][1] > 0),
                    ("the bots tag you too", r["iWasTagged"] > 0),

@@ -19,7 +19,7 @@ S = "window.__fd.LEVELS[5].socInternals"
 PLAY = """([secs]) => {
   const fd = window.__fd, L = fd.LEVELS[5], I = L.socInternals;
   let now = window.__socNow || performance.now(), last = I.SOC.lastTouch, kicks = 0, touchers = new Set(), goalsFor = [0, 0];
-  const g0 = I.scores();
+  let prev = I.scores();
   // you stand out of the way on the touchline, so it's the bots' game
   fd.dolly.position.set(-I.HW + 0.6, 0, 0); fd.camera.position.set(0, 1.6, 0);
   for (let f = 0; f < secs * 60; f++) {
@@ -28,10 +28,10 @@ PLAY = """([secs]) => {
     I.physics(1 / 60, now);
     L.update(1 / 60, now);
     if (I.SOC.lastTouch !== last) { kicks++; last = I.SOC.lastTouch; touchers.add(last); }
+    const sc = I.scores(); for (const t of [0, 1]) if (sc[t] > prev[t]) goalsFor[t] += sc[t] - prev[t]; prev = sc;   // (a finished match resets the score: count goals as they go in)
   }
   window.__socNow = now;
-  const g1 = I.scores();
-  return { goals: [g1[0] - g0[0], g1[1] - g0[1]], scoredByMe: I.me.scoredBy, touches: kicks, touchers: touchers.size, ball: [+I.ball.pos.x.toFixed(1), +I.ball.pos.z.toFixed(1)] };
+  return { goals: goalsFor, scoredByMe: I.me.scoredBy, touches: kicks, touchers: touchers.size, ball: [+I.ball.pos.x.toFixed(1), +I.ball.pos.z.toFixed(1)] };
 }"""
 
 
@@ -66,10 +66,10 @@ def main():
         res = []
         for half in (0, 1):
             team = page.evaluate("() => window.__fd.LEVELS[5].me.team")
-            r = page.evaluate(PLAY, [200])
+            r = page.evaluate(PLAY, [300])
             r["youOn"] = team
             res.append(r)
-            print(f"200 s with you on {'red' if team == 0 else 'blue'} (on the touchline):", r)
+            print(f"300 s with you on {'red' if team == 0 else 'blue'} (on the touchline):", r)
             page.evaluate("() => { const L = window.__fd.LEVELS[5]; L.switchTeam(); L.socInternals.fillSocBots(); }")
         # goals[0] are goals scored by red (into the far goal), goals[1] by blue
         allbot = [r["goals"][1 - r["youOn"]] for r in res]

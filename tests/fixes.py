@@ -5,6 +5,7 @@
 - Pickleball: putting the paddle down and picking it up again carries on the same game (it used to restart it);
   in VR the paddle needs a long squeeze to put down
 - Cornhole: a new game starting while you hold your bag no longer skips your first throw; bags spin in the air
+- Soccer goals are bigger; laser tag beams run from the blaster to the hit (they were drawn backwards)
 
 Usage: python tests/fixes.py   (THREE_JS=/path/to/three.min.js to serve three.js locally)
 """
@@ -103,6 +104,22 @@ def main():
         print("a thrown bag's heading over four frames:", spin)
         checks.append(("cornhole: bags spin in the air", len(set(spin)) == 4))
 
+        # ---------------------------------------------------------------- soccer goals: bigger; laser tag: the beam goes where you shot
+        page.evaluate("() => window.__fd.switchLevel(5)")
+        page.wait_for_timeout(1000)
+        gw = page.evaluate("() => window.__fd.LEVELS[5].socInternals.GW")
+        checks.append(("soccer: the goals are wider (8 m or more)", 2 * gw >= 8))
+        page.evaluate("() => window.__fd.switchLevel(4)")
+        page.wait_for_timeout(1200)
+        bm = page.evaluate("""() => { const fd = window.__fd, L = fd.LEVELS[4]; L.paused = true;
+          fd.dolly.position.set(-4, 0, 9); fd.camera.rotation.set(-0.08, 0.25, 0, 'YXZ'); fd.state.yaw = 0.25; fd.state.pitch = -0.08; fd.camera.updateMatrixWorld(true);
+          L.me.tagged = false; L.me.cool = 0; L.ltInternals.fire(performance.now());
+          const b = L.ltInternals.beams[L.ltInternals.beams.length - 1], m = b.m; m.updateMatrixWorld(true); m.geometry.computeBoundingBox();
+          const bb = m.geometry.boundingBox.clone().applyMatrix4(m.matrixWorld), c = new THREE.Vector3(); bb.getCenter(c);
+          const mid = m.position.clone().add(b.spark.position).multiplyScalar(0.5);
+          L.paused = false; return { off: +c.distanceTo(mid).toFixed(2), len: +m.position.distanceTo(b.spark.position).toFixed(2) }; }""")
+        print("laser tag beam: its middle is", bm["off"], "m from halfway between the muzzle and the hit; length", bm["len"])
+        checks.append(("laser tag: the beam runs from the blaster to where it hits (not backwards)", bm["off"] < 0.1 and bm["len"] > 1))
         for name, good in checks:
             print(f"{'ok  ' if good else 'FAIL'}  {name}")
             ok &= bool(good)

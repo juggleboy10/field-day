@@ -8,7 +8,7 @@
     L.grabless = true;
     L.walkSpeed = 4.2;
     L.rollFriction = 0.55;
-    const HW = 13, HL = 20, GW = 3, GH = 2.2, GD = 1.6, WIN = 5;
+    const HW = 13, HL = 20, GW = 4.2, GH = 3.0, GD = 1.8, WIN = 5;   // big goals: 8.4 m wide, 3 m high
     const SMALL_R = 0.2, BIG_R = 0.75;
     let BR = BIG_R;   // bubble soccer by default: a big, floaty ball
     L.bounds = { minX: -HW, maxX: HW, minZ: -HL, maxZ: HL };

@@ -157,17 +157,25 @@
     const beams = [];
     const beamGeo = new THREE.CylinderGeometry(0.012, 0.012, 1, 6, 1, true);
     beamGeo.rotateX(Math.PI / 2);
-    beamGeo.translate(0, 0, -0.5);
+    beamGeo.translate(0, 0, 0.5);       // runs from the origin along +z, which lookAt() turns toward the target
+    // a shot: a bright white core inside a thick glow in the team's colour, a flash at the muzzle and a burst where it lands
+    const glowGeo = new THREE.CylinderGeometry(0.045, 0.045, 1, 8, 1, true);
+    glowGeo.rotateX(Math.PI / 2); glowGeo.translate(0, 0, 0.5);
     function showBeam(from, to, team) {
-      const m = new THREE.Mesh(beamGeo, new THREE.MeshBasicMaterial({ color: TEAM_COLORS[team] || 0xffffff, transparent: true, opacity: 0.9, depthWrite: false }));
-      m.position.copy(from);
-      m.lookAt(to);
-      m.scale.z = Math.max(0.01, from.distanceTo(to));
-      const spark = new THREE.Sprite(new THREE.SpriteMaterial({ map: warmGlowTex, color: TEAM_COLORS[team] || 0xffffff, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
-      spark.position.copy(to);
-      spark.scale.set(0.4, 0.4, 1);
-      G.add(m, spark);
-      beams.push({ m, spark, t0: performance.now() });
+      const col = TEAM_COLORS[team] || 0xffffff;
+      const len = Math.max(0.01, from.distanceTo(to));
+      const m = new THREE.Mesh(beamGeo, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 1, depthWrite: false }));
+      const glow = new THREE.Mesh(glowGeo, new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending }));
+      for (const x of [m, glow]) { x.position.copy(from); x.lookAt(to); x.scale.z = len; }
+      m.scale.x = m.scale.y = 1.6;
+      const spark = new THREE.Sprite(new THREE.SpriteMaterial({ map: warmGlowTex, color: col, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
+      spark.position.copy(to); spark.scale.set(0.8, 0.8, 1);
+      const flash = new THREE.Sprite(new THREE.SpriteMaterial({ map: warmGlowTex, color: col, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
+      // (small when it's right in front of your eyes, so your own shots don't blind you)
+      const near = clamp(from.distanceTo(myHead.pos) / 1.5, 0.25, 1);
+      flash.position.copy(from); flash.scale.set(0.35 * near, 0.35 * near, 1);
+      G.add(m, glow, spark, flash);
+      beams.push({ m, glow, spark, flash, t0: performance.now() });
     }
 
     // practice drones when nobody is on the other team
@@ -276,6 +284,48 @@
       }
       forcePresence();
     }
+    // the aiming sight: where a shot would go right now (blocks, walls and the floor stop it; so do people and bots)
+    const sightLine = new THREE.Mesh(beamGeo, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.22, depthWrite: false }));
+    const sightDot = new THREE.Sprite(new THREE.SpriteMaterial({ map: warmGlowTex, color: 0xffffff, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.9 }));
+    sightLine.visible = sightDot.visible = false; sightDot.scale.set(0.12, 0.12, 1);
+    G.add(sightLine, sightDot);
+    function aimRay() {
+      blasterPose();
+      _d.set(0, 0, -1).applyQuaternion(blaster.quaternion);
+      _o.copy(blaster.position).addScaledVector(_d, 0.24);
+      if (state.mode === 'flat') {
+        camera.getWorldQuaternion(_cq); camera.getWorldPosition(_cp);
+        _end.set(0, 0, -40).applyQuaternion(_cq).add(_cp);
+        _d.subVectors(_end, _o).normalize();
+      }
+      let maxT = 45;
+      for (const b of L.boxes) maxT = Math.min(maxT, rayBox(_o, _d, b, maxT));
+      for (const t of [(AR.minX - _o.x) / _d.x, (AR.maxX - _o.x) / _d.x, (AR.minZ - _o.z) / _d.z, (AR.maxZ - _o.z) / _d.z, -_o.y / _d.y]) if (t > 0 && t < maxT) maxT = t;
+      return maxT;
+    }
+    const _so = new V3(), _sd = new V3(), _se2 = new V3();
+    function updateSight() {
+      const show = state.level === L.idx && state.mode !== 'menu' && blaster.visible && !me.tagged;
+      sightLine.visible = sightDot.visible = show;
+      if (!show) return;
+      let t = aimRay();
+      for (const rec of remotes.values()) {
+        if (!inMyLevel(rec) || !rec.hasH) continue;
+        const st = rec.lvState[L.id];
+        if (!st || st.tagged) continue;
+        const r = rayBody(_o, _d, rec.cur.h.pos, Math.max(0.2, rec.cur.h.pos.y - 1.15), t);
+        if (r.dist < 0.3 && r.s < t) t = r.s;
+      }
+      let onEnemy = false;
+      if (L.ltRayHitsBot) { const hb = L.ltRayHitsBot(_o, _d, t); if (hb) { t = hb.s; onEnemy = true; } }
+      _so.copy(_o); _sd.copy(_d); _se2.copy(_so).addScaledVector(_sd, t);
+      sightLine.position.copy(_so); sightLine.lookAt(_se2); sightLine.scale.set(0.6, 0.6, Math.max(0.01, t));
+      sightLine.visible = state.mode === 'vr';            // in a browser the crosshair already shows the line; the dot shows where it lands
+      sightDot.position.copy(_se2);
+      const col = onEnemy ? 0xff3a3a : TEAM_COLORS[me.team] || 0xffffff;
+      sightDot.material.color.setHex(col); sightLine.material.color.setHex(col);
+      sightDot.scale.setScalar(0.16 + t * 0.012);
+    }
     L.onVRTrigger = (h) => { me.hand = h.side; fire(performance.now()); };
     L.deskFire = (now) => fire(now);
     L.throwLabel = () => 'Fire';
@@ -358,6 +408,7 @@
     L.update = (dt, now) => {
       autoBalance(L, me, now, switchTeam);
       blasterPose();
+      updateSight();
       const col = me.tagged ? 0x555566 : TEAM_COLORS[me.team] || 0xffffff;
       for (const m of blaster.userData.glow) m.color.setHex(col);
       if (me.tagged && now > me.taggedUntil) { me.tagged = false; me.invUntil = now + 1500; state.dirtyBoard = true; forcePresence(); }
@@ -387,10 +438,12 @@
       });
       // beams fade
       for (let i = beams.length - 1; i >= 0; i--) {
-        const b = beams[i], k = (now - b.t0) / 160;
-        if (k >= 1) { G.remove(b.m, b.spark); b.m.material.dispose(); b.spark.material.dispose(); beams.splice(i, 1); continue; }
-        b.m.material.opacity = 0.9 * (1 - k);
-        b.spark.material.opacity = 1 - k;
+        const b = beams[i], k = (now - b.t0) / 380;
+        if (k >= 1) { G.remove(b.m, b.glow, b.spark, b.flash); for (const x of [b.m, b.glow, b.spark, b.flash]) x.material.dispose(); beams.splice(i, 1); continue; }
+        const f = 1 - k * k;            // stays bright, then fades fast
+        b.m.material.opacity = f; b.glow.material.opacity = 0.55 * f;
+        b.spark.material.opacity = f; b.spark.scale.setScalar(0.8 + k * 0.6);
+        b.flash.material.opacity = Math.max(0, 1 - k * 3);
       }
       // other players carry blasters too
       for (const rec of remotes.values()) {
@@ -426,7 +479,7 @@
       }
     };
     L.onExit = () => {
-      blaster.visible = false;
+      blaster.visible = false; sightLine.visible = sightDot.visible = false;
       wrist.show(false);
       tagPlate.visible = false;
       for (const dr of drones) dr.m.visible = false;
@@ -689,7 +742,7 @@
       };
     }
     L.onExit = ((base) => () => { base(); for (const b of lbots) b.g.visible = false; })(L.onExit);
-    L.ltInternals = { lbots, fillLtBots, stepLtBots, rayHitsBot, botFire, ltHost, LB, me, scores, fire: (now) => fire(now), clearLine };
+    L.ltInternals = { beams, lbots, fillLtBots, stepLtBots, rayHitsBot, botFire, ltHost, LB, me, scores, fire: (now) => fire(now), clearLine };
     return L;
   })();
 
