@@ -5,6 +5,7 @@
 - Pickleball: putting the paddle down and picking it up again carries on the same game (it used to restart it);
   in VR the paddle needs a long squeeze to put down
 - Cornhole: a new game starting while you hold your bag no longer skips your first throw; bags spin in the air
+- Pop-a-shot: a return ramp under the hoop rolls balls back to the tray
 - Soccer goals are bigger; laser tag beams run from the blaster to the hit (they were drawn backwards)
 
 Usage: python tests/fixes.py   (THREE_JS=/path/to/three.min.js to serve three.js locally)
@@ -143,6 +144,15 @@ def main():
         print("pop-a-shot:", pop)
         checks += [("pop-a-shot: you can't walk up between the rack and the hoop", pop["reached"] <= 15.31),
                    ("pop-a-shot: the ball bounces off the side walls", pop["bounced"] and pop["inside"])]
+        # pop-a-shot: balls that drop in front of the backboard roll down the ramp and stop in the tray
+        ramp = page.evaluate("""() => { const fd = window.__fd, L = fd.LEVELS[8], I = L.popInternals, c = L.pops[1];
+          const starts = [[0, 1.7, c.rz, 0, -1, 0], [0.35, 1.8, 17.3, 0, -0.5, -0.5], [-0.6, 1.4, 17.2, 0.3, 0, 0]];
+          let now = performance.now();
+          starts.forEach((s, i) => { const b = c.balls[i]; b.held = null; b.owner = fd.state.myPeer; b.sleeping = false; b.pos.set(c.x + s[0], s[1], s[2]); b.vel.set(s[3], s[4], s[5]); });
+          for (let f = 0; f < 60 * 6; f++) { now += 1000 / 60; I.physics(1 / 60, now); L.update(1 / 60, now); }
+          return c.balls.slice(0, 3).map((b) => ({ z: +b.pos.z.toFixed(2), y: +b.pos.y.toFixed(2), x: +(b.pos.x - c.x).toFixed(2) })); }""")
+        print("pop-a-shot balls dropped by the hoop end up at:", ramp)
+        checks.append(("pop-a-shot: the ramp rolls balls back into the tray", all(16.0 < b["z"] < 16.55 and abs(b["y"] - 0.968) < 0.03 and abs(b["x"]) < 0.72 for b in ramp)))
         for name, good in checks:
             print(f"{'ok  ' if good else 'FAIL'}  {name}")
             ok &= bool(good)

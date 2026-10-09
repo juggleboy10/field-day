@@ -12738,7 +12738,9 @@ kbd {
     const CABS = [{ x: -8.6, col: 0xff8a3a, name: 'Pop-a-Shot A' }, { x: -5.4, col: 0x4fc3f7, name: 'Pop-a-Shot B' }].map((c, i) => Object.assign(c, { i, rz: BOARD_Z - 0.03 - RR, balls: [], round: null, finalT: 0, last: 0, lastName: '', shown: '' }));
     const SPOT_Z = 15.0;                                   // about where you stand
     const WALL_X = 0.72, WALL_Z0 = 15.55, WALL_H = 2.4;      // the side walls (the ball bounces off them)
-    const STAND_Z = 15.3;                                   // you stay behind this, out of the way of the rack and the hoop
+    const STAND_Z = 15.3;
+    const RAMP = { z0: 16.5, y0: 0.93, z1: BOARD_Z - 0.02, y1: 1.16 };      // the return ramp, rising toward the backboard
+    const TRAY = { z0: 16.04, z1: 16.5, y: 0.91 };                                   // you stay behind this, out of the way of the rack and the hoop
     const frameMat = lam(0x232640), steelMat = lam(0xc8ccd6);
     const ballTex = canvasTexture(128, 64, (g) => { g.fillStyle = '#e8772e'; g.fillRect(0, 0, 128, 64); g.strokeStyle = '#2b1608'; g.lineWidth = 3; g.beginPath(); g.moveTo(0, 32); g.lineTo(128, 32); g.moveTo(32, 0); g.lineTo(32, 64); g.moveTo(96, 0); g.lineTo(96, 64); g.stroke(); g.beginPath(); g.arc(32, 32, 24, -1.1, 1.1); g.arc(96, 32, 24, Math.PI - 1.1, Math.PI + 1.1); g.stroke(); }).tex;
     const ballGeo = new THREE.SphereGeometry(BALL_R, 16, 12);
@@ -12757,8 +12759,21 @@ kbd {
       const net = new THREE.Mesh(new THREE.CylinderGeometry(RR, RR * 0.6, 0.3, 12, 3, true), netMat); net.position.set(cx, RYh - 0.15, cab.rz); G.add(net);
       addBox(G, 0.03, 0.03, 0.09, steelMat, cx, RYh, BOARD_Z - 0.05);
       // the rack out front: a tray the balls sit on, with a lip
-      addBox(G, 1.1, 0.06, 0.5, frameMat, cx, 0.88, 16.25);
-      addBox(G, 1.1, 0.07, 0.04, ledMat(cab.col), cx, 0.93, 16.02);
+      addBox(G, 2 * WALL_X, 0.06, 0.5, frameMat, cx, 0.88, 16.25);
+      addBox(G, 2 * WALL_X, 0.07, 0.04, ledMat(cab.col), cx, 0.93, 16.02);
+      // the return ramp: from under the net down to the tray, wall to wall
+      {
+        const len = Math.hypot(RAMP.z1 - RAMP.z0, RAMP.y1 - RAMP.y0), ang = Math.atan2(RAMP.y1 - RAMP.y0, RAMP.z1 - RAMP.z0);
+        const ramp = new THREE.Mesh(new THREE.BoxGeometry(2 * WALL_X, 0.03, len), lam(0x2e3352));
+        ramp.position.set(cx, (RAMP.y0 + RAMP.y1) / 2 - 0.015, (RAMP.z0 + RAMP.z1) / 2); ramp.rotation.x = -ang; G.add(ramp);
+        // stripes down the middle, so you can see it slope
+        for (let k = 0; k < 4; k++) {
+          const t = (k + 0.5) / 4, st = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.005, 0.04), ledMat(cab.col));
+          st.position.set(cx, RAMP.y0 + (RAMP.y1 - RAMP.y0) * t + 0.002, RAMP.z0 + (RAMP.z1 - RAMP.z0) * t); st.rotation.x = -ang; G.add(st);
+        }
+        // a skirt underneath, down to the floor
+        addBox(G, 2 * WALL_X, RAMP.y0, 0.04, frameMat, cx, RAMP.y0 / 2, RAMP.z0);
+      }
       for (let i = 0; i < BALLS; i++) {
         const slot = new V3(cx + (i - (BALLS - 1) / 2) * 0.17, 0.91 + BALL_R, 16.28);
         const b = makeBody(L, { geo: ballGeo, tex: ballTex, r: BALL_R, slot });
@@ -12828,6 +12843,7 @@ kbd {
     // ---------------------------------------------------------------- the rim, the backboard and the net
     function popCollide(b, h) {
       const cab = CABS[b.pa], cx = cab.x;
+      let sup = false;
       // the rim: a ring of small posts
       for (let k = 0; k < 20; k++) {
         const a = (k / 20) * Math.PI * 2, px = cx + Math.cos(a) * RR, pz = cab.rz + Math.sin(a) * RR;
@@ -12838,6 +12854,28 @@ kbd {
           const vn = b.vel.x * nx + b.vel.y * ny + b.vel.z * nz;
           if (vn < 0) { b.vel.x -= 1.5 * vn * nx; b.vel.y -= 1.5 * vn * ny; b.vel.z -= 1.5 * vn * nz; if (-vn > 0.8) tone(760, 420, 0.07, 'triangle', Math.min(0.25, -vn * 0.04)); }
         }
+      }
+      // the return ramp and the tray: a ball that drops in front of the backboard rolls back down to the tray
+      if (Math.abs(b.pos.x - cx) < WALL_X) {
+        if (b.pos.z > RAMP.z0 && b.pos.z < RAMP.z1 + b.r) {
+          const sl = (RAMP.y1 - RAMP.y0) / (RAMP.z1 - RAMP.z0), surf = RAMP.y0 + sl * (b.pos.z - RAMP.z0);
+          const nl = Math.hypot(1, sl), ny = 1 / nl, nz = -sl / nl;
+          const gap = (b.pos.y - surf) * ny;                       // distance from the slope, along its normal
+          if (gap < b.r && gap > -0.25) {
+            b.pos.y += (b.r - gap) * ny; b.pos.z += (b.r - gap) * nz;
+            const vn = b.vel.y * ny + b.vel.z * nz;
+            if (vn < 0) { b.vel.y -= 1.3 * vn * ny; b.vel.z -= 1.3 * vn * nz; if (-vn > 0.8) tone(200, 140, 0.05, 'sine', Math.min(0.2, -vn * 0.05)); }
+            b.vel.x *= Math.max(0, 1 - 2 * h);
+            b.paOnRamp = true;
+          }
+        } else if (b.pos.z > TRAY.z0 && b.pos.z <= RAMP.z0 && b.pos.y < TRAY.y + b.r && b.pos.y > TRAY.y - 0.2) {
+          b.pos.y = TRAY.y + b.r;
+          if (b.vel.y < 0) b.vel.y *= -0.2;
+          const k = Math.max(0, 1 - 3 * h); b.vel.x *= k; b.vel.z *= k;          // the tray's lining slows it to a stop
+          sup = true;
+        }
+        // the tray's front lip stops it rolling out toward you
+        if (b.pos.z < TRAY.z0 + b.r && b.pos.z > TRAY.z0 - 0.05 && b.pos.y < TRAY.y + 0.06 + b.r && b.vel.z < 0) { b.pos.z = TRAY.z0 + b.r; b.vel.z *= -0.3; }
       }
       // the side walls
       if (b.pos.z > WALL_Z0 - b.r && b.pos.z < 17.6 && b.pos.y < WALL_H + b.r) {
@@ -12858,7 +12896,7 @@ kbd {
       // a ball dropping down through the ring is a basket
       if (!b.paScored && b.paPrevY > RYh && b.pos.y <= RYh && b.vel.y < 0 && hd < RR - 0.012) basket(cab, b);
       b.paPrevY = b.pos.y;
-      return false;
+      return sup;
     }
     const baseCollide = L.collide;
     L.collide = (b, h) => { let sup = baseCollide(b, h); if (b.pa !== undefined) sup = popCollide(b, h) || sup; return sup; };
@@ -12928,11 +12966,14 @@ kbd {
           if (b.held) { b.paScored = false; b.paRest = 0; b.paPrevY = b.pos.y; continue; }
           if (b.owner !== me()) continue;
           if (b.sleeping && b.pos.distanceTo(b.slot) < 0.05) continue;    // resting on its rack
+          const inTray = Math.abs(b.pos.x - cab.x) < WALL_X && b.pos.z > TRAY.z0 - 0.02 && b.pos.z < RAMP.z0 + 0.05 && b.pos.y < TRAY.y + b.r + 0.05;
+          if (inTray) { b.paRest = 0; if (b.paScored && now - b.paScoredT > 300) b.paScored = false; continue; }   // rolled back to the tray: it stays there
           // a ball that went in comes back after a moment; so does one that has stopped on the floor (the physics
           // puts a still ball to sleep, so a sleeping ball away from its rack counts as stopped)
           const slow = b.sleeping || (Math.hypot(b.vel.x, b.vel.y, b.vel.z) < 0.6 && b.pos.y < b.r + 0.06);
           b.paRest = slow ? b.paRest + dt : 0;
-          if ((b.paScored && now - b.paScoredT > 900) || b.paRest > 1.6 || b.pos.y < -3) { reclaimToSlot(b); b.paScored = false; b.paRest = 0; }
+          // (one that's stuck, or on the floor, still comes back to its slot)
+          if ((b.paScored && now - b.paScoredT > 6000) || b.paRest > 1.6 || b.pos.y < -3) { reclaimToSlot(b); b.paScored = false; b.paRest = 0; }
         }
         drawPanel(cab, now);
       }
@@ -12964,7 +13005,7 @@ kbd {
       if (x > x0 && x < x1 && z > STAND_Z) return [d[0], STAND_Z - p.z];
       return d;
     })(L.clampPlayer);
-    L.popInternals = { WALL_X, WALL_Z0, STAND_Z,  startRound, endRound, basket, popCollide, roundOf, myRound, RYh, RR, ROUND_MS };
+    L.popInternals = { physics: (dt, now) => updateBodies(L, dt, now), RAMP, TRAY, WALL_X, WALL_Z0, STAND_Z,  startRound, endRound, basket, popCollide, roundOf, myRound, RYh, RR, ROUND_MS };
     return CABS;
   })(hub);
 
