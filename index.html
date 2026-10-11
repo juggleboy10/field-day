@@ -16570,7 +16570,8 @@ kbd {
     const G = L.group;
     const rand = mulberry32(4114);
     const HL = 6.705, HW = 3.05, NET_H = 0.88, KITCH = 2.13, BR = 0.037;   // half length (x), half width (z)
-    const GRAV = 9.8, DRAG = 0.06, WIN = 11, MAG = 0.5;   // MAG: how hard spin bends the ball (Magnus)   // drag from a real ball: 26 g, 7.4 cm, holes and all
+    const GRAV = 9.8, DRAG = 0.06, WIN = 11, MAG = 0.5;   // MAG: how hard spin bends the ball (Magnus)
+    const SIDE_AIR = 0.3, SIDE_KICK = 1.8;   // sidespin only bends it a little in the air; it mostly shows when it bounces   // drag from a real ball: 26 g, 7.4 cm, holes and all
     const R = { minX: -11, maxX: 11, minZ: -7, maxZ: 7 };
     L.bounds = R;
     L.env = {
@@ -16789,8 +16790,8 @@ kbd {
     // drag, gravity and spin over one small step. Spin (w, at most 1 long) pushes the ball along w x v: topspin dips it,
     // backspin floats it, sidespin curves it. It wears off slowly in the air.
     function airStep(p, h, sp) {
-      const wx = p.wx || 0, wy = p.wy || 0, wz = p.wz || 0;
-      const ax = MAG * (wy * p.vz - wz * p.vy), ay = MAG * (wz * p.vx - wx * p.vz), az = MAG * (wx * p.vy - wy * p.vx);
+      const wx = p.wx || 0, wy = p.wy || 0, wz = p.wz || 0, ws = wy * SIDE_AIR;
+      const ax = MAG * (ws * p.vz - wz * p.vy), ay = MAG * (wz * p.vx - wx * p.vz), az = MAG * (wx * p.vy - ws * p.vx);
       p.vx += (ax - DRAG * sp * p.vx) * h; p.vy += (ay - GRAV - DRAG * sp * p.vy) * h; p.vz += (az - DRAG * sp * p.vz) * h;
       if (wx || wy || wz) { const f = 1 - 0.12 * h; p.wx = wx * f; p.wy = wy * f; p.wz = wz * f; }
     }
@@ -16800,6 +16801,9 @@ kbd {
       const ts = clamp((b.wx || 0) * uz - (b.wz || 0) * ux, -1, 1);     // + topspin, - backspin
       const keep = 0.82 + 0.14 * ts;
       b.y = BR; b.vy = -b.vy * (0.72 - 0.14 * ts); b.vx *= keep; b.vz *= keep;
+      // sidespin grabs the court and kicks it off sideways, the same way it was curving
+      const ss = clamp(b.wy || 0, -1, 1) * SIDE_KICK;
+      b.vx += ss * uz; b.vz -= ss * ux;
       b.wx = (b.wx || 0) * 0.4; b.wy = (b.wy || 0) * 0.4; b.wz = (b.wz || 0) * 0.4;
     }
     // a shot that lands at (tx, tz) and clears the net: start from the no-air answer, then fly it (with drag and spin) and correct
@@ -17146,7 +17150,7 @@ kbd {
       if (PB.mySide < 0 && PB.botOn) { PB.bot.x = a[20]; PB.bot.z = a[21]; }
     };
     L.hudActions = [{ label: () => `Shot: ${SPINS[PB.spinMode]} \u25b8`, show: () => PB.mySide >= 0, run: () => cycleSpin() }, { label: () => 'New game', show: () => botSide() >= 0, run: () => { newGame(); showToast(`New game against Dink Daisy. First to ${WIN}, win by 2`); } }];
-    PB.internals = { airStep, predictLanding, botStep, SPINS, deskHit: (now) => deskHit(now), HL, HW, KITCH, NET_H, paddles, takeSide, leaveCourt, newGame, startServe, onHit, onBounce, stepBall, hitBall, aimed, target, players, botSide, iAmAuth, serveZ };
+    PB.internals = { bounceSpin, airStep, predictLanding, botStep, SPINS, deskHit: (now) => deskHit(now), HL, HW, KITCH, NET_H, paddles, takeSide, leaveCourt, newGame, startServe, onHit, onBounce, stepBall, hitBall, aimed, target, players, botSide, iAmAuth, serveZ };
     return L;
   })();
 

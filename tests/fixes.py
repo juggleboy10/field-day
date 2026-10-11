@@ -84,7 +84,8 @@ def main():
           const fly = (w) => { const p = { x: -5, y: 1, z: 0, vx: 10, vy: 2.5, vz: 0, wx: w[0], wy: w[1], wz: w[2] }; for (let k = 0; k < 1200 && p.y > 0.037; k++) { I.airStep(p, 1 / 240, Math.hypot(p.vx, p.vy, p.vz)); p.x += p.vx / 240; p.y += p.vy / 240; p.z += p.vz / 240; } return [+p.x.toFixed(2), +p.z.toFixed(2)]; };
           const land = (v) => { const p = { x: -5, y: 1, z: 0, ...v }; for (let k = 0; k < 1200 && p.y > 0.037; k++) { I.airStep(p, 1 / 240, Math.hypot(p.vx, p.vy, p.vz)); p.x += p.vx / 240; p.y += p.vy / 240; p.z += p.vz / 240; } return Math.hypot(p.x - 4.5, p.z - 1); };
           const err = [[0, 0, -0.8], [0, 0, 0.7], [0, 0.8, 0]].map((w) => +land(I.aimed({ x: -5, y: 1, z: 0 }, 4.5, 1, 10, w)).toFixed(2));
-          return { flat: fly([0, 0, 0]), top: fly([0, 0, -0.8]), back: fly([0, 0, 0.7]), left: fly([0, 0.8, 0]), err }; }""")
+          const kick = { x: 0, y: 0.03, z: 0, vx: 8, vy: -3, vz: 0, wx: 0, wy: 0.8, wz: 0 }; I.bounceSpin(kick);
+          return { flat: fly([0, 0, 0]), top: fly([0, 0, -0.8]), back: fly([0, 0, 0.7]), left: fly([0, 0.8, 0]), err, kickZ: +kick.vz.toFixed(2) }; }""")
         page.evaluate("() => { const fd = window.__fd, I = fd.LEVELS[15].pb.internals, t = I.paddles[0]; fd.dolly.position.set(t.rackPos.x, 0, t.rackPos.z + 0.6); }")
         page.wait_for_timeout(500)
         page.keyboard.press("KeyE")
@@ -104,7 +105,8 @@ def main():
             const v = Math.hypot(PB.b.vx, PB.b.vz); PB.ph = 'dead'; return +v.toFixed(1); };
           return { tap: shot(20), full: shot(1000), spin: I.SPINS.length, hud: L.hudActions[0].label() }; }""")
         print("pickleball spin:", sp, " Daisy:", bot, " power:", pw)
-        checks += [("pickleball: topspin dips the ball short, backspin carries it long, slice curves it", sp["top"][0] < sp["flat"][0] - 0.5 and sp["back"][0] > sp["flat"][0] + 0.5 and sp["left"][1] < -0.5),
+        checks += [("pickleball: topspin dips the ball short, backspin carries it long", sp["top"][0] < sp["flat"][0] - 0.5 and sp["back"][0] > sp["flat"][0] + 0.5),
+                   ("pickleball: slice bends only a little in the air, then kicks sideways off the bounce", -0.4 < sp["left"][1] < -0.1 and sp["kickZ"] < -1.0),
                    ("pickleball: spin shots still land where you aimed", max(sp["err"]) < 0.4),
                    ("pickleball: Daisy takes a moment to react to your shot", bot["side"] == 1 and bot["at200ms"] < 0.05 and bot["at1200ms"] > 1.0),
                    ("pickleball: Daisy moves at a human pace (3.5 m/s at most)", bot["top"] <= 3.55),
