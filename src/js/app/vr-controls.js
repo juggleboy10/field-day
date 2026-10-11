@@ -163,8 +163,11 @@
     }
     if (L.vrHop) {
       // a hop on A or X, in the places that allow it (the same little hop as J in a browser)
+      // (or push the right stick up, the way many VR games jump)
       let pressed = false;
       for (const side of SIDES) { const gp = vrHands[side].source && vrHands[side].source.gamepad; if (gp && gp.buttons && gp.buttons[4] && gp.buttons[4].pressed) pressed = true; }
+      const rs = stickAxes(vrHands.right);
+      if (rs && rs[1] < -0.75 && Math.abs(rs[0]) < 0.5) pressed = true;
       if (pressed && !HOP.vrPrev && !HOP.air && !(L.me && (L.me.down || L.me.tagged)) && !(L.hopBlocked && L.hopBlocked())) {
         HOP.air = true; HOP.vy = 4.6; HOP.base = dolly.position.y; sfx('whoosh', 0.25);
       }

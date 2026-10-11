@@ -503,7 +503,7 @@
     { id: 'dungeon', name: 'Sunstone Keep', short: 'Dungeon', glyph: '\u2694\uFE0F', blurb: 'Fight through a crypt together and claim the Sunstone.' },
     { id: 'lasertag', name: 'Neon laser tag', short: 'Laser tag', glyph: '\u26A1', blurb: 'Red versus blue in a glowing arena. First team to 15 tags.' },
     { id: 'soccer', name: 'Sunday soccer', short: 'Soccer', glyph: '\u26BD', blurb: 'Walk the ball up the pitch and kick it in. First to 5 goals.' },
-    { id: 'minigolf', name: 'Seaside mini golf', short: 'Mini golf', glyph: '\u26F3', blurb: 'Five quirky holes on a sunny pier, with a windmill and bumpers.' },
+    { id: 'minigolf', name: 'Seaside mini golf', short: 'Mini golf', glyph: '\u26F3', blurb: 'Fourteen silly holes on a sunny pier: a windmill, a loop-de-loop, a giant frog, moles and a shark jump.' },
     { id: 'bowling', name: 'Moonlight Lanes', short: 'Bowling', glyph: '\u{1F3B3}', blurb: 'Ten frames in a neon bowling alley. Strikes count extra.' },
     { id: 'hub', name: 'The Clubhouse', short: 'Clubhouse', glyph: '\u{1F3E0}', blurb: 'Hang out, dance, change your look, and walk through a portal to any game.' },
     { id: 'karts', name: 'Pebble Bay go-karts', short: 'Go-karts', glyph: '\u{1F3CE}\uFE0F', blurb: 'Lap the bay or start a three-lap race with friends.' },

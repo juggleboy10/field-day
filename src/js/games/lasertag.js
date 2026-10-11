@@ -93,7 +93,7 @@
       g.fillStyle = '#b388ff'; g.font = `800 58px ${DISPLAY}`;
       g.fillText('How to play', 36, 78);
       const sections = [
-        ['In VR', 'Pull either trigger to fire from that hand. Move with the left stick, press A or X to jump, and duck behind cover.'],
+        ['In VR', 'Pull either trigger to fire from that hand. Move with the left stick. Jump with A or X, or push the right stick up.'],
         ['In a browser', 'Click or press Space to fire at the crosshair. J jumps.'],
         ['Rules', `Press Start game: everyone goes back to base for a countdown. A tag knocks someone out for 3 seconds. First team to ${WIN} tags wins.`],
       ];
