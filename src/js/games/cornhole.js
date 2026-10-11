@@ -158,11 +158,11 @@
           impact(b, -vn, 'wood');
           b.vel.addScaledVector(B.n, -1.05 * vn);
           // a bean bag is floppy: a real landing soaks up most of its slide
-          if (vn < -1.5) { const keep = 0.32; const t = _b.copy(b.vel).addScaledVector(B.n, -b.vel.dot(B.n)); b.vel.addScaledVector(t, keep - 1); }
+          if (vn < -1.5) { const keep = 0.42; const t = _b.copy(b.vel).addScaledVector(B.n, -b.vel.dot(B.n)); b.vel.addScaledVector(t, keep - 1); }
         }
         // sliding: the board's grip slows it, and a slow bag sticks
         const vt = _b.copy(b.vel).addScaledVector(B.n, -b.vel.dot(B.n)), sp = vt.length();
-        const nsp = Math.max(0, sp - 5.5 * h);
+        const nsp = Math.max(0, sp - 4.2 * h);
         if (nsp < 0.05) b.vel.addScaledVector(vt, -1); else b.vel.addScaledVector(vt, -(1 - nsp / sp));
         sup = true;
       }

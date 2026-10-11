@@ -386,11 +386,11 @@
       // fast or spinning shots), getting better as it comes
       const hk = `${PB.pointSeq}:${PB.hits}`;
       if (coming && hk !== bt.hitKey) {
-        bt.hitKey = hk; bt.reactAt = now + 300 + rand() * 220;
+        bt.hitKey = hk; bt.reactAt = now + 210 + rand() * 160;
         const hard = Math.hypot(b.vx, b.vz) / 10 + Math.hypot(b.wx || 0, b.wy || 0, b.wz || 0) * 0.6;
         bt.ex = (rand() - 0.5) * (1.0 + hard * 1.4); bt.ez = (rand() - 0.5) * (1.0 + hard * 1.4); bt.err0 = Math.abs(b.x) + 0.5;
       }
-      let speedCap = 3.0;
+      let speedCap = 3.5;
       if (coming) {
         if (now < bt.reactAt) { tx = bt.x; tz = bt.z; }
         else {
@@ -398,9 +398,9 @@
           tx = clamp(land.x + (s === 0 ? -0.9 : 0.9) + bt.ex * left, s === 0 ? -HL - 1.5 : 0.8, s === 0 ? -0.8 : HL + 1.5);
           tz = clamp(land.z + bt.ez * left, -HW - 1, HW + 1);
         }
-      } else speedCap = 2.2;
+      } else speedCap = 2.5;
       if (PB.ph === 'serve' && PB.server === s) { tx = b.x + (s === 0 ? -0.4 : 0.4); tz = b.z; speedCap = 4; }
-      // she speeds up and slows down rather than darting (about 3 m/s flat out)
+      // she speeds up and slows down rather than darting (about 3.5 m/s flat out)
       const dx = tx - bt.x, dz = tz - bt.z, d = Math.hypot(dx, dz);
       const want = d > 0.05 ? Math.min(speedCap, d * 2.5) : 0, kx = d > 0.05 ? dx / d : 0, kz = d > 0.05 ? dz / d : 0;
       const acc = Math.min(1, 7 * dt / Math.max(0.1, speedCap));
@@ -428,7 +428,7 @@
       if (!bt.decided) {
         // harder to get back: fast balls, spin, and ones she had to run for
         bt.decided = true;
-        bt.missing = rand() < 0.1 + Math.max(0, Math.hypot(b.vx, b.vz) - 4.5) * 0.08 + Math.hypot(b.wx || 0, b.wy || 0, b.wz || 0) * 0.12 + Math.min(0.2, Math.abs(bt.z - b.z) * 0.06);
+        bt.missing = rand() < 0.09 + Math.max(0, Math.hypot(b.vx, b.vz) - 5) * 0.07 + Math.hypot(b.wx || 0, b.wy || 0, b.wz || 0) * 0.12 + Math.min(0.2, Math.abs(bt.z - b.z) * 0.06);
       }
       if (bt.missing) return;
       if (Math.hypot(b.x - bt.x, b.z - bt.z) < 1.2 && b.y > 0.25 && b.y < 1.6 && b.vy < 1.5) botHit(s, false);

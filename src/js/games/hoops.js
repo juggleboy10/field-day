@@ -1,6 +1,7 @@
   // ================================================================ LEVEL: ROOFTOP HOOPS
   const hoops = (() => {
     const L = newLevel(0);
+    L.throwGain = 1.3;      // a VR throw carries a bit further here, so an overhand shot reaches the hoop without a heave
     const G = L.group;
     const rand = mulberry32(20260930);
     const BALL_R = 0.12;

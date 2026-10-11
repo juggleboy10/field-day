@@ -112,7 +112,7 @@
       return;
     }
     if (!h.holding || h.grabBtn !== btn) return;
-    handVelocity(h, _vel).multiplyScalar(h.holding.kind === 'disc' ? 1.4 : h.holding.kind === 'custom' ? 1 : 1.12);
+    handVelocity(h, _vel).multiplyScalar(h.holding.kind === 'disc' ? 1.4 : h.holding.kind === 'custom' ? 1 : (curLevel().throwGain || 1.12));
     endHold(h, _vel);
   }
   function stickAxes(h) {

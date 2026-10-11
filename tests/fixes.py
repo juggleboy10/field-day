@@ -94,8 +94,8 @@ def main():
           Object.assign(PB, { ph: 'rally', lastHit: 0, need: 1, hits: 3, bounced: false }); Object.assign(PB.b, { x: -3, y: 1, z: 0, vx: 9, vy: 2, vz: 2.5, wx: 0, wy: 0, wz: 0 });
           bt.x = I.HL * 0.85; bt.z = -2; bt.vx = bt.vz = 0; bt.hitKey = '';
           let t = 1e7, top = 0; const path = [];
-          for (let f = 1; f <= 72; f++) { const x0 = bt.x, z0 = bt.z; t += 1000 / 60; I.botStep(1 / 60, t); top = Math.max(top, Math.hypot(bt.x - x0, bt.z - z0) * 60); if (f === 15 || f === 72) path.push(+Math.hypot(bt.x - I.HL * 0.85, bt.z + 2).toFixed(2)); }
-          PB.ph = 'dead'; return { side: 1, at250ms: path[0], at1200ms: path[1], top: +top.toFixed(2) }; }""")
+          for (let f = 1; f <= 72; f++) { const x0 = bt.x, z0 = bt.z; t += 1000 / 60; I.botStep(1 / 60, t); top = Math.max(top, Math.hypot(bt.x - x0, bt.z - z0) * 60); if (f === 12 || f === 72) path.push(+Math.hypot(bt.x - I.HL * 0.85, bt.z + 2).toFixed(2)); }
+          PB.ph = 'dead'; return { side: 1, at200ms: path[0], at1200ms: path[1], top: +top.toFixed(2) }; }""")
         pw = page.evaluate("""() => { const fd = window.__fd, L = fd.LEVELS[15], PB = L.pb, I = PB.internals;
           const shot = (holdMs) => { const now = performance.now();
             Object.assign(PB, { ph: 'rally', lastHit: 1, need: 0, hits: 4, bounced: true, auth: fd.state.myPeer });
@@ -106,8 +106,8 @@ def main():
         print("pickleball spin:", sp, " Daisy:", bot, " power:", pw)
         checks += [("pickleball: topspin dips the ball short, backspin carries it long, slice curves it", sp["top"][0] < sp["flat"][0] - 0.5 and sp["back"][0] > sp["flat"][0] + 0.5 and sp["left"][1] < -0.5),
                    ("pickleball: spin shots still land where you aimed", max(sp["err"]) < 0.4),
-                   ("pickleball: Daisy takes a moment to react to your shot", bot["side"] == 1 and bot["at250ms"] < 0.05 and bot["at1200ms"] > 1.0),
-                   ("pickleball: Daisy moves at a human pace (3 m/s at most)", bot["top"] <= 3.05),
+                   ("pickleball: Daisy takes a moment to react to your shot", bot["side"] == 1 and bot["at200ms"] < 0.05 and bot["at1200ms"] > 1.0),
+                   ("pickleball: Daisy moves at a human pace (3.5 m/s at most)", bot["top"] <= 3.55),
                    ("pickleball: in a browser, holding the swing longer hits harder", pw["full"] > pw["tap"] + 4 and pw["hud"].startswith("Shot:"))]
 
         # ---------------------------------------------------------------- cornhole: first throw, and spin
@@ -139,7 +139,7 @@ def main():
         page.evaluate("() => window.__fd.switchLevel(5)")
         page.wait_for_timeout(1000)
         gw = page.evaluate("() => window.__fd.LEVELS[5].socInternals.GW")
-        checks.append(("soccer: the goals are wider (8 m or more)", 2 * gw >= 8))
+        checks.append(("soccer: the goals are wider (9 m or more)", 2 * gw >= 9))
         page.evaluate("() => window.__fd.switchLevel(4)")
         page.wait_for_timeout(1200)
         bm = page.evaluate("""() => { const fd = window.__fd, L = fd.LEVELS[4]; L.paused = true;
@@ -228,6 +228,24 @@ def main():
           return { held, dist: +I.TB.pos.distanceTo(new THREE.Vector3(0.3, 1.1, -81.7)).toFixed(2) }; }""")
         print("recess VR ball pick-up:", rv)
         checks.append(("recess: in VR, squeezing anywhere in the trick-shot area picks up the ball", rv["held"] == "ball"))
+        bf = page.evaluate("""() => { const fd = window.__fd, L = fd.LEVELS[24], I = L.recessInternals, st = fd.state, v = I.vr(), m0 = st.mode;
+          I.resetCourse(); L.paused = true; const z = I.BF.table + 0.9; fd.dolly.position.set(0, 0, z); I.P.vel.set(0, 0, 0);
+          const h = v.vrHands.right, src0 = h.source, hist0 = h.hist, btn = [{ pressed: false }, { pressed: false }]; h.source = { gamepad: { buttons: btn } };
+          let r = {};
+          try { st.mode = 'vr'; const mh = v.myHands.right; mh.ok = true; mh.pos.set(0.2, 1.1, z - 0.3);
+            // the hand tipped 40 degrees: the bottle in it leans the same way, and the flip starts from that lean
+            mh.quat.setFromAxisAngle(new THREE.Vector3(1, 0, 0), 0.7);
+            const go = () => { v.myHead.pos.set(0, 1.6, z); I.step(1 / 60); };
+            go(); btn[1].pressed = true; go(); go();
+            const bottle = L.group.getObjectByProperty('uuid', I.BT.meshId) || null;
+            const up = new THREE.Vector3(0, 1, 0).applyQuaternion(I.BT.heldQ);
+            const t = performance.now(); h.hist = [{ t: t - 80, p: new THREE.Vector3(0.2, 0.9, z - 0.3) }, { t, p: new THREE.Vector3(0.2, 1.2, z - 0.4) }];
+            btn[1].pressed = false; go();
+            r = { held: I.STN.holding, st: I.BT.st, ang: +I.BT.ang.toFixed(2), want: +Math.atan2(up.z, up.y).toFixed(2), tilt: +Math.acos(Math.min(1, up.y)).toFixed(2) }; }
+          finally { st.mode = m0; h.source = src0; h.hist = hist0; I.STN.holding = ''; I.resetCourse(); L.paused = false; }
+          return r; }""")
+        print("recess VR bottle flip from a tilted hand:", bf)
+        checks.append(("recess: in VR the bottle leans with your hand and the flip starts from that lean", bf["st"] == "fly" and bf["tilt"] > 0.3 and abs(bf["ang"] - bf["want"]) < 0.2 and abs(bf["ang"]) > 0.3))
 
         # ---------------------------------------------------------------- trivia and hot potato: sit out to leave your spot
         page.evaluate("() => window.__fd.switchLevel(18)")

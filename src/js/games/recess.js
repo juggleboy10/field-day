@@ -681,8 +681,9 @@
     G.add(bottle);
     const BH = 0.11;                                        // half the bottle's height (its centre sits this high when standing)
     const BHOME = new V3(0, BF.top + BH, BF.table + BF.half[1] - 0.15);
-    const BT = { st: 'table', pos: BHOME.clone(), vel: new V3(), ang: 0, w: 0, t: 0, back: 0, hand: null, done: false };
-    function bottleHome() { BT.st = 'table'; BT.pos.copy(BHOME); BT.vel.set(0, 0, 0); BT.ang = 0; BT.w = 0; BT.hand = null; }
+    const BT = { st: 'table', pos: BHOME.clone(), vel: new V3(), ang: 0, w: 0, t: 0, back: 0, hand: null, done: false, heldQ: new Q4(), vrHeld: false };
+    const BOTTLE_IN_HAND = new Q4();   // upright when your hand is level (the controller's up); tip your wrist and it tips too
+    function bottleHome() { BT.vrHeld = false; BT.st = 'table'; BT.pos.copy(BHOME); BT.vel.set(0, 0, 0); BT.ang = 0; BT.w = 0; BT.hand = null; }
     // the browser flip: from your hand, straight up and over toward the middle of the table; the charge sets how
     // high and how fast it turns. About half is right.
     function flipFrom(p, from) {
@@ -690,7 +691,7 @@
       const t = (vy + Math.sqrt(vy * vy + 2 * 9.8 * Math.max(0, from.y - (BF.top + BH)))) / 9.8;
       return { vel: new V3((0 - from.x) / t, vy, (BF.table - from.z) / t), w };
     }
-    function flipBottle(vel, w) { BT.st = 'fly'; BT.vel.copy(vel); BT.w = w; BT.ang = 0; BT.t = 0; BT.hand = null; sfx('whoosh', 0.4); }
+    function flipBottle(vel, w, a0) { BT.vrHeld = false; BT.st = 'fly'; BT.vel.copy(vel); BT.w = w; BT.ang = a0 || 0; BT.t = 0; BT.hand = null; sfx('whoosh', 0.4); }
     const angOff = (a) => { const k = ((a % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2); return Math.min(k, Math.PI * 2 - k); };
     function flipStep(dt) {
       if (BT.st === 'fly') {
@@ -833,11 +834,15 @@
         }
         if (STN.holding && STN.hand === side) {
           busy = true;
-          if (STN.holding === 'ball') TB.pos.copy(mh.pos); else BT.pos.copy(mh.pos);
+          if (STN.holding === 'ball') TB.pos.copy(mh.pos); else { BT.pos.copy(mh.pos); BT.heldQ.copy(mh.quat).multiply(BOTTLE_IN_HAND); BT.vrHeld = true; }
           if (!grip) {
             handVelocity(vrHands[side], _hv2);
             if (STN.holding === 'ball') { if (_hv2.length() > 1.2) throwBall(_hv2.clone().multiplyScalar(1.1)); else ballToRack(); }
-            else { if (_hv2.y > 0.6) flipBottle(_hv2.clone(), clamp(STN.spin[si], 0, 25)); else bottleHome(); }
+            else {
+              // the flip starts from however the bottle was tilted in your hand (its lean forward or back)
+              const up = new V3(0, 1, 0).applyQuaternion(BT.heldQ);
+              if (_hv2.y > 0.6) flipBottle(_hv2.clone(), clamp(STN.spin[si], 0, 25), Math.atan2(up.z, up.y)); else bottleHome();
+            }
             STN.holding = '';
           }
         }
@@ -851,7 +856,8 @@
       if (STN.holding && state.mode !== 'vr') holdPos(STN.holding === 'ball' ? TB.pos : BT.pos);
       ballM.position.copy(TB.pos);
       if (TB.st === 'fly') { ballM.rotation.x += 0.2; ballM.rotation.z += 0.13; }
-      bottle.position.copy(BT.pos); bottle.rotation.set(BT.ang, 0, 0);
+      bottle.position.copy(BT.pos);
+      if (BT.st === 'held' && BT.vrHeld && state.mode === 'vr') bottle.quaternion.copy(BT.heldQ); else bottle.rotation.set(BT.ang, 0, 0);
       // the power meter (browser), with the sweet spot marked
       if (state.mode === 'flat' && ui.power) {
         const on = STN.holding && STN.charge > 0;
