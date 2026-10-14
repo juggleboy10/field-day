@@ -28,6 +28,9 @@
     Object.assign(p, L.presence());
     if (L.picker) p.pc = [L.picker.n, L.picker.t];
     if (L.sitOut) p.so = L.sitOut.on ? 1 : 0;
+    // voice: is my mic on (1), muted (2) or off (0), and am I talking right now (for the others' voice check)
+    p.vo = VOICE.stream ? (VOICE.muted ? 2 : 1) : 0;
+    p.vt = VOICE.talkSent ? 1 : 0;
     return p;
   }
   function netTick(now) {
@@ -204,10 +207,16 @@
       if (!others.has(id)) others.set(id, { presence: Object.freeze({}), updatedAt: Date.now() });
       snapshot = null;
       act.send(mine, { target: id }).catch(() => {});
-      if (VOICE.stream) { try { room.addStream(VOICE.stream, { target: id }); } catch (e) { /* ignore */ } }
+      if (VOICE.stream) addVoice(VOICE.stream, id);
       notify();
     };
     room.onPeerStream = (stream, id) => voiceAttach(id, stream);
+    // (the media calls hand back promises; a peer leaving mid-call isn't an error worth reporting)
+    const quiet = (r) => { for (const x of [].concat(r || [])) if (x && x.catch) x.catch(() => {}); };
+    const addVoice = (s, id) => { try { quiet(room.addStream(s, id ? { target: id } : undefined)); } catch (e) { /* ignore */ } };
+    // asking someone to send their voice again (when ours isn't reaching us), and doing it when asked
+    const vreq = room.makeAction('vreq');
+    vreq.onMessage = (data, ctx) => { const id = ctx && ctx.peerId; if (typeof id === 'string') voiceResend(id); };
     room.onPeerLeave = (id) => {
       voiceDetach(id);
       others.delete(id);
@@ -235,7 +244,17 @@
       },
       onPeers(fn) { peerListeners.push(fn); return () => {}; },
       onConnection(fn) { setTimeout(() => fn(true), 0); return () => {}; },
-      voice: { add: (s) => room.addStream(s), remove: (s) => room.removeStream(s) },
+      voice: {
+        add: (s) => addVoice(s),
+        remove: (s) => { try { room.removeStream(s); } catch (e) { /* ignore */ } },
+        ask: (id) => { quiet(vreq.send(1, { target: id })); },
+        // take the voice off that one connection and put it back a moment later (a short random wait, so two
+        // players fixing each other at once don't trip over each other)
+        resend: (s, id) => {
+          try { room.removeStream(s, { target: id }); } catch (e) { /* ignore */ }
+          setTimeout(() => { if (VOICE.stream === s && others.has(id)) addVoice(s, id); }, 400 + Math.random() * 600);
+        },
+      },
     };
   }
 
