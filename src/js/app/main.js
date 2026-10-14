@@ -21,6 +21,7 @@
     lastT = now;
     const steps = Math.max(1, Math.ceil(raw / 0.05 - 1e-6)), dt = raw / steps;
     state.frameSteps = steps;
+    state.frameMs = (state.frameMs || 16) * 0.95 + Math.min(100, raw * 1000) * 0.05;     // a running average of the frame time
     pollPeers();
     const L = curLevel();
     if (state.mode === 'menu') L.attract(now);
@@ -53,5 +54,5 @@
   initNet();
   updateNetUI();
   // the tests in tests/ reach inside through this, only when the page is opened with ?test
-  try { if (new URLSearchParams(location.search).has('test')) window.__fd = { LEVELS, state, dolly, camera, switchLevel, startGame, voice: { VOICE, voiceWatch, voiceResend, remotes, buildPresence } }; } catch (e) { /* ignore */ }
+  try { if (new URLSearchParams(location.search).has('test')) window.__fd = { LEVELS, state, dolly, camera, switchLevel, startGame, voice: { VOICE, voiceWatch, voiceResend, remotes, buildPresence }, audio: { snd, tone, sfx, ensureAudio, MUSIC } }; } catch (e) { /* ignore */ }
 })();

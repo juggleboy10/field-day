@@ -298,6 +298,20 @@ def main():
         print("parkour finish buttons, clubhouse hop:", pk2)
         checks += [("parkour: Race again and Back to start buttons up on the finish platform", pk2["again"] and pk2["back"]),
                    ("clubhouse: you can jump in VR (A or X, or the right stick up)", pk2["hubHop"])]
+        # ---------------------------------------------------------------- sound under load; hot potato's New game
+        au = page.evaluate("""async () => { const A = window.__fd.audio; A.ensureAudio(); try { await A.snd.ctx.resume(); } catch (e) {}
+          const running = A.snd.ctx.state === 'running';
+          for (let i = 0; i < 80; i++) A.tone(400 + i * 5, 0, 0.5, 'sine', 0.05);
+          const live = A.snd.live, dropped = A.snd.dropped;
+          await new Promise((r) => setTimeout(r, 1300));
+          return { running, live, dropped, freed: A.snd.live === 0, limiter: !!A.snd.limiter }; }""")
+        page.evaluate("() => window.__fd.switchLevel(18)")
+        page.wait_for_function("() => window.__fd.LEVELS[18].potatoInternals.RS.ph !== 'idle'", timeout=20000)
+        hp2 = page.evaluate("""() => { const L = window.__fd.LEVELS[18], I = L.potatoInternals; const r0 = I.RS.round; L.newGame();
+          return { fresh: I.RS.round === r0 + 1 && I.RS.ph === 'count', hud: L.hudActions.some((a) => a.label() === 'New game'), btn: L.buttons.some((b) => b.label === 'New game') }; }""")
+        print("audio under load:", au, " hot potato new game:", hp2)
+        checks += [("sound: no more than 24 effects at once (the rest are skipped), through a limiter, and slots free up again", (not au["running"]) or (au["live"] <= 24 and au["dropped"] > 0 and au["limiter"] and au["freed"])),
+                   ("hot potato: New game starts a fresh round (on screen and in the room)", hp2["fresh"] and hp2["hud"] and hp2["btn"])]
         for name, good in checks:
             print(f"{'ok  ' if good else 'FAIL'}  {name}")
             ok &= bool(good)

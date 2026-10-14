@@ -1,14 +1,20 @@
   // ---------------------------------------------------------------- sound (synthesized)
-  const snd = { ctx: null, master: null, noise: null };
+  const snd = { ctx: null, master: null, noise: null, live: 0, last: {}, dropped: 0 };
+  const MAX_LIVE = 24;      // sound effects playing at once; past this, new ones are skipped (a pile-up only adds mush and strain)
   function ensureAudio() {
     try {
       if (!snd.ctx) {
         const AC = window.AudioContext || window.webkitAudioContext;
         if (!AC) return;
-        snd.ctx = new AC();
+        // 'balanced' gives the browser a bigger audio buffer, so a busy moment doesn't starve the sound and crackle
+        try { snd.ctx = new AC({ latencyHint: 'balanced' }); } catch (e) { snd.ctx = new AC(); }
         snd.master = snd.ctx.createGain();
         snd.master.gain.value = 0.6;
-        snd.master.connect(snd.ctx.destination);
+        // a gentle limiter, so lots of sounds at once squash together instead of clipping into crackle
+        const lim = snd.ctx.createDynamicsCompressor();
+        lim.threshold.value = -10; lim.knee.value = 8; lim.ratio.value = 12; lim.attack.value = 0.003; lim.release.value = 0.2;
+        snd.master.connect(lim); lim.connect(snd.ctx.destination);
+        snd.limiter = lim;
         const len = Math.floor(snd.ctx.sampleRate * 1.6);
         snd.noise = snd.ctx.createBuffer(1, len, snd.ctx.sampleRate);
         const d = snd.noise.getChannelData(0);
@@ -20,8 +26,10 @@
   function tone(freq, freqEnd, dur, type, vol, delay) {
     const c = snd.ctx;
     if (!c || c.state !== 'running' || !(vol >= 0.002)) return;
+    if (snd.live >= MAX_LIVE) { snd.dropped++; return; }
     const t0 = c.currentTime + (delay || 0);
     const o = c.createOscillator(), g = c.createGain();
+    snd.live++; o.onended = () => { snd.live--; try { o.disconnect(); g.disconnect(); } catch (e) { /* ignore */ } };
     o.type = type;
     o.frequency.setValueAtTime(freq, t0);
     if (freqEnd) o.frequency.exponentialRampToValueAtTime(freqEnd, t0 + dur);
@@ -34,8 +42,10 @@
   function noiseBurst(dur, vol, freq, q, attack, delay) {
     const c = snd.ctx;
     if (!c || c.state !== 'running' || !snd.noise || !(vol >= 0.002)) return;
+    if (snd.live >= MAX_LIVE) { snd.dropped++; return; }
     const t0 = c.currentTime + (delay || 0);
     const src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    snd.live++; src.onended = () => { snd.live--; try { src.disconnect(); f.disconnect(); g.disconnect(); } catch (e) { /* ignore */ } };
     src.buffer = snd.noise;
     f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = q;
     g.gain.setValueAtTime(0.0001, t0);
@@ -46,6 +56,10 @@
   }
   function sfx(kind, vol) {
     const v = vol == null ? 1 : vol;
+    // the same sound twice within 40 ms is one sound (several things bumping at once)
+    const now = performance.now();
+    if (now - (snd.last[kind] || -1e9) < 40) return;
+    snd.last[kind] = now;
     switch (kind) {
       case 'floor': tone(115, 55, 0.14, 'sine', 0.9 * v); noiseBurst(0.05, 0.25 * v, 700, 0.8); break;
       case 'grass': tone(90, 60, 0.08, 'sine', 0.35 * v); noiseBurst(0.06, 0.15 * v, 900, 0.7); break;

@@ -552,16 +552,22 @@ kbd {
   }
 
   // ---------------------------------------------------------------- sound (synthesized)
-  const snd = { ctx: null, master: null, noise: null };
+  const snd = { ctx: null, master: null, noise: null, live: 0, last: {}, dropped: 0 };
+  const MAX_LIVE = 24;      // sound effects playing at once; past this, new ones are skipped (a pile-up only adds mush and strain)
   function ensureAudio() {
     try {
       if (!snd.ctx) {
         const AC = window.AudioContext || window.webkitAudioContext;
         if (!AC) return;
-        snd.ctx = new AC();
+        // 'balanced' gives the browser a bigger audio buffer, so a busy moment doesn't starve the sound and crackle
+        try { snd.ctx = new AC({ latencyHint: 'balanced' }); } catch (e) { snd.ctx = new AC(); }
         snd.master = snd.ctx.createGain();
         snd.master.gain.value = 0.6;
-        snd.master.connect(snd.ctx.destination);
+        // a gentle limiter, so lots of sounds at once squash together instead of clipping into crackle
+        const lim = snd.ctx.createDynamicsCompressor();
+        lim.threshold.value = -10; lim.knee.value = 8; lim.ratio.value = 12; lim.attack.value = 0.003; lim.release.value = 0.2;
+        snd.master.connect(lim); lim.connect(snd.ctx.destination);
+        snd.limiter = lim;
         const len = Math.floor(snd.ctx.sampleRate * 1.6);
         snd.noise = snd.ctx.createBuffer(1, len, snd.ctx.sampleRate);
         const d = snd.noise.getChannelData(0);
@@ -573,8 +579,10 @@ kbd {
   function tone(freq, freqEnd, dur, type, vol, delay) {
     const c = snd.ctx;
     if (!c || c.state !== 'running' || !(vol >= 0.002)) return;
+    if (snd.live >= MAX_LIVE) { snd.dropped++; return; }
     const t0 = c.currentTime + (delay || 0);
     const o = c.createOscillator(), g = c.createGain();
+    snd.live++; o.onended = () => { snd.live--; try { o.disconnect(); g.disconnect(); } catch (e) { /* ignore */ } };
     o.type = type;
     o.frequency.setValueAtTime(freq, t0);
     if (freqEnd) o.frequency.exponentialRampToValueAtTime(freqEnd, t0 + dur);
@@ -587,8 +595,10 @@ kbd {
   function noiseBurst(dur, vol, freq, q, attack, delay) {
     const c = snd.ctx;
     if (!c || c.state !== 'running' || !snd.noise || !(vol >= 0.002)) return;
+    if (snd.live >= MAX_LIVE) { snd.dropped++; return; }
     const t0 = c.currentTime + (delay || 0);
     const src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    snd.live++; src.onended = () => { snd.live--; try { src.disconnect(); f.disconnect(); g.disconnect(); } catch (e) { /* ignore */ } };
     src.buffer = snd.noise;
     f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = q;
     g.gain.setValueAtTime(0.0001, t0);
@@ -599,6 +609,10 @@ kbd {
   }
   function sfx(kind, vol) {
     const v = vol == null ? 1 : vol;
+    // the same sound twice within 40 ms is one sound (several things bumping at once)
+    const now = performance.now();
+    if (now - (snd.last[kind] || -1e9) < 40) return;
+    snd.last[kind] = now;
     switch (kind) {
       case 'floor': tone(115, 55, 0.14, 'sine', 0.9 * v); noiseBurst(0.05, 0.25 * v, 700, 0.8); break;
       case 'grass': tone(90, 60, 0.08, 'sine', 0.35 * v); noiseBurst(0.06, 0.15 * v, 900, 0.7); break;
@@ -1622,7 +1636,9 @@ kbd {
     const T = MUSIC_THEMES[MUSIC.theme] || MUSIC_THEMES.hub;
     const STEP = 60 / T.bpm / 4, d = MUSIC.voice;
     if (MUSIC.nextT < c.currentTime) { MUSIC.nextT = c.currentTime + 0.05; if (!MUSIC.step) MUSIC.startT = MUSIC.nextT; }
-    while (MUSIC.nextT < c.currentTime + 0.2) {
+    // notes are booked about half a second ahead, so a slow stretch of frames doesn't leave gaps in the music
+    const busy = state.frameMs > 24, swamped = state.frameMs > 40;     // when the headset's struggling, play a lighter arrangement
+    while (MUSIC.nextT < c.currentTime + 0.55) {
       const BS = T.barSteps || 16, pos = T.melody ? MUSIC.step % T.melody.len : MUSIC.step;
       const s = pos % BS, bar = Math.floor(pos / BS);
       const t = MUSIC.nextT + (s % 2 ? (T.swing || 0) * STEP : 0);
@@ -1637,16 +1653,16 @@ kbd {
         } else if (T.bass.at.includes(s)) INST.bass(c, d, t, chord[0] + (s >= 8 && mrand() < 0.25 ? 7 : 0), STEP * (s === 0 ? 5 : 2.5), s === 0 ? 1 : 0.8);
       }
       // chords
-      if (T.comp && T.comp.at.includes(s)) for (const m of chord.slice(1)) INST[T.comp.inst](c, d, t + mrand() * 0.012, m, STEP * 4 * T.comp.dur, 0.75 + mrand() * 0.2);
-      if (T.pad && s === 0) for (const m of chord.slice(1, 4)) INST[T.pad.inst](c, d, t, m, STEP * (BS - 1), 1);
-      if (T.arp && s % T.arp.every === 0) {
+      if (T.comp && T.comp.at.includes(s) && !(busy && s % 8)) for (const m of chord.slice(1)) INST[T.comp.inst](c, d, t + mrand() * 0.012, m, STEP * 4 * T.comp.dur, 0.75 + mrand() * 0.2);
+      if (T.pad && s === 0 && !swamped) for (const m of chord.slice(1, 4)) INST[T.pad.inst](c, d, t, m, STEP * (BS - 1), 1);
+      if (T.arp && s % T.arp.every === 0 && !busy) {
         const k = T.arp.order[(s / T.arp.every) % T.arp.order.length];
         if (k) INST[T.arp.inst](c, d, t, chord[k] + (T.arp.up || 0), STEP * T.arp.every * 1.5, 0.8 + mrand() * 0.25);
       }
       // a song's melody, note for note
       if (T.melody) { const e = T.melody.ev.get(pos); if (e) INST[T.melInst](c, d, t, e.m, STEP * e.len * 0.92, T.melV || 1); }
       // a lazy lead that wanders over the chord tones now and then
-      if (T.lead && s % 2 === 0 && mrand() < T.lead.p) INST[T.lead.inst](c, d, t, chord[1 + Math.floor(mrand() * 4)] + 12 + (T.lead.up || 0), STEP * (mrand() < 0.5 ? 2 : 4), 0.55 + mrand() * 0.2);
+      if (T.lead && !busy && s % 2 === 0 && mrand() < T.lead.p) INST[T.lead.inst](c, d, t, chord[1 + Math.floor(mrand() * 4)] + 12 + (T.lead.up || 0), STEP * (mrand() < 0.5 ? 2 : 4), 0.55 + mrand() * 0.2);
       MUSIC.step += 1;
       MUSIC.notes += 1;
       MUSIC.nextT += STEP;
@@ -18573,6 +18589,7 @@ kbd {
       }
     }
     makeKiosk(L, 9.2, 5.2, Math.atan2(-9.2, -5.2));
+    makeButton(L, new V3(8.55, 1.0, 6.35), 0x8bd450, 'New game', () => newGame(), { faceYaw: Math.atan2(-9.2, -5.2) });
     makePlayerPicker(L, { min: 2, max: 9, def: FILL_TO, note: 'from the next round' });
     L.board = makeBoard(G, 720, 460, 3.2, 2.05, 0, 2.5, -10.2, 0);
 
@@ -18779,6 +18796,15 @@ kbd {
         if (RS.phLeft <= 0) { if (hs.length) beginCount(now); else RS.ph = 'idle'; }
       }
     }
+    // anyone can start a fresh round: the host does it, everyone else asks the host
+    function newGame() {
+      if (state.mode === 'menu') return;
+      if (isHost()) { H.fuseEnd = 0; beginCount(performance.now()); }
+      else { me.ngSeq = (me.ngSeq || 0) + 1; forcePresence(); }
+      showToast('New game!'); sfx('click', 0.6);
+    }
+    L.newGame = newGame;
+    L.hudActions = [{ label: () => 'New game', run: () => newGame() }];
     function endRound(now) {
       RS.winner = RS.alive[0] || '';
       if (isBot(RS.winner)) H.botWins[botOf(RS.winner).k] += 1;
@@ -19056,7 +19082,7 @@ kbd {
 
     // ---------------------------------------------------------------- network
     L.presence = () => {
-      const p = { pq: [me.wins, me.tseq, me.tTarget, RS.round] };
+      const p = { pq: [me.wins, me.tseq, me.tTarget, RS.round], png: me.ngSeq || 0 };
       if (isHost()) {
         const now = performance.now(), fl = RS.fl;
         p.ph = [RS.round, PH[RS.ph], Math.round(RS.heat * 100), RS.fseq, fl ? Math.round(now - fl.t0) : -1, fl ? Math.round(fl.T) : 0,
@@ -19070,6 +19096,11 @@ kbd {
     const intIn = (x, lo, hi) => Number.isInteger(x) && x >= lo && x <= hi;
     L.readPresence = (rec, pres, st) => {
       st.peer = rec.peer;
+      // they pressed New game
+      if (Number.isInteger(pres.png)) {
+        if (st.pngInit && pres.png > (st.png || 0) && isHost()) { H.fuseEnd = 0; beginCount(performance.now()); showToast(`${rec.name} started a new game`); }
+        st.png = pres.png; st.pngInit = true;
+      }
       const q = pres.pq;
       if (Array.isArray(q) && q.length === 4 && q.every((x) => Number.isInteger(x))) {
         if (q[0] !== st.wins) state.dirtyBoard = true;
@@ -24228,6 +24259,7 @@ kbd {
     lastT = now;
     const steps = Math.max(1, Math.ceil(raw / 0.05 - 1e-6)), dt = raw / steps;
     state.frameSteps = steps;
+    state.frameMs = (state.frameMs || 16) * 0.95 + Math.min(100, raw * 1000) * 0.05;     // a running average of the frame time
     pollPeers();
     const L = curLevel();
     if (state.mode === 'menu') L.attract(now);
@@ -24260,7 +24292,7 @@ kbd {
   initNet();
   updateNetUI();
   // the tests in tests/ reach inside through this, only when the page is opened with ?test
-  try { if (new URLSearchParams(location.search).has('test')) window.__fd = { LEVELS, state, dolly, camera, switchLevel, startGame, voice: { VOICE, voiceWatch, voiceResend, remotes, buildPresence } }; } catch (e) { /* ignore */ }
+  try { if (new URLSearchParams(location.search).has('test')) window.__fd = { LEVELS, state, dolly, camera, switchLevel, startGame, voice: { VOICE, voiceWatch, voiceResend, remotes, buildPresence }, audio: { snd, tone, sfx, ensureAudio, MUSIC } }; } catch (e) { /* ignore */ }
 })();
 </script>
 </body>

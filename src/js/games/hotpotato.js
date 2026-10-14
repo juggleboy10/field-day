@@ -93,6 +93,7 @@
       }
     }
     makeKiosk(L, 9.2, 5.2, Math.atan2(-9.2, -5.2));
+    makeButton(L, new V3(8.55, 1.0, 6.35), 0x8bd450, 'New game', () => newGame(), { faceYaw: Math.atan2(-9.2, -5.2) });
     makePlayerPicker(L, { min: 2, max: 9, def: FILL_TO, note: 'from the next round' });
     L.board = makeBoard(G, 720, 460, 3.2, 2.05, 0, 2.5, -10.2, 0);
 
@@ -299,6 +300,15 @@
         if (RS.phLeft <= 0) { if (hs.length) beginCount(now); else RS.ph = 'idle'; }
       }
     }
+    // anyone can start a fresh round: the host does it, everyone else asks the host
+    function newGame() {
+      if (state.mode === 'menu') return;
+      if (isHost()) { H.fuseEnd = 0; beginCount(performance.now()); }
+      else { me.ngSeq = (me.ngSeq || 0) + 1; forcePresence(); }
+      showToast('New game!'); sfx('click', 0.6);
+    }
+    L.newGame = newGame;
+    L.hudActions = [{ label: () => 'New game', run: () => newGame() }];
     function endRound(now) {
       RS.winner = RS.alive[0] || '';
       if (isBot(RS.winner)) H.botWins[botOf(RS.winner).k] += 1;
@@ -576,7 +586,7 @@
 
     // ---------------------------------------------------------------- network
     L.presence = () => {
-      const p = { pq: [me.wins, me.tseq, me.tTarget, RS.round] };
+      const p = { pq: [me.wins, me.tseq, me.tTarget, RS.round], png: me.ngSeq || 0 };
       if (isHost()) {
         const now = performance.now(), fl = RS.fl;
         p.ph = [RS.round, PH[RS.ph], Math.round(RS.heat * 100), RS.fseq, fl ? Math.round(now - fl.t0) : -1, fl ? Math.round(fl.T) : 0,
@@ -590,6 +600,11 @@
     const intIn = (x, lo, hi) => Number.isInteger(x) && x >= lo && x <= hi;
     L.readPresence = (rec, pres, st) => {
       st.peer = rec.peer;
+      // they pressed New game
+      if (Number.isInteger(pres.png)) {
+        if (st.pngInit && pres.png > (st.png || 0) && isHost()) { H.fuseEnd = 0; beginCount(performance.now()); showToast(`${rec.name} started a new game`); }
+        st.png = pres.png; st.pngInit = true;
+      }
       const q = pres.pq;
       if (Array.isArray(q) && q.length === 4 && q.every((x) => Number.isInteger(x))) {
         if (q[0] !== st.wins) state.dirtyBoard = true;

@@ -310,7 +310,9 @@
     const T = MUSIC_THEMES[MUSIC.theme] || MUSIC_THEMES.hub;
     const STEP = 60 / T.bpm / 4, d = MUSIC.voice;
     if (MUSIC.nextT < c.currentTime) { MUSIC.nextT = c.currentTime + 0.05; if (!MUSIC.step) MUSIC.startT = MUSIC.nextT; }
-    while (MUSIC.nextT < c.currentTime + 0.2) {
+    // notes are booked about half a second ahead, so a slow stretch of frames doesn't leave gaps in the music
+    const busy = state.frameMs > 24, swamped = state.frameMs > 40;     // when the headset's struggling, play a lighter arrangement
+    while (MUSIC.nextT < c.currentTime + 0.55) {
       const BS = T.barSteps || 16, pos = T.melody ? MUSIC.step % T.melody.len : MUSIC.step;
       const s = pos % BS, bar = Math.floor(pos / BS);
       const t = MUSIC.nextT + (s % 2 ? (T.swing || 0) * STEP : 0);
@@ -325,16 +327,16 @@
         } else if (T.bass.at.includes(s)) INST.bass(c, d, t, chord[0] + (s >= 8 && mrand() < 0.25 ? 7 : 0), STEP * (s === 0 ? 5 : 2.5), s === 0 ? 1 : 0.8);
       }
       // chords
-      if (T.comp && T.comp.at.includes(s)) for (const m of chord.slice(1)) INST[T.comp.inst](c, d, t + mrand() * 0.012, m, STEP * 4 * T.comp.dur, 0.75 + mrand() * 0.2);
-      if (T.pad && s === 0) for (const m of chord.slice(1, 4)) INST[T.pad.inst](c, d, t, m, STEP * (BS - 1), 1);
-      if (T.arp && s % T.arp.every === 0) {
+      if (T.comp && T.comp.at.includes(s) && !(busy && s % 8)) for (const m of chord.slice(1)) INST[T.comp.inst](c, d, t + mrand() * 0.012, m, STEP * 4 * T.comp.dur, 0.75 + mrand() * 0.2);
+      if (T.pad && s === 0 && !swamped) for (const m of chord.slice(1, 4)) INST[T.pad.inst](c, d, t, m, STEP * (BS - 1), 1);
+      if (T.arp && s % T.arp.every === 0 && !busy) {
         const k = T.arp.order[(s / T.arp.every) % T.arp.order.length];
         if (k) INST[T.arp.inst](c, d, t, chord[k] + (T.arp.up || 0), STEP * T.arp.every * 1.5, 0.8 + mrand() * 0.25);
       }
       // a song's melody, note for note
       if (T.melody) { const e = T.melody.ev.get(pos); if (e) INST[T.melInst](c, d, t, e.m, STEP * e.len * 0.92, T.melV || 1); }
       // a lazy lead that wanders over the chord tones now and then
-      if (T.lead && s % 2 === 0 && mrand() < T.lead.p) INST[T.lead.inst](c, d, t, chord[1 + Math.floor(mrand() * 4)] + 12 + (T.lead.up || 0), STEP * (mrand() < 0.5 ? 2 : 4), 0.55 + mrand() * 0.2);
+      if (T.lead && !busy && s % 2 === 0 && mrand() < T.lead.p) INST[T.lead.inst](c, d, t, chord[1 + Math.floor(mrand() * 4)] + 12 + (T.lead.up || 0), STEP * (mrand() < 0.5 ? 2 : 4), 0.55 + mrand() * 0.2);
       MUSIC.step += 1;
       MUSIC.notes += 1;
       MUSIC.nextT += STEP;
