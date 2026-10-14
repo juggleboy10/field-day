@@ -107,6 +107,7 @@
       }
     }
     makeKiosk(L, -7.6, 3.6, Math.atan2(7.6, -2.6));
+    makeButton(L, new V3(-6.5, 1.0, 4.1), 0x8bd450, 'New game', () => newGame(), { faceYaw: Math.atan2(7.6, -2.6) });
     makePlayerPicker(L, { min: 1, max: SEATS, def: FILL_TO, note: 'from the next game' });
     // the side scoreboard
     L.board = makeBoard(G, 720, 460, 2.6, 1.66, -7.4, 2.4, -4.6, 0.85);
@@ -301,6 +302,14 @@
       RS.game += 1; RS.qn = 0; RS.ph = 'intro'; RS.left = T.INTRO; H.phaseT = now;
       forcePresence();
     }
+    // anyone can start a fresh game: the host does it, everyone else asks the host
+    function newGame() {
+      if (state.mode === 'menu') return;
+      if (isHost()) { H.ans.clear(); H.allT = 0; beginGame(performance.now()); }
+      else { me.ngSeq = (me.ngSeq || 0) + 1; forcePresence(); }
+      showToast('New game!'); sfx('click', 0.6);
+    }
+    L.newGame = newGame;
     function ask(qn, now) {
       seatHumans(humans());
       RS.qn = qn; RS.qi = pickQuestion(); remember(RS.qi);
@@ -429,7 +438,7 @@
       label: () => { const t = ansText(i); return `${i + 1} · ${t.length > 20 ? t.slice(0, 19) + '…' : t}`; },
       show: () => canAnswer(),
       run: () => answer(i),
-    }));
+    })).concat([{ label: () => 'New game', run: () => newGame() }]);
 
     // ---------------------------------------------------------------- where you stand
     function toSpot() {
@@ -447,13 +456,11 @@
     L.clampPlayer = (p) => {
       const B = L.bounds;
       let x = clamp(p.x, B.minX + 0.4, B.maxX - 0.4), z = clamp(p.z, B.minZ + 0.4, B.maxZ - 0.4);
+      // you can walk about freely (away from your podium you just miss the questions); only the stage in front of
+      // the podiums is off limits, apart from your own spot at your podium
       const s = mySeat();
-      if (s >= 0 && RS.ph !== 'idle' && !SIT.on) {
-        // stay at your podium
-        const sp = spotOf(seatAt(s), _a), dx = x - sp.x, dz = z - sp.z, d = Math.hypot(dx, dz);
-        if (d > 0.45) { x = sp.x + dx * 0.45 / d; z = sp.z + dz * 0.45 / d; }
-      } else {
-        // watchers stay behind the podiums
+      const atMine = s >= 0 && RS.ph !== 'idle' && !SIT.on && (() => { const sp = spotOf(seatAt(s), _a); return Math.hypot(x - sp.x, z - sp.z) < 0.9; })();
+      if (!atMine) {
         const dx = x - SCR.x, dz = z - SCR.z, d = Math.hypot(dx, dz), R = ARC_R + 1.0;
         if (d < R) { x = SCR.x + dx * R / Math.max(0.01, d); z = SCR.z + dz * R / Math.max(0.01, d); }
       }
@@ -710,7 +717,7 @@
 
     // ---------------------------------------------------------------- network
     L.presence = () => {
-      const p = { tq: [RS.game, RS.qn, me.choice, me.ms, me.wins] };
+      const p = { tq: [RS.game, RS.qn, me.choice, me.ms, me.wins], tng: me.ngSeq || 0 };
       if (isHost()) {
         p.th = [RS.game, PH[RS.ph], RS.qn, RS.qi, RS.perm[0], RS.perm[1], RS.perm[2], RS.perm[3], Math.max(0, Math.round(RS.left / 100))];
         p.tho = RS.order.slice();
@@ -730,6 +737,11 @@
         if (isHost() && RS.ph === 'ask' && q[0] === RS.game && q[1] === RS.qn && intIn(q[2], 0, 3) && kOf(rec.peer) >= 0 && !H.ans.has(rec.peer)) {
           H.ans.set(rec.peer, { c: q[2], ms: clamp(q[3], 0, T.ASK) });
         }
+      }
+      // they pressed New game
+      if (Number.isInteger(pres.tng)) {
+        if (st.tngInit && pres.tng > (st.tng || 0) && isHost()) { H.ans.clear(); H.allT = 0; beginGame(performance.now()); showToast(`${rec.name} started a new game`); }
+        st.tng = pres.tng; st.tngInit = true;
       }
       if (rec.peer !== hostId() || isHost()) return;
       const h = pres.th, po = pres.tho, ps = pres.ths, pc = pres.thc, pg = pres.thg;

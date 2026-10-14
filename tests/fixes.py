@@ -263,10 +263,41 @@ def main():
           const p = { x: fd.dolly.position.x, z: fd.dolly.position.z }; const before = far(p);
           L.sitOut.toggle(); const after = far(p); const answered = I.answer(0);
           I.RS.ph = 'reveal'; I.H.phaseT = -1e9; I.hostStep(performance.now()); I.hostStep(performance.now());
-          const r = { before: +before.toFixed(2), after: +after.toFixed(2), answered, seat: I.mySeat() }; L.sitOut.toggle(); return r; }""")
+          L.sitOut.toggle();
+          const g0 = I.RS.game; L.newGame(); const fresh = I.RS.game === g0 + 1 && I.RS.ph === 'intro' && I.RS.scores.every((x) => x === 0);
+          const hud = L.hudActions.some((a) => a.label() === 'New game');
+          return { before: +before.toFixed(2), after: +after.toFixed(2), answered, seat: I.mySeat(), fresh, hud }; }""")
         print("sit out: hot potato", hp, " trivia", tv)
         checks += [("hot potato: Sit out takes you out of the round and lets you walk into the ring", hp["pinned"] and hp["out"] and hp["free"] and hp["label"] == "Join in"),
-                   ("trivia: Sit out frees you from your podium (and you can't answer)", tv["before"] < 0.5 and tv["after"] > 1.0 and tv["answered"] is False)]
+                   ("trivia: you can walk away from your podium mid-game; sitting out means you can't answer", tv["before"] > 1.0 and tv["after"] > 1.0 and tv["answered"] is False),
+                   ("trivia: New game starts a fresh game (HUD button and in-world button)", tv["fresh"] and tv["hud"])]
+        # ---------------------------------------------------------------- the same speed on any headset: long frames are played as several steps
+        fr = page.evaluate("""() => { const fd = window.__fd, out = {};
+          for (const [lv, key, z0] of [[24, 'recessInternals', 1.0], [16, 'parkourInternals', 1.0]]) {
+            fd.switchLevel(lv); const L = fd.LEVELS[lv], I = L[key]; L.paused = true;
+            const run = (dt, n) => { fd.dolly.position.set(0, 0, z0); fd.dolly.rotation.y = 0; fd.state.yaw = 0; I.P.vel.set(0, 0, 0); I.P.grounded = true;
+              for (let i = 0; i < n; i++) { I.P.in.fwd = 1; I.P.in.side = 0; I.step(dt, performance.now()); } return z0 - fd.dolly.position.z; };
+            const smooth = run(1 / 60, 60), slow = run(0.1, 10);
+            out[L.id] = { smooth: +smooth.toFixed(2), slow: +slow.toFixed(2) }; L.paused = false;
+          }
+          return out; }""")
+        page.evaluate("() => window.__fd.switchLevel(5)")
+        page.wait_for_timeout(1500)
+        # an 8-frames-a-second device walking across the soccer pitch for 2 s still covers 2 s worth of ground
+        page.evaluate("() => { const fd = window.__fd; fd.dolly.position.set(-6, 0, 0); fd.state.yaw = -Math.PI / 2; fd.state.keys.KeyW = true; window.__slow = true; const hog = () => { if (!window.__slow) return; const t = performance.now(); while (performance.now() - t < 110) {} requestAnimationFrame(hog); }; requestAnimationFrame(hog); window.__walk0 = [performance.now(), fd.dolly.position.x]; }")
+        page.wait_for_timeout(2000)
+        walk = page.evaluate("() => { const fd = window.__fd; window.__slow = false; fd.state.keys.KeyW = false; const [t0, x0] = window.__walk0; return { secs: +((performance.now() - t0) / 1000).toFixed(2), metres: +(fd.dolly.position.x - x0).toFixed(2), steps: fd.state.frameSteps }; }")
+        print("frame rate:", fr, " slow-device walk:", walk)
+        checks += [("recess: the same run covers the same ground at 10 or 60 frames a second", abs(fr["recess"]["slow"] - fr["recess"]["smooth"]) < 0.06 * fr["recess"]["smooth"] and fr["recess"]["smooth"] > 2),
+                   ("parkour: the same at 10 or 60 frames a second", abs(fr["parkour"]["slow"] - fr["parkour"]["smooth"]) < 0.06 * fr["parkour"]["smooth"] and fr["parkour"]["smooth"] > 2),
+                   ("walking on a slow device keeps real-time speed", walk["metres"] > 3.0 * walk["secs"] * 0.85)]
+        # parkour: race again at the finish; jumping in the clubhouse in VR
+        pk2 = page.evaluate("""() => { const L = window.__fd.LEVELS[16], hub = window.__fd.LEVELS.find((l) => l.id === 'hub');
+          const again = L.buttons.find((b) => b.label === 'Race again'), back = L.buttons.find((b) => b.label === 'Back to start' && b.pos.z < -169.5);
+          return { again: !!again && again.pos.z < -169.5 && again.pos.y > 8.2, back: !!back && back.pos.z < -169.5, hubHop: !!hub.vrHop && !!hub.canHop }; }""")
+        print("parkour finish buttons, clubhouse hop:", pk2)
+        checks += [("parkour: Race again and Back to start buttons up on the finish platform", pk2["again"] and pk2["back"]),
+                   ("clubhouse: you can jump in VR (A or X, or the right stick up)", pk2["hubHop"])]
         for name, good in checks:
             print(f"{'ok  ' if good else 'FAIL'}  {name}")
             ok &= bool(good)

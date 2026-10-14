@@ -909,7 +909,8 @@
       backTo(where, 'Hot hot hot! You touched the lava');
     }
     function step(dt) {
-      dt = Math.min(dt, 1 / 30);
+      // a long frame is played as a few short steps, so a slower headset runs at the same speed (not in slow motion)
+      if (dt > 1 / 30 + 1e-6) { const n = Math.min(4, Math.ceil(dt * 30)); for (let i = 0; i < n; i++) step(dt / n); return; }
       const vr = state.mode === 'vr';
       // undo last frame's duck before any physics (the duck only moves the view)
       dolly.position.y += P.duck; P.duck = 0;

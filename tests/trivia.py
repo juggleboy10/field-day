@@ -99,10 +99,15 @@ def main():
         print("questions asked so far:", rec)
         checks.append((f"all {bank['size']} questions have four different answers", bank["size"] >= 150 and bank["bad"] == 0))
         checks.append(("no question repeats", len(rec) == len(set(rec)) and len(set(seen)) == len(seen)))
-        ok_watch = page.evaluate(f"""() => {{ const L = window.__fd.LEVELS[23], t = {TI}, s = t.seatAt(t.mySeat());
-          const sx = s.x + Math.sin(s.yaw) * 0.62, sz = s.z + Math.cos(s.yaw) * 0.62; const d = L.clampPlayer({{ x: sx + 3, z: sz + 2 }});
-          return Math.hypot(sx + 3 + d[0] - sx, sz + 2 + d[1] - sz); }}""")
-        checks.append(("contestants stay at their podium", ok_watch <= 0.46))
+        walk = page.evaluate(f"""() => {{ const L = window.__fd.LEVELS[23], t = {TI}, s = t.seatAt(t.mySeat());
+          const sx = s.x + Math.sin(s.yaw) * 0.62, sz = s.z + Math.cos(s.yaw) * 0.62;
+          const go = (x, z, tx, tz) => {{ let p = {{ x, z }}; for (let i = 0; i < 800; i++) {{ const dx = tx - p.x, dz = tz - p.z, d = Math.hypot(dx, dz); if (d < 0.05) break; const st = Math.min(0.05, d); const q = {{ x: p.x + dx / d * st, z: p.z + dz / d * st }}; const c = L.clampPlayer(q); p = {{ x: q.x + c[0], z: q.z + c[1] }}; }} return p; }};
+          const out = go(sx, sz, sx + Math.sin(s.yaw) * 3, sz + Math.cos(s.yaw) * 3);
+          const back = go(out.x, out.z, sx, sz);
+          const stage = go(sx + 1.6, sz + 1, 0, -8 + 4);
+          return {{ away: +Math.hypot(out.x - sx, out.z - sz).toFixed(2), back: +Math.hypot(back.x - sx, back.z - sz).toFixed(2), stageR: +Math.hypot(stage.x, stage.z + 8).toFixed(2) }}; }}""")
+        print("walking about mid-game:", walk)
+        checks.append(("contestants can walk away from their podium and back, but not onto the stage", walk["away"] > 2.5 and walk["back"] < 0.1 and walk["stageR"] >= 7.95))
 
         for name, good in checks:
             print(f"{'ok  ' if good else 'FAIL'}  {name}")

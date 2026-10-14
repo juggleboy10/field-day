@@ -3,8 +3,8 @@
   baseball.throwSpeed = [4, 24, 0.08];
   baseball.lockWhileHolding = true;
   discgolf.walkSpeed = 3.4;
-  // the places where a little hop is on (J in a browser)
-  for (const id of ['hoops', 'baseball', 'lasertag', 'hub', 'hideseek', 'paintball', 'dodgeball', 'ctf']) { const Lv = LEVELS.find((l) => l && l.id === id); if (Lv) Lv.canHop = true; }
+  // the places where a little hop is on (J in a browser; A or X, or the right stick pushed up, in VR)
+  for (const id of ['hoops', 'baseball', 'lasertag', 'hub', 'hideseek', 'paintball', 'dodgeball', 'ctf']) { const Lv = LEVELS.find((l) => l && l.id === id); if (Lv) { Lv.canHop = true; Lv.vrHop = true; } }
   curLevel().group.visible = true;
   applyEnv(curLevel().env);
 
@@ -14,25 +14,34 @@
     voiceTick(performance.now());
     voiceVrButtons();
     const now = performance.now();
-    const dt = Math.min(0.05, Math.max(0, (now - lastT) / 1000));
+    // Game time keeps up with real time on any headset. A frame that took longer than 1/20 s (a Quest 2 working hard
+    // on a busy scene, say) is played as a few shorter steps rather than cut short, so nobody runs in slow motion next
+    // to someone with a faster headset. (Past 0.15 s, like coming back to the tab, the rest is dropped.)
+    const raw = Math.min(0.15, Math.max(0, (now - lastT) / 1000));
     lastT = now;
+    const steps = Math.max(1, Math.ceil(raw / 0.05 - 1e-6)), dt = raw / steps;
+    state.frameSteps = steps;
     pollPeers();
     const L = curLevel();
     if (state.mode === 'menu') L.attract(now);
-    else if (state.mode === 'flat') flatUpdate(dt);
     updateMyPose(now);
-    if (state.mode === 'vr') vrUpdate(dt, now);
-    watchTick(dt, now);
-    if (state.mode === 'flat') {
-      state.flatTarget = findFlatTarget();
-      ui.cross.classList.toggle('on', !!state.flatTarget || !!state.held);
+    for (let si = 0; si < steps; si++) {
+      const t = now - (steps - 1 - si) * dt * 1000;
+      if (state.mode === 'flat') flatUpdate(dt);
+      if (state.mode === 'vr') vrUpdate(dt, t);
+      watchTick(dt, t);
+      if (state.mode === 'flat') {
+        state.flatTarget = findFlatTarget();
+        ui.cross.classList.toggle('on', !!state.flatTarget || !!state.held);
+      }
+      updateRemotes(dt);
+      updateBodies(L, dt, t);
+      for (const Lv of LEVELS) if (Lv && Lv.overlay) Lv.overlay.visible = Lv === L && state.mode !== 'menu';
+      L.update(dt, t);
+      if (si < steps - 1) updateMyPose(t);
     }
-    updateRemotes(dt);
-    updateBodies(L, dt, now);
-    for (const Lv of LEVELS) if (Lv && Lv.overlay) Lv.overlay.visible = Lv === L && state.mode !== 'menu';
-    L.update(dt, now);
     if (L.picker) L.picker.tick();
-    if (L.sitOut) L.sitOut.tick(dt);
+    if (L.sitOut) L.sitOut.tick(dt * steps);
     updateButtons(L, now);
     updateFloats(now);
     updateUi(now);

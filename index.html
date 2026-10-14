@@ -17722,13 +17722,18 @@ kbd {
     function finishRace() {
       RACE.myFinish = Math.round(raceNow()); RACE.state = 'over'; RACE.over = true;
       const rank = standings().findIndex((r) => r.me) + 1;
-      showToast(`Finished in ${(RACE.myFinish / 1000).toFixed(1)} s! ${rank === 1 ? '1st place!' : `Place ${rank}`}`);
+      showToast(`Finished in ${(RACE.myFinish / 1000).toFixed(1)} s! ${rank === 1 ? '1st place!' : `Place ${rank}`} \u00B7 Race again from the buttons just ahead`);
       sfx('fanfare', 1); setTimeout(() => sfx('cheer', 0.8), 250);
       forcePresence();
     }
     makeButton(L, new V3(2.4, 1.0, -1.6), 0x8bd450, 'START race', () => startRace(), { faceYaw: 0 });
     makeButton(L, new V3(2.4, 1.0, 0.2), 0xff7a3a, 'Back to start', () => { toStart(); showToast('Back at the start'); }, { faceYaw: 0 });
     makeKiosk(L, -3.4, 2.4, Math.PI / 2);
+    // up on the finish platform: race again, or go back to the start (where the clubhouse kiosk is)
+    for (const [x, col, label, fn] of [[1.3, 0x8bd450, 'Race again', () => startRace()], [-1.3, 0xff7a3a, 'Back to start', () => { toStart(); showToast('Back at the start'); }]]) {
+      addCyl(G, 0.12, 0.16, 0.97, 14, lam(0x6a6a7a), x, 8.2 + 0.485, -175.5);
+      makeButton(L, new V3(x, 9.2, -175.5), col, label, fn, { faceYaw: 0, pedestal: false });
+    }
     makePlayerPicker(L, { min: 1, max: 1 + BOT_DEF.length, def: 4, label: 'Racers', note: 'from the next race' });
 
     // ---------------------------------------------------------------- drinks in use
@@ -17882,7 +17887,8 @@ kbd {
       }
     }
     function step(dt, now) {
-      dt = Math.min(dt, 1 / 30);
+      // a long frame is played as a few short steps, so a slower headset runs at the same speed (not in slow motion)
+      if (dt > 1 / 30 + 1e-6) { const n = Math.min(4, Math.ceil(dt * 30)); for (let i = 0; i < n; i++) step(dt / n, now); return; }
       updateMovers(Date.now());
       const vr = state.mode === 'vr';
       if (vr) readVR(dt);
@@ -18054,7 +18060,7 @@ kbd {
         }
       }
     };
-    L.parkourInternals = { SOL, RAMPS, HOLDS, ZONES, CPS, bottles, DRINK, startRace, step, grabFlat, releaseFlat, drinkNow, findHold, rampAt, supportAt, standings, ROUTE_T, bots, respawn, finishRace, routeAt, tryMantle };
+    L.parkourInternals = { P, RACE, SOL, RAMPS, HOLDS, ZONES, CPS, bottles, DRINK, startRace, step, grabFlat, releaseFlat, drinkNow, findHold, rampAt, supportAt, standings, ROUTE_T, bots, respawn, finishRace, routeAt, tryMantle };
     return L;
   })();
 
@@ -21115,6 +21121,7 @@ kbd {
       }
     }
     makeKiosk(L, -7.6, 3.6, Math.atan2(7.6, -2.6));
+    makeButton(L, new V3(-6.5, 1.0, 4.1), 0x8bd450, 'New game', () => newGame(), { faceYaw: Math.atan2(7.6, -2.6) });
     makePlayerPicker(L, { min: 1, max: SEATS, def: FILL_TO, note: 'from the next game' });
     // the side scoreboard
     L.board = makeBoard(G, 720, 460, 2.6, 1.66, -7.4, 2.4, -4.6, 0.85);
@@ -21309,6 +21316,14 @@ kbd {
       RS.game += 1; RS.qn = 0; RS.ph = 'intro'; RS.left = T.INTRO; H.phaseT = now;
       forcePresence();
     }
+    // anyone can start a fresh game: the host does it, everyone else asks the host
+    function newGame() {
+      if (state.mode === 'menu') return;
+      if (isHost()) { H.ans.clear(); H.allT = 0; beginGame(performance.now()); }
+      else { me.ngSeq = (me.ngSeq || 0) + 1; forcePresence(); }
+      showToast('New game!'); sfx('click', 0.6);
+    }
+    L.newGame = newGame;
     function ask(qn, now) {
       seatHumans(humans());
       RS.qn = qn; RS.qi = pickQuestion(); remember(RS.qi);
@@ -21437,7 +21452,7 @@ kbd {
       label: () => { const t = ansText(i); return `${i + 1} · ${t.length > 20 ? t.slice(0, 19) + '…' : t}`; },
       show: () => canAnswer(),
       run: () => answer(i),
-    }));
+    })).concat([{ label: () => 'New game', run: () => newGame() }]);
 
     // ---------------------------------------------------------------- where you stand
     function toSpot() {
@@ -21455,13 +21470,11 @@ kbd {
     L.clampPlayer = (p) => {
       const B = L.bounds;
       let x = clamp(p.x, B.minX + 0.4, B.maxX - 0.4), z = clamp(p.z, B.minZ + 0.4, B.maxZ - 0.4);
+      // you can walk about freely (away from your podium you just miss the questions); only the stage in front of
+      // the podiums is off limits, apart from your own spot at your podium
       const s = mySeat();
-      if (s >= 0 && RS.ph !== 'idle' && !SIT.on) {
-        // stay at your podium
-        const sp = spotOf(seatAt(s), _a), dx = x - sp.x, dz = z - sp.z, d = Math.hypot(dx, dz);
-        if (d > 0.45) { x = sp.x + dx * 0.45 / d; z = sp.z + dz * 0.45 / d; }
-      } else {
-        // watchers stay behind the podiums
+      const atMine = s >= 0 && RS.ph !== 'idle' && !SIT.on && (() => { const sp = spotOf(seatAt(s), _a); return Math.hypot(x - sp.x, z - sp.z) < 0.9; })();
+      if (!atMine) {
         const dx = x - SCR.x, dz = z - SCR.z, d = Math.hypot(dx, dz), R = ARC_R + 1.0;
         if (d < R) { x = SCR.x + dx * R / Math.max(0.01, d); z = SCR.z + dz * R / Math.max(0.01, d); }
       }
@@ -21718,7 +21731,7 @@ kbd {
 
     // ---------------------------------------------------------------- network
     L.presence = () => {
-      const p = { tq: [RS.game, RS.qn, me.choice, me.ms, me.wins] };
+      const p = { tq: [RS.game, RS.qn, me.choice, me.ms, me.wins], tng: me.ngSeq || 0 };
       if (isHost()) {
         p.th = [RS.game, PH[RS.ph], RS.qn, RS.qi, RS.perm[0], RS.perm[1], RS.perm[2], RS.perm[3], Math.max(0, Math.round(RS.left / 100))];
         p.tho = RS.order.slice();
@@ -21738,6 +21751,11 @@ kbd {
         if (isHost() && RS.ph === 'ask' && q[0] === RS.game && q[1] === RS.qn && intIn(q[2], 0, 3) && kOf(rec.peer) >= 0 && !H.ans.has(rec.peer)) {
           H.ans.set(rec.peer, { c: q[2], ms: clamp(q[3], 0, T.ASK) });
         }
+      }
+      // they pressed New game
+      if (Number.isInteger(pres.tng)) {
+        if (st.tngInit && pres.tng > (st.tng || 0) && isHost()) { H.ans.clear(); H.allT = 0; beginGame(performance.now()); showToast(`${rec.name} started a new game`); }
+        st.tng = pres.tng; st.tngInit = true;
       }
       if (rec.peer !== hostId() || isHost()) return;
       const h = pres.th, po = pres.tho, ps = pres.ths, pc = pres.thc, pg = pres.thg;
@@ -22677,7 +22695,8 @@ kbd {
       backTo(where, 'Hot hot hot! You touched the lava');
     }
     function step(dt) {
-      dt = Math.min(dt, 1 / 30);
+      // a long frame is played as a few short steps, so a slower headset runs at the same speed (not in slow motion)
+      if (dt > 1 / 30 + 1e-6) { const n = Math.min(4, Math.ceil(dt * 30)); for (let i = 0; i < n; i++) step(dt / n); return; }
       const vr = state.mode === 'vr';
       // undo last frame's duck before any physics (the duck only moves the view)
       dolly.position.y += P.duck; P.duck = 0;
@@ -24191,8 +24210,8 @@ kbd {
   baseball.throwSpeed = [4, 24, 0.08];
   baseball.lockWhileHolding = true;
   discgolf.walkSpeed = 3.4;
-  // the places where a little hop is on (J in a browser)
-  for (const id of ['hoops', 'baseball', 'lasertag', 'hub', 'hideseek', 'paintball', 'dodgeball', 'ctf']) { const Lv = LEVELS.find((l) => l && l.id === id); if (Lv) Lv.canHop = true; }
+  // the places where a little hop is on (J in a browser; A or X, or the right stick pushed up, in VR)
+  for (const id of ['hoops', 'baseball', 'lasertag', 'hub', 'hideseek', 'paintball', 'dodgeball', 'ctf']) { const Lv = LEVELS.find((l) => l && l.id === id); if (Lv) { Lv.canHop = true; Lv.vrHop = true; } }
   curLevel().group.visible = true;
   applyEnv(curLevel().env);
 
@@ -24202,25 +24221,34 @@ kbd {
     voiceTick(performance.now());
     voiceVrButtons();
     const now = performance.now();
-    const dt = Math.min(0.05, Math.max(0, (now - lastT) / 1000));
+    // Game time keeps up with real time on any headset. A frame that took longer than 1/20 s (a Quest 2 working hard
+    // on a busy scene, say) is played as a few shorter steps rather than cut short, so nobody runs in slow motion next
+    // to someone with a faster headset. (Past 0.15 s, like coming back to the tab, the rest is dropped.)
+    const raw = Math.min(0.15, Math.max(0, (now - lastT) / 1000));
     lastT = now;
+    const steps = Math.max(1, Math.ceil(raw / 0.05 - 1e-6)), dt = raw / steps;
+    state.frameSteps = steps;
     pollPeers();
     const L = curLevel();
     if (state.mode === 'menu') L.attract(now);
-    else if (state.mode === 'flat') flatUpdate(dt);
     updateMyPose(now);
-    if (state.mode === 'vr') vrUpdate(dt, now);
-    watchTick(dt, now);
-    if (state.mode === 'flat') {
-      state.flatTarget = findFlatTarget();
-      ui.cross.classList.toggle('on', !!state.flatTarget || !!state.held);
+    for (let si = 0; si < steps; si++) {
+      const t = now - (steps - 1 - si) * dt * 1000;
+      if (state.mode === 'flat') flatUpdate(dt);
+      if (state.mode === 'vr') vrUpdate(dt, t);
+      watchTick(dt, t);
+      if (state.mode === 'flat') {
+        state.flatTarget = findFlatTarget();
+        ui.cross.classList.toggle('on', !!state.flatTarget || !!state.held);
+      }
+      updateRemotes(dt);
+      updateBodies(L, dt, t);
+      for (const Lv of LEVELS) if (Lv && Lv.overlay) Lv.overlay.visible = Lv === L && state.mode !== 'menu';
+      L.update(dt, t);
+      if (si < steps - 1) updateMyPose(t);
     }
-    updateRemotes(dt);
-    updateBodies(L, dt, now);
-    for (const Lv of LEVELS) if (Lv && Lv.overlay) Lv.overlay.visible = Lv === L && state.mode !== 'menu';
-    L.update(dt, now);
     if (L.picker) L.picker.tick();
-    if (L.sitOut) L.sitOut.tick(dt);
+    if (L.sitOut) L.sitOut.tick(dt * steps);
     updateButtons(L, now);
     updateFloats(now);
     updateUi(now);

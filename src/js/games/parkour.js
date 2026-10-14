@@ -256,13 +256,18 @@
     function finishRace() {
       RACE.myFinish = Math.round(raceNow()); RACE.state = 'over'; RACE.over = true;
       const rank = standings().findIndex((r) => r.me) + 1;
-      showToast(`Finished in ${(RACE.myFinish / 1000).toFixed(1)} s! ${rank === 1 ? '1st place!' : `Place ${rank}`}`);
+      showToast(`Finished in ${(RACE.myFinish / 1000).toFixed(1)} s! ${rank === 1 ? '1st place!' : `Place ${rank}`} \u00B7 Race again from the buttons just ahead`);
       sfx('fanfare', 1); setTimeout(() => sfx('cheer', 0.8), 250);
       forcePresence();
     }
     makeButton(L, new V3(2.4, 1.0, -1.6), 0x8bd450, 'START race', () => startRace(), { faceYaw: 0 });
     makeButton(L, new V3(2.4, 1.0, 0.2), 0xff7a3a, 'Back to start', () => { toStart(); showToast('Back at the start'); }, { faceYaw: 0 });
     makeKiosk(L, -3.4, 2.4, Math.PI / 2);
+    // up on the finish platform: race again, or go back to the start (where the clubhouse kiosk is)
+    for (const [x, col, label, fn] of [[1.3, 0x8bd450, 'Race again', () => startRace()], [-1.3, 0xff7a3a, 'Back to start', () => { toStart(); showToast('Back at the start'); }]]) {
+      addCyl(G, 0.12, 0.16, 0.97, 14, lam(0x6a6a7a), x, 8.2 + 0.485, -175.5);
+      makeButton(L, new V3(x, 9.2, -175.5), col, label, fn, { faceYaw: 0, pedestal: false });
+    }
     makePlayerPicker(L, { min: 1, max: 1 + BOT_DEF.length, def: 4, label: 'Racers', note: 'from the next race' });
 
     // ---------------------------------------------------------------- drinks in use
@@ -416,7 +421,8 @@
       }
     }
     function step(dt, now) {
-      dt = Math.min(dt, 1 / 30);
+      // a long frame is played as a few short steps, so a slower headset runs at the same speed (not in slow motion)
+      if (dt > 1 / 30 + 1e-6) { const n = Math.min(4, Math.ceil(dt * 30)); for (let i = 0; i < n; i++) step(dt / n, now); return; }
       updateMovers(Date.now());
       const vr = state.mode === 'vr';
       if (vr) readVR(dt);
@@ -588,7 +594,7 @@
         }
       }
     };
-    L.parkourInternals = { SOL, RAMPS, HOLDS, ZONES, CPS, bottles, DRINK, startRace, step, grabFlat, releaseFlat, drinkNow, findHold, rampAt, supportAt, standings, ROUTE_T, bots, respawn, finishRace, routeAt, tryMantle };
+    L.parkourInternals = { P, RACE, SOL, RAMPS, HOLDS, ZONES, CPS, bottles, DRINK, startRace, step, grabFlat, releaseFlat, drinkNow, findHold, rampAt, supportAt, standings, ROUTE_T, bots, respawn, finishRace, routeAt, tryMantle };
     return L;
   })();
 
