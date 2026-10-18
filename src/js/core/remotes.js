@@ -54,7 +54,7 @@
     if (rec.disc) { rec.disc.parent && rec.disc.parent.remove(rec.disc); }
     scene.remove(rec.vest);
     // a player who leaves takes their props with them
-    for (const k of ['blaster', 'putter', 'mgBall', 'vrPaddle', 'bbL', 'bbR']) if (rec[k] && rec[k].parent) rec[k].parent.remove(rec[k]);
+    for (const k of ['blaster', 'putter', 'mgBall', 'vrPaddle', 'bbL', 'bbR', 'jgG']) if (rec[k] && rec[k].parent) rec[k].parent.remove(rec[k]);
     if (rec.kayak && rec.kayak.g.parent) rec.kayak.g.parent.remove(rec.kayak.g);
   }
   const inMyLevel = (rec) => rec.inGame && rec.lv === state.level;

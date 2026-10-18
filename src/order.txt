@@ -49,6 +49,8 @@ js/games/trivia-questions.js
 js/games/trivia.js
 js/games/recess.js
 js/games/beats.js
+js/games/juggle.js
+js/games/workout.js
 js/app/vr-controls.js
 js/app/flat-controls.js
 js/app/modes.js
