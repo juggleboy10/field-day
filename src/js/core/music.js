@@ -120,6 +120,7 @@
     hideseek: { bpm: 84, swing: 0.18, chords: ['Am', 'Dm', 'E7', 'Am'], arp: { inst: 'pizz', every: 2, order: [1, 0, 3, 0, 2, 0, 4, 0] }, lead: { inst: 'pizz', p: 0.12, up: 12 }, bass: { walk: true, short: true }, drums: { b: '....o.......o...', sh: '-.-.-.-.-.-.-.-.' }, cut: 3000, crackle: 1 },
   };
 
+  MUSIC_THEMES.beats = { gain: 0.8, bpm: 96, swing: 0, chords: ['Am', 'F', 'C', 'G'], arp: { inst: 'synth', every: 2, order: [1, 2, 3, 4, 3, 2, 1, 2] }, pad: { inst: 'pad' }, bass: { at: [0, 8] }, drums: { k: 'x.......x.......', h: '..o...o...o...o.' }, cut: 3600, crackle: 0.2 };
   for (const [k, sg] of Object.entries(SONGS)) MUSIC_THEMES['song_' + k] = sg;
   MUSIC_THEMES.baseball = SONGS.ballgame;   // the sandlot plays the ballgame song
   const MUSIC = { on: prefs.music !== false, theme: null, voice: null, chain: null, crackle: null, analyser: null, step: 0, nextT: 0, startT: 0, beat: -1, notes: 0 };
