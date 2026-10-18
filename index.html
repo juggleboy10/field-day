@@ -11661,58 +11661,135 @@ kbd {
     jbGlow.position.set(R.maxX - 0.6, 1.4, DF.z);
     G.add(jbGlow);
 
-    // portals to every game, in an arc
-    const PORTAL_LEVELS = LEVEL_META.map((m, i) => i).filter((i) => i !== HUB);
+    // ---------------------------------------------------------------- portals, organised
+    // Seven doors in an arc, one for each kind of game (the same groups as the menu). Each door leads into a little
+    // wing of its own with that group's game portals, full size, and a door back to the clubhouse.
     const swirl = canvasTexture(128, 128, (g) => {
       const gr = g.createRadialGradient(64, 64, 4, 64, 64, 64);
-      gr.addColorStop(0, 'rgba(255,255,255,0.95)'); gr.addColorStop(0.5, 'rgba(255,255,255,0.45)'); gr.addColorStop(1, 'rgba(255,255,255,0.15)');
+      gr.addColorStop(0, 'rgba(255,255,255,0.95)'); gr.addColorStop(0.5, 'rgba(255,255,255,0.35)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
       g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
       g.strokeStyle = 'rgba(255,255,255,0.5)'; g.lineWidth = 3;
-      for (let k = 0; k < 5; k++) { g.beginPath(); g.arc(64, 64, 12 + k * 11, k, k + 3.6); g.stroke(); }
+      for (let k = 0; k < 3; k++) { g.beginPath(); for (let t = 0; t < 6.28; t += 0.1) { const r = 6 + t * 8.5, a = t + k * 2.09; g.lineTo(64 + Math.cos(a) * r, 64 + Math.sin(a) * r); } g.stroke(); }
     }).tex;
     swirl.center.set(0.5, 0.5);
-    // a wide arc; once there are too many to fit side by side, every portal gets a little narrower
-    const PORTAL_GAP = (9.5 * Math.PI * 1.16) / (PORTAL_LEVELS.length - 1);
-    const PORTAL_W = Math.min(1, (PORTAL_GAP - 0.08) / 2.08);
-    const portals = PORTAL_LEVELS.map((lv, k) => {
-      const a = ((k / (PORTAL_LEVELS.length - 1)) - 0.5) * Math.PI * 1.16;
-      const px = Math.sin(a) * 9.5, pz = -2 - Math.cos(a) * 9.5;
+    const CAT_COLS = { ball: 0xff9a3a, battle: 0xff4d6a, lanes: 0x3fbf7f, adv: 0x9a6aff, race: 0x4fc3f7, party: 0xffd23f, active: 0xff3aa8 };
+    const hexOf = (c) => `#${c.toString(16).padStart(6, '0')}`;
+    const portals = [];
+    // one doorway: a coloured frame, a swirling surface and a label overhead
+    function makePortal(x, z, a, col, wScale, labelW, labelH) {
       const g = new THREE.Group();
-      g.position.set(px, 0, pz);
-      g.rotation.y = -a;
-      g.scale.x = PORTAL_W;
-      const col = KIOSK_COLORS[lv];
+      g.position.set(x, 0, z); g.rotation.y = -a; g.scale.x = wScale;
       const frameMat = new THREE.MeshLambertMaterial({ color: col, emissive: new THREE.Color(col).multiplyScalar(0.25) });
       for (const sx of [-0.95, 0.95]) { const p = new THREE.Mesh(new THREE.BoxGeometry(0.18, 2.4, 0.3), frameMat); p.position.set(sx, 1.2, 0); g.add(p); }
-      const arch = new THREE.Mesh(new THREE.TorusGeometry(0.95, 0.09, 8, 24, Math.PI), frameMat);
-      arch.position.y = 2.4;
-      g.add(arch);
+      const arch = new THREE.Mesh(new THREE.TorusGeometry(0.95, 0.09, 8, 24, Math.PI), frameMat); arch.position.y = 2.4; g.add(arch);
       const t = swirl.clone(); t.needsUpdate = true; t.center.set(0.5, 0.5);
       const surf = new THREE.Mesh(new THREE.PlaneGeometry(1.72, 2.4), new THREE.MeshBasicMaterial({ map: t, color: col, transparent: true, opacity: 0.75, side: THREE.DoubleSide, depthWrite: false }));
-      surf.position.y = 1.2;
-      g.add(surf);
-      const lab = canvasTexture(320, 120);
-      const plate = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 0.6), new THREE.MeshBasicMaterial({ map: lab.tex, transparent: true }));
-      plate.position.set(0, 3.6, 0);
-      plate.scale.x = 1 / PORTAL_W;          // the label keeps its full width
-      g.add(plate);
+      surf.position.y = 1.2; g.add(surf);
+      const lab = canvasTexture(labelW || 320, labelH || 120);
+      const plate = new THREE.Mesh(new THREE.PlaneGeometry(((labelW || 320) / 320) * 1.6, ((labelH || 120) / 120) * 0.6), new THREE.MeshBasicMaterial({ map: lab.tex, transparent: true }));
+      plate.position.set(0, 3.55 + ((labelH || 120) - 120) / 400, 0); plate.scale.x = 1 / wScale; g.add(plate);
       G.add(g);
-      return { lv, g, px, pz, a, surf, tex: t, lab, key: '' };
+      return { g, surf, tex: t, lab, px: x, pz: z, a, w: wScale, key: '' };
+    }
+    // the doors in the clubhouse
+    const DOOR_R = 9.5, CATS = LEVEL_CATS;
+    const doors = CATS.map((c, k) => {
+      const a = ((k / (CATS.length - 1)) - 0.5) * Math.PI * 1.16;
+      const p = makePortal(Math.sin(a) * DOOR_R, -2 - Math.cos(a) * DOOR_R, a, CAT_COLS[c.id] || 0xffd23f, 1.25, 512, 190);
+      Object.assign(p, { kind: 'cat', ci: k });
+      portals.push(p);
+      return p;
     });
+    // the wings: each a small room out of sight of the others, with its games in a gentle arc
+    const WING = { w: 11, d: 9, h: 5 };
+    const wingAt = (k) => ({ x: -66 + k * 22, z: -60 });
+    const wings = CATS.map((c, k) => {
+      const o = wingAt(k), col = CAT_COLS[c.id] || 0xffd23f;
+      const fl = new THREE.Mesh(new THREE.PlaneGeometry(WING.w, WING.d), new THREE.MeshLambertMaterial({ map: woodTex.tex })); fl.rotation.x = -Math.PI / 2; fl.position.set(o.x, 0, o.z); G.add(fl);
+      const rugW = new THREE.Mesh(new THREE.PlaneGeometry(WING.w - 3, WING.d - 3), new THREE.MeshLambertMaterial({ color: col, emissive: new THREE.Color(col).multiplyScalar(0.15) }));
+      rugW.rotation.x = -Math.PI / 2; rugW.position.set(o.x, 0.006, o.z); G.add(rugW);
+      for (const [x, z, w, d] of [[0, -WING.d / 2, WING.w, 0.3], [0, WING.d / 2, WING.w, 0.3], [-WING.w / 2, 0, 0.3, WING.d], [WING.w / 2, 0, 0.3, WING.d]]) {
+        addBox(G, w, WING.h, d, wallMat, o.x + x, WING.h / 2, o.z + z);
+        addBox(G, w + 0.02, 1.0, d + 0.06, trimMat, o.x + x, 0.5, o.z + z);
+      }
+      const ce = new THREE.Mesh(new THREE.PlaneGeometry(WING.w, WING.d), ceilMat); ce.rotation.x = Math.PI / 2; ce.position.set(o.x, WING.h, o.z); G.add(ce);
+      // the wing's sign, and a strip of its colour along the walls
+      makePlate(G, `${c.glyph}  ${c.name}`, 4.2, 0.62, new V3(o.x, 4.45, o.z - WING.d / 2 + 0.17), 0, { bg: hexOf(col), fg: '#1e1420', size: 0.7 });
+      for (const sx of [-1, 1]) addBox(G, 0.06, 0.12, WING.d - 0.4, new THREE.MeshBasicMaterial({ color: col }), o.x + sx * (WING.w / 2 - 0.18), 1.08, o.z);
+      // the games, full size
+      // (about 2.5 m apart, so the doorways and their labels don't overlap)
+      const n = c.games.length, r = 3.6, span = 0.7 * (n - 1);
+      c.games.forEach((lv, j) => {
+        const a = n > 1 ? (j / (n - 1) - 0.5) * span : 0;
+        const p = makePortal(o.x + Math.sin(a) * r, o.z + 0.4 - Math.cos(a) * r, a, KIOSK_COLORS[lv], 1, 320, 120);
+        Object.assign(p, { kind: 'game', lv, ci: k });
+        portals.push(p);
+      });
+      // and the way back
+      const back = makePortal(o.x, o.z + WING.d / 2 - 0.35, Math.PI, 0xe8d0a8, 1, 320, 120);
+      Object.assign(back, { kind: 'back', ci: k });
+      portals.push(back);
+      return { o, back };
+    });
+    L.wings = wings; L.doors = doors;
     function drawPortalLabel(p, count) {
       const key = String(count);
       if (key === p.key) return;
       p.key = key;
-      const g = p.lab.g, m = LEVEL_META[p.lv];
-      g.clearRect(0, 0, 320, 120);
-      rr(g, 4, 4, 312, 112, 18); g.fillStyle = 'rgba(30,20,28,0.85)'; g.fill();
-      g.textAlign = 'center'; g.textBaseline = 'middle';
-      g.fillStyle = '#ffffff'; g.font = `800 46px ${DISPLAY}`;
-      g.fillText(m.short, 160, 46, 296);
-      g.fillStyle = count ? '#8bd450' : '#bfb2c8'; g.font = `700 26px ${BODY}`;
-      g.fillText(count ? `${count} playing` : 'Walk in to play', 160, 90, 296);
+      const g = p.lab.g;
+      if (p.kind === 'cat') {
+        const c = CATS[p.ci];
+        g.clearRect(0, 0, 512, 190);
+        rr(g, 4, 4, 504, 182, 22); g.fillStyle = 'rgba(30,20,28,0.88)'; g.fill();
+        g.strokeStyle = hexOf(CAT_COLS[c.id] || 0xffd23f); g.lineWidth = 6; rr(g, 4, 4, 504, 182, 22); g.stroke();
+        g.textAlign = 'center'; g.textBaseline = 'middle';
+        g.fillStyle = '#ffffff'; g.font = `800 56px ${DISPLAY}`; g.fillText(`${c.glyph} ${c.name}`, 256, 52, 480);
+        g.fillStyle = '#e8dcd0'; g.font = `400 26px ${BODY}`; g.fillText(c.games.map((i) => LEVEL_META[i].short).join(' · '), 256, 106, 480);
+        g.fillStyle = count ? '#8bd450' : '#bfb2c8'; g.font = `700 28px ${BODY}`; g.fillText(count ? `${count} playing inside` : 'Walk in', 256, 152, 480);
+      } else if (p.kind === 'back') {
+        g.clearRect(0, 0, 320, 120);
+        rr(g, 4, 4, 312, 112, 18); g.fillStyle = 'rgba(30,20,28,0.85)'; g.fill();
+        g.textAlign = 'center'; g.textBaseline = 'middle';
+        g.fillStyle = '#ffffff'; g.font = `800 40px ${DISPLAY}`; g.fillText('\u{1F3E0} Clubhouse', 160, 46, 296);
+        g.fillStyle = '#bfb2c8'; g.font = `700 24px ${BODY}`; g.fillText('Walk in to go back', 160, 90, 296);
+      } else {
+        const m = LEVEL_META[p.lv];
+        g.clearRect(0, 0, 320, 120);
+        rr(g, 4, 4, 312, 112, 18); g.fillStyle = 'rgba(30,20,28,0.85)'; g.fill();
+        g.textAlign = 'center'; g.textBaseline = 'middle';
+        g.fillStyle = '#ffffff'; g.font = `800 46px ${DISPLAY}`;
+        g.fillText(m.short, 160, 46, 296);
+        g.fillStyle = count ? '#8bd450' : '#bfb2c8'; g.font = `700 26px ${BODY}`;
+        g.fillText(count ? `${count} playing` : 'Walk in to play', 160, 90, 296);
+      }
       p.lab.tex.needsUpdate = true;
     }
+    // getting about: through a door into its wing, or back out to the clubhouse
+    const _tp = new V3(), _tq = new Q4(), _te = new THREE.Euler();
+    function teleport(x, z, yaw) {
+      camera.getWorldPosition(_tp);
+      dolly.position.x += x - _tp.x; dolly.position.z += z - _tp.z;
+      if (state.mode === 'vr') { camera.getWorldQuaternion(_tq); _te.setFromQuaternion(_tq, 'YXZ'); snapTurn(yaw - _te.y); }
+      else { state.yaw = yaw; state.pitch = 0; }
+    }
+    function enterWing(k) { const o = wingAt(k); teleport(o.x, o.z + 2.4, 0); showToast(`${CATS[k].glyph} ${CATS[k].name}: walk into a portal to play`); }
+    function leaveWing(k) { const d = doors[k]; teleport(d.px - Math.sin(d.a) * 1.8, d.pz + Math.cos(d.a) * 1.8, Math.PI - d.a); }      // (facing back into the room)
+    L.enterWing = enterWing; L.leaveWing = leaveWing;
+    // which room you're in: the clubhouse, or one of the wings (the walls of each keep you in)
+    function areaOf(x, z) {
+      if (x > R.minX - 1 && x < R.maxX + 1 && z > R.minZ - 1 && z < R.maxZ + 1) return -1;
+      let best = 0, bd = Infinity;
+      CATS.forEach((c, k) => { const o = wingAt(k), d = Math.hypot(x - o.x, z - o.z); if (d < bd) { bd = d; best = k; } });
+      return best;
+    }
+    L.areaOf = areaOf;
+    L.clampPlayer = (p) => {
+      const k = areaOf(p.x, p.z), m = 0.3;
+      let B;
+      if (k < 0) B = R; else { const o = wingAt(k); B = { minX: o.x - WING.w / 2, maxX: o.x + WING.w / 2, minZ: o.z - WING.d / 2, maxZ: o.z + WING.d / 2 }; }
+      const x = clamp(p.x, B.minX + m, B.maxX - m), z = clamp(p.z, B.minZ + m, B.maxZ - m);
+      return [x - p.x, z - p.z];
+    };
 
     // your-look station: a statue of you on a turntable, with buttons
     const turntable = addCyl(G, 0.7, 0.75, 0.2, 24, lam(0x6b4a33), 0, 0.1, 0.4);
@@ -11836,16 +11913,20 @@ kbd {
         if (Number.isInteger(lv) && lv >= 0 && lv < counts.length) counts[lv]++;
       }
       for (const p of portals) {
-        drawPortalLabel(p, counts[p.lv]);
+        drawPortalLabel(p, p.kind === 'game' ? counts[p.lv] : p.kind === 'cat' ? CATS[p.ci].games.reduce((n, i) => n + counts[i], 0) : 0);
         p.tex.rotation = now * 0.0012;
-        p.surf.material.opacity = 0.62 + 0.12 * Math.sin(now * 0.003 + p.lv);
+        p.surf.material.opacity = 0.62 + 0.12 * Math.sin(now * 0.003 + (p.lv || p.ci || 0));
       }
       if (state.mode !== 'menu' && now > portalCool) {
         for (const p of portals) {
           _d.set(myHead.pos.x - p.px, 0, myHead.pos.z - p.pz);
           const lx = _d.x * Math.cos(p.a) + _d.z * Math.sin(p.a);
           const lz = -_d.x * Math.sin(p.a) + _d.z * Math.cos(p.a);
-          if (Math.abs(lx) < 0.8 * PORTAL_W && Math.abs(lz) < 0.35) { portalCool = now + 2000; sfx('whoosh', 1); switchLevel(p.lv); return; }
+          if (Math.abs(lx) < 0.8 * p.w && Math.abs(lz) < 0.35) {
+            portalCool = now + 1500; sfx('whoosh', 1);
+            if (p.kind === 'game') switchLevel(p.lv); else if (p.kind === 'cat') enterWing(p.ci); else leaveWing(p.ci);
+            return;
+          }
         }
       }
       if (now - (L.whoT || 0) > 1000) { L.whoT = now; drawWho(now); }
@@ -11854,7 +11935,7 @@ kbd {
     L.onEnter = () => { portalCool = performance.now() + 1500; whoKey = ''; };
     L.onExit = () => {};
     L.hudActions = [];
-    L.hints = [['WASD', 'move'], ['Drag', 'look'], ['Walk into a portal', 'play'], ['E', 'grab or press']];
+    L.hints = [['WASD', 'move'], ['Drag', 'look'], ['Walk through a door', 'see its games'], ['E', 'grab or press']];
     L.spawn = () => {
       dolly.position.set((Math.random() - 0.5) * 2, 0, 8.4);
       state.yaw = 0;

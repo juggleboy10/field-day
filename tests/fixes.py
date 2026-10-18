@@ -312,6 +312,30 @@ def main():
         print("audio under load:", au, " hot potato new game:", hp2)
         checks += [("sound: no more than 24 effects at once (the rest are skipped), through a limiter, and slots free up again", (not au["running"]) or (au["live"] <= 24 and au["dropped"] > 0 and au["limiter"] and au["freed"])),
                    ("hot potato: New game starts a fresh round (on screen and in the room)", hp2["fresh"] and hp2["hud"] and hp2["btn"])]
+        # ---------------------------------------------------------------- the clubhouse: category doors into wings of portals
+        page.evaluate("() => window.__fd.switchLevel(8)")
+        page.wait_for_timeout(2500)
+        HUB_STEP = """([kind, idx, lv]) => { const fd = window.__fd, L = fd.LEVELS[8];
+          const p = kind === 'door' ? L.doors[idx] : kind === 'back' ? L.wings[idx].back : L.portals.find((q) => q.kind === 'game' && q.lv === lv);
+          fd.camera.updateMatrixWorld(true); const h = new THREE.Vector3(); fd.camera.getWorldPosition(h);
+          fd.dolly.position.x += p.px - h.x; fd.dolly.position.z += p.pz - h.z; }"""
+        HUB_AREA = "() => { const fd = window.__fd, L = fd.LEVELS[8]; fd.camera.updateMatrixWorld(true); const h = new THREE.Vector3(); fd.camera.getWorldPosition(h); return L.areaOf(h.x, h.z); }"
+        hubw = page.evaluate("() => ({ doors: window.__fd.LEVELS[8].doors.length, wings: window.__fd.LEVELS[8].wings.length })")
+        page.evaluate(HUB_STEP, ["door", 6, 0]); page.wait_for_timeout(700)
+        hubw["inWing"] = page.evaluate(HUB_AREA)
+        hubw["clamped"] = page.evaluate("() => { const fd = window.__fd, L = fd.LEVELS[8], h = new THREE.Vector3(); fd.camera.getWorldPosition(h); return L.clampPlayer({ x: h.x + 20, z: h.z })[0] < -10; }")
+        page.wait_for_timeout(1200)
+        page.evaluate(HUB_STEP, ["back", 6, 0]); page.wait_for_timeout(700)
+        hubw["backIn"] = page.evaluate(HUB_AREA)
+        page.wait_for_timeout(1200)
+        page.evaluate(HUB_STEP, ["door", 6, 0]); page.wait_for_timeout(2000)
+        page.evaluate(HUB_STEP, ["game", 0, 26]); page.wait_for_timeout(900)
+        hubw["level"] = page.evaluate("() => window.__fd.state.level")
+        print("clubhouse doors and wings:", hubw)
+        checks += [("clubhouse: one door per kind of game, each with its own wing", hubw["doors"] == 7 and hubw["wings"] == 7),
+                   ("clubhouse: walking through a door takes you into its wing (and its walls keep you in)", hubw["inWing"] == 6 and hubw["clamped"]),
+                   ("clubhouse: the door at the back of a wing brings you back to the clubhouse", hubw["backIn"] == -1),
+                   ("clubhouse: a portal in a wing takes you to its game", hubw["level"] == 26)]
         for name, good in checks:
             print(f"{'ok  ' if good else 'FAIL'}  {name}")
             ok &= bool(good)
