@@ -321,8 +321,9 @@
     function goToSpot() {
       const sp = spots();
       J.spotX = sp.x(sp.k);
-      camera.getWorldPosition(_hp);
-      dolly.position.x += J.spotX - _hp.x; dolly.position.z += 0 - _hp.z;
+      // (in a browser the camera sits where the game puts it, so just stand the body on the spot)
+      if (state.mode !== 'vr') dolly.position.set(J.spotX, 0, 0);
+      else { camera.getWorldPosition(_hp); dolly.position.x += J.spotX - _hp.x; dolly.position.z += 0 - _hp.z; }
       if (state.mode !== 'vr') { state.yaw = 0; state.pitch = -0.3; }
       resetBalls(); moveTableButtons();
     }

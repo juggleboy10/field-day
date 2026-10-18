@@ -316,8 +316,9 @@
     function standInLane() {
       const { k, n } = lanes();
       BB.laneX = laneXOf(Math.min(k, MAX_LANES - 1), Math.max(n, Math.min(k + 1, MAX_LANES)));
-      camera.getWorldPosition(_v);
-      dolly.position.x += BB.laneX - _v.x; dolly.position.z += 0 - _v.z;
+      // (in a browser the camera sits where the game puts it, so just stand the body on the spot)
+      if (state.mode !== 'vr') dolly.position.set(BB.laneX, 0, 0);
+      else { camera.getWorldPosition(_v); dolly.position.x += BB.laneX - _v.x; dolly.position.z += 0 - _v.z; }
       if (state.mode !== 'vr') { state.yaw = 0; state.pitch = -0.12; }
     }
     function start() {

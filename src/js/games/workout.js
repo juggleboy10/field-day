@@ -141,6 +141,8 @@
     const _v = new V3(), _w = new V3();
     function standOnMat() {
       const sp = spotNow(); W.spotX = sp.x(sp.k);
+      // (in a browser the camera sits where the game puts it, so just stand the body on the spot)
+      if (state.mode !== 'vr') { dolly.position.set(W.spotX, 0, 0); return; }
       camera.getWorldPosition(_v);
       dolly.position.x += W.spotX - _v.x; dolly.position.z += 0 - _v.z;
     }

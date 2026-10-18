@@ -167,6 +167,59 @@ def main():
         checks.append(("the wrong fist doesn't count", wrong["reps"]["punch"] == 0 and wrong["misses"] > 0))
         page.evaluate("() => { window.__fd.LEVELS[27].paused = false; }")
 
+        # ------------------------------------------------ Wall Rush
+        page.evaluate("() => { window.__fd.LEVELS[27].paused = false; window.__fd.switchLevel(28); }")
+        page.wait_for_timeout(1500)
+        page.evaluate("() => { window.__fd.LEVELS[28].paused = true; }")
+        WALLS = """([mi, mode]) => {
+          const fd = window.__fd, L = fd.LEVELS[28], X = L.wrInternals, R = X.R, st = fd.state, m0 = st.mode;
+          const vrH = window.__fd.LEVELS[26].jgInternals.__vr();
+          st.mode = mode === 'flat' ? 'flat' : 'vr'; let t = 0; R.mi = mi; X.start(); R.clock = () => t; R.H0 = 1.7;
+          const baseX = fd.dolly.position.x, dt = 1 / 60, M = X.MODES[mi], speed = 22 / M.travel;
+          const keys = st.keys;
+          while (R.st === 'go' && t < R.run.len + 2) {
+            t += dt;
+            // the next wall to reach you
+            const o = X.walls.filter((w) => w.w && !w.judged).sort((a, b) => a.w.t - b.w.t)[0];
+            let head = { x: 0, y: 1.7 }, l = { x: -0.25, y: 0.9 }, r = { x: 0.25, y: 0.9 };
+            for (const k of ['ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'KeyF', 'KeyQ', 'KeyR']) keys[k] = false;
+            if (o && mode !== 'idle' && o.w.t - t < 0.8) {
+              const T = X.poseTargets(o.w.pose, R.H0);
+              if (mode === 'flat') {
+                const p = o.w.pose;
+                if (p.stance === 'squat') keys.ArrowDown = true; if (p.stance === 'lungeL') keys.ArrowLeft = true; if (p.stance === 'lungeR') keys.ArrowRight = true;
+                if (p.arms === 'Y') keys.ArrowUp = true; if (p.arms === 'T') keys.KeyF = true; if (p.arms === 'upL') keys.KeyQ = true; if (p.arms === 'upR') keys.KeyR = true;
+                // (the browser body eases into the pose; hold it as the real thing would)
+                R.flat.squat = keys.ArrowDown ? 1 : 0; R.flat.lean = keys.ArrowRight ? 1 : keys.ArrowLeft ? -1 : 0;
+                R.flat.arms = keys.ArrowUp ? 'Y' : keys.KeyF ? 'T' : keys.KeyQ ? 'upL' : keys.KeyR ? 'upR' : 'down';
+              } else {
+                head = T.head; if (T.l) l = T.l; if (T.r) r = T.r;
+              }
+            } else if (mode === 'flat') { R.flat.squat = 0; R.flat.lean = 0; R.flat.arms = 'down'; }
+            if (mode !== 'flat') {
+              fd.dolly.position.x = baseX + head.x; fd.camera.position.set(0, head.y, 0); fd.camera.updateMatrixWorld(true);
+              vrH.myHands.left.ok = vrH.myHands.right.ok = true;
+              vrH.myHands.left.pos.set(R.spotX + l.x, l.y, -0.1); vrH.myHands.right.pos.set(R.spotX + r.x, r.y, -0.1);
+            }
+            X.step(dt);
+          }
+          const res = { st: R.st, fits: R.fits, crashes: R.crashes, walls: R.run.walls.length, score: R.score, result: R.result };
+          X.stop('quit'); R.clock = null; st.mode = m0; fd.dolly.position.x = baseX; fd.camera.position.set(0, 1.6, 0);
+          for (const k of ['ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'KeyF', 'KeyQ', 'KeyR']) keys[k] = false;
+          return res;
+        }"""
+        runs = page.evaluate("() => window.__fd.LEVELS[28].wrInternals.MODES.map((M, i) => { const r = window.__fd.LEVELS[28].makeRun(i); return { walls: r.walls.length, combos: r.walls.filter((w) => w.pose.stance !== 'stand' && w.pose.arms !== 'down').length, len: Math.round(r.len) }; })")
+        print("wall rush runs:", runs)
+        vr_ok = page.evaluate(WALLS, [1, "vr"])
+        print("wall rush, striking every pose in VR (Classic):", {k: vr_ok[k] for k in ("fits", "crashes", "walls", "score")})
+        idle = page.evaluate(WALLS, [0, "idle"])
+        print("wall rush, standing still (Warm-up):", {k: idle[k] for k in ("fits", "crashes", "walls")})
+        flat = page.evaluate(WALLS, [2, "flat"])
+        print("wall rush, the right keys in a browser (Frenzy):", {k: flat[k] for k in ("fits", "crashes", "walls")})
+        checks += [("Wall Rush: warm-up is one move at a time, frenzy is mostly combos, each run a couple of minutes", runs[0]["combos"] == 0 and runs[2]["combos"] > runs[2]["walls"] * 0.4 and all(60 < r["len"] < 200 for r in runs)),
+                   ("Wall Rush: striking every pose in VR fits through every wall", vr_ok["fits"] == vr_ok["walls"] and vr_ok["crashes"] == 0),
+                   ("Wall Rush: standing still crashes into them", idle["fits"] == 0 and idle["crashes"] == idle["walls"]),
+                   ("Wall Rush: in a browser, the right keys fit every wall", flat["fits"] == flat["walls"])]
         for name, good in checks:
             print(f"{'ok  ' if good else 'FAIL'}  {name}")
             ok &= bool(good)

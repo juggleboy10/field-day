@@ -120,6 +120,7 @@
     hideseek: { bpm: 84, swing: 0.18, chords: ['Am', 'Dm', 'E7', 'Am'], arp: { inst: 'pizz', every: 2, order: [1, 0, 3, 0, 2, 0, 4, 0] }, lead: { inst: 'pizz', p: 0.12, up: 12 }, bass: { walk: true, short: true }, drums: { b: '....o.......o...', sh: '-.-.-.-.-.-.-.-.' }, cut: 3000, crackle: 1 },
   };
 
+  MUSIC_THEMES.wallrush = { gain: 0.8, bpm: 104, swing: 0.04, chords: ['C', 'G', 'Am', 'F'], comp: { inst: 'synth', at: [0, 6, 10], dur: 0.25 }, bass: { at: [0, 8] }, drums: { k: 'x.......x.......', h: '..o...o...o...o.' }, lead: { inst: 'marimba', p: 0.15, up: 12 }, cut: 4400, crackle: 0.3 };
   MUSIC_THEMES.juggle = { gain: 0.85, bpm: 108, swing: 0.18, chords: ['C', 'F', 'G', 'C'], comp: { inst: 'organ', at: [0, 4, 8, 12], dur: 0.2 }, lead: { inst: 'musicbox', p: 0.25, up: 12 }, bass: { at: [0, 8] }, drums: { k: 'x.......x.......', sh: '-.-.-.-.-.-.-.-.' }, cut: 4600, crackle: 0.5 };
   MUSIC_THEMES.workout = { gain: 0.8, bpm: 100, swing: 0.06, chords: ['Fmaj7', 'Em7', 'Dm7', 'Cmaj7'], comp: { inst: 'ep', at: [0, 10], dur: 1.2 }, pad: { inst: 'pad' }, bass: { at: [0, 8] }, drums: { k: 'x.......x.......', h: '..o...o...o...o.' }, cut: 3800, crackle: 0.4 };
   MUSIC_THEMES.beats = { gain: 0.8, bpm: 96, swing: 0, chords: ['Am', 'F', 'C', 'G'], arp: { inst: 'synth', every: 2, order: [1, 2, 3, 4, 3, 2, 1, 2] }, pad: { inst: 'pad' }, bass: { at: [0, 8] }, drums: { k: 'x.......x.......', h: '..o...o...o...o.' }, cut: 3600, crackle: 0.2 };
