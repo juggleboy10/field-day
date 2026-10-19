@@ -119,6 +119,33 @@ def main():
             checks += [("Shark Jump: a firm putt flies the pool and lands beyond it", "jump" in firm["vis"] and firm["ev"] != "water" and firm["minZ"] < -0.5),
                        ("Shark Jump: a soft one splashes", soft["ev"] == "water")]
 
+            # the silly bits: a conveyor carries a slow ball sideways; animals are in the way; the UFO beams you elsewhere;
+            # pinball kickers fire you off; the volcano pops a slow ball off the top while it erupts
+            silly = page.evaluate("""() => { const I = window.__fd.LEVELS[6].mgInternals, H = (n) => I.HOLES.findIndex((h) => h.name === n), out = {};
+              const roll = (i, lx, lz, vx, vz, t0, secs) => { const Hh = I.HOLES[i], b = { x: Hh.x + lx, z: Hh.z + lz, vx, vz, lipped: false, sink: 0, fromX: Hh.x + lx, fromZ: Hh.z + lz, vis: null };
+                let ev = 'moving', now = t0, kinds = []; const cb = { sink: () => { ev = 'sunk'; }, rest: () => { ev = 'rest'; }, water: () => { ev = 'water'; } };
+                for (let k = 0; k < secs * 240 && ev === 'moving'; k++) { now += 1000 / 240; I.ballStep(1 / 240, now, b, Hh, cb); if (b.vis && !kinds.includes(b.vis.k)) kinds.push(b.vis.k); }
+                return { ev, x: +(b.x - Hh.x).toFixed(2), z: +(b.z - Hh.z).toFixed(2), vis: kinds }; };
+              out.conveyor = roll(H("Zig-zag express"), 0.8, 0.1, 0, 0, 0, 8);
+              // roll straight at where the turtle will be
+              const ti = H('Turtle crossing'), tf = I.HOLES[ti].feats[0], w = I.walkerAt(tf, 10000, [0, 0, 0, 0]);
+              out.turtle = roll(ti, w[0], 1.0, 0, -1.6, 10000 - 1000 * (0.8 - 0.14) / 1.6, 3);
+              const ui = H('Bumper bowl'), uf = I.HOLES[ui].feats.find((f) => f.t === 'ufo'), u = I.ufoAt(uf, 20000, [0, 0]);
+              out.ufo = roll(ui, u[0], u[1] + 0.05, 0, -0.3, 20000, 4);
+              const pi = H('Pinball finale'), kf = I.HOLES[pi].feats.find((f) => f.t === 'kick');
+              out.kick = roll(pi, kf.c[0], kf.c[1] + 0.3, 0, -1.0, 0, 0.6);
+              const vi = H('Volcano'), vf = I.HOLES[vi].feats.find((f) => f.t === 'volcano');
+              let t = 0; while (!I.erupting(t)) t += 50;
+              const b = { x: I.HOLES[vi].x + vf.c[0] + 0.2, z: I.HOLES[vi].z + vf.c[1], vx: 0, vz: 0 };
+              out.volcano = { popped: I.nudgeResting(b, I.HOLES[vi], t + 100), vx: +b.vx.toFixed(2) };
+              return out; }""")
+            print("silly bits:", silly)
+            checks += [("conveyor: a ball dropped on the belt is carried left", silly["conveyor"]["x"] < -0.5 and silly["conveyor"]["ev"] == "rest"),
+                       ("turtle: rolling into the turtle bounces back", silly["turtle"]["z"] > 0.2),
+                       ("UFO: the beam lifts your ball and drops it somewhere else", "ufo" in silly["ufo"]["vis"]),
+                       ("pinball kicker fires the ball off", silly["kick"]["z"] < -1.2),
+                       ("volcano: an eruption pops a ball off the top", silly["volcano"]["popped"] and silly["volcano"]["vx"] > 1)]
+
             # Birdie Bea plays each new hole with her planner and the same physics (with her usual human error)
             bea = page.evaluate("""(names) => { const L = window.__fd.LEVELS[6], I = L.mgInternals, P = L.beaInternals;
               const out = {};
@@ -138,9 +165,9 @@ def main():
                 }
                 out[n] = { strokes, sunk, wet };
               }
-              return out; }""", ["Windmill", "Big Mouth", "Loop-de-loop", "Mole Patrol", "Shark Jump"])
+              return out; }""", ["Turtle crossing", "Zig-zag express", "Cow on the hump", "Windmill", "Bumper bowl", "Camel humps", "Slalom", "Gatekeepers", "Volcano", "Pinball finale", "Big Mouth", "Loop-de-loop", "Mole Patrol", "Shark Jump"])
             print("Birdie Bea (no human error):", bea)
-            checks.append(("Birdie Bea can get round every new hole", all(r["sunk"] and r["strokes"] <= 5 for r in bea.values())))
+            checks.append(("Birdie Bea can get round every hole", all(r["sunk"] and r["strokes"] <= 6 for r in bea.values())))
 
             for name, good in checks:
                 print(f"{'ok  ' if good else 'FAIL'}  {name}")

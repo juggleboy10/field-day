@@ -61,22 +61,26 @@
 
     // holes, laid side by side; each runs from its tee (+z) to its cup (-z)
     const HOLES = [
-      { name: 'Warm-up', x: -10, len: 7, w: 1.6, par: 2, cup: [0, -2.8], feats: [] },
-      { name: 'Zig-zag', x: -5.6, len: 8, w: 2.4, par: 3, cup: [0.6, -3.2], feats: [{ t: 'wall', a: [-1.2, 1.2], b: [0.45, 1.2] }, { t: 'wall', a: [1.2, -1.0], b: [-0.45, -1.0] }] },
-      { name: 'The hump', x: -1.4, len: 8, w: 1.8, par: 3, cup: [0, -3.2], feats: [{ t: 'hill', c: [0, 0.2], a: 0.24, s: 0.75 }] },
+      { name: 'Turtle crossing', x: -10, len: 7, w: 1.6, par: 2, cup: [0, -2.8], feats: [{ t: 'walker', kind: 'turtle', path: 'x', c: [0, 0.2], amp: 0.55, per: 11, ph: 0, r: 0.14 }] },
+      { name: 'Zig-zag express', x: -5.6, len: 8, w: 2.4, par: 3, cup: [0.6, -3.2], feats: [{ t: 'wall', a: [-1.2, 1.2], b: [0.45, 1.2] }, { t: 'wall', a: [1.2, -1.0], b: [-0.45, -1.0] }, { t: 'conveyor', x0: -0.85, x1: 1.2, z0: -0.55, z1: 0.75, ax: -1.1 }] },
+      { name: 'Cow on the hump', x: -1.4, len: 8, w: 1.8, par: 3, cup: [0, -3.2], feats: [{ t: 'hill', c: [0, 0.2], a: 0.24, s: 0.75 }, { t: 'walker', kind: 'cow', path: 'x', c: [0, 0.2], amp: 0.5, per: 9, ph: 1.2, r: 0.17 }] },
       { name: 'Windmill', x: 3.2, len: 8, w: 2.2, par: 3, cup: [0, -3.2], feats: [{ t: 'mill', zf: 0.3, d: 0.8, door: 0.44, w: 1.1 }] },
       { name: 'Bumper bowl', x: 9.2, len: 7, w: 4.0, par: 3, cup: [0, -2.7], feats: [
         { t: 'bump', c: [-0.9, 0.4], r: 0.3 }, { t: 'bump', c: [0.9, 0.4], r: 0.3 }, { t: 'bump', c: [0, -0.9], r: 0.3 },
-        { t: 'bump', c: [-1.3, -1.8], r: 0.25 }, { t: 'bump', c: [1.3, -1.8], r: 0.25 }] },
+        { t: 'bump', c: [-1.3, -1.8], r: 0.25 }, { t: 'bump', c: [1.3, -1.8], r: 0.25 },
+        // a UFO cruising over the bowl: roll under its beam and it beams your ball up and drops it somewhere (good or bad)
+        { t: 'ufo', c: [0, -0.4], rad: 1.2, per: 9, beam: 0.2, drops: [[0.35, -2.3], [-1.5, 2.6], [1.6, -0.2], [-0.4, -2.2]] }] },
       // the back nine (well, five), out over the water
-      { name: 'Twin hills', x: -10, z: -15, len: 8, w: 2.0, par: 3, cup: [0.5, -3.2], feats: [{ t: 'hill', c: [-0.35, 1.3], a: 0.2, s: 0.6 }, { t: 'hill', c: [0.35, -1.0], a: 0.22, s: 0.6 }] },
+      { name: 'Camel humps', x: -10, z: -15, len: 8, w: 2.0, par: 3, cup: [0.5, -3.2], feats: [{ t: 'hill', c: [-0.35, 1.3], a: 0.2, s: 0.6 }, { t: 'hill', c: [0.35, -1.0], a: 0.22, s: 0.6 }, { t: 'camel' }] },
       { name: 'Slalom', x: -5.6, z: -15, len: 9, w: 2.6, par: 3, cup: [0, -3.8], feats: [
-        { t: 'wall', a: [-1.3, 2.0], b: [0.5, 2.0] }, { t: 'wall', a: [1.3, 0.4], b: [-0.5, 0.4] }, { t: 'wall', a: [-1.3, -1.2], b: [0.5, -1.2] }, { t: 'bump', c: [0.85, -2.5], r: 0.22 }] },
-      { name: 'Gatekeepers', x: -1.4, z: -15, len: 9, w: 2.4, par: 3, cup: [0, -3.8], feats: [{ t: 'spin', c: [-0.5, 1.2], arm: 0.7, w: -1.0, theta: 0 }, { t: 'spin', c: [0.5, -1.4], arm: 0.7, w: 1.15, theta: 0.6 }] },
-      { name: 'Volcano', x: 3.2, z: -15, len: 8, w: 2.2, par: 3, cup: [0, -2.4], feats: [{ t: 'hill', c: [0, -2.4], a: 0.2, s: 0.9 }] },
+        { t: 'wall', a: [-1.3, 2.0], b: [0.5, 2.0] }, { t: 'wall', a: [1.3, 0.4], b: [-0.5, 0.4] }, { t: 'wall', a: [-1.3, -1.2], b: [0.5, -1.2] }, { t: 'bump', c: [0.85, -2.5], r: 0.22 },
+        { t: 'walker', kind: 'penguin', path: 'x', c: [0, 1.2], amp: 0.95, per: 6, ph: 0, r: 0.1 }, { t: 'walker', kind: 'penguin', path: 'x', c: [0, -0.4], amp: 0.95, per: 5, ph: 2.2, r: 0.1 }] },
+      { name: 'Gatekeepers', x: -1.4, z: -15, len: 9, w: 2.4, par: 3, cup: [0, -3.8], feats: [{ t: 'spin', c: [-0.5, 1.2], arm: 0.7, w: -1.0, theta: 0 }, { t: 'spin', c: [0.5, -1.4], arm: 0.7, w: 1.15, theta: 0.6 }], nope: true },
+      { name: 'Volcano', x: 3.2, z: -15, len: 8, w: 2.2, par: 3, cup: [0, -2.4], feats: [{ t: 'hill', c: [0, -2.4], a: 0.2, s: 0.9 }, { t: 'volcano', c: [0, -2.4] }, { t: 'walker', kind: 'dino', path: 'circle', c: [0, -1.4], rad: 0.55, per: 16, ph: 0, r: 0.16 }] },
       { name: 'Pinball finale', x: 9.2, z: -15, len: 9, w: 4.0, par: 4, cup: [1.2, -3.6], feats: [
         { t: 'wall', a: [-2.0, 1.6], b: [0.6, 0.6] }, { t: 'bump', c: [1.1, 1.2], r: 0.28 }, { t: 'bump', c: [-0.9, -0.6], r: 0.3 },
-        { t: 'bump', c: [0.6, -1.6], r: 0.26 }, { t: 'hill', c: [-1.0, -2.6], a: 0.18, s: 0.7 }, { t: 'wall', a: [2.0, -2.2], b: [0.9, -2.7] }] },
+        { t: 'bump', c: [0.6, -1.6], r: 0.26 }, { t: 'hill', c: [-1.0, -2.6], a: 0.18, s: 0.7 }, { t: 'wall', a: [2.0, -2.2], b: [0.9, -2.7] },
+        { t: 'kick', c: [-1.4, -0.9], r: 0.16, dir: [0.75, -0.66], sp: 3.0 }, { t: 'kick', c: [1.5, 0.2], r: 0.16, dir: [-0.5, -0.87], sp: 2.6 }], pinball: true },
       // the silly row, at the end of the pier
       // three mouths: the little middle one drops you by the cup; the left spits you sideways; the right sends you back to the tee
       { name: 'Big Mouth', x: -10, z: -30.5, len: 9, w: 2.6, par: 3, cup: [0.7, -3.6], feats: [{ t: 'mouth', z: 1.2, mouths: [
@@ -112,6 +116,15 @@
     const millBlocked = (f, now) => { const a = (now / 1000) * f.w, q = Math.PI / 2, m = ((a % q) + q) % q; return Math.min(m, q - m) < 0.26; };
     const moleUp = (f, now) => { const p = (((now / 1000 + f.ph) % f.per) + f.per) % f.per / f.per; return p > 0.04 && p < 0.42; };
     const moleLift = (f, now) => { const p = (((now / 1000 + f.ph) % f.per) + f.per) % f.per / f.per; return p < 0.46 ? Math.min(1, p / 0.06, (0.46 - p) / 0.06) : 0; };
+    // things that wander across a lane: back and forth (path 'x') or round in a circle
+    function walkerAt(f, now, out) {
+      const a = (now / 1000 / f.per) * Math.PI * 2 + f.ph;
+      if (f.path === 'circle') { out[0] = f.c[0] + Math.cos(a) * f.rad; out[1] = f.c[1] + Math.sin(a) * f.rad; out[2] = -Math.sin(a) * f.rad * 2 * Math.PI / f.per; out[3] = Math.cos(a) * f.rad * 2 * Math.PI / f.per; }
+      else { out[0] = f.c[0] + Math.sin(a) * f.amp; out[1] = f.c[1]; out[2] = Math.cos(a) * f.amp * 2 * Math.PI / f.per; out[3] = 0; }
+      return out;
+    }
+    const ufoAt = (f, now, out) => { const a = (now / 1000 / f.per) * Math.PI * 2; out[0] = f.c[0] + Math.sin(a) * f.rad; out[1] = f.c[1] + Math.sin(a * 2) * 0.5; return out; };
+    const _wk = [0, 0, 0, 0];
     function height(H, lx, lz) {
       let y = FELT;
       for (const f of H.feats) {
@@ -124,6 +137,8 @@
       out[0] = 0; out[1] = 0;
       for (const f of H.feats) {
         if (f.t === 'jump' && lz < f.z0 && lz > f.z1) { out[1] += -f.rh / (f.z0 - f.z1); continue; }
+        // a conveyor belt pushes like a slope would (so a ball can't rest on it)
+        if (f.t === 'conveyor') { if (lx > f.x0 && lx < f.x1 && lz > f.z0 && lz < f.z1) out[0] += -f.ax / (9.8 * 0.714); continue; }
         if (f.t !== 'hill') continue;
         const e = f.a * Math.exp(-((lx - f.c[0]) ** 2 + (lz - f.c[1]) ** 2) / (2 * f.s * f.s));
         out[0] += -e * (lx - f.c[0]) / (f.s * f.s);
@@ -242,6 +257,120 @@
       addBox(G, 0.05, 0.42, 0.05, white, H.x + H.w / 2 + 0.5, 0.21, H.z + f.z0 - 0.02);
       f.fin = fin; f.wz = H.z + (f.z1 + f.gapTo) / 2; f.H = H; sharks.push(f);
     }
+    const walkers = [], belts = [], ufos = [], kicks = [], camels = [], volcanos = [];
+    const eyeW = () => lam(0xffffff), eyeB = () => lam(0x1b1932);
+    function googly(g, x, y, z, s) {
+      const e = new THREE.Mesh(new THREE.SphereGeometry(0.03 * s, 10, 8), eyeW()); e.position.set(x, y, z); g.add(e);
+      const p = new THREE.Mesh(new THREE.SphereGeometry(0.015 * s, 8, 6), eyeB()); p.position.set(x, y, z + 0.022 * s); g.add(p);
+      return p;
+    }
+    function buildWalker(H, f) {
+      const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
+      if (f.kind === 'turtle') {
+        const shell = new THREE.Mesh(new THREE.SphereGeometry(0.14, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), lam(0x3f8a3a)); shell.scale.set(1, 0.8, 1.2); body.add(shell);
+        for (let k = 0; k < 5; k++) { const sp = new THREE.Mesh(new THREE.CircleGeometry(0.035, 6), lam(0x2a6a2a)); const a = k * 1.256; sp.position.set(Math.cos(a) * 0.07, 0.09, Math.sin(a) * 0.08); sp.lookAt(sp.position.x * 3, 1, sp.position.z * 3); body.add(sp); }
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.05, 12, 8), lam(0x8bd450)); head.position.set(0, 0.05, 0.17); body.add(head);
+        googly(body, -0.025, 0.08, 0.2, 0.8); googly(body, 0.025, 0.08, 0.2, 0.8);
+        for (const [x, z] of [[-0.09, 0.09], [0.09, 0.09], [-0.09, -0.09], [0.09, -0.09]]) body.add(at(new THREE.Mesh(new THREE.SphereGeometry(0.03, 8, 6), lam(0x8bd450)), x, 0.01, z));
+        f.head = head;
+        makePlate(G, 'Slow: turtle crossing', 1.1, 0.16, new V3(H.x - H.w / 2 - 0.45, 0.5, H.z + f.c[1]), Math.PI / 2, { size: 0.55, bg: '#ffd23f', fg: '#1b1932' });
+      } else if (f.kind === 'cow') {
+        const wht = lam(0xf6f4ee), blk = lam(0x1b1932), pink = lam(0xffa3c0);
+        const torso = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.14, 0.3), wht); torso.position.y = 0.17; body.add(torso);
+        for (const [x, z] of [[-0.06, 0.05], [0.07, -0.08]]) body.add(at(new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.142, 0.1), blk), x, 0.17, z));
+        for (const [x, z] of [[-0.07, 0.1], [0.07, 0.1], [-0.07, -0.1], [0.07, -0.1]]) body.add(at(new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.11, 0.04), wht), x, 0.055, z));
+        const head = new THREE.Group(); head.position.set(0, 0.22, 0.19); body.add(head);
+        head.add(new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.11, 0.1), wht));
+        head.add(at(new THREE.Mesh(new THREE.BoxGeometry(0.125, 0.05, 0.05), pink), 0, -0.035, 0.05));
+        for (const sx of [-1, 1]) head.add(at(new THREE.Mesh(new THREE.ConeGeometry(0.015, 0.06, 6), lam(0xe8d8a8)), sx * 0.045, 0.08, -0.01));
+        googly(head, -0.03, 0.02, 0.055, 0.9); googly(head, 0.03, 0.02, 0.055, 0.9);
+        f.head = head;
+      } else if (f.kind === 'penguin') {
+        const blk = lam(0x1b1932), wht = lam(0xf6f4ee), org = lam(0xf5821f);
+        const b = new THREE.Mesh(new THREE.SphereGeometry(0.09, 14, 10), blk); b.scale.set(1, 1.5, 0.95); b.position.y = 0.13; body.add(b);
+        const belly = new THREE.Mesh(new THREE.SphereGeometry(0.075, 14, 10), wht); belly.scale.set(0.9, 1.35, 0.6); belly.position.set(0, 0.12, 0.04); body.add(belly);
+        const beak = new THREE.Mesh(new THREE.ConeGeometry(0.02, 0.05, 8), org); beak.rotation.x = Math.PI / 2; beak.position.set(0, 0.22, 0.09); body.add(beak);
+        googly(body, -0.03, 0.25, 0.07, 0.8); googly(body, 0.03, 0.25, 0.07, 0.8);
+        for (const sx of [-1, 1]) body.add(at(new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.015, 0.07), org), sx * 0.04, 0.008, 0.03));
+        // a little party hat, because why not
+        body.add(at(new THREE.Mesh(new THREE.ConeGeometry(0.035, 0.08, 10), lam(f.ph ? 0xff5c8a : 0x4fc3f7)), 0, 0.33, 0));
+      } else {
+        const grn = lam(0x6cc24a);
+        const torso = new THREE.Mesh(new THREE.SphereGeometry(0.12, 14, 10), grn); torso.scale.set(0.9, 0.9, 1.3); torso.position.y = 0.14; body.add(torso);
+        const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.06, 0.2, 10), grn); neck.position.set(0, 0.27, 0.12); neck.rotation.x = 0.5; body.add(neck);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.06, 12, 8), grn); head.scale.set(1, 0.85, 1.4); head.position.set(0, 0.36, 0.19); body.add(head);
+        googly(body, -0.035, 0.39, 0.22, 0.9); googly(body, 0.035, 0.39, 0.22, 0.9);
+        const tail = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.25, 10), grn); tail.rotation.x = -Math.PI / 2 - 0.3; tail.position.set(0, 0.12, -0.25); body.add(tail);
+        for (let k = 0; k < 4; k++) body.add(at(new THREE.Mesh(new THREE.ConeGeometry(0.025, 0.06, 4), lam(0xff9a3a)), 0, 0.26 - k * 0.02, 0.05 - k * 0.08));
+        for (const [x, z] of [[-0.06, 0.06], [0.06, 0.06], [-0.06, -0.08], [0.06, -0.08]]) body.add(at(new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.03, 0.08, 8), grn), x, 0.04, z));
+      }
+      G.add(g);
+      f.g = g; f.body = body; f.H = H; f.bonk = 0; walkers.push(f);
+    }
+    function buildConveyor(H, f) {
+      const w = f.x1 - f.x0, d = f.z1 - f.z0;
+      const tex = canvasTexture(64, 64, (g2c) => { g2c.fillStyle = '#3a3a48'; g2c.fillRect(0, 0, 64, 64); g2c.fillStyle = '#ffd23f'; g2c.beginPath(); g2c.moveTo(14, 32); g2c.lineTo(40, 10); g2c.lineTo(40, 22); g2c.lineTo(54, 22); g2c.lineTo(54, 42); g2c.lineTo(40, 42); g2c.lineTo(40, 54); g2c.closePath(); g2c.fill(); });
+      tex.tex.wrapS = tex.tex.wrapT = THREE.RepeatWrapping; tex.tex.repeat.set(w / 0.35, d / 0.35);
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), new THREE.MeshLambertMaterial({ map: tex.tex }));
+      m.rotation.x = -Math.PI / 2; m.position.set(H.x + (f.x0 + f.x1) / 2, FELT + 0.003, H.z + (f.z0 + f.z1) / 2); G.add(m);
+      // a rubber chicken riding the belt, forever
+      const ch = new THREE.Group(), yel = lam(0xfff3a0);
+      const cb2 = new THREE.Mesh(new THREE.SphereGeometry(0.06, 12, 8), yel); cb2.scale.set(1.4, 0.8, 0.8); ch.add(cb2);
+      const nk = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.02, 0.12, 8), yel); nk.position.set(-0.08, 0.06, 0); nk.rotation.z = 0.6; ch.add(nk);
+      ch.add(at(new THREE.Mesh(new THREE.SphereGeometry(0.028, 10, 8), yel), -0.12, 0.11, 0));
+      const cmb = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.03, 0.01), lam(0xd84a4a)); cmb.position.set(-0.12, 0.145, 0); ch.add(cmb);
+      const bk = new THREE.Mesh(new THREE.ConeGeometry(0.012, 0.035, 6), lam(0xf5821f)); bk.rotation.z = Math.PI / 2; bk.position.set(-0.155, 0.11, 0); ch.add(bk);
+      G.add(ch);
+      makePlate(G, 'Free ride!', 0.7, 0.14, new V3(H.x + H.w / 2 + 0.45, 0.45, H.z + (f.z0 + f.z1) / 2), -Math.PI / 2, { size: 0.55, bg: '#ffd23f', fg: '#1b1932' });
+      f.tex = tex.tex; f.chicken = ch; f.H = H; belts.push(f);
+    }
+    function buildUfo(H, f) {
+      const g = new THREE.Group();
+      const disc = new THREE.Mesh(new THREE.SphereGeometry(0.4, 20, 8), new THREE.MeshLambertMaterial({ color: 0xb8c4d8, emissive: 0x202838 })); disc.scale.set(1, 0.22, 1); g.add(disc);
+      const dome = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshLambertMaterial({ color: 0x8be0ff, emissive: 0x1a4a5a, transparent: true, opacity: 0.8 })); dome.position.y = 0.05; g.add(dome);
+      // a little green pilot
+      const alien = new THREE.Mesh(new THREE.SphereGeometry(0.07, 12, 8), lam(0x8bd450)); alien.position.y = 0.1; g.add(alien);
+      googly(g, -0.03, 0.12, 0.06, 0.8); googly(g, 0.03, 0.12, 0.06, 0.8);
+      const lights = [];
+      for (let k = 0; k < 8; k++) { const a = k / 8 * Math.PI * 2, l = new THREE.Mesh(new THREE.SphereGeometry(0.025, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffd23f })); l.position.set(Math.cos(a) * 0.36, -0.02, Math.sin(a) * 0.36); g.add(l); lights.push(l); }
+      const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.05, f.beam, 1, 20, 1, true), new THREE.MeshBasicMaterial({ color: 0xa8ffb0, transparent: true, opacity: 0.22, depthWrite: false, side: THREE.DoubleSide }));
+      G.add(g, beam);
+      const spot = new THREE.Mesh(new THREE.CircleGeometry(f.beam, 24), new THREE.MeshBasicMaterial({ color: 0xa8ffb0, transparent: true, opacity: 0.35, depthWrite: false }));
+      spot.rotation.x = -Math.PI / 2; G.add(spot);
+      f.g = g; f.beamM = beam; f.spot = spot; f.lights = lights; f.H = H; ufos.push(f);
+    }
+    function buildKick(H, f) {
+      const pad = new THREE.Mesh(new THREE.CircleGeometry(f.r, 20), new THREE.MeshLambertMaterial({ color: 0x4fc3f7, emissive: 0x0a3a5a }));
+      pad.rotation.x = -Math.PI / 2; pad.position.set(H.x + f.c[0], FELT + 0.004, H.z + f.c[1]); G.add(pad);
+      const arrow = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.14, 3), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+      arrow.rotation.set(-Math.PI / 2, 0, 0); arrow.rotateZ(-Math.atan2(f.dir[0], -f.dir[1])); arrow.position.set(pad.position.x, FELT + 0.008, pad.position.z); arrow.scale.z = 0.1; G.add(arrow);
+      f.pad = pad; f.flash = 0; kicks.push(f);
+    }
+    function buildCamel(H) {
+      // the two hills are a camel's humps: a head at one end, a tail at the other
+      const tan = lam(0xd8a860), h1 = H.feats.find((f) => f.t === 'hill'), h2 = H.feats.filter((f) => f.t === 'hill')[1];
+      const hx = H.x - H.w / 2 - 0.35, hz = H.z + h1.c[1] + 0.6;
+      const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.14, 0.9, 10), tan); neck.position.set(hx, 0.45, hz); neck.rotation.x = 0.35; G.add(neck);
+      const head = new THREE.Group(); head.position.set(hx, 0.95, hz + 0.18); G.add(head);
+      const hm = new THREE.Mesh(new THREE.SphereGeometry(0.14, 14, 10), tan); hm.scale.set(0.9, 0.8, 1.5); head.add(hm);
+      head.add(at(new THREE.Mesh(new THREE.SphereGeometry(0.08, 10, 8), lam(0xc89850)), 0, -0.03, 0.18));
+      googly(head, -0.06, 0.07, 0.08, 1.4); googly(head, 0.06, 0.07, 0.08, 1.4);
+      for (const sx of [-1, 1]) head.add(at(new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.08, 6), tan), sx * 0.08, 0.13, -0.05));
+      const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.02, 0.35, 6), tan); tail.position.set(H.x + H.w / 2 + 0.2, 0.3, H.z + h2.c[1] - 0.5); tail.rotation.z = 0.5; G.add(tail);
+      tail.add(at(new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 6), lam(0x7a5236)), 0, -0.18, 0));
+      makePlate(G, 'Please do not ride the camel', 1.3, 0.16, new V3(hx - 0.1, 0.35, hz - 0.9), Math.PI / 2, { size: 0.5, bg: '#ffffff', fg: '#7a5236' });
+      camels.push({ head, tail, H, hx, hz, hills: [h1, h2], over: -1 });
+    }
+    function buildVolcano(H, f) {
+      const lava = new THREE.Mesh(new THREE.RingGeometry(CUP_R + 0.02, 0.2, 24), new THREE.MeshBasicMaterial({ color: 0xff6a2a, transparent: true, opacity: 0.85 }));
+      lava.rotation.x = -Math.PI / 2; lava.position.set(H.x + f.c[0], height(H, f.c[0], f.c[1]) + 0.004, H.z + f.c[1]); G.add(lava);
+      const puffs = [];
+      for (let k = 0; k < 8; k++) { const m = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 6), new THREE.MeshLambertMaterial({ color: 0x8a8a90, transparent: true, opacity: 0 })); G.add(m); puffs.push({ m, a: k * 0.785 }); }
+      makePlate(G, 'Erupts every so often. Sorry!', 1.3, 0.16, new V3(H.x + H.w / 2 + 0.5, 0.5, H.z + f.c[1] + 1.2), -Math.PI / 2, { size: 0.5, bg: '#ff6a2a', fg: '#ffffff' });
+      f.lava = lava; f.puffs = puffs; f.H = H; f.last = 0; volcanos.push(f);
+    }
+    // the volcano grumbles for a moment every 7 s; a slow ball near the top gets popped off
+    const erupting = (now) => { const p = (now / 1000) % 7; return p > 6 && p < 6.8; };
     HOLES.forEach((H, i) => {
       const geo = new THREE.PlaneGeometry(H.w, H.len, Math.ceil(H.w * 8), Math.ceil(H.len * 8));
       geo.rotateX(-Math.PI / 2);
@@ -325,6 +454,12 @@
         else if (f.t === 'pond') buildPond(H, f);
         else if (f.t === 'mole') buildMole(H, f);
         else if (f.t === 'jump') buildJump(H, f);
+        else if (f.t === 'walker') buildWalker(H, f);
+        else if (f.t === 'conveyor') buildConveyor(H, f);
+        else if (f.t === 'ufo') buildUfo(H, f);
+        else if (f.t === 'kick') buildKick(H, f);
+        else if (f.t === 'camel') buildCamel(H, f);
+        else if (f.t === 'volcano') buildVolcano(H, f);
       }
     });
     // a giant rubber duck at the end of the pier, for photos
@@ -561,6 +696,29 @@
           if (lz < f.z1 && lz > f.gapTo) { splash(b, H, now, cb, H.x + lx, H.z + lz, null); return; }
         }
         if (f.t === 'pond' && Math.hypot(lx - f.c[0], lz - f.c[1]) < f.r - 0.01) { splash(b, H, now, cb, H.x + lx, H.z + lz, null); return; }
+        if (f.t === 'ufo' && !(b.ufoT && now - b.ufoT < 2500)) {
+          ufoAt(f, now, _wk);
+          if (Math.hypot(lx - _wk[0], lz - _wk[1]) < f.beam) {
+            const dr = f.drops[Math.floor(now / 3000) % f.drops.length];
+            b.ufoT = now;
+            if (!simQuiet) {
+              b.vis = { k: 'ufo', t0: now, t1: now + 1900, ax: H.x + lx, az: H.z + lz, bx: H.x + dr[0], bz: H.z + dr[1] };
+              tone(300, 1400, 0.7, 'sine', 0.22); tone(1400, 300, 0.5, 'sine', 0.18, 1.2);
+              spawnFloat('Beam me up!', new V3(H.x + lx, 1.2, H.z + lz), '#a8ffb0');
+            }
+            lx = dr[0]; lz = dr[1]; b.vx = 0; b.vz = 0;
+            put(); return;
+          }
+        }
+        if (f.t === 'kick' && Math.hypot(lx - f.c[0], lz - f.c[1]) < f.r && !(b.kickT && now - b.kickT < 400)) {
+          b.vx = f.dir[0] * f.sp; b.vz = f.dir[1] * f.sp; b.kickT = now;
+          if (!simQuiet) { tone(880, 1320, 0.08, 'square', 0.15); tone(1320, 1760, 0.08, 'square', 0.12, 0.08); f.flash = 0.3; spawnFloat('+500', new V3(H.x + lx, 0.5, H.z + lz), '#4fc3f7'); }
+        }
+        if (f.t === 'volcano' && erupting(now) && Math.hypot(lx - f.c[0], lz - f.c[1]) < 0.45 && sp0 < 1.4) {
+          let dx = lx - f.c[0], dz = lz - f.c[1]; const d = Math.hypot(dx, dz);
+          if (d < 0.02) { dx = 0; dz = 1; } else { dx /= d; dz /= d; }
+          b.vx = dx * 1.7; b.vz = dz * 1.7;
+        }
       }
       for (const f of H.feats) {
         if (f.t === 'wall' || f.t === 'spin' || f.t === 'mill' || f.t === 'mouth') {
@@ -577,7 +735,10 @@
             let wvx = 0, wvz = 0;
             if (f.t === 'spin') { wvx = -f.w * (cz - f.c[1]); wvz = f.w * (cx - f.c[0]); }
             const vn = (b.vx - wvx) * nx + (b.vz - wvz) * nz;
-            if (vn < 0) { bonk(-vn); b.vx -= 1.65 * vn * nx; b.vz -= 1.65 * vn * nz; }
+            if (vn < 0) {
+              bonk(-vn); b.vx -= 1.65 * vn * nx; b.vz -= 1.65 * vn * nz;
+              if (f.t === 'spin' && H.nope && !simQuiet && now - (f.nopeT || 0) > 900) { f.nopeT = now; spawnFloat(rand() < 0.5 ? 'Nope!' : 'Not today!', new V3(H.x + lx, 0.5, H.z + lz), '#ffffff'); tone(500, 300, 0.12, 'square', 0.12); }
+            }
           }
         } else if (f.t === 'bump') {
           const dx = lx - f.c[0], dz = lz - f.c[1], d = Math.hypot(dx, dz), min = BR + f.r;
@@ -589,8 +750,17 @@
               b.vx -= 2.15 * vn * nx; b.vz -= 2.15 * vn * nz;
               const out = b.vx * nx + b.vz * nz, want = Math.max(1.5, -vn * 1.25);
               if (out < want) { b.vx += nx * (want - out); b.vz += nz * (want - out); }
-              if (!simQuiet) { tone(1250, 0, 0.12, 'sine', 0.18); f.flash = 0.2; }
+              if (!simQuiet) { tone(1250, 0, 0.12, 'sine', 0.18); f.flash = 0.2; if (H.pinball) { tone(1600, 2000, 0.06, 'square', 0.12, 0.05); spawnFloat('+1000', new V3(H.x + f.c[0], 0.5, H.z + f.c[1]), '#ffd23f'); } }
             }
+          }
+        } else if (f.t === 'walker') {
+          walkerAt(f, now, _wk);
+          const dx = lx - _wk[0], dz = lz - _wk[1], d = Math.hypot(dx, dz), min = BR + f.r;
+          if (d < min && d > 1e-6) {
+            const nx = dx / d, nz = dz / d;
+            lx = _wk[0] + nx * min; lz = _wk[1] + nz * min;
+            const vn = (b.vx - _wk[2]) * nx + (b.vz - _wk[3]) * nz;
+            if (vn < 0) { b.vx -= 1.7 * vn * nx; b.vz -= 1.7 * vn * nz; if (!simQuiet) critterSound(f, H, now, H.x + lx, H.z + lz); }
           }
         } else if (f.t === 'mole' && moleUp(f, now)) {
           // a mole that's up is in the way (boing)
@@ -628,6 +798,34 @@
       }
     }
 
+    const CRITTER = {
+      turtle: ['Boop!', () => tone(420, 260, 0.18, 'sine', 0.25)],
+      cow: ['Moo!', () => { tone(180, 120, 0.8, 'sawtooth', 0.12); tone(185, 125, 0.8, 'triangle', 0.15); }],
+      penguin: ['Squeak!', () => tone(1300, 1800, 0.12, 'sine', 0.2)],
+      dino: ['Rawr!', () => { tone(150, 90, 0.5, 'sawtooth', 0.15); tone(160, 95, 0.5, 'square', 0.06); }],
+    };
+    function critterSound(f, H, now, x, z) {
+      if (now - f.bonk < 700) return;
+      f.bonk = now;
+      const c = CRITTER[f.kind] || CRITTER.turtle;
+      c[1]();
+      spawnFloat(c[0], new V3(x, 0.6, z), '#ffffff');
+    }
+    // a ball at rest can still be bumped by a passing animal or popped by the volcano
+    function nudgeResting(b, H, now) {
+      const lx = b.x - H.x, lz = b.z - H.z;
+      for (const f of H.feats) {
+        if (f.t === 'walker') {
+          walkerAt(f, now, _wk);
+          const dx = lx - _wk[0], dz = lz - _wk[1], d = Math.hypot(dx, dz);
+          if (d < BR + f.r && d > 1e-6) { b.vx = (dx / d) * 0.6 + _wk[2]; b.vz = (dz / d) * 0.6 + _wk[3]; critterSound(f, H, now, b.x, b.z); return true; }
+        } else if (f.t === 'volcano' && erupting(now) && Math.hypot(lx - f.c[0], lz - f.c[1]) < 0.45) {
+          let dx = lx - f.c[0], dz = lz - f.c[1]; const d = Math.hypot(dx, dz) || 1;
+          b.vx = (dx / d) * 1.7; b.vz = (dz / d) * 1.7; return true;
+        }
+      }
+      return false;
+    }
     function ballPos(b, H, now, out) {
       const v = b.vis;
       if (v && now < v.t1) {
@@ -638,6 +836,11 @@
           if (u < 0.18) return out.set(v.ax, FELT + BR, v.az - (u / 0.18) * 0.25);
           if (u < 0.8) return null;
           return out.set(v.bx, FELT + BR - (1 - (u - 0.8) / 0.2) * 0.07, v.bz);
+        }
+        if (v.k === 'ufo') {
+          if (u < 0.35) { const w = u / 0.35; return out.set(v.ax, FELT + BR + w * w * 1.0, v.az); }
+          if (u < 0.7) { const w = (u - 0.35) / 0.35; return out.set(v.ax + (v.bx - v.ax) * w, FELT + BR + 1.0, v.az + (v.bz - v.az) * w); }
+          const w = (u - 0.7) / 0.3; return out.set(v.bx, FELT + BR + 1.0 * (1 - w * w), v.bz);
         }
         if (v.k === 'splash') {
           const tA = v.arc ? v.arc.ms / (v.t1 - v.t0) : 0;
@@ -806,6 +1009,52 @@
       for (const f of ponds) f.duckG.forEach((d, k) => { const a = now * 0.00035 * (k % 2 ? -1 : 1) + k * Math.PI; d.position.set(f.wx + Math.cos(a) * f.r * 0.55, FELT + 0.03 + Math.sin(now * 0.003 + k) * 0.006, f.wz + Math.sin(a) * f.r * 0.55); d.rotation.y = -a + (k % 2 ? Math.PI : 0); });
       for (const f of sharks) { const a = now * 0.0011, span = f.H.w / 2 - 0.2; f.fin.position.set(f.H.x + Math.sin(a) * span, FELT + 0.13, f.wz + Math.sin(a * 2.3) * 0.15); f.fin.rotation.y = Math.cos(a) > 0 ? 0 : Math.PI; }
       for (const f of frogs) for (const p of f.pupils) { p.m.position.x = p.x0 + Math.sin(now * 0.004) * 0.05; p.m.position.y = p.y0 + Math.cos(now * 0.0031) * 0.03; }
+      for (const f of walkers) {
+        walkerAt(f, now, _wk);
+        const y = height(f.H, _wk[0], _wk[1]);
+        f.g.position.set(f.H.x + _wk[0], y, f.H.z + _wk[1]);
+        if (Math.hypot(_wk[2], _wk[3]) > 0.01) f.g.rotation.y = Math.atan2(_wk[2], _wk[3]);
+        const bonked = now - f.bonk < 600, wob = Math.sin(now * 0.012);
+        f.body.rotation.z = f.kind === 'penguin' ? wob * 0.18 : f.kind === 'dino' ? wob * 0.05 : 0;
+        f.body.position.y = bonked ? Math.sin((now - f.bonk) / 600 * Math.PI) * 0.06 : Math.abs(wob) * (f.kind === 'penguin' ? 0.015 : 0.005);
+        if (f.head && f.kind === 'turtle') f.head.scale.setScalar(bonked ? 0.3 : 1);
+        if (f.head && f.kind === 'cow') f.head.rotation.z = bonked ? Math.sin(now * 0.04) * 0.3 : 0;
+      }
+      for (const f of belts) {
+        f.tex.offset.x = (now / 1000) * (-f.ax) * 0.5 / 0.35 % 1;
+        const span = f.x1 - f.x0, k = (((now / 1000) * 0.35) % span + span) % span;
+        f.chicken.position.set(f.H.x + f.x1 - k, FELT + 0.05 + Math.abs(Math.sin(now * 0.01)) * 0.02, f.H.z + (f.z0 + f.z1) / 2);
+      }
+      for (const f of ufos) {
+        ufoAt(f, now, _wk);
+        const x = f.H.x + _wk[0], z = f.H.z + _wk[1];
+        f.g.position.set(x, 1.5 + Math.sin(now * 0.003) * 0.05, z); f.g.rotation.y = now * 0.002;
+        f.beamM.position.set(x, FELT + 0.72, z); f.beamM.scale.y = 1.4; f.beamM.material.opacity = 0.16 + 0.06 * Math.sin(now * 0.01);
+        f.spot.position.set(x, FELT + 0.005, z);
+        f.lights.forEach((l, k) => l.material.color.setHex((Math.floor(now / 150) + k) % 3 ? 0xffd23f : 0xff5c8a));
+      }
+      for (const f of kicks) { f.flash = Math.max(0, f.flash - dt); f.pad.material.emissive.setHex(f.flash > 0 ? 0x8be0ff : (Math.floor(now / 400) % 2 ? 0x0a3a5a : 0x15507a)); }
+      for (const c of camels) {
+        // the camel watches your ball, and grunts as it rolls over a hump
+        const lx = B.x - c.H.x, lz = B.z - c.H.z;
+        c.head.rotation.y = HOLES[me.hole] === c.H ? clamp(Math.atan2(B.x - c.hx, B.z - c.hz) - Math.PI, -0.8, 0.8) * 0.6 : Math.sin(now * 0.0007) * 0.3;
+        c.tail.rotation.x = Math.sin(now * 0.006) * 0.4;
+        const on = HOLES[me.hole] === c.H && me.phase === 'moving' ? c.hills.findIndex((f) => Math.hypot(lx - f.c[0], lz - f.c[1]) < 0.2) : -1;
+        if (on >= 0 && on !== c.over) { tone(140, 90, 0.35, 'sawtooth', 0.1); spawnFloat('Hrrumph', new V3(B.x, 0.7, B.z), '#d8a860'); }
+        c.over = on;
+      }
+      for (const f of volcanos) {
+        const er = erupting(now), p = ((now / 1000) % 7 - 6) / 0.8;
+        f.lava.material.color.setHex(er ? 0xffd23f : 0xff6a2a);
+        if (er && !f.last) { tone(70, 45, 0.9, 'sawtooth', 0.15); if (HOLES[me.hole] === f.H) showToast('The volcano rumbles!'); }
+        f.last = er ? 1 : 0;
+        for (const q of f.puffs) {
+          q.m.material.opacity = er ? 0.7 * (1 - p) : 0;
+          q.m.position.set(f.H.x + f.c[0] + Math.cos(q.a) * p * 0.4, FELT + 0.3 + p * 0.9 + Math.sin(q.a * 3) * 0.05, f.H.z + f.c[1] + Math.sin(q.a) * p * 0.4);
+          q.m.scale.setScalar(0.6 + p * 1.4);
+        }
+      }
+      if (me.phase === 'rest' && nudgeResting(B, H0(), now)) { me.phase = 'moving'; forcePresence(); }
       for (const H of HOLES) for (const f of H.feats) if (f.t === 'bump') { f.flash = Math.max(0, f.flash - dt); f.mesh.material.emissive.setHex(f.flash > 0 ? 0xff8ab0 : 0x330010); }
       if (me.phase === 'moving') {
         const steps = 4, h = dt / steps;
@@ -1095,7 +1344,7 @@
       baseDrawMG(all);
     };
     L.beaInternals = { planPutt, beaStep, beaToHole };
-    L.mgInternals = { ballStep, ballPos, millBlocked, moleUp, HOLES, B, me, placeOnTee, goToHole, strike };
+    L.mgInternals = { ballStep, ballPos, millBlocked, moleUp, HOLES, B, me, placeOnTee, goToHole, strike, walkerAt, ufoAt, erupting, nudgeResting };
     return L;
   })();
 

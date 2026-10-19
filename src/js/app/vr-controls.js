@@ -255,6 +255,7 @@
     // buttons are pressed by touching them
     for (const btn of L.buttons) {
       btn.near = false;
+      if (btn.off) continue;
       for (const side of SIDES) {
         const mh = myHands[side];
         if (!mh.ok) continue;

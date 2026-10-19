@@ -140,7 +140,7 @@
     g.fillStyle = 'rgba(255,255,255,0.9)';
     g.beginPath(); g.arc(64, 64, 10, 0, Math.PI * 2); g.fill();
   }).tex;
-  const discGeo = new THREE.CylinderGeometry(0.105, 0.1, 0.022, 28);
+  const discGeo = new THREE.CylinderGeometry(0.14, 0.133, 0.028, 32);   // a little bigger than a real disc, so it's easy to see and hold
   function makeDiscMesh(colorHex) {
     const side = new THREE.MeshLambertMaterial({ color: colorHex });
     const top = new THREE.MeshLambertMaterial({ color: colorHex, map: discTopTex });
@@ -506,14 +506,14 @@
     { id: 'minigolf', name: 'Seaside mini golf', short: 'Mini golf', glyph: '\u26F3', blurb: 'Fourteen silly holes on a sunny pier: a windmill, a loop-de-loop, a giant frog, moles and a shark jump.' },
     { id: 'bowling', name: 'Moonlight Lanes', short: 'Bowling', glyph: '\u{1F3B3}', blurb: 'Ten frames in a neon bowling alley. Strikes count extra.' },
     { id: 'hub', name: 'The Clubhouse', short: 'Clubhouse', glyph: '\u{1F3E0}', blurb: 'Hang out, dance, change your look, and walk through a portal to any game.' },
-    { id: 'karts', name: 'Pebble Bay go-karts', short: 'Go-karts', glyph: '\u{1F3CE}\uFE0F', blurb: 'Lap the bay or start a three-lap race with friends.' },
+    { id: 'karts', name: 'Pebble Bay go-karts', short: 'Go-karts', glyph: '\u{1F3CE}\uFE0F', blurb: 'Three-lap races with items, drifting, jump ramps, coins and giant beach balls.' },
     { id: 'siege', name: 'Skyline Siege', short: 'Siege', glyph: '\u{1F52B}', blurb: 'A co-op sci-fi raid with four kinds of laser gun.' },
     { id: 'hexwood', name: 'Hexwood Hollow', short: 'Hexwood', glyph: '\u{1FA84}', blurb: 'A co-op quest through a haunted forest with a three-spell wand.' },
     { id: 'hideseek', name: 'Sunset Backyards', short: 'Hide & seek', glyph: '\u{1F648}', blurb: 'Hide-and-seek at golden hour, with friends or bots.' },
     { id: 'charades', name: 'Charades Lounge', short: 'Charades', glyph: '\u{1F3AD}', blurb: 'Act it out or draw it in the air with a 3D pen. Best with friends.' },
     { id: 'paintball', name: 'Paintball Park', short: 'Paintball', glyph: '\u{1F3A8}', blurb: 'Red against blue among inflatable bunkers. Five markers, real paint.' },
     { id: 'pickleball', name: 'Sunny Pickleball Courts', short: 'Pickleball', glyph: '\u{1F3D3}', blurb: 'Singles pickleball with the kitchen and the two-bounce rule, against a friend or Dink Daisy.' },
-    { id: 'parkour', name: 'Skyline Sprint', short: 'Parkour', glyph: '\u{1F9D7}', blurb: 'A parkour race: grab, climb, slide and leap to the finish, with power-up drinks.' },
+    { id: 'parkour', name: 'Skyline Sprint', short: 'Parkour', glyph: '\u{1F9D7}', blurb: 'A parkour race on three courses: grab, climb, slide, bounce and leap to the finish, with power-up drinks.' },
     { id: 'dodgeball', name: 'Gym Class Dodgeball', short: 'Dodgeball', glyph: '\u{1F534}', blurb: 'Red against blue in a school gym. Hit them, catch to bring a teammate back. Friends or bots.' },
     { id: 'potato', name: 'Harvest Hot Potato', short: 'Hot potato', glyph: '\u{1F954}', blurb: 'Pass the ticking potato before it pops. Last one standing wins. Friends or bots.' },
     { id: 'kayak', name: 'Whitewater Rapids', short: 'Kayak', glyph: '\u{1F6F6}', blurb: 'A kayak race down a river: paddle, dodge the rocks, ride the drops. In VR you paddle for real.' },

@@ -15,19 +15,57 @@
 
     // ---------------------------------------------------------------- tuning
     const GRAV = 16, RUN = 5.6, JUMP_V = 6.7, STEP = 0.4, R = 0.3;
-    const KILL_Y = -6, FINISH_Z = -169.5, FINISH_Y = 7.9, COUNT_MS = 4000;
+    const KILL_Y = -6, COUNT_MS = 4000;
     const _t = new V3(), _u = new V3(), _cp = new V3(), _cq = new Q4(), _fw = new V3();
 
     // ---------------------------------------------------------------- the course
     const concrete = lam(0x8a8274), darkc = lam(0x6b5a8a), steel = lam(0xc8ccd6), slideMat = lam(0x3fc8ff);
-    const SOL = [], RAMPS = [], HOLDS = [], ZONES = [], MOVERS = [];
+    // Three courses share the start pad, the buttons and the race; each has its own pieces, holds, checkpoints,
+    // drinks and a route for the bots. Only the chosen one is shown and solid.
+    const COURSES = [];
+    let C = null, CG = G, SOL = [], RAMPS = [], HOLDS = [], ZONES = [], MOVERS = [], CPS = [], bottles = [], ROUTE = [], ROUTE_T = [0];
+    let FINISH_Z = -169.5, FINISH_Y = 7.9, CLEN = 180, pegPts = [];
+    function beginCourse(def) {
+      const g = new THREE.Group(); G.add(g);
+      const c = Object.assign({ g, SOL: [], RAMPS: [], HOLDS: [], ZONES: [], MOVERS: [], pegPts: [], bottles: [] }, def);
+      COURSES.push(c);
+      CG = g; SOL = c.SOL; RAMPS = c.RAMPS; HOLDS = c.HOLDS; ZONES = c.ZONES; MOVERS = c.MOVERS; pegPts = c.pegPts;
+      // the shared start pad is part of every course
+      plat(0, -1, 8, 14, 0, concrete).shared = true;
+      makePlate(CG, c.name.toUpperCase(), 4.4, 0.7, new V3(0, 3.8, -7.4), 0, { bg: '#3a2a6a', fg: '#ffd23f', size: 0.7 });
+      return c;
+    }
+    function endCourse(c) {
+      const im = new THREE.InstancedMesh(pegGeo, new THREE.MeshLambertMaterial({ color: 0xffffff }), Math.max(1, c.pegPts.length)), d = new THREE.Object3D(), col = new THREE.Color();
+      im.count = c.pegPts.length;
+      c.pegPts.forEach((p, i) => { d.position.set(p.x, p.y, p.z - 0.06); d.updateMatrix(); im.setMatrixAt(i, d.matrix); im.setColorAt(i, col.setHSL((i * 0.137) % 1, 0.8, 0.6)); });
+      im.frustumCulled = false; c.g.add(im);
+      c.ROUTE_T = [0];
+      for (let i = 1; i < c.ROUTE.length; i++) { const a = c.ROUTE[i - 1], b = c.ROUTE[i]; c.ROUTE_T.push(c.ROUTE_T[i - 1] + Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]) / b[3]); }
+      c.len = 3 - c.finishZ;
+      // a finish arch, and buttons on the finish platform: race again, or back to the start
+      finishArch(c);
+      c.bottles = c.drinks.map(([k, x, y, z]) => makeBottle(k, x, y, z));
+      c.g.visible = false;
+    }
     function solid(x0, x1, y0, y1, z0, z1, mat, extra) {
-      const mesh = addBox(G, x1 - x0, y1 - y0, z1 - z0, mat || concrete, (x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2);
-      const s = Object.assign({ x0, x1, y0, y1, z0, z1, mesh }, extra || {});
+      const mesh = addBox(CG, x1 - x0, y1 - y0, z1 - z0, mat || concrete, (x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2);
+      const s = Object.assign({ x0, x1, y0, y1, z0, z1, mesh, my: (y0 + y1) / 2 }, extra || {});
       SOL.push(s);
       return s;
     }
     const plat = (cx, cz, w, d, top, mat) => solid(cx - w / 2, cx + w / 2, top - 0.7, top, cz - d / 2, cz + d / 2, mat);
+    // a trampoline: land on it and it throws you high
+    const trampMat = lam(0x2b2d42), trampTop = new THREE.MeshLambertMaterial({ color: 0x8bd450, emissive: 0x1a3a0a });
+    function trampoline(cx, cz, w, top, bounce) {
+      const s = solid(cx - w / 2, cx + w / 2, top - 0.5, top, cz - w / 2, cz + w / 2, trampMat, { bounce });
+      const pad = new THREE.Mesh(new THREE.BoxGeometry(w - 0.3, 0.06, w - 0.3), trampTop); pad.position.set(cx, top + 0.03, cz); CG.add(pad);
+      s.pad = pad;
+      return s;
+    }
+    // a tile that gives way a moment after you land on it (and comes back a few seconds later)
+    const crumbleMat = () => new THREE.MeshLambertMaterial({ color: 0xc8a070, emissive: 0x000000 });
+    const crumble = (cx, cz, w, top) => solid(cx - w / 2, cx + w / 2, top - 0.5, top, cz - w / 2, cz + w / 2, crumbleMat(), { crumble: true });
     // the water far below
     const water = new THREE.Mesh(new THREE.PlaneGeometry(900, 900), new THREE.MeshBasicMaterial({ color: 0x2a74b0 }));
     water.rotation.x = -Math.PI / 2; water.position.set(0, -8, -80); G.add(water);
@@ -37,50 +75,22 @@
         const x = (r() < 0.5 ? -1 : 1) * (22 + r() * 70), z = 20 - r() * 230, h = 14 + r() * 60, w = 6 + r() * 12;
         addBox(G, w, h, w, lam(new THREE.Color().setHSL(0.72, 0.25, 0.16 + r() * 0.12).getHex()), x, h / 2 - 10, z);
       } }
-    // 1. the start, and stepping stones
-    plat(0, -1, 8, 14, 0, concrete);
-    [[1.4, -12, 0], [-1.4, -17, 0.3], [1.2, -22, 0.6], [-1.2, -27, 0.3]].forEach(([x, z, y]) => plat(x, z, 2.4, 2.4, y, darkc));
-    // 2. the climbing wall (and the base in front of it)
-    plat(0, -35.7, 8, 11.4, 0, concrete);
-    solid(-4, 4, -0.7, 7, -42.2, -41.4, lam(0x8a7ab0));
-    plat(0, -47.1, 8, 9.8, 7, concrete);
-    // 3. monkey bars over the gap, and the platform after
-    plat(0, -68.3, 8, 7.4, 7, concrete);
-    // 4. the slide, and the platform it lands on
-    const SLIDE = { x0: -1.7, x1: 1.7, zTop: -72, zBot: -96, yTop: 7, yBot: 0.2 };
-    RAMPS.push(SLIDE);
-    plat(0, -100, 8, 8, 0.2, concrete);
-    // 5. moving platforms
-    [[-108.5, 0], [-113, 0.37], [-117.5, 0.71]].forEach(([z, ph]) => {
-      const s = solid(-1.3, 1.3, -0.5, 0.2, z - 1.3, z + 1.3, lam(0xff9a3a), { mover: { z, ph } });
-      MOVERS.push(s);
-    });
-    plat(0, -122.2, 8, 3.6, 0.2, concrete);
-    // 6. poles, and the platform after
-    plat(0, -147.8, 8, 4.4, 0.2, concrete);
-    // 7. the beam, the foot of the tower, and the tower
-    solid(-0.3, 0.3, -0.2, 0.2, -160, -150, lam(0xe8b54a));
-    plat(0, -164, 8, 8, 0.2, concrete);
-    solid(-4, 4, -0.7, 8.2, -169, -168, lam(0x8a7ab0));
-    plat(0, -174, 8, 10, 8.2, concrete);
-    // checkpoints: where you come back after a fall
-    const CPS = [
-      { x: 0, y: 0, z: 3, rect: null }, { x: 0, y: 0, z: -33, rect: [-4, 4, -41, -30.5] }, { x: 0, y: 7, z: -46, rect: [-4, 4, -52, -42.5] },
-      { x: 0, y: 0.2, z: -100, rect: [-4, 4, -104, -96.2] }, { x: 0, y: 0.2, z: -122, rect: [-4, 4, -124, -120.4] },
-      { x: 0, y: 0.2, z: -148, rect: [-4, 4, -150, -145.6] }, { x: 0, y: 0.2, z: -164, rect: [-4, 4, -168, -160.2] },
-    ];
-    // the slide itself, with rails
-    { const len = Math.hypot(SLIDE.zTop - SLIDE.zBot, SLIDE.yTop - SLIDE.yBot), ang = Math.atan2(SLIDE.yTop - SLIDE.yBot, SLIDE.zTop - SLIDE.zBot);
-      const m = new THREE.Mesh(boxg(SLIDE.x1 - SLIDE.x0, 0.3, len), slideMat);
-      m.position.set(0, (SLIDE.yTop + SLIDE.yBot) / 2 - 0.15 / Math.cos(ang), (SLIDE.zTop + SLIDE.zBot) / 2); m.rotation.x = -ang; G.add(m);
-      const rampY = (z) => SLIDE.yBot + (SLIDE.yTop - SLIDE.yBot) * (z - SLIDE.zBot) / (SLIDE.zTop - SLIDE.zBot);
-      for (let z = SLIDE.zBot; z < SLIDE.zTop - 0.1; z += 3) for (const sx of [-1, 1]) {
-        const zl = z, zh = Math.min(z + 3, SLIDE.zTop);
-        solid(sx > 0 ? SLIDE.x1 : SLIDE.x0 - 0.2, sx > 0 ? SLIDE.x1 + 0.2 : SLIDE.x0, rampY(zl) - 0.3, rampY(zh) + 0.9, zl, zh, lam(0xff4d8a));
-      } }
-    // holds: climbing walls (pegs), the monkey bars, the poles
+    // slides: a ramp down toward -z, with rails
+    function slide(S) {
+      S.ramp = true;
+      RAMPS.push(S);
+      const len = Math.hypot(S.zTop - S.zBot, S.yTop - S.yBot), ang = Math.atan2(S.yTop - S.yBot, S.zTop - S.zBot);
+      const m = new THREE.Mesh(boxg(S.x1 - S.x0, 0.3, len), slideMat);
+      m.position.set((S.x0 + S.x1) / 2, (S.yTop + S.yBot) / 2 - 0.15 / Math.cos(ang), (S.zTop + S.zBot) / 2); m.rotation.x = -ang; CG.add(m);
+      const rampY = (z) => S.yBot + (S.yTop - S.yBot) * (z - S.zBot) / (S.zTop - S.zBot);
+      for (let z = S.zBot; z < S.zTop - 0.1; z += 3) for (const sx of [-1, 1]) {
+        const zl = z, zh = Math.min(z + 3, S.zTop);
+        solid(sx > 0 ? S.x1 : S.x0 - 0.2, sx > 0 ? S.x1 + 0.2 : S.x0, rampY(zl) - 0.3, rampY(zh) + 0.9, zl, zh, lam(0xff4d8a));
+      }
+      return S;
+    }
+    // holds: climbing walls (pegs), monkey bars, poles
     const pegGeo = new THREE.CylinderGeometry(0.05, 0.06, 0.26, 8); pegGeo.rotateX(Math.PI / 2);
-    const pegPts = [];
     function climbWall(x0, x1, zFace, yBase, yTop, wallTopY, mantleZ, seed) {
       const r = mulberry32(seed);
       const Z = { kind: 'wall', z: zFace, nz: 1, x0, x1, y0: yBase, y1: wallTopY, topY: wallTopY, mantleZ };
@@ -90,37 +100,38 @@
       }
       HOLDS.push({ a: new V3(x0, wallTopY, zFace), b: new V3(x1, wallTopY, zFace), r: 0.12, wall: Z, lip: true });   // the lip at the top
       // a bright strip along the lip, so it reads as something to grab
-      addBox(G, x1 - x0, 0.07, 0.1, lam(0xffd23f), (x0 + x1) / 2, wallTopY - 0.04, zFace + 0.055);
+      addBox(CG, x1 - x0, 0.07, 0.1, lam(0xffd23f), (x0 + x1) / 2, wallTopY - 0.04, zFace + 0.055);
       ZONES.push(Z);
     }
-    climbWall(-2.7, 2.7, -41.4, 0.9, 6.6, 7, -43.2, 11);
-    climbWall(-2.7, 2.7, -168, 0.9, 7.95, 8.2, -170, 12);    // top row at 7.9, just under the lip
-    { const im = new THREE.InstancedMesh(pegGeo, new THREE.MeshLambertMaterial({ color: 0xffffff }), pegPts.length), d = new THREE.Object3D(), c = new THREE.Color();
-      pegPts.forEach((p, i) => { d.position.set(p.x, p.y, p.z - 0.06 + 0.0); d.updateMatrix(); im.setMatrixAt(i, d.matrix); im.setColorAt(i, c.setHSL((i * 0.137) % 1, 0.8, 0.6)); });
-      im.frustumCulled = false; G.add(im); }
-    // monkey bars: rungs every metre, between two frames
-    { const BAR_Y = 9.2, rungs = [];
-      for (let z = -53; z >= -65.01; z -= 1) {
-        const m = new THREE.Mesh(cyl(0.04, 0.04, 1.8, 8), steel); m.rotation.z = Math.PI / 2; m.position.set(0, BAR_Y, z); G.add(m);
+    // monkey bars: rungs every metre from z0 down to z1, between two frames
+    function monkeyBars(BAR_Y, z0, z1) {
+      for (let z = z0; z >= z1 - 0.01; z -= 1) {
+        const m = new THREE.Mesh(cyl(0.04, 0.04, 1.8, 8), steel); m.rotation.z = Math.PI / 2; m.position.set(0, BAR_Y, z); CG.add(m);
         HOLDS.push({ a: new V3(-0.9, BAR_Y, z), b: new V3(0.9, BAR_Y, z), r: 0.05 });
       }
-      for (const z of [-52.6, -65.4]) for (const sx of [-1, 1]) addBox(G, 0.14, 12, 0.14, darkc, sx * 1.0, BAR_Y - 5.5, z);
-      for (const sx of [-1, 1]) addBox(G, 0.1, 0.1, 13, darkc, sx * 1.0, BAR_Y + 0.4, -59);
-      ZONES.push({ kind: 'bars', y: BAR_Y, z0: -53, z1: -65, xHalf: 0.9 }); }
-    // poles
-    const POLES = [[1.3, -128.5], [-1.3, -133], [1.3, -137.5], [-1.3, -142]];
-    POLES.forEach(([x, z]) => {
-      const m = new THREE.Mesh(cyl(0.1, 0.1, 14, 10), lam(0xff9a3a)); m.position.set(x, -2.5, z); G.add(m);
-      const cap = new THREE.Mesh(sph(0.16, 10, 8), lam(0xffd23f)); cap.position.set(x, 4.55, z); G.add(cap);
-      HOLDS.push({ a: new V3(x, -9, z), b: new V3(x, 4.5, z), r: 0.1 });
-      ZONES.push({ kind: 'pole', x, z, y0: -8, y1: 4.5 });
-    });
-    // signs and gates
-    makePlate(G, 'SKYLINE SPRINT', 4.4, 0.7, new V3(0, 3.8, -7.4), 0, { bg: '#3a2a6a', fg: '#ffd23f', size: 0.7 });
-    const gateSign = makePlate(G, 'Press START', 2.6, 0.5, new V3(0, 2.5, -7.3), 0, { bg: '#16142e', fg: '#8bd450', size: 0.6 });
-    makePlate(G, 'FINISH', 4, 0.8, new V3(0, 11.2, -172.5), 0, { bg: '#d8f43a', fg: '#16142e', size: 0.75 });
-    for (const sx of [-1, 1]) addBox(G, 0.3, 4, 0.3, lam(0xd8f43a), sx * 3.2, 10.2, -172.5);
-    addBox(G, 6.9, 0.3, 0.3, lam(0xd8f43a), 0, 12.1, -172.5);
+      for (const z of [z0 + 0.4, z1 - 0.4]) for (const sx of [-1, 1]) addBox(CG, 0.14, 12, 0.14, darkc, sx * 1.0, BAR_Y - 5.5, z);
+      for (const sx of [-1, 1]) addBox(CG, 0.1, 0.1, Math.abs(z0 - z1) + 1, darkc, sx * 1.0, BAR_Y + 0.4, (z0 + z1) / 2);
+      ZONES.push({ kind: 'bars', y: BAR_Y, z0, z1, xHalf: 0.9 });
+    }
+    function poles(list, topY) {
+      for (const [x, z] of list) {
+        const m = new THREE.Mesh(cyl(0.1, 0.1, topY + 9.5, 10), lam(0xff9a3a)); m.position.set(x, (topY - 9.5) / 2 + 0.05, z); CG.add(m);
+        const cap = new THREE.Mesh(sph(0.16, 10, 8), lam(0xffd23f)); cap.position.set(x, topY + 0.05, z); CG.add(cap);
+        HOLDS.push({ a: new V3(x, -9, z), b: new V3(x, topY, z), r: 0.1 });
+        ZONES.push({ kind: 'pole', x, z, y0: -8, y1: topY });
+      }
+    }
+    function finishArch(c) {
+      const z = c.finishZ - 3, y = c.finishY + 0.3;
+      makePlate(c.g, 'FINISH', 4, 0.8, new V3(0, y + 3, z), 0, { bg: '#d8f43a', fg: '#16142e', size: 0.75 });
+      for (const sx of [-1, 1]) addBox(c.g, 0.3, 4, 0.3, lam(0xd8f43a), sx * 3.2, y + 2, z);
+      addBox(c.g, 6.9, 0.3, 0.3, lam(0xd8f43a), 0, y + 3.9, z);
+      const LB = Object.create(L); LB.group = c.g;
+      for (const [x, col, label, fn] of [[1.3, 0x8bd450, 'Race again', () => startRace()], [-1.3, 0xff7a3a, 'Back to start', () => { toStart(); showToast('Back at the start'); }]]) {
+        addCyl(c.g, 0.12, 0.16, 0.97, 14, lam(0x6a6a7a), x, y - 0.3 + 0.485, z - 3);
+        (c.buttons = c.buttons || []).push(makeButton(LB, new V3(x, y + 0.7, z - 3), col, label, () => { if (C === c) fn(); }, { faceYaw: 0, pedestal: false }));
+      }
+    }
 
     // ---------------------------------------------------------------- the drinks
     const DRINK = {
@@ -128,19 +139,176 @@
       jump: { name: 'Bounce Cola', color: 0x4fc3f7, secs: 7, line: 'super jumps' },
       grip: { name: 'Grip Gulp', color: 0xff5c8a, secs: 9, line: 'stronger climbing and flings' },
     };
-    const DRINK_AT = [['speed', -2.4, 0, -5], ['grip', 2.4, 0, -37], ['jump', -2.4, 7, -46], ['speed', -1.4, 0.2, -101], ['jump', 1.4, 0.2, -101], ['jump', -2.4, 0.2, -122], ['grip', 2.4, 0.2, -163]];
     const glow = new THREE.SpriteMaterial({ map: warmGlowTex, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, color: 0xffffff });
-    const bottles = DRINK_AT.map(([k, x, y, z]) => {
+
+    // ---------------------------------------------------------------- course 1: Skyline Sprint
+    beginCourse({ name: 'Skyline Sprint', finishZ: -169.5, finishY: 7.9 });
+    [[1.4, -12, 0], [-1.4, -17, 0.3], [1.2, -22, 0.6], [-1.2, -27, 0.3]].forEach(([x, z, y]) => plat(x, z, 2.4, 2.4, y, darkc));
+    // the climbing wall (and the base in front of it)
+    plat(0, -35.7, 8, 11.4, 0, concrete);
+    solid(-4, 4, -0.7, 7, -42.2, -41.4, lam(0x8a7ab0));
+    plat(0, -47.1, 8, 9.8, 7, concrete);
+    // monkey bars over the gap, and the platform after
+    plat(0, -68.3, 8, 7.4, 7, concrete);
+    // the slide, and the platform it lands on
+    slide({ x0: -1.7, x1: 1.7, zTop: -72, zBot: -96, yTop: 7, yBot: 0.2 });
+    plat(0, -100, 8, 8, 0.2, concrete);
+    // moving platforms
+    [[-108.5, 0], [-113, 0.37], [-117.5, 0.71]].forEach(([z, ph]) => {
+      const s = solid(-1.3, 1.3, -0.5, 0.2, z - 1.3, z + 1.3, lam(0xff9a3a), { mover: { z, ph } });
+      MOVERS.push(s);
+    });
+    plat(0, -122.2, 8, 3.6, 0.2, concrete);
+    // poles, and the platform after
+    plat(0, -147.8, 8, 4.4, 0.2, concrete);
+    // the beam, the foot of the tower, and the tower
+    solid(-0.3, 0.3, -0.2, 0.2, -160, -150, lam(0xe8b54a));
+    plat(0, -164, 8, 8, 0.2, concrete);
+    solid(-4, 4, -0.7, 8.2, -169, -168, lam(0x8a7ab0));
+    plat(0, -174, 8, 10, 8.2, concrete);
+    climbWall(-2.7, 2.7, -41.4, 0.9, 6.6, 7, -43.2, 11);
+    climbWall(-2.7, 2.7, -168, 0.9, 7.95, 8.2, -170, 12);    // top row at 7.9, just under the lip
+    monkeyBars(9.2, -53, -65);
+    poles([[1.3, -128.5], [-1.3, -133], [1.3, -137.5], [-1.3, -142]], 4.5);
+    endCourse(Object.assign(COURSES[0], {
+      CPS: [
+        { x: 0, y: 0, z: 3, rect: null }, { x: 0, y: 0, z: -33, rect: [-4, 4, -41, -30.5] }, { x: 0, y: 7, z: -46, rect: [-4, 4, -52, -42.5] },
+        { x: 0, y: 0.2, z: -100, rect: [-4, 4, -104, -96.2] }, { x: 0, y: 0.2, z: -122, rect: [-4, 4, -124, -120.4] },
+        { x: 0, y: 0.2, z: -148, rect: [-4, 4, -150, -145.6] }, { x: 0, y: 0.2, z: -164, rect: [-4, 4, -168, -160.2] },
+      ],
+      ROUTE: [
+        [0, 0, 3, 0], [1.4, 0, -12, 5.2], [-1.4, 0.3, -17, 4.4], [1.2, 0.6, -22, 4.4], [-1.2, 0.3, -27, 4.4], [0, 0, -32, 4.4], [0, 0, -40.6, 5.2],
+        [0, 7, -41.2, 1.25], [0, 7, -48, 5], [0, 7, -53, 3], [0, 7, -65, 1.7], [0, 7, -71, 4.5], [0, 0.2, -96, 8], [0, 0.2, -103, 5],
+        [0, 0.2, -120, 3.4], [0, 0.2, -124, 4.6], [0, 0.2, -145.6, 3.6], [0, 0.2, -150, 4.6], [0, 0.2, -166, 3], [0, 8.2, -168, 1.15], [0, 8.2, -176, 5],
+      ],
+      drinks: [['speed', -2.4, 0, -5], ['grip', 2.4, 0, -37], ['jump', -2.4, 7, -46], ['speed', -1.4, 0.2, -101], ['jump', 1.4, 0.2, -101], ['jump', -2.4, 0.2, -122], ['grip', 2.4, 0.2, -163]],
+    }));
+
+    // ---------------------------------------------------------------- course 2: Rooftop Rush
+    // hop across the rooftops, bounce on a trampoline, climb, slide, cross the crumbling tiles, swing the bars,
+    // and one last trampoline up to the finish
+    beginCourse({ name: 'Rooftop Rush', finishZ: -133, finishY: 4.4 });
+    {
+      const roofA = lam(0xb86a5a), roofB = lam(0x5a8ab8);
+      plat(0, -12, 6, 6, 0.6, roofA);
+      plat(-1.5, -20.5, 5, 5, 1.2, roofB);
+      trampoline(1.5, -27.5, 3, 0.4, 11);
+      plat(1, -35.2, 6, 8.4, 3.4, roofA);
+      solid(-2, 4, 2.7, 8, -40.2, -39.4, lam(0x8a7ab0));
+      climbWall(-1.7, 3.7, -39.4, 4.3, 7.6, 8, -41.2, 21);
+      plat(1, -45, 6, 9.6, 8, roofB);
+      slide({ x0: -0.7, x1: 2.7, zTop: -49.8, zBot: -70, yTop: 8, yBot: 1 });
+      plat(1, -74, 8, 8, 1, concrete);
+      [[0, -81.5], [2, -86], [0, -90.5], [2, -95]].forEach(([x, z]) => crumble(x, z, 2.4, 1));
+      plat(0, -101, 8, 7, 1, concrete);
+      monkeyBars(3.2, -105.5, -116.5);
+      plat(0, -120.5, 8, 8.8, 1, concrete);
+      trampoline(0, -126.4, 3, 1, 12.5);
+      plat(0, -135.5, 8, 8, 4.6, roofA);
+      // chimneys and aerials, for the look of it
+      for (const [x, z, h] of [[-2.4, -12.8, 1.2], [2.6, -33, 1.6], [-1.4, -47, 1.4], [3.2, -73, 1.0], [-3, -137.5, 1.4]]) addBox(CG, 0.6, h, 0.6, lam(0x7a4a3a), x, (z < -130 ? 4.6 : z < -60 ? 1 : z < -40 ? 8 : z < -30 ? 3.4 : 0.6) + h / 2, z);
+    }
+    endCourse(Object.assign(COURSES[1], {
+      CPS: [
+        { x: 0, y: 0, z: 3, rect: null }, { x: 1, y: 3.4, z: -33, rect: [-2, 4, -39.4, -31] }, { x: 1, y: 8, z: -43, rect: [-2, 4, -49.8, -40.2] },
+        { x: 1, y: 1, z: -73, rect: [-3, 5, -78, -70] }, { x: 0, y: 1, z: -100, rect: [-4, 4, -104.5, -97.5] }, { x: 0, y: 1, z: -120, rect: [-4, 4, -124.9, -116.1] },
+      ],
+      ROUTE: [
+        [0, 0, 3, 0], [0, 0.6, -12, 5], [-1.5, 1.2, -20.5, 4.5], [1.5, 0.4, -27.5, 4.5], [1.5, 3.4, -33, 3], [1, 3.4, -39, 4.5], [1, 8, -40.6, 1.2],
+        [1, 8, -49.8, 5], [1, 1, -70, 8], [1, 1, -77, 4], [0, 1, -81.5, 4], [2, 1, -86, 4], [0, 1, -90.5, 4], [2, 1, -95, 4], [0, 1, -104, 4.5],
+        [0, 1, -116.5, 1.8], [0, 1, -125, 4.5], [0, 4.6, -132, 2.5], [0, 4.6, -137, 4.5],
+      ],
+      drinks: [['speed', 2.4, 0, -5], ['jump', -2.0, 0.6, -12], ['grip', 3.2, 3.4, -36], ['speed', -2.5, 1, -73], ['jump', 2.5, 1, -101]],
+    }));
+
+    // ---------------------------------------------------------------- course 3: Crane Yard
+    // a building site: balance beam, moving pallets, a wall, poles high over the water, crumbling planks,
+    // a long slide, and a trampoline to the top
+    beginCourse({ name: 'Crane Yard', finishZ: -148, finishY: 3.6 });
+    {
+      const yellow = lam(0xffc23a), steelD = lam(0x5a6070);
+      solid(-0.3, 0.3, -0.4, 0, -18, -8, yellow);
+      plat(0, -21, 6, 6, 0, steelD);
+      [[-27.3, 0.1], [-31.8, 0.45], [-36.3, 0.8]].forEach(([z, ph]) => MOVERS.push(solid(-1.3, 1.3, -0.5, 0, z - 1.3, z + 1.3, lam(0xff9a3a), { mover: { z, ph } })));
+      plat(0, -41, 8, 6, 0, steelD);
+      solid(-4, 4, -0.7, 7, -44.8, -44, lam(0x8a7ab0));
+      climbWall(-2.7, 2.7, -44, 0.9, 6.6, 7, -45.8, 31);
+      plat(0, -49.6, 8, 9.6, 7, steelD);
+      poles([[1.3, -58.9], [-1.3, -63.4], [1.3, -67.9], [-1.3, -72.4]], 11.5);
+      plat(0, -79, 8, 6, 7, steelD);
+      [[-1.4, -85.5], [1.4, -90], [-1.4, -94.5], [1.4, -99]].forEach(([x, z]) => crumble(x, z, 2.4, 7));
+      plat(0, -105, 8, 8, 7, steelD);
+      slide({ x0: -1.7, x1: 1.7, zTop: -109, zBot: -133, yTop: 7, yBot: 0.2 });
+      plat(0, -137, 8, 8, 0.2, steelD);
+      trampoline(0, -142.5, 3, 0.2, 12.5);
+      plat(0, -151, 8, 8, 3.8, steelD);
+      // a crane over it all
+      addBox(CG, 1.2, 30, 1.2, yellow, 9, 7, -90);
+      addBox(CG, 1.0, 1.0, 34, yellow, 9, 22, -80);
+      addBox(CG, 0.08, 10, 0.08, lam(0x2b2d42), 9, 17, -66);
+      addBox(CG, 1.4, 0.8, 1.4, lam(0xff9a3a), 9, 11.6, -66);
+      for (const [x, z] of [[-3.4, -21], [3.2, -41], [-3.2, -137]]) { addBox(CG, 0.5, 0.9, 0.5, lam(0xff7a3a), x, 0.45 + (z < -130 ? 0.2 : 0), z); addBox(CG, 0.6, 0.08, 0.6, lam(0xffffff), x, 0.6 + (z < -130 ? 0.2 : 0), z); }
+    }
+    endCourse(Object.assign(COURSES[2], {
+      CPS: [
+        { x: 0, y: 0, z: 3, rect: null }, { x: 0, y: 0, z: -21, rect: [-3, 3, -24, -18] }, { x: 0, y: 0, z: -41, rect: [-4, 4, -44, -38] },
+        { x: 0, y: 7, z: -48, rect: [-4, 4, -54.4, -44.8] }, { x: 0, y: 7, z: -79, rect: [-4, 4, -82, -76] }, { x: 0, y: 7, z: -105, rect: [-4, 4, -109, -101] },
+        { x: 0, y: 0.2, z: -137, rect: [-4, 4, -141, -133] },
+      ],
+      ROUTE: [
+        [0, 0, 3, 0], [0, 0, -8, 5], [0, 0, -18, 3.5], [0, 0, -24, 5], [0, 0, -27.3, 3], [0, 0, -31.8, 3], [0, 0, -36.3, 3], [0, 0, -43.5, 4],
+        [0, 7, -44.6, 1.2], [0, 7, -54, 5], [1.3, 7, -58.9, 2], [-1.3, 7, -63.4, 2], [1.3, 7, -67.9, 2], [-1.3, 7, -72.4, 2], [0, 7, -77, 4],
+        [-1.4, 7, -85.5, 4], [1.4, 7, -90, 4], [-1.4, 7, -94.5, 4], [1.4, 7, -99, 4], [0, 7, -108, 4.5], [0, 0.2, -133, 8], [0, 0.2, -142, 4.5],
+        [0, 3.8, -148, 2.5], [0, 3.8, -153, 4.5],
+      ],
+      drinks: [['jump', -2.4, 0, -5], ['speed', 2.2, 0, -21], ['grip', -2.6, 0, -40], ['grip', 2.6, 7, -78], ['jump', 2.4, 0.2, -137]],
+    }));
+
+    // signs and the start gate (shared)
+    const gateSign = makePlate(G, 'Press START', 2.6, 0.5, new V3(0, 2.5, -7.3), 0, { bg: '#16142e', fg: '#8bd450', size: 0.6 });
+
+    // ---------------------------------------------------------------- the drinks
+    function makeBottle(k, x, y, z) {
       const g = new THREE.Group();
       const body = new THREE.Mesh(cyl(0.05, 0.055, 0.2, 12), new THREE.MeshLambertMaterial({ color: DRINK[k].color, emissive: DRINK[k].color, emissiveIntensity: 0.3 }));
       const neck = new THREE.Mesh(cyl(0.022, 0.04, 0.08, 10), lam(0xf4f2ec)); neck.position.y = 0.14;
       const cap = new THREE.Mesh(cyl(0.026, 0.026, 0.03, 10), lam(0x232640)); cap.position.y = 0.2;
       const gl = new THREE.Sprite(glow.clone()); gl.material.color.setHex(DRINK[k].color); gl.scale.set(0.7, 0.7, 1);
       g.add(body, neck, cap, gl); g.scale.setScalar(1.35);
-      addBox(G, 0.3, 0.9, 0.3, darkc, x, y + 0.45, z);
-      g.position.set(x, y + 1.15, z); G.add(g);
+      addBox(CG, 0.3, 0.9, 0.3, darkc, x, y + 0.45, z);
+      g.position.set(x, y + 1.15, z); CG.add(g);
       return { k, g, home: new V3(x, y + 1.15, z), taken: false, held: null };
-    });
+    }
+    // the crumbling tiles and trampolines, over time
+    function updateTiles(t) {
+      for (const s of SOL) {
+        if (s.crumble) {
+          if (s.fallAt && !s.down && t > s.fallAt) { s.down = true; sfx('thump', 0.4); }
+          if (s.down && t > s.fallAt + 3200) { s.down = false; s.fallAt = 0; }
+          const shake = s.fallAt && !s.down ? Math.sin(t * 0.08) * 0.03 : 0;
+          s.mesh.position.set((s.x0 + s.x1) / 2 + shake, s.down ? s.my - Math.min(9, (t - s.fallAt) * 0.012) : s.my, (s.z0 + s.z1) / 2);
+          s.mesh.visible = !s.down || t - s.fallAt < 900;
+          s.mesh.material.emissive.setHex(s.fallAt && !s.down ? 0x5a2a00 : 0x000000);
+        } else if (s.pad) {
+          const k = s.boingT ? Math.max(0, 1 - (t - s.boingT) / 300) : 0;
+          s.pad.scale.y = 1 + k * 3; s.pad.position.y = s.y1 + 0.03 - k * 0.05;
+        }
+      }
+    }
+    function useCourse(i) {
+      i = clamp(i | 0, 0, COURSES.length - 1);
+      if (C) C.g.visible = false;
+      C = COURSES[i];
+      C.g.visible = true;
+      for (const c of COURSES) for (const b of c.buttons || []) b.off = c !== C;
+      SOL = C.SOL; RAMPS = C.RAMPS; HOLDS = C.HOLDS; ZONES = C.ZONES; MOVERS = C.MOVERS; CPS = C.CPS; bottles = C.bottles;
+      ROUTE = C.ROUTE; ROUTE_T = C.ROUTE_T; FINISH_Z = C.finishZ; FINISH_Y = C.finishY; CLEN = C.len;
+      for (const s of SOL) if (s.crumble) { s.down = false; s.fallAt = 0; }
+      for (const b of (L.pkBots || [])) b.finishT = ROUTE_T[ROUTE_T.length - 1] / b.f;
+      L.courseIdx = i;
+      state.hudDirty = true; state.dirtyBoard = true;
+    }
+    useCourse(0);
 
     // ---------------------------------------------------------------- the player
     const P = {
@@ -152,22 +320,23 @@
     L.P = P;
     const fxOn = (k) => P.fx[k] > 0;
     const bodyXZ = () => (state.mode === 'vr' ? [myHead.pos.x, myHead.pos.z] : [dolly.position.x, dolly.position.z]);
+    let rampHit = null;
     const rampAt = (x, z) => {
-      for (const r of RAMPS) if (x > r.x0 - 0.1 && x < r.x1 + 0.1 && z <= r.zTop && z >= r.zBot) return r.yBot + (r.yTop - r.yBot) * (z - r.zBot) / (r.zTop - r.zBot);
+      for (const r of RAMPS) if (x > r.x0 - 0.1 && x < r.x1 + 0.1 && z <= r.zTop && z >= r.zBot) { rampHit = r; return r.yBot + (r.yTop - r.yBot) * (z - r.zBot) / (r.zTop - r.zBot); }
       return null;
     };
     // the highest thing under your feet that you can stand on
     function supportAt(bx, bz, feetY, slack) {
       let best = -Infinity, ref = null;
-      for (const s of SOL) if (bx > s.x0 - 0.12 && bx < s.x1 + 0.12 && bz > s.z0 - 0.12 && bz < s.z1 + 0.12 && s.y1 <= feetY + slack && s.y1 > best) { best = s.y1; ref = s; }
+      for (const s of SOL) if (!s.down && bx > s.x0 - 0.12 && bx < s.x1 + 0.12 && bz > s.z0 - 0.12 && bz < s.z1 + 0.12 && s.y1 <= feetY + slack && s.y1 > best) { best = s.y1; ref = s; }
       const ry = rampAt(bx, bz);
-      if (ry !== null && ry <= feetY + slack + 0.2 && ry > best) { best = ry; ref = RAMPS[0]; }
+      if (ry !== null && ry <= feetY + slack + 0.2 && ry > best) { best = ry; ref = rampHit; }
       return ref ? { y: best, ref } : null;
     }
     function pushOut() {
       const [bx, bz] = bodyXZ(), fy = dolly.position.y;
       for (const s of SOL) {
-        if (!(s.y1 > fy + STEP && s.y0 < fy + 1.6)) continue;
+        if (s.down || !(s.y1 > fy + STEP && s.y0 < fy + 1.6)) continue;
         if (!(bx > s.x0 - R && bx < s.x1 + R && bz > s.z0 - R && bz < s.z1 + R)) continue;
         const dl = bx - (s.x0 - R), dr = (s.x1 + R) - bx, dn = bz - (s.z0 - R), df = (s.z1 + R) - bz, m = Math.min(dl, dr, dn, df);
         if (m === dl) dolly.position.x -= dl; else if (m === dr) dolly.position.x += dr; else if (m === dn) dolly.position.z -= dn; else dolly.position.z += df;
@@ -190,13 +359,6 @@
     const RACE = { id: 0, state: 'idle', startAt: 0, botsOn: false, botsN: 0, myFinish: 0, over: false, seqShown: -1, goneT: 0 };
     L.race = RACE;
     const BOT_DEF = [{ name: 'Parkour Pete', color: '#ff8a4a', f: 0.66, hat: 1, face: 1 }, { name: 'Vault Val', color: '#8bd450', f: 0.76, hat: 2, face: 2 }, { name: 'Rooftop Rex', color: '#b388ff', f: 0.86, hat: 0, face: 3 }, { name: 'Leap Lena', color: '#4fc3f7', f: 0.71, hat: 3, face: 0 }, { name: 'Flip Finn', color: '#ffd23f', f: 0.81, hat: 1, face: 3 }];
-    const ROUTE = [
-      [0, 0, 3, 0], [1.4, 0, -12, 5.2], [-1.4, 0.3, -17, 4.4], [1.2, 0.6, -22, 4.4], [-1.2, 0.3, -27, 4.4], [0, 0, -32, 4.4], [0, 0, -40.6, 5.2],
-      [0, 7, -41.2, 1.25], [0, 7, -48, 5], [0, 7, -53, 3], [0, 7, -65, 1.7], [0, 7, -71, 4.5], [0, 0.2, -96, 8], [0, 0.2, -103, 5],
-      [0, 0.2, -120, 3.4], [0, 0.2, -124, 4.6], [0, 0.2, -145.6, 3.6], [0, 0.2, -150, 4.6], [0, 0.2, -166, 3], [0, 8.2, -168, 1.15], [0, 8.2, -176, 5],
-    ];
-    const ROUTE_T = [0];
-    for (let i = 1; i < ROUTE.length; i++) { const a = ROUTE[i - 1], b = ROUTE[i]; ROUTE_T.push(ROUTE_T[i - 1] + Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]) / b[3]); }
     function routeAt(t, f, out) {      // where a bot is, t seconds into the race, at pace f
       const tt = t * f;
       if (tt <= 0) { out.set(ROUTE[0][0], ROUTE[0][1], ROUTE[0][2]); return 0; }
@@ -212,8 +374,9 @@
       tag.scale.set(0.9, 0.225, 1); tag.position.y = 0.42; g.add(tag); g.visible = false; G.add(g);
       return Object.assign({ g, bi, finishT: ROUTE_T[ROUTE_T.length - 1] / d.f, pos: new V3() }, d);
     });
+    L.pkBots = bots;
     const raceNow = () => (RACE.state === 'idle' ? 0 : Date.now() - RACE.startAt);
-    const myProgress = () => { const [, bz] = bodyXZ(); return clamp(3 - bz, 0, 180) + Math.max(0, dolly.position.y) * 0.4; };
+    const myProgress = () => { const [, bz] = bodyXZ(); return clamp((3 - bz) / CLEN * 180, 0, 180) + Math.max(0, dolly.position.y) * 0.4; };
     function standings() {
       const rows = [];
       rows.push({ name: state.name || 'You', me: true, fin: RACE.myFinish, prog: myProgress() });
@@ -246,6 +409,7 @@
       P.vel.set(0, 0, 0); P.zone = null; P.cpIdx = 0; P.hand.left.hold = P.hand.right.hold = null; P.slideT = 0;
     }
     function startRace(fromPeer) {
+      for (const s of SOL) if (s.crumble) { s.down = false; s.fallAt = 0; }
       RACE.id = Math.floor(Date.now() / 1000); RACE.startAt = Date.now() + COUNT_MS; RACE.state = 'count'; RACE.myFinish = 0; RACE.over = false; RACE.seqShown = -1;
       const others = [...remotes.values()].filter((r) => r.lv === L.idx && r.inGame).length;
       RACE.botsN = clamp(L.picker.n - 1 - others, 0, bots.length); RACE.botsOn = RACE.botsN > 0;
@@ -263,11 +427,15 @@
     makeButton(L, new V3(2.4, 1.0, -1.6), 0x8bd450, 'START race', () => startRace(), { faceYaw: 0 });
     makeButton(L, new V3(2.4, 1.0, 0.2), 0xff7a3a, 'Back to start', () => { toStart(); showToast('Back at the start'); }, { faceYaw: 0 });
     makeKiosk(L, -3.4, 2.4, Math.PI / 2);
-    // up on the finish platform: race again, or go back to the start (where the clubhouse kiosk is)
-    for (const [x, col, label, fn] of [[1.3, 0x8bd450, 'Race again', () => startRace()], [-1.3, 0xff7a3a, 'Back to start', () => { toStart(); showToast('Back at the start'); }]]) {
-      addCyl(G, 0.12, 0.16, 0.97, 14, lam(0x6a6a7a), x, 8.2 + 0.485, -175.5);
-      makeButton(L, new V3(x, 9.2, -175.5), col, label, fn, { faceYaw: 0, pedestal: false });
+    // choose a course (not mid-race)
+    function nextCourse() {
+      if (RACE.state === 'count' || RACE.state === 'run') { showToast('Finish or restart the race first'); return; }
+      useCourse((L.courseIdx + 1) % COURSES.length);
+      RACE.state = 'idle'; RACE.myFinish = 0; resetDrinks(); toStart(); boardKey = '';
+      showToast(`Course: ${C.name}`); sfx('chime', 0.6); forcePresence();
     }
+    L.nextCourse = nextCourse;
+    makeButton(L, new V3(2.4, 1.0, 2.0), 0x4fc3f7, 'Change course', () => nextCourse(), { faceYaw: 0 });
     makePlayerPicker(L, { min: 1, max: 1 + BOT_DEF.length, def: 4, label: 'Racers', note: 'from the next race' });
 
     // ---------------------------------------------------------------- drinks in use
@@ -423,7 +591,7 @@
     function step(dt, now) {
       // a long frame is played as a few short steps, so a slower headset runs at the same speed (not in slow motion)
       if (dt > 1 / 30 + 1e-6) { const n = Math.min(4, Math.ceil(dt * 30)); for (let i = 0; i < n; i++) step(dt / n, now); return; }
-      updateMovers(Date.now());
+      updateMovers(Date.now()); updateTiles(Date.now());
       const vr = state.mode === 'vr';
       if (vr) readVR(dt);
       const frozen = RACE.state === 'count' || (RACE.state === 'over' && false);
@@ -442,7 +610,7 @@
           P.hist.length = 0;
         }
         const dir = moveDirFromInput(), spd = RUN * (fxOn('speed') ? 1.6 : 1), g = GRAV * (fxOn('jump') ? 0.62 : 1);
-        const onRamp = P.grounded && P.support && P.support.ref === RAMPS[0];
+        const onRamp = P.grounded && P.support && P.support.ref.ramp, SLIDE = onRamp ? P.support.ref : null;
         // sliding on the flat: a burst of speed, then you skid
         if (P.in.slide && P.grounded && !onRamp && P.slideT <= 0 && Math.hypot(P.vel.x, P.vel.z) > 3) { P.slideT = 0.9; P.vel.x *= 1.25; P.vel.z *= 1.25; sfx('whoosh', 0.5); }
         if (P.slideT > 0) P.slideT -= dt;
@@ -478,7 +646,14 @@
           if (sup && P.vel.y <= 0.001 && fy <= sup.y + 0.03) {
             if (!P.grounded && P.vel.y < -4) { sfx('slam', Math.min(0.5, -P.vel.y * 0.04)); haptic(vrHands.left, 0.3, 40); haptic(vrHands.right, 0.3, 40); }
             dolly.position.y = sup.y; P.grounded = true; P.support = sup;
-            if (sup.ref === RAMPS[0]) { const sl = (SLIDE.yTop - SLIDE.yBot) / (SLIDE.zTop - SLIDE.zBot); P.vel.y = sl * P.vel.z; } else P.vel.y = 0;
+            if (sup.ref.ramp) { const S = sup.ref, sl = (S.yTop - S.yBot) / (S.zTop - S.zBot); P.vel.y = sl * P.vel.z; } else P.vel.y = 0;
+            if (sup.ref.bounce) {
+              // boing
+              P.vel.y = sup.ref.bounce * (fxOn('jump') ? 1.1 : 1); P.grounded = false; P.support = null; sup.ref.boingT = Date.now();
+              tone(180, 620, 0.25, 'sine', 0.3); if (vr) { haptic(vrHands.left, 0.5, 60); haptic(vrHands.right, 0.5, 60); }
+              break;
+            }
+            if (sup.ref.crumble && !sup.ref.fallAt) { sup.ref.fallAt = Date.now() + 650; tone(240, 140, 0.4, 'sawtooth', 0.08); }
           } else if (!sup || fy > sup.y + 0.06) { P.grounded = false; P.support = null; }
         }
         void fy0;
@@ -505,7 +680,7 @@
       if (RACE.state === 'run' || RACE.state === 'over') { const rows = standings(); parts.push(`Place ${rows.findIndex((r) => r.me) + 1}/${rows.length}`); }
       if (P.drink) parts.push(`${DRINK[P.drink].name} (Q)`);
       for (const k of ['speed', 'jump', 'grip']) if (P.fx[k] > 0) parts.push(`${DRINK[k].name} ${Math.ceil(P.fx[k])}`);
-      return parts.join('  \u00b7  ') || 'Skyline Sprint';
+      return parts.join('  \u00b7  ') || C.name;
     }
     L.update = (dt, now) => {
       const here = state.level === L.idx && state.mode !== 'menu';
@@ -569,6 +744,7 @@
     L.hudActions = [
       { label: () => (RACE.state === 'idle' || RACE.state === 'over' ? 'Start race' : 'Restart race'), run: () => startRace() },
       { label: () => 'Drink', run: () => { if (P.drink) drinkNow(); } },
+      { label: () => `Course: ${C.name}`, run: () => nextCourse() },
       { label: () => (P.zone ? 'Let go' : 'Grab'), run: () => { if (P.zone) releaseFlat(false); else grabFlat(); } },
       { label: () => 'Jump', run: () => { if (P.zone) releaseFlat(true); else P.jumpPulse = true; } },
     ];
@@ -580,21 +756,24 @@
     L.attract = (now) => { camera.position.set(Math.sin(now * 0.0002) * 3, 3, 8); camera.lookAt(0, 4, -40); };
 
     // ---------------------------------------------------------------- network
-    L.presence = () => ({ pk: [RACE.id, Math.floor(RACE.startAt / 100) % 1e9, RACE.myFinish, P.cpIdx, Math.round(myProgress() * 10), RACE.botsN] });
+    L.presence = () => ({ pk: [RACE.id, Math.floor(RACE.startAt / 100) % 1e9, RACE.myFinish, P.cpIdx, Math.round(myProgress() * 10), RACE.botsN, L.courseIdx] });
     L.readPresence = (rec, pres, st) => {
       const a = pres.pk;
-      if (!(Array.isArray(a) && a.length === 6 && a.every((x) => typeof x === 'number' && isFinite(x)))) { st.pk = null; return; }
+      if (!(Array.isArray(a) && (a.length === 6 || a.length === 7) && a.every((x) => typeof x === 'number' && isFinite(x)))) { st.pk = null; return; }
       st.pk = a;
       // someone started a race: join it if the countdown hasn't finished
       if (a[0] > RACE.id && state.level === L.idx) {
         const startAt = a[1] * 100 + Math.floor(Date.now() / 1e11) * 1e11;
         if (startAt > Date.now() - 500) {
+          if (a.length === 7 && a[6] !== L.courseIdx) useCourse(a[6]);
           RACE.id = a[0]; RACE.startAt = startAt; RACE.state = 'count'; RACE.myFinish = 0; RACE.over = false; RACE.botsN = clamp(Math.round(a[5]), 0, bots.length); RACE.botsOn = RACE.botsN > 0;
-          resetDrinks(); toStart(); boardKey = ''; showToast(`${rec.name} started a race! Get ready\u2026`);
+          resetDrinks(); toStart(); boardKey = ''; showToast(`${rec.name} started a race on ${C.name}! Get ready\u2026`);
         }
       }
     };
-    L.parkourInternals = { P, RACE, SOL, RAMPS, HOLDS, ZONES, CPS, bottles, DRINK, startRace, step, grabFlat, releaseFlat, drinkNow, findHold, rampAt, supportAt, standings, ROUTE_T, bots, respawn, finishRace, routeAt, tryMantle };
+    L.parkourInternals = { P, RACE, DRINK, startRace, step, grabFlat, releaseFlat, drinkNow, findHold, rampAt, supportAt, standings, bots, respawn, finishRace, routeAt, tryMantle, useCourse, COURSES };
+    // the course's own pieces, whichever course is chosen
+    for (const [k, get] of Object.entries({ SOL: () => SOL, RAMPS: () => RAMPS, HOLDS: () => HOLDS, ZONES: () => ZONES, CPS: () => CPS, bottles: () => bottles, ROUTE_T: () => ROUTE_T, C: () => C })) Object.defineProperty(L.parkourInternals, k, { get, enumerable: true });
     return L;
   })();
 

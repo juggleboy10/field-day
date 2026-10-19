@@ -396,8 +396,8 @@
       d.pos.addScaledVector(v, h);
 
       // ground
-      if (d.pos.y <= 0.012) {
-        d.pos.y = 0.012;
+      if (d.pos.y <= 0.015) {
+        d.pos.y = 0.015;
         if (!d.sliding && v.y < -1.6) {
           discSound('disc', -v.y, d);
           v.y = -v.y * 0.18;

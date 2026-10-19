@@ -187,7 +187,7 @@
     L.setColor = (hex) => mine.body.color.set(hex);
 
     // ---------------------------------------------------------------- my kart state
-    const K = { x: 0, z: 0, yaw: 0, speed: 0, steer: 0, idx: 0, s: 0, lat: 0, boostT: 0, boostCool: 0, lapStart: 0, lap: 0, best: 0, lastLap: 0, halfway: false, spin: 0, bumpT: 0, spinT: 0, shieldT: 0, item: null, roll: 0 };
+    const K = { coins: 0, drift: 0, driftDir: 0, driftT: 0, airT: 0, airDur: 0, starT: 0, tripleLeft: 0, x: 0, z: 0, yaw: 0, speed: 0, steer: 0, idx: 0, s: 0, lat: 0, boostT: 0, boostCool: 0, lapStart: 0, lap: 0, best: 0, lastLap: 0, halfway: false, spin: 0, bumpT: 0, spinT: 0, shieldT: 0, item: null, roll: 0 };
     const race = { id: 0, phase: 'free', t0: 0, start: 0, lap: 0, finish: 0, beeps: 0 };
     L.K = K;
     L.race = race;
@@ -214,6 +214,7 @@
       K.yaw = Math.atan2(-T[i].x, -T[i].z);
       K.speed = 0; K.steer = 0;
       K.idx = i; K.s = i * DS; K.halfway = false;
+      Object.assign(K, { coins: 0, drift: 0, airT: 0, starT: 0, rampY: 0 });
       K.lapStart = performance.now();
       calibrated = false;
     }
@@ -245,12 +246,13 @@
       calibrated = true;
     }
     function inputs() {
-      let throttle = 0, brake = 0, steer = 0, startBtn = false, recenter = false, useBtn = false;
+      let throttle = 0, brake = 0, steer = 0, startBtn = false, recenter = false, useBtn = false, drift = false;
       if (state.mode === 'vr') {
         const gpR = vrHands.right.source && vrHands.right.source.gamepad, gpL = vrHands.left.source && vrHands.left.source.gamepad;
         const btn = (gp, i) => (gp && gp.buttons && gp.buttons[i] ? gp.buttons[i] : null);
         throttle = btn(gpR, 0) ? btn(gpR, 0).value : 0;
-        brake = Math.max(btn(gpL, 0) ? btn(gpL, 0).value : 0, btn(gpR, 1) ? btn(gpR, 1).value * 0.6 : 0);
+        brake = btn(gpL, 0) ? btn(gpL, 0).value : 0;
+        drift = !!(btn(gpR, 1) && btn(gpR, 1).value > 0.5);
         for (const gp of [gpL, gpR]) { if (gp && gp.axes) { const x = gp.axes.length >= 4 ? gp.axes[2] : gp.axes[0] || 0; if (Math.abs(x) > Math.abs(steer)) steer = x; } }
         startBtn = !!((btn(gpR, 4) && btn(gpR, 4).pressed) || (btn(gpL, 4) && btn(gpL, 4).pressed));
         useBtn = !!(btn(gpL, 1) && btn(gpL, 1).pressed);
@@ -260,9 +262,10 @@
         throttle = (k.KeyW || k.ArrowUp) ? 1 : Math.max(0, -stick.y);
         brake = (k.KeyS || k.ArrowDown) ? 1 : Math.max(0, stick.y);
         steer = ((k.KeyD || k.ArrowRight) ? 1 : 0) - ((k.KeyA || k.ArrowLeft) ? 1 : 0) || stick.x;
+        drift = !!(k.ShiftLeft || k.ShiftRight);
       }
       if (Math.abs(steer) < 0.12) steer = 0;
-      return { throttle, brake, steer, startBtn, recenter, useBtn };
+      return { throttle, brake, steer, startBtn, recenter, useBtn, drift };
     }
     let startHeld = false, useHeld = false;
     function drive(dt, now) {
@@ -283,16 +286,19 @@
       K.idx = nearest(K.x, K.z, K.idx);
       const p = P[K.idx];
       K.lat = (K.x - p.x) * NR[K.idx].x + (K.z - p.z) * NR[K.idx].z;
-      const offroad = Math.abs(K.lat) > HW + 0.5;
+      const air = K.airT > 0;
+      const offroad = Math.abs(K.lat) > HW + 0.5 && !air;
       K.boostT = Math.max(0, K.boostT - dt);
-      const vmax = K.boostT > 0 ? 23 : offroad ? 7 : K.shieldT > 0 ? 19 : 16;
+      K.starT = Math.max(0, K.starT - dt);
+      const turnMul = driftStep(dt, inp, now, spun || frozen);
+      const vmax = (K.boostT > 0 ? 23 : offroad ? 7 : K.starT > 0 ? 21 : K.shieldT > 0 ? 19 : 16) + (offroad ? 0 : coinBonus(K.coins));
       if (throttle > 0.05 && K.speed < vmax) K.speed += (K.boostT > 0 ? 14 : 6.5) * throttle * dt;
       if (brake > 0.05) { if (K.speed > 0.3) K.speed -= 16 * brake * dt; else if (K.speed > -4) K.speed -= 5 * brake * dt; }
       const drag = throttle < 0.05 && brake < 0.05 ? 2.2 : 0.6;
       K.speed -= Math.sign(K.speed) * Math.min(Math.abs(K.speed), (drag + 0.01 * K.speed * K.speed) * dt);
       if (K.speed > vmax) K.speed = Math.max(vmax, K.speed - (offroad ? 14 : 5) * dt);
       const grip = clamp(Math.abs(K.speed) / 5, 0, 1) * (1 - 0.35 * clamp((Math.abs(K.speed) - 12) / 10, 0, 1));
-      K.yaw -= K.steer * 2.1 * grip * Math.sign(K.speed || 1) * dt;
+      K.yaw -= K.steer * 2.1 * grip * (air ? 0.3 : turnMul) * Math.sign(K.speed || 1) * dt;
       K.x += -Math.sin(K.yaw) * K.speed * dt;
       K.z += -Math.cos(K.yaw) * K.speed * dt;
       const r = Math.hypot(K.x, K.z);
@@ -321,6 +327,7 @@
           if (di * DS < 1.6) { K.boostT = 1.4; K.boostCool = now + 1500; sfx('whoosh', 1); if (state.mode === 'vr') for (const s of SIDES) haptic(vrHands[s], 0.4, 120); break; }
         }
       }
+      extrasStep(K, dt, now, true);
       // laps
       const prevS = K.s;
       K.s = K.idx * DS;
@@ -421,8 +428,9 @@
         engine.o1.frequency.value = f; engine.o2.frequency.value = f * 1.5;
       }
       // my kart
-      mine.g.position.set(K.x, 0, K.z);
-      mine.g.rotation.y = K.yaw + (K.spinT > 0 ? (1.3 - K.spinT) * 11 : 0);
+      mine.g.position.set(K.x, kartY(K, now), K.z);
+      mine.g.rotation.y = K.yaw + (K.spinT > 0 ? (1.3 - K.spinT) * 11 : 0) + (K.drift ? K.driftDir * 0.32 : 0);
+      drawExtras(dt, now);
       K.spin += K.speed * dt / 0.24;
       for (const w of mine.wheels) w.rotation.x = -K.spin;
       for (const f of mine.fronts) f.rotation.y = -K.steer * 0.45;
@@ -455,6 +463,7 @@
         else if (race.phase === 'run') { const pl = standings().findIndex((r) => r.me) + 1; top = `${ordinal(pl)}   lap ${Math.min(RACE_LAPS, race.lap + 1)}/${RACE_LAPS}`; bot = fmt(now - race.start); }
         else if (race.phase === 'done') { top = 'Finished'; bot = fmt(race.finish); }
         else { top = `Lap ${fmt(now - K.lapStart)}`; bot = K.best ? `best ${fmt(K.best)}` : (state.mode === 'vr' ? 'A starts a race' : 'Start race: top right'); }
+        if (K.coins) bot = `${bot}   \u25CF ${K.coins}`;
         g.fillStyle = '#ffd23f'; g.font = `800 40px ${DISPLAY}`; g.fillText(top, 128, 32, 240);
         g.fillStyle = '#e4e0fa'; g.font = `400 26px ${BODY}`; g.fillText(bot, 128, 72, 240);
         mine.dashC.tex.needsUpdate = true;
@@ -547,7 +556,7 @@
       chase = null;
       if (state.mode !== 'vr') { dolly.position.set(K.x, 0, K.z); }
     };
-    L.onEnter = () => { calibrated = false; state.dirtyBoard = true; };
+    L.onEnter = () => { calibrated = false; state.dirtyBoard = true; setTimeout(() => { if (state.level === L.idx) showToast(state.mode === 'vr' ? 'New: hold the right grip while turning to drift, then let go for a boost. Watch for ramps and coins!' : 'New: hold Shift while turning to drift, then let go for a boost. Watch for ramps and coins!'); }, 1500); };
     L.onExit = () => {
       engineOff();
       dolly.rotation.set(0, 0, 0);
@@ -569,6 +578,8 @@
       bumper: { label: 'Bumper ball', icon: '\u{1F7E2}', color: '#5ad86a' },
       homing: { label: 'Homing ball', icon: '\u{1F534}', color: '#ff4a5a' },
       shield: { label: 'Shield', icon: '\u{1F6E1}\uFE0F', color: '#7ad8ff' },
+      star: { label: 'Superstar', icon: '\u2B50', color: '#ffe14a' },
+      triple: { label: 'Triple turbo', icon: '\u23E9', color: '#ff5c8a' },
     };
     const ITEM_KEYS = Object.keys(ITEMS);
     const KIND_CODE = { bumper: 0, homing: 1 };
@@ -629,7 +640,7 @@
     function rollItem() {
       const { place, n } = placeNow();
       const leading = n > 1 && place === 1;
-      const w = leading ? { banana: 40, bumper: 35, turbo: 20, shield: 5, homing: 0 } : n > 1 ? { turbo: 28, homing: 24, bumper: 16, banana: 14, shield: 18 } : { turbo: 40, banana: 25, bumper: 15, shield: 20, homing: 0 };
+      const w = leading ? { banana: 40, bumper: 35, turbo: 20, shield: 5, homing: 0 } : n > 1 ? { turbo: 22, homing: 22, bumper: 14, banana: 12, shield: 14, triple: 10 + (place === n ? 6 : 0), star: 6 + (place === n ? 8 : 0) } : { turbo: 30, banana: 20, bumper: 12, shield: 14, homing: 0, triple: 14, star: 10 };
       let t = rand() * Object.values(w).reduce((a, b) => a + b, 0);
       for (const k of ITEM_KEYS) { t -= w[k] || 0; if (t <= 0) return k; }
       return 'turbo';
@@ -639,7 +650,12 @@
       const it = K.item;
       K.item = null;
       const fx = -Math.sin(K.yaw), fz = -Math.cos(K.yaw);
-      if (it === 'turbo') { K.boostT = 1.6; K.boostCool = performance.now() + 1700; sfx('whoosh', 1); }
+      if (it === 'triple') {
+        K.boostT = 1.3; K.boostCool = performance.now() + 1400; sfx('whoosh', 1);
+        K.tripleLeft = Math.max(0, (K.tripleLeft || 3) - 1);
+        if (K.tripleLeft > 0) K.item = 'triple';
+      } else if (it === 'star') { K.starT = 6; K.spinT = 0; sfx('fanfare', 0.6); showToast('Superstar! Nothing can stop you'); }
+      else if (it === 'turbo') { K.boostT = 1.6; K.boostCool = performance.now() + 1700; sfx('whoosh', 1); }
       else if (it === 'shield') { K.shieldT = 5; sfx('zap', 0.8); }
       else if (it === 'banana') {
         const b = { id: ++mineObjs.seq, x: K.x - fx * 1.6, z: K.z - fz * 1.6, t0: performance.now(), mesh: bananaMesh() };
@@ -662,9 +678,10 @@
     L.deskFire = () => useItem();
     L.onUse = () => { useItem(); return true; };
     function hitMe(by) {
-      if (K.shieldT > 0) { sfx('clang', 0.8); return; }
+      if (K.shieldT > 0 || K.starT > 0) { sfx('clang', 0.8); return; }
       if (K.spinT > 0) return;
       K.spinT = 1.3;
+      dropCoins(3);
       K.boostT = 0;
       sfx('slam', 0.7); sfx('tagged', 0.8);
       showToast(by ? `${by} got you!` : 'Spun out!');
@@ -734,7 +751,7 @@
         const before = Math.floor(K.roll * 10);
         K.roll -= dt;
         if (Math.floor(K.roll * 10) !== before) tone(900 + rand() * 300, 0, 0.03, 'square', 0.04);
-        if (K.roll <= 0) { K.item = rollItem(); sfx('coin', 0.8); showToast(`${ITEMS[K.item].icon} ${ITEMS[K.item].label}! ${state.mode === 'vr' ? 'Squeeze the left grip' : 'E or Space'} to use it`); }
+        if (K.roll <= 0) { K.item = rollItem(); if (K.item === 'triple') K.tripleLeft = 3; sfx('coin', 0.8); showToast(`${ITEMS[K.item].icon} ${ITEMS[K.item].label}! ${state.mode === 'vr' ? 'Squeeze the left grip' : 'E or Space'} to use it`); }
         drawItemSlot();
       }
       myShield.visible = K.shieldT > 0;
@@ -794,6 +811,7 @@
       g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = '70px system-ui';
       const show = K.roll > 0 ? ITEMS[ITEM_KEYS[Math.floor(performance.now() / 90) % ITEM_KEYS.length]] : K.item ? ITEMS[K.item] : null;
       if (show) g.fillText(show.icon, 64, 70);
+      if (K.item === 'triple' && K.roll <= 0) { g.font = `800 34px ${DISPLAY}`; g.fillStyle = '#ffffff'; g.fillText(`\u00D7${K.tripleLeft || 3}`, 96, 106); }
       slotC.tex.needsUpdate = true;
       slot.visible = !!show;
       slotDiv.style.display = show && state.mode === 'flat' && state.level === L.idx ? 'flex' : 'none';
@@ -811,7 +829,7 @@
       p.ki = {
         b: mineObjs.bananas.map((b) => [b.id, r2i(b.x), r2i(b.z), b.bot >= 0 ? b.bot : -1]),
         p: mineObjs.balls.map((b) => [b.id, KIND_CODE[b.kind], r2i(b.x), r2i(b.z), r2i(b.vx), r2i(b.vz), b.bot >= 0 ? b.bot : -1]),
-        s: K.shieldT > 0 ? 1 : 0, sp: K.spinT > 0 ? 1 : 0,
+        s: K.shieldT > 0 || K.starT > 0 ? 1 : 0, sp: K.spinT > 0 ? 1 : 0,
         x: consumed.list.slice(),
       };
       return p;
@@ -866,7 +884,7 @@
       for (const o of remoteObjs.values()) G.remove(o.mesh);
       remoteObjs.clear();
     };
-    L.hints = [['W/S', 'drive and brake'], ['A/D', 'steer'], ['E or Space', 'use your item'], ['Start race', 'button, top right']];
+    L.hints = [['W/S', 'drive and brake'], ['A/D', 'steer'], ['Shift', 'drift (let go for a boost)'], ['E or Space', 'use your item']];
     L.itemsInternals = { ITEMS, rollItem, itemBoxes, hitMe };
 
     // ================================================================ AI RACERS
@@ -932,7 +950,7 @@
       b.idx = nearest(b.x, b.z, b.idx);
       const p = P[b.idx];
       const lat = (b.x - p.x) * NR[b.idx].x + (b.z - p.z) * NR[b.idx].z;
-      const offroad = Math.abs(lat) > HW + 0.5;
+      const offroad = Math.abs(lat) > HW + 0.5 && !(b.airT > 0);
       // aim at a point ahead on the racing line, cutting to the inside of bends
       const ahead = Math.round((6 + Math.max(0, b.speed) * 0.55) / DS);
       const ti = (b.idx + ahead) % N, bend = BEND[b.idx];
@@ -961,6 +979,7 @@
       b.yaw -= b.steer * 2.1 * grip * dt;
       b.x += -Math.sin(b.yaw) * b.speed * dt;
       b.z += -Math.cos(b.yaw) * b.speed * dt;
+      extrasStep(b, dt, now, false);
       // boost pads
       if (now > b.boostCool && Math.abs(lat) < 2.4) for (const pi of BOOSTS) { const di = Math.abs(((b.idx - pi + N / 2 + N) % N) - N / 2); if (di * DS < 1.6) { b.boostT = 1.4; b.boostCool = now + 1500; break; } }
       // laps
@@ -1098,7 +1117,7 @@
         b.rx += (b.x - b.rx) * k; b.rz += (b.z - b.rz) * k;
         let dy = b.yaw - b.ryaw; while (dy > Math.PI) dy -= Math.PI * 2; while (dy < -Math.PI) dy += Math.PI * 2;
         b.ryaw += dy * k;
-        b.kart.g.position.set(b.rx, 0, b.rz);
+        b.kart.g.position.set(b.rx, kartY(b, now), b.rz);
         b.kart.g.rotation.y = b.ryaw + (b.spinT > 0 ? (1.3 - b.spinT) * 11 : 0);
         b.wspin += b.speed * dt / 0.24;
         for (const w of b.kart.wheels) w.rotation.x = -b.wspin;
@@ -1161,6 +1180,173 @@
       all.sort(L.sortRows);
       baseDraw(all);
     };
+
+    // ================================================================ EXTRAS: drifting, jump ramps, coins, and beach balls
+    // Drift: hold Shift (right grip in VR) while turning at speed. The kart slides and sparks: blue, then orange.
+    // Let go for a mini-turbo. Ramps throw you into the air (a big jump lands with a boost). Coins add a little top
+    // speed, up to ten; getting hit drops three. Giant beach balls roll back and forth across one stretch.
+    const nearF = (f, list, w) => list.some((g) => Math.abs(((f - g + 1.5) % 1) - 0.5) < w);
+    const AVOID = [0, ...BOOSTS.map((i) => i / N), 0.14, 0.44, 0.69];
+    const bendMax = (i, w) => { let m = 0; for (let k = -w; k <= w; k++) m = Math.max(m, Math.abs(BEND[(i + k + N) % N])); return m; };
+    const cand = [];
+    for (let f = 0.04; f < 0.97; f += 0.01) if (!nearF(f, AVOID, 0.045)) cand.push({ f, i: Math.round(f * N), b: bendMax(Math.round(f * N), Math.round(14 / DS)) });
+    cand.sort((a, b) => a.b - b.b);
+    const rampF = [];
+    for (const c of cand) if (rampF.length < 2 && !nearF(c.f, rampF, 0.22)) rampF.push(c.f);
+    const RAMPS = rampF.map((f) => ({ f, i: Math.round(f * N), len: 3.2, h: 0.75, hw: 2.7 }));
+    const hazF = cand.find((c) => !nearF(c.f, [...rampF, ...AVOID], 0.07));
+    const HAZ = hazF ? [0, 1].map((k) => ({ i: (Math.round(hazF.f * N) + (k ? Math.round(9 / DS) : 0)) % N, ph: k * 2.4, r: 1.1, x: 0, z: 0, roll: 0 })) : [];
+    L.extras = { RAMPS, HAZ };
+    {
+      const rampTex = canvasTexture(128, 64, (g2) => { for (let k = 0; k < 8; k++) { g2.fillStyle = k % 2 ? '#ffffff' : '#ff4d5a'; g2.fillRect(k * 16, 0, 16, 64); } g2.fillStyle = 'rgba(0,0,0,0.25)'; g2.fillRect(0, 0, 128, 6); });
+      const rampMat = new THREE.MeshLambertMaterial({ map: rampTex.tex }), sideMat = lam(0xffd23f);
+      for (const R of RAMPS) {
+        const slope = Math.hypot(R.len, R.h), tilt = Math.atan2(R.h, R.len);
+        const g = trackQuad(R.i, 0.01, 0.01, 0, 0, lam(0x000000));
+        g.clear();
+        const deck = new THREE.Mesh(new THREE.BoxGeometry(R.hw * 2, 0.08, slope), rampMat);
+        deck.position.set(0, R.h / 2, 0); deck.rotation.x = tilt; g.add(deck);
+        for (const sx of [-1, 1]) { const side = new THREE.Mesh(new THREE.BoxGeometry(0.12, R.h, R.len), sideMat); side.position.set(sx * R.hw, R.h / 2 - 0.02, 0); side.scale.y = 1; g.add(side); }
+        const lip = new THREE.Mesh(new THREE.BoxGeometry(R.hw * 2, R.h, 0.12), sideMat); lip.position.set(0, R.h / 2, -R.len / 2); g.add(lip);
+      }
+    }
+    // coins: little rows along the track, away from ramps, boxes and boost pads
+    const coinGeoK = new THREE.CylinderGeometry(0.34, 0.34, 0.07, 16); coinGeoK.rotateX(Math.PI / 2);
+    const coinMatK = new THREE.MeshLambertMaterial({ color: 0xffc83a, emissive: 0x5a3a00 });
+    const COINS = [];
+    {
+      let g = 0;
+      for (let f = 0.05; f < 0.97; f += 0.035) {
+        if (nearF(f, [...AVOID, ...rampF], 0.03) || (hazF && nearF(f, [hazF.f], 0.045))) continue;
+        const lat = ((g++ % 3) - 1) * 2.6;
+        for (let k = 0; k < 5; k++) {
+          const i = (Math.round(f * N) + k * Math.round(2.4 / DS)) % N;
+          const m = new THREE.Mesh(coinGeoK, coinMatK);
+          const x = P[i].x + NR[i].x * lat, z = P[i].z + NR[i].z * lat;
+          m.position.set(x, 0.75, z); G.add(m);
+          COINS.push({ m, x, z, back: 0, ph: k * 0.5 });
+        }
+      }
+    }
+    L.extras.COINS = COINS;
+    const coinBonus = (c) => Math.min(10, c || 0) * 0.22;
+    function dropCoins(n) { if (K.coins > 0) { K.coins = Math.max(0, K.coins - n); tone(900, 400, 0.2, 'triangle', 0.12); } }
+    // beach balls
+    const ballTex = canvasTexture(128, 64, (g2) => { const cs = ['#ff5c8a', '#ffffff', '#ffd23f', '#ffffff', '#4fc3f7', '#ffffff']; cs.forEach((c, k) => { g2.fillStyle = c; g2.fillRect(k * 128 / 6, 0, 128 / 6 + 1, 64); }); });
+    for (const H of HAZ) { H.m = new THREE.Mesh(new THREE.SphereGeometry(H.r, 24, 16), new THREE.MeshLambertMaterial({ map: ballTex.tex })); G.add(H.m); H.sh = makeShadow(G, H.r * 2.2); }
+    function hazPos(H) {
+      const lat = Math.sin(Date.now() * 0.0007 + H.ph) * (HW - 1.2);
+      H.x = P[H.i].x + NR[H.i].x * lat; H.z = P[H.i].z + NR[H.i].z * lat; H.lat = lat;
+      return H;
+    }
+    // drift: returns how much sharper you turn while sliding
+    let sparkL = null, sparkR = null;
+    function driftStep(dt, inp, now, blocked) {
+      if (!K.drift) {
+        if (inp.drift && !K.driftHeld && !blocked && K.speed > 8 && Math.abs(inp.steer) > 0.3 && !(K.airT > 0)) {
+          K.drift = 1; K.driftDir = Math.sign(inp.steer); K.driftT = 0;
+          tone(220, 330, 0.08, 'triangle', 0.15);
+        }
+        K.driftHeld = inp.drift;
+        return 1;
+      }
+      K.driftHeld = inp.drift;
+      if (!inp.drift || blocked || K.speed < 5) {
+        const lvl = K.driftT > 1.8 ? 2 : K.driftT > 0.9 ? 1 : 0;
+        if (lvl && !blocked) {
+          K.boostT = Math.max(K.boostT, lvl === 2 ? 1.2 : 0.65); K.boostCool = now + 1300;
+          sfx('whoosh', 1); tone(lvl === 2 ? 700 : 500, 1100, 0.15, 'square', 0.1);
+          if (state.mode === 'vr') for (const sd of SIDES) haptic(vrHands[sd], 0.5, 100);
+        }
+        K.drift = 0;
+        return 1;
+      }
+      const before = K.driftT;
+      K.driftT += dt;
+      if ((before < 0.9 && K.driftT >= 0.9) || (before < 1.8 && K.driftT >= 1.8)) tone(K.driftT >= 1.8 ? 900 : 650, 0, 0.06, 'square', 0.1);
+      // you can tighten or widen the slide, but it always turns the drift's way
+      const into = clamp((inp.steer || 0) * K.driftDir, -1, 1);
+      K.steer = K.driftDir * (0.55 + 0.45 * into);
+      K.speed *= Math.exp(-0.05 * dt);
+      return 1.35;
+    }
+    L.driftStep = driftStep;
+    // everyone's ramps, beach balls (and my coins and star)
+    function extrasStep(o, dt, now, isMe) {
+      const pi = P[o.idx], lat = (o.x - pi.x) * NR[o.idx].x + (o.z - pi.z) * NR[o.idx].z;
+      if (o.airT > 0) {
+        o.airT -= dt;
+        if (o.airT <= 0) {
+          o.airT = 0;
+          if (o.airDur > 0.75) { o.boostT = Math.max(o.boostT || 0, 0.8); o.boostCool = now + 900; }
+          if (isMe) { sfx('thump', 0.8); if (o.airDur > 0.75) { showToast('Big air! Boost!'); sfx('whoosh', 0.8); } if (state.mode === 'vr') for (const sd of SIDES) haptic(vrHands[sd], 0.7, 80); }
+        }
+      }
+      o.rampY = 0;
+      if (!(o.airT > 0)) for (const R of RAMPS) {
+        const along = ((((o.idx - R.i) % N) + N + N / 2) % N - N / 2) * DS;
+        if (Math.abs(lat) > R.hw || along < -R.len / 2 - 0.3 || along > R.len / 2 + 0.8) continue;
+        if (along <= R.len / 2) o.rampY = clamp((along + R.len / 2) / R.len, 0, 1) * R.h;
+        else if (o.speed > 6 && !(o.airCool > now)) {
+          o.airDur = clamp(0.3 + o.speed * 0.035, 0.45, 1.15); o.airT = o.airDur; o.airPeak = 0.35 + o.speed * 0.05; o.airCool = now + 1500;
+          if (isMe) { sfx('whoosh', 0.6); tone(300, 600, 0.25, 'triangle', 0.1); }
+        }
+      }
+      const y = kartY(o, now);
+      for (const H of HAZ) {
+        hazPos(H);
+        const dx = o.x - H.x, dz = o.z - H.z, d = Math.hypot(dx, dz), min = H.r + 0.85;
+        if (d < min && d > 1e-3 && y < 1.4) {
+          o.x = H.x + (dx / d) * min; o.z = H.z + (dz / d) * min;
+          if (now > (o.hazT || 0)) {
+            o.hazT = now + 700;
+            if (!(isMe && K.starT > 0)) o.speed *= 0.5;
+            if (isMe) { tone(200, 520, 0.18, 'sine', 0.3); spawnFloat('Boing!', new V3(H.x, 2.6, H.z), '#ffffff'); if (state.mode === 'vr') for (const sd of SIDES) haptic(vrHands[sd], 0.7, 90); }
+          }
+        }
+      }
+      if (!isMe) return;
+      for (const c of COINS) {
+        if (now > c.back && Math.hypot(K.x - c.x, K.z - c.z) < 1.3 && y < 1.6) {
+          c.back = now + 9000;
+          if (K.coins < 10) K.coins += 1;
+          tone(1320, 1760, 0.07, 'square', 0.08); tone(1760, 0, 0.06, 'square', 0.06, 0.06);
+        }
+      }
+      // a superstar knocks the bots out of the way
+      if (K.starT > 0 && isHost()) for (const b of botKarts()) if (Math.hypot(b.x - K.x, b.z - K.z) < 1.9 && b.spinT <= 0) { hitBot(b); showToast(`You bowled over ${b.name}!`); }
+    }
+    L.extrasStep = extrasStep;
+    function kartY(o, now) {
+      void now;
+      if (o.airT > 0) { const u = 1 - o.airT / o.airDur; return 0.75 * (1 - u) + 4 * o.airPeak * u * (1 - u); }
+      return o.rampY || 0;
+    }
+    L.kartY = kartY;
+    const sparkMat = () => new THREE.MeshBasicMaterial({ color: 0x8be0ff, transparent: true, opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending });
+    sparkL = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.5, 6), sparkMat()); sparkR = sparkL.clone(); sparkR.material = sparkMat();
+    for (const [sp, x] of [[sparkL, -0.72], [sparkR, 0.72]]) { sp.rotation.x = Math.PI / 2; sp.position.set(x, 0.15, 1.05); sp.visible = false; mine.g.add(sp); }
+    let starWas = false;
+    function drawExtras(dt, now) {
+      for (const c of COINS) { c.m.visible = now > c.back; c.m.rotation.y = now * 0.004 + c.ph; c.m.position.y = 0.75 + Math.sin(now * 0.004 + c.ph) * 0.08; }
+      for (const H of HAZ) {
+        const plat = H.lat || 0;
+        hazPos(H);
+        H.m.position.set(H.x, H.r, H.z);
+        H.roll += (H.lat - plat) / H.r;
+        H.m.rotation.set(0, Math.atan2(T[H.i].x, T[H.i].z), H.roll);
+        H.sh.position.set(H.x, 0.02, H.z);
+      }
+      const lvl = K.drift ? (K.driftT > 1.8 ? 2 : K.driftT > 0.9 ? 1 : 0) : -1;
+      for (const sp of [sparkL, sparkR]) {
+        sp.visible = lvl >= 0 && Math.random() > 0.15;
+        if (!sp.visible) continue;
+        sp.material.color.setHex(lvl === 2 ? 0xff9a3a : lvl === 1 ? 0x4fc3f7 : 0xffffff);
+        sp.scale.setScalar(0.6 + Math.random() * 0.6 + lvl * 0.25);
+      }
+      if (K.starT > 0) { mine.body.color.setHSL((now * 0.0015) % 1, 1, 0.55); starWas = true; }
+      else if (starWas) { starWas = false; mine.body.color.set(PLAYER_COLORS[state.colorIdx].hex); }
+    }
     L.botInternals = { BOT_NAMES, botDrive, placeBot, hitBot, BEND };
     return L;
   })();
