@@ -250,7 +250,7 @@ kbd {
 
 <section id="panel" class="panel" aria-labelledby="title">
   <h1 id="title">Field Day</h1>
-  <p class="lede">A clubhouse and twenty-nine games to play with friends, in VR or right here in the browser. Everyone who has this page open can join you.</p>
+  <p class="lede">A clubhouse and thirty-five games to play with friends, in VR or right here in the browser. Everyone who has this page open can join you.</p>
   <p id="net" class="net" data-state="connecting"><span class="dot" aria-hidden="true"></span><span id="net-text">Looking for other players…</span></p>
   <fieldset class="levels">
     <legend class="field-label">Pick a game</legend>
@@ -1192,18 +1192,24 @@ kbd {
     { id: 'workout', name: 'Sunrise Workout', short: 'Workout', glyph: '\u{1F94A}', blurb: 'A coached workout to a beat on a rooftop at dawn: punch the pads, squat, dodge and reach.' },
     { id: 'wallrush', name: 'Wall Rush', short: 'Wall Rush', glyph: '\u{1F9F1}', blurb: 'Walls with body-shaped holes slide toward you: squat, lunge and stretch to fit through.' },
     { id: 'football', name: 'Two-Minute Drill', short: 'Football', glyph: '\u{1F3C8}', blurb: 'You\u2019re the quarterback: two minutes, ball on your 25. Read the coverage, beat the rush, score all you can.' },
+    { id: 'frostpeak', name: 'Frostpeak Caverns', short: 'Frostpeak', glyph: '\u2744\uFE0F', blurb: 'A co-op quest up a frozen mountain and into the ice caves: yetis, frost archers and the Frost King.' },
+    { id: 'skeeball', name: 'Skee-Ball Arcade', short: 'Skee-Ball', glyph: '\u{1F3B0}', blurb: 'Roll balls up the ramp into the rings, win tickets, and trade them for prizes.' },
+    { id: 'chairs', name: 'Musical Chairs', short: 'Chairs', glyph: '\u{1FA91}', blurb: 'Walk round while the music plays, grab a chair when it stops. One fewer chair every round. Friends or bots.' },
+    { id: 'boxing', name: 'Knockout Kid', short: 'Boxing', glyph: '\u{1F94A}', blurb: 'Spar with a cartoon boxer: slip and duck his punches, block, and counter while he\u2019s open.' },
+    { id: 'snowball', name: 'Snowball Fight', short: 'Snowballs', glyph: '\u2603\uFE0F', blurb: 'Red against blue among snow forts. Three hits and you\u2019re out. Friends or bots.' },
+    { id: 'toboggan', name: 'Toboggan Run', short: 'Toboggan', glyph: '\u{1F6F7}', blurb: 'A downhill sled race: lean to steer, tuck for speed, dodge the snowmen and fly off the jumps.' },
   ];
-  const KIOSK_COLORS = [0xf5821f, 0xe8e4d8, 0x8bd450, 0xb388ff, 0xff4d6a, 0x2ec4b6, 0x3fbf7f, 0xff9ad0, 0xffd27a, 0x4fc3f7, 0x4a8aff, 0xb06aff, 0xffb36b, 0xff9ad0, 0x8bd450, 0xd8f43a, 0xff7a3a, 0xe5453a, 0xe8a040, 0x2ec4d8, 0xf2c14e, 0xd84a3a, 0x2a8ab8, 0x9a6aff, 0x6ad04a, 0xff3aa8, 0xffd23f, 0xff9a5c, 0x4fc3f7, 0x8a5a2a];
+  const KIOSK_COLORS = [0xf5821f, 0xe8e4d8, 0x8bd450, 0xb388ff, 0xff4d6a, 0x2ec4b6, 0x3fbf7f, 0xff9ad0, 0xffd27a, 0x4fc3f7, 0x4a8aff, 0xb06aff, 0xffb36b, 0xff9ad0, 0x8bd450, 0xd8f43a, 0xff7a3a, 0xe5453a, 0xe8a040, 0x2ec4d8, 0xf2c14e, 0xd84a3a, 0x2a8ab8, 0x9a6aff, 0x6ad04a, 0xff3aa8, 0xffd23f, 0xff9a5c, 0x4fc3f7, 0x8a5a2a, 0x9af0ff, 0xff4d8a, 0xff9ad0, 0xe5453a, 0xb8e0ff, 0x7ad8ff];
   const LEVEL_CATS = [
     { id: 'ball', name: 'Ball sports', glyph: '\u26BD', games: [0, 1, 5, 15, 29] },
-    { id: 'battle', name: 'Team battles', glyph: '\u{1F3AF}', games: [14, 4, 17, 21] },
-    { id: 'lanes', name: 'Golf and lanes', glyph: '\u26F3', games: [2, 6, 7, 20] },
-    { id: 'adv', name: 'Adventures', glyph: '\u{1F5E1}\uFE0F', games: [3, 10, 11, 22] },
-    { id: 'race', name: 'Racing and parkour', glyph: '\u{1F3C1}', games: [9, 16, 19, 24] },
-    { id: 'party', name: 'Party games', glyph: '\u{1F389}', games: [13, 12, 18, 23] },
-    { id: 'active', name: 'Get active', glyph: '\u{1F4AA}', games: [25, 26, 27, 28] },
+    { id: 'battle', name: 'Team battles', glyph: '\u{1F3AF}', games: [14, 4, 17, 21, 34] },
+    { id: 'lanes', name: 'Golf and lanes', glyph: '\u26F3', games: [2, 6, 7, 20, 31] },
+    { id: 'adv', name: 'Adventures', glyph: '\u{1F5E1}\uFE0F', games: [3, 10, 11, 22, 30] },
+    { id: 'race', name: 'Racing and parkour', glyph: '\u{1F3C1}', games: [9, 16, 19, 24, 35] },
+    { id: 'party', name: 'Party games', glyph: '\u{1F389}', games: [13, 12, 18, 23, 32] },
+    { id: 'active', name: 'Get active', glyph: '\u{1F4AA}', games: [25, 26, 27, 28, 33] },
   ];
-  const PICKER_ORDER = [8, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 3, 10, 11, 0, 1, 2, 4, 5, 6, 7, 9];
+  const PICKER_ORDER = [8, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 3, 10, 11, 0, 1, 2, 4, 5, 6, 7, 9];
   function makeKiosk(L, x, z, yaw) {
     const fx = Math.sin(yaw), fz = Math.cos(yaw);   // direction the kiosk faces
     const rx = Math.cos(yaw), rz = -Math.sin(yaw);  // its right-hand side
@@ -8274,6 +8280,181 @@ kbd {
       ],
     },
     colors: { board: '#14222c', accent: '#e8b54a', sub: '#a8c8d8', text: '#eef4f8', label: '#ffb060', button: 0xe8b54a },
+  });
+  // ---------------- Frostpeak Caverns: up a frozen mountain pass and into the ice caves, to the Frost King's heart-gem
+  // New enemies (snow goblins, frost archers, yetis, ice bats, frost sprites and the Frost King) and a new projectile:
+  // ice shards, glowing pale blue.
+  PROJ.ice = { code: 4, speed: 11, gravity: 1.0, color: 0xcfefff, glow: 0x7ad8ff, size: 0.2, dmg: 1 };
+  PROJ_BY_CODE.push(PROJ.ice);
+  defEnemy('snowgob', { hp: 3, r: 0.42, h: 1.35, speed: 1.8, ai: 'melee', reach: 1.15, windup: 0.55, cool: 1.3, dmg: 1,
+    mesh(g, arm, M) {
+      const skin = M(0x9ac8e8), fur = M(0xf4f8ff), dark = M(0x4a6a8a);
+      g.add(at(new THREE.Mesh(cyl(0.22, 0.3, 0.55), fur), 0, 0.62, 0));
+      const head = at(new THREE.Mesh(sph(0.22), skin), 0, 1.07, 0); head.scale.set(1, 0.9, 1); g.add(head);
+      const hood = at(new THREE.Mesh(new THREE.SphereGeometry(0.24, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2), fur), 0, 1.1, 0.03); g.add(hood);
+      for (const sx of [-1, 1]) {
+        const ear = at(new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.26, 6), skin), sx * 0.24, 1.12, 0.02); ear.rotation.z = -sx * 1.25;
+        g.add(ear, at(new THREE.Mesh(sph(0.035, 6, 5), glowEye(0x7af0ff)), sx * 0.08, 1.08, -0.19), at(new THREE.Mesh(cyl(0.07, 0.06, 0.38, 6), dark), sx * 0.11, 0.19, 0));
+      }
+      arm.position.set(0.28, 0.82, 0);
+      const fore = at(new THREE.Mesh(cyl(0.05, 0.05, 0.4, 6), skin), 0, -0.15, -0.05); fore.rotation.x = 0.4;
+      const pick = at(new THREE.Mesh(cyl(0.03, 0.03, 0.6, 6), M(0x6b4a2a)), 0, -0.15, -0.42); pick.rotation.x = Math.PI / 2 - 0.3;
+      const head2 = at(new THREE.Mesh(boxg(0.36, 0.05, 0.05), M(0xc8d8e8)), 0, -0.05, -0.7);
+      arm.add(fore, pick, head2);
+    } });
+  defEnemy('frostarcher', { hp: 2, r: 0.36, h: 1.75, speed: 1.4, ai: 'ranged', proj: 'ice', windup: 0.75, cool: 2.6, keep: [4.5, 8.5],
+    mesh(g, arm, M) {
+      const robe = M(0x3a6aa8), trim = M(0xe8f4ff), skin = M(0xb8d8f0);
+      for (const sx of [-1, 1]) g.add(at(new THREE.Mesh(cyl(0.07, 0.06, 0.55, 6), M(0x2a3a5a)), sx * 0.1, 0.28, 0));
+      g.add(at(new THREE.Mesh(cyl(0.18, 0.3, 0.95), robe), 0, 0.98, 0), at(new THREE.Mesh(cyl(0.19, 0.19, 0.06), trim), 0, 1.38, 0), at(new THREE.Mesh(sph(0.18), skin), 0, 1.58, 0));
+      const hood = at(new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.4, 10), robe), 0, 1.78, 0.02); g.add(hood);
+      for (const sx of [-1, 1]) g.add(at(new THREE.Mesh(sph(0.03, 6, 5), glowEye(0x7af0ff)), sx * 0.07, 1.6, -0.16));
+      arm.position.set(0.25, 1.25, 0);
+      const bow = at(new THREE.Mesh(new THREE.TorusGeometry(0.32, 0.025, 5, 16, Math.PI), M(0xcfefff)), 0, 0, -0.3); bow.rotation.y = Math.PI / 2; arm.add(bow);
+    } });
+  defEnemy('yeti', { hp: 7, r: 0.65, h: 2.2, speed: 1.15, ai: 'melee', reach: 1.6, windup: 0.9, cool: 2.2, dmg: 2,
+    mesh(g, arm, M) {
+      const fur = M(0xf2f6fa), face = M(0x8ab0c8), dark = M(0x2a3a4a);
+      for (const sx of [-1, 1]) g.add(at(new THREE.Mesh(cyl(0.2, 0.18, 0.7), fur), sx * 0.24, 0.35, 0));
+      const body = at(new THREE.Mesh(sph(0.6), fur), 0, 1.25, 0); body.scale.set(1, 1.15, 0.85); g.add(body);
+      g.add(at(new THREE.Mesh(sph(0.32), fur), 0, 2.0, 0), at(new THREE.Mesh(sph(0.2), face), 0, 1.95, -0.2));
+      for (const sx of [-1, 1]) {
+        g.add(at(new THREE.Mesh(sph(0.045, 6, 5), glowEye(0x7af0ff)), sx * 0.09, 2.02, -0.36));
+        const horn = at(new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.28, 6), dark), sx * 0.24, 2.25, 0); horn.rotation.z = -sx * 0.5; g.add(horn);
+      }
+      arm.position.set(0, 1.6, 0);
+      for (const sx of [-1, 1]) arm.add(at(new THREE.Mesh(cyl(0.16, 0.14, 0.9), fur), sx * 0.7, -0.35, -0.1));
+    } });
+  defEnemy('icebat', { hp: 1, r: 0.32, h: 0.4, fly: 2.3, speed: 3.4, ai: 'flyer', reach: 0.95, windup: 0.3, cool: 1.6, dmg: 1,
+    mesh(g, arm, M) {
+      const body = new THREE.Mesh(sph(0.15), M(0x7ab8e8, 0x0a2a4a)); body.scale.set(1, 0.9, 1.2); g.add(body);
+      for (const sx of [-1, 1]) g.add(at(new THREE.Mesh(sph(0.03, 6, 5), glowEye(0xffffff)), sx * 0.06, 0.05, -0.14));
+      for (const sx of [-1, 1]) {
+        const w = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.03, 3), M(0xcfefff, 0x1a4a6a)); w.rotation.z = sx * Math.PI / 2; w.scale.set(1, 1, 1.6);
+        const hold = new THREE.Group(); hold.position.x = sx * 0.1; w.position.x = sx * 0.18; hold.add(w); hold.userData.side = sx;
+        arm.add(hold);
+      }
+      arm.userData.flap = true;
+    } });
+  defEnemy('sprite', { hp: 1, r: 0.32, h: 0.4, fly: 1.7, speed: 3.0, ai: 'kamikaze', reach: 1.1, windup: 0.5, cool: 1, dmg: 1, blast: 1.9,
+    mesh(g, arm, M) {
+      const core = new THREE.Mesh(new THREE.OctahedronGeometry(0.16, 0), M(0xe8faff, 0x4ac8ff)); g.add(core);
+      for (let k = 0; k < 4; k++) { const sp = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.22, 5), M(0xcfefff, 0x2a8aca)); const a = (k / 4) * Math.PI * 2; sp.position.set(Math.cos(a) * 0.16, 0, Math.sin(a) * 0.16); sp.rotation.z = Math.PI / 2; sp.rotation.y = -a; arm.add(sp); }
+      arm.userData.spin = true;
+    } });
+  defEnemy('frostking', { hp: 22, perPlayer: 8, r: 0.95, h: 3.0, speed: 0.95, ai: 'boss', reach: 3.2, windup: 1.2, cool: 3.8, dmg: 2, proj: 'ice', boss: { slam: true, barrage: 6, summon: 'snowgob', every: 11000 }, death: 'The Frost King shatters into snow!',
+    mesh(g, arm, M) {
+      const ice = M(0xbfe8ff, 0x1a4a6a), robe = M(0x2a4a8a), trim = M(0xf4f8ff), crown = M(0x9af0ff, 0x2a8aca);
+      for (const sx of [-1, 1]) g.add(at(new THREE.Mesh(cyl(0.2, 0.18, 0.9), robe), sx * 0.3, 0.45, 0));
+      g.add(at(new THREE.Mesh(cyl(0.55, 0.85, 1.5), robe), 0, 1.6, 0), at(new THREE.Mesh(cyl(0.6, 0.6, 0.14), trim), 0, 2.32, 0));
+      g.add(at(new THREE.Mesh(sph(0.42), ice), 0, 2.6, 0));
+      const beard = at(new THREE.Mesh(new THREE.ConeGeometry(0.34, 0.8, 8), trim), 0, 2.2, -0.18); beard.rotation.x = Math.PI; g.add(beard);
+      for (let k = 0; k < 7; k++) { const a = (k / 7) * Math.PI * 2, sp = at(new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.4, 5), crown), Math.cos(a) * 0.32, 3.1, Math.sin(a) * 0.32); g.add(sp); }
+      for (const sx of [-1, 1]) g.add(at(new THREE.Mesh(sph(0.06, 8, 6), glowEye(0x7af0ff)), sx * 0.15, 2.66, -0.38));
+      arm.position.set(0, 2.1, 0);
+      for (const sx of [-1, 1]) arm.add(at(new THREE.Mesh(cyl(0.18, 0.16, 1.1), robe), sx * 0.85, -0.45, 0));
+      const staff = at(new THREE.Mesh(cyl(0.05, 0.05, 2.6, 8), M(0xcfefff)), 0.85, -0.6, -0.2); arm.add(staff);
+      arm.add(at(new THREE.Mesh(new THREE.OctahedronGeometry(0.22, 0), M(0x9af0ff, 0x4ac8ff)), 0.85, 0.75, -0.2));
+    } });
+
+  const frostpeak = makeQuest({
+    idx: 30, seed: 30303,
+    env: {
+      sky: skyTexture([[0, '#5a7ab8'], [0.35, '#9ab8e0'], [0.48, '#dcebf8'], [0.5, '#f4f8ff'], [0.53, '#c8d8e8'], [1, '#8aa0b8']]),
+      bg: 0xc8d8ea, fog: [0xdce8f4, 40, 190], hemi: [0xf4f8ff, 0x8aa0c0, 0.95],
+      sun: [0xffffff, 0.8], sunDir: new V3(0.4, 0.7, -0.5), ambient: [0x8aa0c0, 0.4],
+      sprite: { tex: paleSunTex, pos: new V3(160, 150, -280), scale: 60 },
+    },
+    rooms: [
+      { name: 'Base camp', cx: 0, cz: 0, w: 12, d: 12, waves: [] },
+      { name: 'Snowfield', cx: -12, cz: -26, w: 18, d: 16, waves: [[['snowgob', -4, -3], ['snowgob', 4, -3], ['snowgob', -2, 3], ['icebat', 2, 0]]] },
+      { name: 'Frozen falls', cx: 12, cz: -52, w: 20, d: 16, waves: [[['frostarcher', -6, -5], ['frostarcher', 6, -5], ['snowgob', 0, 0]], [['snowgob', -5, 2], ['yeti', 0, 1], ['frostarcher', 0, -6], ['icebat', -3, -2], ['icebat', 3, -2]]] },
+      { name: 'Crystal cave', cx: -10, cz: -78, w: 20, d: 16, waves: [[['snowgob', -5, -3], ['snowgob', 5, -3], ['sprite', -2, 3], ['sprite', 2, 3], ['frostarcher', -6, -6], ['frostarcher', 6, -6]], [['yeti', -3, 0], ['yeti', 3, 0], ['frostarcher', -6, -5], ['frostarcher', 6, -5], ['icebat', -2, 3], ['icebat', 2, 3]]] },
+      { name: 'Glacier bridge', cx: 12, cz: -104, w: 22, d: 18, waves: [[['yeti', -4, -2], ['yeti', 4, -2], ['frostarcher', -8, -6], ['frostarcher', 0, -7], ['frostarcher', 8, -6]], [['snowgob', -6, 3], ['snowgob', 6, 3], ['sprite', -2, -3], ['sprite', 2, -3], ['icebat', -4, 0], ['icebat', 4, 0]], [['yeti', -5, 0], ['yeti', 0, -4], ['yeti', 5, 0], ['frostarcher', -8, -6], ['frostarcher', 8, -6]]] },
+      { name: 'Frost King’s hall', cx: 0, cz: -132, w: 22, d: 20, waves: [[['frostking', 0, -4], ['frostarcher', -8, -7], ['frostarcher', 8, -7]]] },
+      { name: 'Heart of the mountain', cx: 0, cz: -158, w: 10, d: 10, waves: [] },
+    ],
+    theme: {
+      ground(g, rand) {
+        g.fillStyle = '#eef4fa'; g.fillRect(0, 0, 256, 256);
+        for (let k = 0; k < 50; k++) { g.fillStyle = rand() < 0.5 ? 'rgba(200,220,240,0.45)' : 'rgba(255,255,255,0.6)'; g.beginPath(); g.ellipse(rand() * 256, rand() * 256, 10 + rand() * 30, 5 + rand() * 12, rand() * 3, 0, Math.PI * 2); g.fill(); }
+        speckle(g, rand, 2200, 'rgba(255,255,255,0.3)', 'rgba(120,150,190,0.12)');
+      },
+      floor(g, rand) {
+        // packed ice with cracks
+        g.fillStyle = '#bcdcf0'; g.fillRect(0, 0, 256, 256);
+        for (let k = 0; k < 30; k++) { g.fillStyle = rand() < 0.5 ? 'rgba(255,255,255,0.35)' : 'rgba(120,170,210,0.3)'; g.beginPath(); g.ellipse(rand() * 256, rand() * 256, 15 + rand() * 30, 8 + rand() * 14, rand() * 3, 0, Math.PI * 2); g.fill(); }
+        g.strokeStyle = 'rgba(255,255,255,0.7)'; g.lineWidth = 1.5;
+        for (let k = 0; k < 14; k++) { g.beginPath(); let x = rand() * 256, y = rand() * 256; g.moveTo(x, y); for (let j = 0; j < 4; j++) { x += (rand() - 0.5) * 60; y += (rand() - 0.5) * 60; g.lineTo(x, y); } g.stroke(); }
+      },
+      path(g, rand) {
+        g.fillStyle = '#d8e6f2'; g.fillRect(0, 0, 256, 256);
+        for (let k = 0; k < 60; k++) { g.fillStyle = 'rgba(150,180,210,0.25)'; g.beginPath(); g.ellipse(rand() * 256, rand() * 256, 6 + rand() * 6, 10 + rand() * 8, 0, 0, Math.PI * 2); g.fill(); }
+        speckle(g, rand, 900, 'rgba(255,255,255,0.3)', 'rgba(100,130,170,0.1)');
+      },
+      edgeStep: 1.9, lightEvery: 4, lightOff: -0.25,
+      edgeProp(ctx, x, z, nx, nz, seg) {
+        // snow banks and ice crystals, with the odd pine
+        const r = ctx.rand(), h = 0.6 + ctx.rand() * 1.2;
+        const col = new THREE.Color().setHSL(0.58, 0.25, 0.86 + ctx.rand() * 0.1).getHex();
+        if (nx) ctx.inst('bank', unitBlob, lam(0xffffff), x + nx * 0.45, h * 0.3, z, 0.9, h * 0.6, seg * 0.66, ctx.rand() * 6, col);
+        else ctx.inst('bank', unitBlob, lam(0xffffff), x, h * 0.3, z + nz * 0.45, seg * 0.66, h * 0.6, 0.9, ctx.rand() * 6, col);
+        if (r > 0.82) { const s = 0.6 + ctx.rand() * 0.8; ctx.inst('crystal', unitCone, new THREE.MeshLambertMaterial({ color: 0x9adcff, emissive: 0x1a5a8a }), x + nx * 0.9, s, z + nz * 0.9, 0.25 * s, 2 * s, 0.25 * s, ctx.rand() * 6); }
+        else if (r > 0.66) {
+          const tx = x + nx * 2.2, tz = z + nz * 2.2, s = 0.8 + ctx.rand() * 0.6;
+          ctx.inst('ptrunk', unitCyl, lam(0x5a4030), tx, 0.6 * s, tz, 0.25 * s, 1.2 * s, 0.25 * s);
+          for (let k = 0; k < 3; k++) ctx.inst('pine', unitCone, lam(k === 2 ? 0xf4f8ff : 0x2f5a44), tx, (1.4 + k * 0.9) * s, tz, (1.3 - k * 0.35) * s, 1.4 * s, (1.3 - k * 0.35) * s);
+        }
+      },
+      roomLight: 0xcfe8ff, vaultLight: 0x9af0ff, lightIntensity: 1.2, wallLight: 'lantern', wallLightColor: 0x9adcff, gate: 'bars', gateFrame: 0x6a8aa8, rackColor: 0x6a8aa8, pedestal: 0x8aa8c8,
+    },
+    racks: { west: ['sword', 'sword', 'sword', 'sword'], east: ['crossbow', 'crossbow', 'crossbow', 'crossbow', 'shield'] },
+    decorate(ctx) {
+      const { G, ROOMS, rand, VAULT, inst, torches, flameMat } = ctx;
+      const iceM = new THREE.MeshLambertMaterial({ color: 0xa8dcff, emissive: 0x0a3050, transparent: true, opacity: 0.88 });
+      const rock = lam(0x7a8a9a), snow = lam(0xf4f8ff);
+      // frozen falls: a curtain of ice down a cliff at the back
+      const r2 = ROOMS[2];
+      for (let k = 0; k < 9; k++) { const c = new THREE.Mesh(new THREE.CylinderGeometry(0.5 + rand() * 0.4, 0.2, 6 + rand() * 3, 8), iceM); c.position.set(r2.cx - 7 + k * 1.8, 4, r2.z0 - 1.8); G.add(c); }
+      addBox(G, r2.w + 6, 10, 2, rock, r2.cx, 5, r2.z0 - 3);
+      // the crystal cave: rock all round, glowing crystals
+      const r3 = ROOMS[3];
+      for (let k = 0; k < 18; k++) { const a = (k / 18) * Math.PI * 2, s = 2.4 + rand() * 1.6; inst('cave', unitBlob, lam(0x5a6a7a), r3.cx + Math.cos(a) * (r3.w / 2 + 2.5), s * 0.5, r3.cz + Math.sin(a) * (r3.d / 2 + 2.5), s, s * 1.4, s, rand() * 6); }
+      for (const [x, z] of [[-7, -5], [7, -4], [-6, 5], [6.5, 5]]) {
+        for (let k = 0; k < 3; k++) { const c = new THREE.Mesh(new THREE.ConeGeometry(0.25, 1.4 + rand(), 6), new THREE.MeshLambertMaterial({ color: 0x9af0ff, emissive: 0x2a8aca })); c.position.set(r3.cx + x + (rand() - 0.5) * 0.8, 0.7, r3.cz + z + (rand() - 0.5) * 0.8); c.rotation.z = (rand() - 0.5) * 0.5; G.add(c); }
+        const gl = new THREE.Sprite(flameMat.clone()); gl.material.color.setHex(0x7ad8ff); gl.position.set(r3.cx + x, 1.2, r3.cz + z); gl.scale.set(1.5, 1.5, 1); G.add(gl);
+        torches.push({ glow: gl, core: null, phase: rand() * 100, big: true });
+      }
+      // the glacier bridge: ice cliffs dropping away on both sides
+      const r4 = ROOMS[4];
+      for (const sx of [-1, 1]) addBox(G, 1.6, 1.0, r4.d, iceM, r4.cx + sx * (r4.w / 2 + 1.2), 0.5, r4.cz);
+      // the Frost King's hall: an ice throne and pillars
+      const r5 = ROOMS[5];
+      addBox(G, 2.6, 0.6, 1.8, iceM, r5.cx - 6, 0.3, r5.z0 + 1.3);
+      addBox(G, 1.8, 3.0, 0.4, iceM, r5.cx - 6, 1.5, r5.z0 + 0.5);
+      for (const sx of [-1, 1]) for (const z of [-4, 4]) { const p = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.55, 6, 10), iceM); p.position.set(r5.cx + sx * (r5.w / 2 - 1.2), 3, r5.cz + z); G.add(p); }
+      // the heart of the mountain: crystals round the goal
+      for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2, c = new THREE.Mesh(new THREE.ConeGeometry(0.4, 2.6, 6), new THREE.MeshLambertMaterial({ color: 0x9af0ff, emissive: 0x2a8aca })); c.position.set(VAULT.cx + Math.cos(a) * 3.8, 1.3, VAULT.cz + Math.sin(a) * 3.8); G.add(c); }
+      for (let k = 0; k < 10; k++) { const a = (k / 10) * Math.PI * 2; inst('vault', unitBlob, lam(0x6a7a8a), VAULT.cx + Math.cos(a) * 7.2, 2.2, VAULT.cz + Math.sin(a) * 7.2, 2.6, 4.4, 2.6, rand() * 6); }
+      // snowy mountains all round, and pines on the slopes
+      ring(ctx, 28, 170, 250, -60, (x, z) => { const s = 40 + rand() * 50; inst('mtn', unitCone, lam(0x8a9ab0), x, s * 0.7, z, s, s * 1.4, s); inst('cap', unitCone, snow, x, s * 1.12, z, s * 0.42, s * 0.56, s * 0.42); });
+      scatter(ctx, 120, -70, 70, 20, -175, 3, (x, z) => {
+        const s = 0.8 + rand() * 0.9;
+        inst('ftrunk', unitCyl, lam(0x5a4030), x, 0.6 * s, z, 0.3 * s, 1.2 * s, 0.3 * s);
+        for (let k = 0; k < 3; k++) inst('fpine', unitCone, lam(k === 2 ? 0xf4f8ff : 0x2f5a44), x, (1.6 + k * 1.1) * s, z, (1.6 - k * 0.45) * s, 1.7 * s, (1.6 - k * 0.45) * s);
+      });
+      void snow;
+    },
+    goal: { name: 'Heart-gem', glow: 0x9af0ff, make: () => ({ mesh: new THREE.Mesh(new THREE.OctahedronGeometry(0.2, 0), new THREE.MeshLambertMaterial({ color: 0x9af0ff, emissive: 0x2a8aca })) }) },
+    text: {
+      title: 'Frostpeak Caverns', claim: 'Claim the Heart-gem at the heart of the mountain', win: 'Quest complete! The Heart-gem is yours', summon: 'The Frost King calls his goblins', vaultOpen: 'The heart of the mountain is open!',
+      howto: [
+        ['In VR', 'Squeeze to take a sword or crossbow; squeeze again to put it down. Swing hard to hit. Trigger fires the crossbow. Your sword can knock ice shards away.'],
+        ['In a browser', 'E takes or drops a weapon. Click or press Space to attack.'],
+        ['Survive', 'Frost archers throw ice from range, sprites burst when they reach you, yetis hit hard. Red rings mean the Frost King is about to slam.'],
+      ],
+    },
+    colors: { board: '#13202e', accent: '#9af0ff', sub: '#b8d4ea', text: '#eef6fc', label: '#7ad8ff', button: 0x7ad8ff },
   });
   // ================================================================ team helpers (laser tag + soccer)
   function pickTeam(L) {
@@ -26726,6 +26907,1773 @@ kbd {
     MUSIC_THEMES.football = { gain: 0.75, bpm: 112, swing: 0, chords: ['C', 'F', 'G', 'C'], comp: { inst: 'brass', at: [0, 6, 8], dur: 0.2 }, bass: { at: [0, 8, 10] }, drums: { k: 'x...x...x...x...', s: '....x.......x...', h: 'o.o.o.o.o.o.o.o.' }, cut: 4200 };
     L.fbInternals = { MP, assignSpots, snapshot, applySnap, pickQB, cycleRole, S, PLAYS, DIFFS, REC, COV, SAF, RUSH, LINE, routeAt, passTo, hike, startGame, choosePlay, step, endPlay, release, throwFlat, lookTarget, fieldGoal, spike, timeout, setFormation, YD };
     setFormation();
+    return L;
+  })();
+  // ================================================================ LEVEL: SKEE-BALL ARCADE
+  // Four machines in a row, one each. Roll the ball up the lane: it hops the jump and drops into a ring:
+  // 10 at the bottom, then 20, 30, 40, 50 in the middle, and 100 in the top corners. Nine balls a game.
+  // Points earn tickets (kept between visits), and the prize counter swaps tickets for prizes on your shelf.
+  // VR: grab a ball from your tray and roll it underhand. Browser: aim with the mouse, hold Space for power.
+  const skeeball = (() => {
+    const L = newLevel(31);
+    const G = L.group;
+    const rand = mulberry32(3131);
+    L.grabless = true;
+    L.chargeKick = true;
+    L.bounds = { minX: -6.5, maxX: 6.5, minZ: -5, maxZ: 4 };
+    L.env = {
+      sky: skyTexture([[0, '#1a0e2a'], [1, '#1a0e2a']]),
+      bg: 0x1a0e2a, fog: [0x1a0e2a, 18, 50], hemi: [0xffe8f0, 0x302040, 0.85],
+      sun: [0xffffff, 0.45], sunDir: new V3(0.2, 1, 0.4), ambient: [0x503a60, 0.5], sprite: null,
+    };
+    const N = 4, PITCH = 1.4, BR = 0.045, BALLS = 9;
+    const LANE_W = 0.56, LANE_Z0 = 0, LANE_Z1 = -2.9, LANE_Y0 = 0.78, SLOPE = 0.09;
+    const BZ0 = -3.0, BZ1 = -3.85, BY0 = 1.081, BOARD_TILT = 0.6;   // the target board: from (BZ0, BY0) rising toward the back
+    const C_T = 0.58, RINGS = [[0.07, 50], [0.14, 40], [0.21, 30], [0.28, 20]], HUNDREDS = [[-0.19, 0.98], [0.19, 0.98]];
+    const machX = (k) => (k - (N - 1) / 2) * PITCH;
+    const laneY = (z) => LANE_Y0 + (LANE_Z0 - z) * SLOPE;
+    const boardY = (z) => BY0 + (BZ0 - z) * BOARD_TILT;
+    const boardLen = Math.hypot(BZ1 - BZ0, (BZ0 - BZ1) * BOARD_TILT);
+    // a spot on the board (x across, t up the board) in world space for machine k
+    const boardPt = (k, x, t) => { const u = t / boardLen; const z = BZ0 + (BZ1 - BZ0) * u; return new V3(machX(k) + x, boardY(z) + 0.002, z); };
+
+    // ---------------------------------------------------------------- the arcade
+    const floorTex = canvasTexture(256, 256, (g) => {
+      g.fillStyle = '#20143a'; g.fillRect(0, 0, 256, 256);
+      const cols = ['#ff4d8a', '#4fc3f7', '#ffd23f', '#8bd450'];
+      for (let i = 0; i < 70; i++) { g.fillStyle = cols[i % 4]; g.globalAlpha = 0.5; const x = rand() * 256, y = rand() * 256; g.beginPath(); if (i % 2) g.arc(x, y, 6, 0, Math.PI * 2); else { g.moveTo(x, y - 7); g.lineTo(x + 7, y + 6); g.lineTo(x - 7, y + 6); } g.fill(); }
+      g.globalAlpha = 1;
+    });
+    floorTex.tex.wrapS = floorTex.tex.wrapT = THREE.RepeatWrapping; floorTex.tex.repeat.set(4, 3);
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(14, 10), new THREE.MeshLambertMaterial({ map: floorTex.tex })); floor.rotation.x = -Math.PI / 2; floor.position.z = -0.5; G.add(floor);
+    for (const [w, h, x, z, ry] of [[14, 4, 0, -5.4, 0], [10, 4, -6.8, -0.5, Math.PI / 2], [10, 4, 6.8, -0.5, -Math.PI / 2]]) {
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), lam(0x2a1a44)); m.position.set(x, h / 2, z); m.rotation.y = ry; G.add(m);
+    }
+    // neon strips along the walls
+    for (const [x, z, ry, col] of [[0, -5.35, 0, 0xff4d8a], [-6.75, -0.5, Math.PI / 2, 0x4fc3f7], [6.75, -0.5, -Math.PI / 2, 0xffd23f]]) {
+      const s = new THREE.Mesh(new THREE.PlaneGeometry(9, 0.08), new THREE.MeshBasicMaterial({ color: col })); s.position.set(x, 3.2, z); s.rotation.y = ry; G.add(s);
+    }
+    makePlate(G, 'SKEE-BALL', 3.2, 0.6, new V3(0, 3.0, -5.3), 0, { bg: '#2a1a44', fg: '#ffd23f', size: 0.7 });
+    const cabMat = lam(0x3a2a6a), sideMat = new THREE.MeshLambertMaterial({ color: 0xff4d8a, emissive: 0x3a0a1a });
+    const laneMat = lam(0xd8b080), boardMat = lam(0x2a2a52);
+    const machines = [];
+    for (let k = 0; k < N; k++) {
+      const mx = machX(k);
+      // cabinet: the lane, side rails, the jump, the target board, the back net
+      const len = LANE_Z0 - LANE_Z1, ang = Math.atan(SLOPE);
+      const lane = new THREE.Mesh(new THREE.BoxGeometry(LANE_W, 0.04, len / Math.cos(ang)), laneMat);
+      lane.position.set(mx, (laneY(LANE_Z0) + laneY(LANE_Z1)) / 2 - 0.02, (LANE_Z0 + LANE_Z1) / 2); lane.rotation.x = ang; G.add(lane);
+      addBox(G, LANE_W + 0.2, LANE_Y0 - 0.02, len, cabMat, mx, (LANE_Y0 - 0.02) / 2, (LANE_Z0 + LANE_Z1) / 2);
+      for (const sx of [-1, 1]) {
+        const rail = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.14, len / Math.cos(ang)), sideMat);
+        rail.position.set(mx + sx * (LANE_W / 2 + 0.025), (laneY(LANE_Z0) + laneY(LANE_Z1)) / 2 + 0.05, (LANE_Z0 + LANE_Z1) / 2); rail.rotation.x = ang; G.add(rail);
+        // tall glass sides along the target end
+        const side = new THREE.Mesh(new THREE.BoxGeometry(0.04, 1.6, 1.4), new THREE.MeshLambertMaterial({ color: 0x8be0ff, transparent: true, opacity: 0.25, depthWrite: false }));
+        side.position.set(mx + sx * (LANE_W / 2 + 0.03), 1.6, BZ0 - 0.45); G.add(side);
+      }
+      const jump = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, LANE_W, 12), sideMat); jump.rotation.z = Math.PI / 2; jump.position.set(mx, laneY(LANE_Z1) + 0.02, LANE_Z1); G.add(jump);
+      // the board, with its rings drawn on
+      const bt = canvasTexture(256, 512, (g) => {
+        g.fillStyle = '#2a2a52'; g.fillRect(0, 0, 256, 512);
+        const sx = 256 / LANE_W, sy = 512 / boardLen;
+        const cx = 128, cy = 512 - C_T * sy;
+        for (let i = RINGS.length - 1; i >= 0; i--) {
+          const [r, pts] = RINGS[i];
+          g.fillStyle = ['#ffd23f', '#ff9a3a', '#ff4d8a', '#b388ff'][i]; g.beginPath(); g.arc(cx, cy, r * sx, 0, Math.PI * 2); g.fill();
+          g.fillStyle = '#14142a'; g.beginPath(); g.arc(cx, cy, (r - 0.025) * sx, 0, Math.PI * 2); g.fill();
+          g.fillStyle = '#ffffff'; g.font = `800 ${Math.round(0.03 * sx)}px ${DISPLAY}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+          if (i > 0) g.fillText(String(pts), cx, cy - (r - 0.045) * sy);
+        }
+        g.fillStyle = '#ffffff'; g.font = `800 ${Math.round(0.035 * sx)}px ${DISPLAY}`; g.fillText('50', cx, cy);
+        for (const [hx, ht] of HUNDREDS) { g.fillStyle = '#8bd450'; g.beginPath(); g.arc(cx + hx * sx, 512 - ht * sy, 0.055 * sx, 0, Math.PI * 2); g.fill(); g.fillStyle = '#14142a'; g.beginPath(); g.arc(cx + hx * sx, 512 - ht * sy, 0.035 * sx, 0, Math.PI * 2); g.fill(); g.fillStyle = '#ffffff'; g.font = `800 ${Math.round(0.025 * sx)}px ${DISPLAY}`; g.fillText('100', cx + hx * sx, 512 - ht * sy + 0.055 * sy); }
+        g.fillStyle = '#ffd23f'; g.font = `800 ${Math.round(0.04 * sx)}px ${DISPLAY}`; g.fillText('10', cx, 512 - 0.06 * sy);
+      });
+      const board = new THREE.Mesh(new THREE.PlaneGeometry(LANE_W, boardLen), new THREE.MeshLambertMaterial({ map: bt.tex }));
+      board.position.set(mx, (BY0 + boardY(BZ1)) / 2, (BZ0 + BZ1) / 2); board.rotation.x = -Math.PI / 2 + Math.atan(BOARD_TILT); G.add(board);
+      addBox(G, LANE_W + 0.2, boardY(BZ1) + 0.2, 0.1, cabMat, mx, (boardY(BZ1) + 0.2) / 2, BZ1 - 0.1);
+      addBox(G, LANE_W + 0.2, BY0, BZ0 - BZ1 + 0.1, cabMat, mx, BY0 / 2, (BZ0 + BZ1) / 2);
+      // the marquee with this machine's score
+      const sc = canvasTexture(512, 256);
+      const marquee = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.55), new THREE.MeshBasicMaterial({ map: sc.tex }));
+      marquee.position.set(mx, boardY(BZ1) + 0.65, BZ1 - 0.04); G.add(marquee);
+      // the ball tray at the front
+      addBox(G, 0.3, 0.06, 0.24, lam(0x2a1a44), mx + LANE_W / 2 + 0.2, 0.74, 0.12);
+      const tag = makePlate(G, `Machine ${k + 1}`, 0.6, 0.12, new V3(mx, 0.6, 0.2), 0, { size: 0.55, bg: '#2a1a44', fg: '#ffffff' });
+      machines.push({ k, mx, sc, tag, owner: null, key: '' });
+    }
+    // the ticket counter and prize shelf, along the right wall
+    const PRIZES = [
+      { id: 'duck', name: 'Rubber duck', cost: 40, make: () => { const g = new THREE.Group(); const y = lam(0xffd23f); const b = new THREE.Mesh(sph(0.1, 12, 10), y); b.scale.set(1.3, 0.9, 1); g.add(b); g.add(at(new THREE.Mesh(sph(0.065, 10, 8), y), -0.08, 0.1, 0)); const bk = new THREE.Mesh(new THREE.ConeGeometry(0.025, 0.06, 6), lam(0xf5821f)); bk.rotation.z = Math.PI / 2; bk.position.set(-0.16, 0.1, 0); g.add(bk); return g; } },
+      { id: 'bear', name: 'Teddy bear', cost: 120, make: () => { const g = new THREE.Group(), b = lam(0xa8743a); g.add(at(new THREE.Mesh(sph(0.11, 12, 10), b), 0, 0.1, 0), at(new THREE.Mesh(sph(0.08, 12, 10), b), 0, 0.26, 0)); for (const sx of [-1, 1]) g.add(at(new THREE.Mesh(sph(0.03, 8, 6), b), sx * 0.06, 0.33, 0)); return g; } },
+      { id: 'rocket', name: 'Toy rocket', cost: 250, make: () => { const g = new THREE.Group(); g.add(at(new THREE.Mesh(cyl(0.05, 0.05, 0.26, 12), lam(0xf4f4f0)), 0, 0.15, 0), at(new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.1, 12), lam(0xe5453a)), 0, 0.33, 0)); for (let i = 0; i < 3; i++) { const f = at(new THREE.Mesh(boxg(0.01, 0.08, 0.06), lam(0x4fc3f7)), Math.cos(i * 2.1) * 0.05, 0.05, Math.sin(i * 2.1) * 0.05); f.rotation.y = -i * 2.1; g.add(f); } return g; } },
+      { id: 'robot', name: 'Wind-up robot', cost: 400, make: () => { const g = new THREE.Group(), m = lam(0xb8c0d0); g.add(at(new THREE.Mesh(boxg(0.14, 0.16, 0.1), m), 0, 0.1, 0), at(new THREE.Mesh(boxg(0.1, 0.09, 0.09), m), 0, 0.24, 0)); for (const sx of [-1, 1]) g.add(at(new THREE.Mesh(sph(0.015, 6, 5), new THREE.MeshBasicMaterial({ color: 0x4fc3f7 })), sx * 0.025, 0.25, -0.046)); g.add(at(new THREE.Mesh(cyl(0.005, 0.005, 0.06, 4), m), 0, 0.31, 0), at(new THREE.Mesh(sph(0.015, 6, 5), lam(0xe5453a)), 0, 0.345, 0)); return g; } },
+      { id: 'crown', name: 'Golden crown', cost: 800, make: () => { const g = new THREE.Group(), gold = new THREE.MeshLambertMaterial({ color: 0xffc83a, emissive: 0x4a3000 }); g.add(at(new THREE.Mesh(cyl(0.1, 0.1, 0.07, 16, true), gold), 0, 0.05, 0)); for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2; g.add(at(new THREE.Mesh(new THREE.ConeGeometry(0.025, 0.07, 5), gold), Math.cos(a) * 0.1, 0.12, Math.sin(a) * 0.1)); } return g; } },
+    ];
+    const SAVE = { tickets: 0, owned: [] };
+    try { if (prefs.skee && typeof prefs.skee === 'object') { SAVE.tickets = Number.isInteger(prefs.skee.tickets) ? prefs.skee.tickets : 0; SAVE.owned = Array.isArray(prefs.skee.owned) ? prefs.skee.owned.filter((x) => PRIZES.some((p) => p.id === x)) : []; } } catch (e) { /* none saved */ }
+    const save = () => { prefs.skee = { tickets: SAVE.tickets, owned: SAVE.owned.slice() }; savePrefs(); };
+    {
+      const cx = 6.2;
+      addBox(G, 0.6, 1.0, 4.2, lam(0x4a2a6a), cx, 0.5, -0.4);
+      addBox(G, 0.3, 1.6, 4.2, lam(0x3a2a5a), cx + 0.35, 1.8, -0.4);
+      makePlate(G, 'PRIZE COUNTER', 2.4, 0.35, new V3(cx + 0.18, 2.85, -0.4), -Math.PI / 2, { bg: '#ff4d8a', fg: '#ffffff', size: 0.65 });
+      PRIZES.forEach((p, i) => {
+        const z = -2.0 + i * 0.8;
+        const m = p.make(); m.position.set(cx + 0.25, 1.6, z); m.scale.setScalar(1.8); G.add(m); p.mesh = m;
+        addBox(G, 0.36, 0.04, 0.5, lam(0x2a1a44), cx + 0.25, 1.58, z);
+        makeButton(L, new V3(cx - 0.1, 1.05, z), 0xffd23f, `${p.name}: ${p.cost}`, () => buyPrize(p), { faceYaw: -Math.PI / 2, pedestal: false });
+      });
+    }
+    const ticketC = canvasTexture(512, 160);
+    const ticketBoard = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 0.5), new THREE.MeshBasicMaterial({ map: ticketC.tex }));
+    ticketBoard.position.set(6.15, 2.45, -0.4); ticketBoard.rotation.y = -Math.PI / 2; G.add(ticketBoard);
+    let ticketKey = '';
+    function drawTickets() {
+      const key = `${SAVE.tickets}|${SAVE.owned.join()}`;
+      if (key === ticketKey) return; ticketKey = key;
+      const g = ticketC.g;
+      g.fillStyle = '#14142a'; g.fillRect(0, 0, 512, 160);
+      g.fillStyle = '#ffd23f'; g.font = `900 64px ${DISPLAY}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText(`\u{1F39F}️ ${SAVE.tickets} tickets`, 256, 62);
+      g.fillStyle = '#c8b8e8'; g.font = `600 30px ${BODY}`; g.fillText(`${SAVE.owned.length} of ${PRIZES.length} prizes on your shelf`, 256, 124);
+      ticketC.tex.needsUpdate = true;
+      for (const p of PRIZES) p.mesh.traverse((o) => { if (o.material) { o.material.transparent = true; o.material.opacity = SAVE.owned.includes(p.id) ? 1 : 0.35; } });
+    }
+    function buyPrize(p) {
+      if (SAVE.owned.includes(p.id)) { showToast(`You already have the ${p.name.toLowerCase()}`); return; }
+      if (SAVE.tickets < p.cost) { showToast(`The ${p.name.toLowerCase()} costs ${p.cost} tickets. You have ${SAVE.tickets}`); sfx('buzzer', 0.4); return; }
+      SAVE.tickets -= p.cost; SAVE.owned.push(p.id); save();
+      showToast(`You got the ${p.name.toLowerCase()}!`); sfx('fanfare', 0.8);
+      spawnFloat(p.name, p.mesh.position.clone().add(new V3(-0.3, 0.4, 0)), '#ffd23f');
+      forcePresence(); state.dirtyBoard = true;
+    }
+    L.skeeSave = SAVE;
+
+    // ---------------------------------------------------------------- my game
+    const me = { k: 0, score: 0, left: BALLS, best: 0, phase: 'idle', last: 0 };
+    try { if (Number.isInteger(prefs.skeeBest)) me.best = prefs.skeeBest; } catch (e) { /* none */ }
+    L.skee = me;
+    // the ball in play (one at a time): 'tray', 'held', 'roll' (on the lane), 'fly', 'drop' (into a ring), 'back'
+    const B = { st: 'tray', pos: new V3(), vel: new V3(), t: 0, pts: 0, hand: null, hole: null };
+    L.skeeBall = B;
+    const ballMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
+    const ballMesh = new THREE.Mesh(sph(BR, 16, 12), ballMat); G.add(ballMesh);
+    const trayBalls = [];
+    for (let i = 0; i < 8; i++) { const m = new THREE.Mesh(sph(BR, 12, 10), ballMat); G.add(m); trayBalls.push(m); }
+    L.setColor = (hex) => ballMat.color.set(hex).lerp(new THREE.Color(0xffffff), 0.45);
+    L.setColor(PLAYER_COLORS[state.colorIdx].hex);
+    const trayPos = (i) => new V3(machX(me.k) + LANE_W / 2 + 0.13 + (i % 2) * 0.1, 0.81, 0.04 + Math.floor(i / 2) * 0.1);
+    function mySlot() {
+      const ids = [state.myPeer];
+      for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer);
+      ids.sort();
+      return Math.max(0, ids.indexOf(state.myPeer)) % N;
+    }
+    function standAtMachine() {
+      me.k = mySlot();
+      const _c = new V3(); camera.getWorldPosition(_c);
+      dolly.position.x += machX(me.k) - _c.x; dolly.position.z += 0.75 - _c.z;
+      if (state.mode !== 'vr') { state.yaw = 0; state.pitch = -0.32; }
+      B.st = 'tray'; B.pos.copy(trayPos(0));
+    }
+    function newGame() {
+      me.score = 0; me.left = BALLS; me.phase = 'play';
+      B.st = 'tray'; B.pos.copy(trayPos(0));
+      sfx('coin', 0.8); tone(660, 990, 0.2, 'square', 0.1);
+      showToast('Nine balls. Roll them up the lane!');
+      forcePresence(); state.dirtyBoard = true;
+    }
+    L.newGame = newGame;
+    function endGame() {
+      me.phase = 'over';
+      const tickets = Math.floor(me.score / 10);
+      SAVE.tickets += tickets; save();
+      const isBest = me.score > me.best;
+      if (isBest) { me.best = me.score; prefs.skeeBest = me.best; savePrefs(); }
+      showToast(`Game over: ${me.score} points${isBest && me.score ? ' (a new best!)' : ''}. ${tickets} tickets!`);
+      sfx(me.score >= 300 ? 'fanfare' : 'chime', 0.9);
+      for (let i = 0; i < Math.min(tickets, 30); i++) setTimeout(() => tone(1500 + (i % 3) * 120, 0, 0.03, 'square', 0.04), i * 45);
+      forcePresence(); state.dirtyBoard = true;
+    }
+    // ---------------------------------------------------------------- the ball
+    function launch(pos, vel) {
+      if (me.phase !== 'play') newGame();
+      B.st = 'roll'; B.pos.copy(pos); B.vel.copy(vel); B.t = 0; B.counted = false;
+      sfx('ball', 0.4);
+    }
+    L.launch = launch;
+    function score(pts, at) {
+      B.st = 'drop'; B.t = 0; B.pts = pts; B.hole = at;
+      me.score += pts; me.left -= 1;
+      tone(pts >= 100 ? 1200 : 500 + pts * 8, 0, 0.12, 'triangle', 0.25);
+      if (pts >= 50) { sfx('chime', 0.6); if (pts === 100) sfx('fanfare', 0.6); }
+      spawnFloat(`+${pts}`, at.clone().add(new V3(0, 0.25, 0.2)), pts >= 100 ? '#8bd450' : pts >= 50 ? '#ffd23f' : '#ffffff');
+      forcePresence(); state.dirtyBoard = true;
+    }
+    // where on the board it lands, and which ring that is
+    function ringAt(x, t) {
+      for (const [hx, ht] of HUNDREDS) if (Math.hypot(x - hx, t - ht) < 0.055) return 100;
+      const d = Math.hypot(x, t - C_T);
+      for (const [r, pts] of RINGS) if (d < r) return pts;
+      return 10;
+    }
+    L.ringAt = ringAt;
+    const G_ACC = 9.8;
+    function stepBall(dt) {
+      const mx = machX(me.k);
+      if (B.st === 'roll' || B.st === 'fly') {
+        B.t += dt;
+        B.vel.y -= G_ACC * dt;
+        B.pos.addScaledVector(B.vel, dt);
+        const lx = B.pos.x - mx;
+        const onLane = B.pos.z <= LANE_Z0 + 0.05 && B.pos.z >= LANE_Z1 && Math.abs(lx) < LANE_W / 2 + 0.02;
+        if (onLane) {
+          // side rails
+          if (lx > LANE_W / 2 - BR) { B.pos.x = mx + LANE_W / 2 - BR; if (B.vel.x > 0) B.vel.x *= -0.6; }
+          if (lx < -LANE_W / 2 + BR) { B.pos.x = mx - LANE_W / 2 + BR; if (B.vel.x < 0) B.vel.x *= -0.6; }
+          const sy = laneY(B.pos.z) + BR;
+          if (B.pos.y <= sy) {
+            B.pos.y = sy;
+            if (B.vel.y < 0) B.vel.y = -B.vel.y * 0.2 < 0.3 ? 0 : -B.vel.y * 0.2;
+            // rolling: a little friction, and the slope slows it (it moves along the slope)
+            const f = Math.exp(-0.25 * dt); B.vel.x *= f; B.vel.z *= f; B.vel.z += G_ACC * SLOPE * dt;
+            B.vel.y = Math.max(B.vel.y, -B.vel.z * SLOPE);
+            B.st = 'roll';
+          } else B.st = 'fly';
+          // rolled back to you without making it: it comes back to the tray
+          if (B.vel.z > 0.05 && B.pos.z > -0.1 && B.st === 'roll') { B.st = 'back'; B.t = 0; showToast('Not hard enough: roll it again'); return; }
+          if (Math.hypot(B.vel.x, B.vel.z) < 0.05 && B.st === 'roll' && B.t > 0.5) { B.st = 'back'; B.t = 0; return; }
+        } else if (B.pos.z < LANE_Z1 && B.st !== 'fly') B.st = 'fly';
+        // off the end of the lane: the jump throws it up
+        if (B.st === 'roll' && B.pos.z <= LANE_Z1 + 0.02) { B.vel.y = Math.abs(B.vel.z) * 0.7 + 0.3; B.st = 'fly'; B.pos.z = LANE_Z1 - 0.001; B.pos.y += 0.03; }
+        // the board
+        if (B.pos.z < BZ0 && B.pos.z > BZ1 && B.pos.y - BR <= boardY(B.pos.z)) {
+          const t = (BZ0 - B.pos.z) / (BZ0 - BZ1) * boardLen, x = clamp(B.pos.x - mx, -LANE_W / 2 + BR, LANE_W / 2 - BR);
+          const pts = ringAt(x, t);
+          score(pts, boardPt(me.k, pts === 10 ? x * 0.4 : x, pts === 10 ? 0.06 : t));
+          return;
+        }
+        if (B.pos.z <= BZ1 + BR) { score(10, boardPt(me.k, 0, 0.05)); showToast('Too hard: off the back and down to the 10'); return; }   // the back of the cabinet
+        // short: between the jump and the board it falls in the bottom gutter
+        if (B.pos.z < LANE_Z1 && B.pos.z > BZ0 && B.pos.y < laneY(LANE_Z1) - 0.05) { score(10, boardPt(me.k, 0, 0.05)); return; }
+        // off the machine entirely (in VR you can throw it anywhere): it comes back without counting
+        if (B.pos.y < 0.05 || Math.abs(lx) > 1.5 || B.pos.z > 2) { B.st = 'back'; B.t = 0; showToast('Off the lane! Roll it up the ramp'); }
+      } else if (B.st === 'drop') {
+        B.t += dt;
+        B.pos.copy(B.hole).add(new V3(0, -B.t * 0.4, -B.t * 0.15));
+        if (B.t > 0.6) { B.st = 'back'; B.t = 0; }
+      } else if (B.st === 'back') {
+        B.t += dt;
+        if (B.t > 0.5) { B.st = 'tray'; if (me.phase === 'play' && me.left <= 0) endGame(); }
+      }
+    }
+    L.stepBall = stepBall;
+    // browser: aim with the mouse, hold Space for power
+    const _q = new Q4(), _f = new V3();
+    L.kick = (c) => {
+      if (B.st !== 'tray') return;
+      if (me.phase !== 'play') newGame();
+      camera.getWorldQuaternion(_q); _f.set(0, 0, -1).applyQuaternion(_q);
+      const yaw = Math.atan2(-_f.x, -_f.z), sp = 2.6 + c * 3.8;
+      const vx = clamp(-Math.sin(yaw) * sp, -0.6, 0.6);
+      launch(new V3(machX(me.k) + clamp(-Math.sin(yaw) * 0.3, -0.15, 0.15), laneY(LANE_Z0 - 0.05) + BR, LANE_Z0 - 0.05), new V3(vx, 0, -sp));
+    };
+    L.throwLabel = () => (B.st === 'tray' ? 'Roll' : '…');
+    // VR: grab from the tray, roll it
+    L.onVRGrab = (h) => {
+      if (B.st !== 'tray') return false;
+      if (myHands[h.side].pos.distanceTo(trayPos(0)) > 0.4) return false;
+      B.st = 'held'; B.hand = h.side; sfx('grab', 0.4);
+      return true;
+    };
+    L.onVRRelease = (h, vel) => {
+      if (B.st !== 'held' || B.hand !== h.side) return;
+      const v = vel.clone().multiplyScalar(1.15);
+      if (v.length() < 0.6) { B.st = 'tray'; return; }   // put it down
+      launch(myHands[h.side].pos.clone(), v);
+    };
+
+    // ---------------------------------------------------------------- drawing, network, the rest
+    function drawMarquee(m, score, left, name, best) {
+      const key = `${score}|${left}|${name}|${best}`;
+      if (key === m.key) return; m.key = key;
+      const g = m.sc.g;
+      g.fillStyle = '#14142a'; g.fillRect(0, 0, 512, 256);
+      g.strokeStyle = '#ff4d8a'; g.lineWidth = 8; g.strokeRect(4, 4, 504, 248);
+      g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillStyle = '#ffd23f'; g.font = `900 110px ${DISPLAY}`; g.fillText(String(score), 256, 110);
+      g.fillStyle = '#c8b8e8'; g.font = `600 34px ${BODY}`; g.fillText(name ? `${name}  ·  ${left} ball${left === 1 ? '' : 's'} left` : 'Free play', 256, 200, 480);
+      m.sc.tex.needsUpdate = true;
+      void best;
+    }
+    L.update = (dt, now) => {
+      const here = state.level === L.idx && state.mode !== 'menu';
+      if (here) {
+        const k = mySlot();
+        if (k !== me.k) standAtMachine();
+        const n = Math.max(1, Math.ceil(dt / 0.005));
+        for (let i = 0; i < n; i++) stepBall(dt / n);
+      }
+      // my ball, in the tray, in my hand, or rolling
+      if (B.st === 'held') { const mh = myHands[B.hand]; B.pos.copy(mh.pos); }
+      ballMesh.visible = here && B.st !== 'tray' && B.st !== 'back';
+      ballMesh.position.copy(B.pos);
+      if (B.st === 'roll') ballMesh.rotation.x -= (B.vel.z / BR) * dt;
+      const inTray = me.phase === 'play' ? me.left - (B.st === 'tray' || B.st === 'back' ? 0 : 1) : BALLS;
+      trayBalls.forEach((m, i) => { m.visible = here && i < Math.min(8, inTray) && !(B.st === 'held' && i === 0); m.position.copy(trayPos(i)); });
+      // marquees: mine, and the others'
+      const slots = {};
+      slots[me.k] = { score: me.score, left: me.phase === 'play' ? me.left : 0, name: state.name || 'You' };
+      for (const rec of remotes.values()) { const st = rec.lvState[L.id]; if (rec.lv === L.idx && rec.inGame && st && st.sk) slots[st.sk[3]] = { score: st.sk[0], left: st.sk[1], name: rec.name }; }
+      for (const m of machines) { const s = slots[m.k]; drawMarquee(m, s ? s.score : 0, s ? s.left : 0, s ? s.name : '', 0); }
+      drawTickets();
+      if (here && ui.status && state.mode === 'flat') { ui.status.hidden = false; const txt = me.phase === 'play' ? `${me.score} points  ·  ${me.left} ball${me.left === 1 ? '' : 's'} left  ·  ${SAVE.tickets} tickets` : `Best ${me.best}  ·  ${SAVE.tickets} tickets  ·  hold Space to roll`; if (ui.status.textContent !== txt) ui.status.textContent = txt; }
+    };
+    L.presence = () => ({ sk: [me.score, me.phase === 'play' ? me.left : 0, me.best, me.k] });
+    L.readPresence = (rec, pres, st) => {
+      const a = pres.sk;
+      if (!Array.isArray(a) || a.length !== 4 || !a.every((x) => Number.isInteger(x) && x >= 0 && x < 100000) || a[3] >= N) { st.sk = null; return; }
+      if (!st.sk || st.sk[0] !== a[0] || st.sk[2] !== a[2]) state.dirtyBoard = true;
+      st.sk = a;
+    };
+    L.rowFor = (st, isMe) => {
+      const best = isMe ? me.best : (st.sk ? st.sk[2] : 0), score = isMe ? me.score : (st.sk ? st.sk[0] : 0);
+      return { best, text: `${score} now · best ${best}` };
+    };
+    L.sortRows = (a, b) => (b.best || 0) - (a.best || 0);
+    L.board = makeBoard(G, 720, 460, 2.2, 1.4, -6.15, 2.0, -0.4, Math.PI / 2);
+    L.drawBoard = (rows) => {
+      const g = L.board.g, W = 720;
+      g.fillStyle = '#14142a'; g.fillRect(0, 0, W, 460);
+      g.strokeStyle = '#ff4d8a'; g.lineWidth = 8; g.strokeRect(4, 4, W - 8, 452);
+      g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+      g.fillStyle = '#ffd23f'; g.font = `800 56px ${DISPLAY}`; g.fillText('High scores', 36, 80);
+      g.fillStyle = '#c8b8e8'; g.font = `400 24px ${BODY}`; g.fillText('Nine balls. 10 points = 1 ticket.', 36, 118);
+      drawRows(g, rows, 176, 46, W);
+      L.board.tex.needsUpdate = true;
+    };
+    makeKiosk(L, -5.4, 2.6, Math.PI / 2);
+    L.hudActions = [{ label: () => (me.phase === 'play' ? 'New game' : 'Start game'), run: () => newGame() }];
+    L.hints = [['Grip', 'take a ball from your tray'], ['Roll it', 'underhand, up the lane'], ['Prize counter', 'on the right wall']];
+    L.hintsFor = () => (state.mode === 'flat' ? [['Mouse', 'aim'], ['Hold Space', 'power, then let go to roll'], ['E', 'press a prize button']] : L.hints);
+    L.spawn = () => { dolly.position.set(0, 0, 0.75); standAtMachine(); };
+    L.onEnter = () => { ticketKey = ''; for (const m of machines) m.key = ''; };
+    L.onExit = () => { if (ui.status) ui.status.hidden = true; if (B.st === 'held') B.st = 'tray'; };
+    L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 2, 2.2, 3.2); camera.lookAt(0, 1, -3); };
+    MUSIC_THEMES.skeeball = { gain: 0.8, bpm: 118, swing: 0.1, chords: ['C', 'Am', 'F', 'G'], comp: { inst: 'synth', at: [0, 4, 8, 12], dur: 0.15 }, bass: { at: [0, 8] }, drums: { k: 'x...x...x...x...', h: '..o...o...o...o.' }, lead: { inst: 'musicbox', p: 0.3, up: 12 }, cut: 4800 };
+    return L;
+  })();
+  // ================================================================ LEVEL: MUSICAL CHAIRS
+  // Walk round the ring of chairs while the music plays. When it stops, grab a seat: stand right at a chair.
+  // There's one chair fewer than players, so whoever's left standing is out; a chair goes each round until one
+  // winner is left. Bots make up the numbers. One player's device (the first in the room) runs the game and
+  // decides who got each chair; everyone else follows. The tune is the game's own, so it really stops.
+  const chairs = (() => {
+    const L = newLevel(32);
+    const G = L.group;
+    const rand = mulberry32(3232);
+    L.grabless = true;
+    L.bounds = { minX: -9, maxX: 9, minZ: -9, maxZ: 9 };
+    L.env = {
+      sky: skyTexture([[0, '#ffb86a'], [0.5, '#ffd8a0'], [1, '#ffd8a0']]),
+      bg: 0xffd8a0, fog: [0xffe0b0, 25, 70], hemi: [0xfff4e0, 0x8a6a50, 0.85],
+      sun: [0xfff0d8, 0.7], sunDir: new V3(0.4, 1, 0.3), ambient: [0x8a7060, 0.4], sprite: null,
+    };
+    const BOT_NAMES = ['Dizzy Dot', 'Speedy Sam', 'Slow Moe', 'Polka Pam', 'Twirly Tim', 'Bouncy Bea', 'Lucky Lou'];
+    const BOT_COLS = ['#ff7ac8', '#4fc3f7', '#8bd450', '#ffd23f', '#b388ff', '#ff9a3a', '#2ec4b6'];
+    const BOT_SPEED = [3.0, 3.4, 2.4, 2.9, 3.1, 2.7, 3.2], BOT_REACT = [0.45, 0.3, 0.7, 0.5, 0.4, 0.55, 0.35];
+
+    // ---------------------------------------------------------------- the party room
+    const wood = canvasTexture(256, 256, (g) => { for (let i = 0; i < 8; i++) { const s = 170 + Math.floor(rand() * 30); g.fillStyle = `rgb(${s},${s - 40},${s - 90})`; g.fillRect(0, i * 32, 256, 30); g.fillStyle = 'rgba(80,50,20,0.5)'; g.fillRect(0, i * 32 + 30, 256, 2); g.fillRect(Math.floor(rand() * 256), i * 32, 2, 30); } });
+    wood.tex.wrapS = wood.tex.wrapT = THREE.RepeatWrapping; wood.tex.repeat.set(4, 4);
+    const floor = new THREE.Mesh(new THREE.CircleGeometry(9, 48), new THREE.MeshLambertMaterial({ map: wood.tex })); floor.rotation.x = -Math.PI / 2; G.add(floor);
+    const rug = new THREE.Mesh(new THREE.RingGeometry(1.2, 5.6, 48), new THREE.MeshLambertMaterial({ color: 0xd84a6a })); rug.rotation.x = -Math.PI / 2; rug.position.y = 0.005; G.add(rug);
+    const wall = new THREE.Mesh(new THREE.CylinderGeometry(9, 9, 4, 48, 1, true), new THREE.MeshLambertMaterial({ color: 0xf8e0c0, side: THREE.BackSide })); wall.position.y = 2; G.add(wall);
+    // bunting and balloons
+    const cols = [0xff4d8a, 0x4fc3f7, 0xffd23f, 0x8bd450, 0xb388ff];
+    for (let i = 0; i < 40; i++) { const a = (i / 40) * Math.PI * 2, f = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.35, 3), lam(cols[i % 5])); f.position.set(Math.cos(a) * 8.6, 3.3, Math.sin(a) * 8.6); f.rotation.x = Math.PI; G.add(f); }
+    const balloons = [];
+    for (let i = 0; i < 14; i++) { const a = rand() * Math.PI * 2, r = 6.5 + rand() * 2, b = new THREE.Mesh(sph(0.28, 12, 10), new THREE.MeshLambertMaterial({ color: cols[i % 5] })); b.scale.y = 1.2; b.position.set(Math.cos(a) * r, 2.6 + rand() * 1.2, Math.sin(a) * r); G.add(b); balloons.push({ m: b, y: b.position.y, ph: rand() * 6 }); }
+    // the record player on a table
+    addBox(G, 1.2, 0.8, 0.8, lam(0x8a5a30), 0, 0.4, -7.6);
+    const disc = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.02, 24), lam(0x1a1a1a)); disc.position.set(0, 0.83, -7.6); G.add(disc);
+    const label = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.022, 16), lam(0xff4d8a)); label.position.copy(disc.position); G.add(label);
+    const notes = [];
+    for (let i = 0; i < 6; i++) { const n = makePlate(G, '♪', 0.3, 0.3, new V3(0, 1.2, -7.4), 0, { bg: 'rgba(0,0,0,0)', fg: '#ff4d8a', size: 0.9 }); n.material.transparent = true; notes.push(n); }
+
+    // ---------------------------------------------------------------- chairs and players
+    const chairMeshes = [];
+    function makeChair(col) {
+      const g = new THREE.Group(), m = lam(col), legM = lam(0xf4f4f0);
+      g.add(at(new THREE.Mesh(boxg(0.45, 0.06, 0.45), m), 0, 0.46, 0));
+      g.add(at(new THREE.Mesh(boxg(0.45, 0.5, 0.06), m), 0, 0.72, 0.2));
+      for (const [x, z] of [[-0.19, -0.19], [0.19, -0.19], [-0.19, 0.19], [0.19, 0.19]]) g.add(at(new THREE.Mesh(boxg(0.04, 0.46, 0.04), legM), x, 0.23, z));
+      G.add(g);
+      return g;
+    }
+    for (let i = 0; i < 8; i++) chairMeshes.push(makeChair(cols[i % 5]));
+    const R = (n) => 0.9 + n * 0.22;   // the chair ring's radius for n chairs
+    // chairs face outward, so you come at them from the walking ring
+    const chairPos = (i, n) => { const a = (i / n) * Math.PI * 2; return { x: Math.cos(a) * R(n), z: Math.sin(a) * R(n), yaw: Math.atan2(Math.cos(a), Math.sin(a)) + Math.PI }; };
+    const bots = BOT_NAMES.map((name, i) => {
+      const g = buildAvatar(BOT_COLS[i], [3, 1, 2, 3, 0, 1, 2][i], i % 4, true, 1, 5);
+      const tag = new THREE.Sprite(new THREE.SpriteMaterial({ map: canvasTexture(256, 64, (c) => { rr(c, 4, 6, 248, 52, 26); c.fillStyle = 'rgba(20,16,32,0.8)'; c.fill(); c.fillStyle = '#fff'; c.font = `700 28px ${BODY}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(name, 128, 33, 230); }).tex, transparent: true, depthWrite: false }));
+      tag.scale.set(0.9, 0.225, 1); tag.position.y = 0.42; g.add(tag); g.visible = false; G.add(g);
+      return { id: `b${i}`, i, name, g, x: 0, z: 0, ang: 0, tx: 0, tz: 0, target: -1, reactT: 0 };
+    });
+    L.chairBots = bots;
+
+    // ---------------------------------------------------------------- the game (run by the host)
+    // players: ids, 'b0'.. for bots or a peer id. alive: still in. seats: which player has each chair (-1 none).
+    const S = { g: 0, ph: 'lobby', round: 0, ids: [], alive: [], seats: [], n: 0, t: 0, stopAt: 0, outName: '', winner: '', tempo: 1, req: 0 };
+    L.mc = S;
+    const humansHere = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort(); };
+    const isHost = () => humansHere()[0] === state.myPeer;
+    const nameOf = (id) => { if (id[0] === 'b' && id.length <= 2) return BOT_NAMES[Number(id.slice(1))]; if (id === state.myPeer) return state.name || 'You'; const rec = remotes.get(id); return rec ? rec.name : 'Someone'; };
+    makePlayerPicker(L, { min: 3, max: 8, def: 6, label: 'Players', note: 'bots make up the numbers' });
+    function startGame() {
+      const people = humansHere().filter((id) => { if (id === state.myPeer) return !(L.sitOut && L.sitOut.on); const st = remotes.get(id).lvState[L.id]; return !(st && st.sitOut); });
+      const nBots = clamp(L.picker.n - people.length, people.length < 2 ? 2 : 0, bots.length);
+      S.ids = [...people, ...bots.slice(0, nBots).map((b) => b.id)];
+      S.alive = S.ids.map(() => true);
+      S.g = Date.now(); S.round = 0; S.tempo = 1;
+      nextRound();
+      forcePresence();
+    }
+    function aliveIds() { return S.ids.filter((_, i) => S.alive[i]); }
+    function nextRound() {
+      const n = aliveIds().length;
+      if (n <= 1) { S.ph = 'won'; S.winner = aliveIds()[0] || ''; S.t = Date.now(); return; }
+      S.round += 1; S.n = n - 1; S.seats = Array(S.n).fill(''); S.ph = 'walk'; S.t = Date.now();
+      S.stopAt = S.t + 6000 + rand() * 9000; S.tempo = 1 + (S.round - 1) * 0.08;
+      // the bots spread out round the walking ring
+      aliveIds().forEach((id, k) => { const b = botOf(id); if (b) { b.ang = (k / n) * Math.PI * 2 + 0.3; b.target = -1; b.reactT = BOT_REACT[b.i] * (0.7 + rand() * 0.6); } });
+    }
+    const botOf = (id) => (id[0] === 'b' && id.length <= 2 ? bots[Number(id.slice(1))] : null);
+    function claim(id, chair) {
+      if (S.ph !== 'grab' || S.seats[chair] || S.seats.includes(id)) return false;
+      S.seats[chair] = id;
+      if (S.seats.every((x) => x)) {
+        const out = aliveIds().find((x) => !S.seats.includes(x));
+        if (out) { S.alive[S.ids.indexOf(out)] = false; S.outName = nameOf(out); }
+        S.ph = 'result'; S.t = Date.now();
+      }
+      forcePresence();
+      return true;
+    }
+    function posOf(id) {
+      if (id === state.myPeer) return myHead.pos;
+      const b = botOf(id); if (b) return { x: b.x, z: b.z };
+      const rec = remotes.get(id); return rec && rec.hasH ? rec.tgt.h.pos : null;
+    }
+    function hostStep(dt) {
+      const now = Date.now();
+      const n = S.n, ring = R(n) + 1.25;
+      if (S.ph === 'walk') {
+        for (const id of aliveIds()) { const b = botOf(id); if (!b) continue; b.ang += dt * (0.62 * S.tempo) * (1.2 / ring) * 2.2; b.x = Math.cos(b.ang) * ring; b.z = Math.sin(b.ang) * ring; }
+        if (now >= S.stopAt) { S.ph = 'grab'; S.t = now; forcePresence(); }
+      } else if (S.ph === 'grab') {
+        // bots: a moment to react, then dash for the nearest free chair
+        for (const id of aliveIds()) {
+          const b = botOf(id); if (!b || S.seats.includes(id)) continue;
+          b.reactT -= dt; if (b.reactT > 0) continue;
+          let best = -1, bd = 1e9;
+          for (let c = 0; c < n; c++) { if (S.seats[c]) continue; const p = chairPos(c, n), d = Math.hypot(p.x - b.x, p.z - b.z); if (d < bd) { bd = d; best = c; } }
+          if (best < 0) continue;
+          const p = chairPos(best, n), dx = p.x - b.x, dz = p.z - b.z, d = Math.hypot(dx, dz), s = BOT_SPEED[b.i] * dt;
+          if (d <= 0.25) { claim(id, best); continue; }
+          b.x += dx / d * Math.min(d, s); b.z += dz / d * Math.min(d, s);
+        }
+        // people: standing right at a free chair takes it
+        for (const id of aliveIds()) {
+          if (botOf(id) || S.seats.includes(id)) continue;
+          const p = posOf(id); if (!p) continue;
+          for (let c = 0; c < n; c++) { if (S.seats[c]) continue; const q = chairPos(c, n); if (Math.hypot(q.x - p.x, q.z - p.z) < 0.55) { claim(id, c); break; } }
+        }
+      } else if (S.ph === 'result' && now - S.t > 3200) { nextRound(); forcePresence(); }
+    }
+    L.mcInternals = { S, startGame, hostStep, claim, chairPos, R, bots, nextRound };
+
+    // ---------------------------------------------------------------- the tune (its own, so it really stops)
+    const TUNE = [72, 76, 79, 76, 72, 76, 79, 84, 81, 79, 77, 76, 74, 76, 72, 67, 72, 76, 79, 76, 72, 76, 79, 84, 83, 81, 79, 77, 76, 74, 72, 72];
+    const BASS = [48, 55, 48, 55, 53, 60, 53, 60, 48, 55, 48, 55, 43, 50, 48, 48];
+    const mtoF = (m) => 440 * Math.pow(2, (m - 69) / 12);
+    let tuneStep = 0, tuneNext = 0;
+    function playTune(now, on, tempo) {
+      if (!on || !snd.ctx || snd.ctx.state !== 'running') { tuneNext = 0; return; }
+      const stepMs = 60000 / (150 * tempo) / 2;
+      if (!tuneNext) tuneNext = now;
+      while (tuneNext <= now + 30) {
+        const m = TUNE[tuneStep % TUNE.length];
+        tone(mtoF(m), 0, stepMs / 1000 * 0.9, 'square', 0.05);
+        if (tuneStep % 2 === 0) tone(mtoF(BASS[(tuneStep / 2) % BASS.length]), 0, stepMs / 1000 * 1.6, 'triangle', 0.08);
+        tuneStep += 1; tuneNext += stepMs;
+      }
+    }
+
+    // ---------------------------------------------------------------- network
+    const int = (x, lo, hi) => Number.isInteger(x) && x >= lo && x <= hi;
+    const PH = ['lobby', 'walk', 'grab', 'result', 'won'];
+    L.presence = () => {
+      const p = { mr: S.req };
+      if (isHost()) p.mc = { g: S.g, ph: PH.indexOf(S.ph), r: S.round, n: S.n, ids: S.ids, al: S.alive.map((a) => (a ? 1 : 0)), se: S.seats, sa: S.stopAt, o: S.outName, w: S.winner, tp: Math.round(S.tempo * 100), b: bots.map((b) => [Math.round(b.x * 100) / 100, Math.round(b.z * 100) / 100]) };
+      return p;
+    };
+    L.readPresence = (rec, pres, st) => {
+      // someone pressed Start: the host starts a game
+      if (int(pres.mr, 0, 1e9) && pres.mr !== st.mr) { const was = st.mr; st.mr = pres.mr; if (was !== undefined && isHost() && (S.ph === 'lobby' || S.ph === 'won')) startGame(); }
+      const q = pres.mc;
+      if (!q || isHost() || rec.peer !== humansHere()[0]) return;
+      if (!(int(q.g, 0, 1e14) && int(q.ph, 0, 4) && int(q.r, 0, 99) && int(q.n, 0, 8) && Array.isArray(q.ids) && q.ids.length <= 9 && q.ids.every((x) => typeof x === 'string' && x.length < 80)
+        && Array.isArray(q.al) && q.al.length === q.ids.length && Array.isArray(q.se) && q.se.length === q.n && q.se.every((x) => typeof x === 'string') && Number.isFinite(q.sa) && Array.isArray(q.b) && q.b.length === bots.length)) return;
+      const prevPh = S.ph, wasAlive = S.alive[S.ids.indexOf(state.myPeer)];
+      Object.assign(S, { g: q.g, ph: PH[q.ph], round: q.r, n: q.n, ids: q.ids.slice(), alive: q.al.map((a) => a === 1), seats: q.se.slice(), stopAt: q.sa, outName: String(q.o || ''), winner: String(q.w || ''), tempo: (q.tp || 100) / 100 });
+      bots.forEach((b, i) => { const a = q.b[i]; if (Array.isArray(a) && Number.isFinite(a[0]) && Number.isFinite(a[1])) { b.tx = a[0]; b.tz = a[1]; } });
+      announce(prevPh, wasAlive);
+    };
+    // what's happening, for everyone (the host calls this too)
+    let lastPh = 'lobby', lastRound = 0, saidSafe = false;
+    function announce(prevPh) {
+      if (S.ph === lastPh && S.round === lastRound) return;
+      const meIn = S.ids.includes(state.myPeer);
+      if (S.ph === 'walk') { showToast(S.round === 1 ? `Round 1: ${S.n} chairs for ${S.n + 1} players. Walk round until the music stops!` : `Round ${S.round}: ${S.n} chair${S.n === 1 ? '' : 's'} left. Walk!`); saidSafe = false; }
+      else if (S.ph === 'grab') { showToast('The music stopped! Grab a chair!'); sfx('buzzer', 0.4); if (state.mode === 'vr' && meIn) for (const s of SIDES) haptic(vrHands[s], 0.7, 120); }
+      else if (S.ph === 'result') { const iOut = S.outName && meIn && !S.alive[S.ids.indexOf(state.myPeer)] && S.outName === (state.name || 'You'); showToast(iOut ? 'No chair for you! You’re out' : `${S.outName} is out!`); sfx(iOut ? 'buzzer' : 'poof', 0.7); }
+      else if (S.ph === 'won') { const iWon = S.winner === state.myPeer; showToast(iWon ? 'You win musical chairs!' : `${nameOf(S.winner)} wins!`); sfx(iWon ? 'fanfare' : 'cheer', 1); if (iWon) spawnFloat('Winner!', new V3(0, 2.2, 0), '#ffd23f'); }
+      lastPh = S.ph; lastRound = S.round;
+      state.hudDirty = true; state.dirtyBoard = true;
+      void prevPh;
+    }
+
+    // ---------------------------------------------------------------- per frame
+    const _c = new V3();
+    L.update = (dt, now) => {
+      const here = state.level === L.idx && state.mode !== 'menu';
+      if (here && isHost() && S.ph !== 'lobby' && S.ph !== 'won') hostStep(dt);
+      if (here) announce();
+      if (here && S.ph === 'won' && isHost() && Date.now() - S.t > 9000) { S.ph = 'lobby'; forcePresence(); }
+      const n = S.n;
+      // chairs
+      chairMeshes.forEach((c, i) => {
+        c.visible = S.ph !== 'lobby' && S.ph !== 'won' ? i < n : i < Math.max(0, Math.min(8, (L.picker ? L.picker.n : 6) - 1));
+        if (!c.visible) return;
+        const nn = S.ph !== 'lobby' && S.ph !== 'won' ? n : Math.max(1, (L.picker ? L.picker.n : 6) - 1);
+        const p = chairPos(i, nn); c.position.set(p.x, 0, p.z); c.rotation.y = p.yaw;
+      });
+      // bots: walking, dashing, sitting
+      const k = 1 - Math.exp(-dt * 12);
+      for (const b of bots) {
+        const idx = S.ids.indexOf(b.id);
+        b.g.visible = here && idx >= 0;
+        if (!b.g.visible) continue;
+        if (!isHost()) { b.x += (b.tx - b.x) * k; b.z += (b.tz - b.z) * k; }
+        const alive = S.alive[idx], seat = S.seats.indexOf(b.id);
+        let x = b.x, z = b.z, y = 1.62, yaw = Math.atan2(-Math.sin(b.ang + Math.PI / 2), -Math.cos(b.ang + Math.PI / 2));
+        if (!alive) { const a = (b.i / bots.length) * Math.PI * 2; x = Math.cos(a) * 7.2; z = Math.sin(a) * 7.2; yaw = Math.atan2(x, z); }
+        else if (seat >= 0 && S.ph !== 'walk') { const p = chairPos(seat, n); x = p.x; z = p.z; y = 1.22; yaw = p.yaw; }
+        else if (S.ph === 'walk') { yaw = b.ang + Math.PI; y += Math.abs(Math.sin(now * 0.012 + b.i)) * 0.05; }
+        b.g.position.set(x, y, z); b.g.rotation.y = yaw;
+      }
+      // the tune, the record and the notes
+      const playing = here && S.ph === 'walk';
+      playTune(performance.now(), playing, S.tempo);
+      disc.rotation.y += playing ? dt * 4 : 0; label.rotation.y = disc.rotation.y;
+      notes.forEach((m, i) => { const u = ((now * 0.0005 + i / notes.length) % 1); m.visible = playing; m.position.set(Math.sin(i * 2.3 + u * 4) * 0.6, 1.0 + u * 1.6, -7.5); m.material.opacity = 1 - u; });
+      for (const b of balloons) b.m.position.y = b.y + Math.sin(now * 0.001 + b.ph) * 0.08;
+      // me: am I seated?
+      if (here && S.ph === 'grab' && S.seats.includes(state.myPeer) && !saidSafe) { saidSafe = true; showToast('Safe! You got a chair'); sfx('chime', 0.8); }
+      if (here && ui.status && state.mode === 'flat') {
+        ui.status.hidden = false;
+        const meIdx = S.ids.indexOf(state.myPeer), alive = meIdx >= 0 && S.alive[meIdx];
+        const txt = S.ph === 'lobby' ? 'Musical Chairs: press Start game' : S.ph === 'won' ? `${nameOf(S.winner)} wins!` : `Round ${S.round} · ${S.n} chair${S.n === 1 ? '' : 's'} · ${aliveIds().length} players · ${meIdx < 0 ? 'watching' : alive ? (S.ph === 'walk' ? 'keep walking…' : S.ph === 'grab' ? (S.seats.includes(state.myPeer) ? 'safe!' : 'GRAB A CHAIR!') : '') : 'you’re out'}`;
+        if (ui.status.textContent !== txt) ui.status.textContent = txt;
+      }
+    };
+    // while the music plays you walk the ring, not by the chairs; once out, you watch from the edge
+    L.clampPlayer = (p) => {
+      const meIdx = S.ids.indexOf(state.myPeer), alive = meIdx >= 0 && S.alive[meIdx];
+      const r = Math.hypot(p.x, p.z) || 1e-3;
+      let want = r;
+      if (alive && S.ph === 'walk') want = clamp(r, R(S.n) + 0.75, R(S.n) + 2.2);
+      else if (!alive && S.ph !== 'lobby' && S.ph !== 'won' && meIdx >= 0) want = Math.max(r, 6.2);
+      want = Math.min(want, 8.5);
+      return [p.x / r * want - p.x, p.z / r * want - p.z];
+    };
+    L.walkSpeed = 3.2;
+    function requestStart() {
+      if (isHost()) { if (S.ph === 'lobby' || S.ph === 'won') startGame(); else showToast('A game is already on'); }
+      else { S.req += 1; forcePresence(); showToast('Asking to start…'); }
+    }
+    L.requestStart = requestStart;
+    makeButton(L, new V3(1.8, 1.0, -7.2), 0xff4d8a, 'Start game', () => requestStart(), { faceYaw: 0 });
+    makeKiosk(L, -6.6, 4.2, Math.PI * 0.75);
+    L.board = makeBoard(G, 720, 460, 2.4, 1.53, -6.0, 2.0, -5.0, Math.PI * 0.27);
+    L.rowFor = (st, isMe) => ({ text: isMe ? (S.ids.includes(state.myPeer) ? (S.alive[S.ids.indexOf(state.myPeer)] ? 'in' : 'out') : 'watching') : '' });
+    L.drawBoard = (rows) => {
+      const g = L.board.g, W = 720;
+      g.fillStyle = '#4a1a3a'; g.fillRect(0, 0, W, 460);
+      g.strokeStyle = '#ffd23f'; g.lineWidth = 8; g.strokeRect(4, 4, W - 8, 452);
+      g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+      g.fillStyle = '#ffd23f'; g.font = `800 56px ${DISPLAY}`; g.fillText('Musical Chairs', 36, 80);
+      g.fillStyle = '#ffd8e8'; g.font = `400 24px ${BODY}`; g.fillText('Walk while it plays. Grab a chair when it stops!', 36, 118);
+      const list = S.ids.length ? S.ids.map((id, i) => ({ name: nameOf(id), me: id === state.myPeer, text: S.alive[i] ? (S.ph === 'won' ? 'WINNER' : 'in') : 'out', color: '#ffffff' })) : rows;
+      drawRows(g, list, 176, 40, W);
+      L.board.tex.needsUpdate = true;
+    };
+    L.hudActions = [{ label: () => (S.ph === 'lobby' || S.ph === 'won' ? 'Start game' : 'Playing…'), run: () => requestStart() }];
+    L.hints = [['Music on', 'walk round the ring'], ['Music stops', 'get to a chair!'], ['Stand at a chair', 'to take it']];
+    L.hintsFor = () => (state.mode === 'flat' ? [['WASD', 'walk'], ['Music stops', 'run to a chair and stand on it'], ['Start game', 'top right']] : L.hints);
+    L.spawn = () => { dolly.position.set(0, 0, 5.5); camera.position.set(0, 1.6, 0); if (state.mode !== 'vr') { state.yaw = 0; state.pitch = -0.2; } };
+    L.onEnter = () => { lastPh = S.ph; lastRound = S.round; };
+    L.onExit = () => { if (ui.status) ui.status.hidden = true; tuneNext = 0; };
+    L.attract = (now) => { const a = reduceMotion ? 0 : now * 0.0001; camera.position.set(Math.sin(a) * 6, 3.5, Math.cos(a) * 6); camera.lookAt(0, 0.6, 0); };
+    MUSIC_THEMES.chairs = { gain: 0.0001, bpm: 100, chords: ['C'], drums: {} };
+    void _c;
+    return L;
+  })();
+  // ================================================================ LEVEL: KNOCKOUT KID (boxing)
+  // Spar with a cartoon boxer. He keeps his guard up and telegraphs every punch (his glove glows and pulls back):
+  // a jab (lean aside), a hook from the left or right (duck it), or an uppercut (lean aside, ducking won't help).
+  // Get your gloves up in front of your face to block instead. Make him miss and he's open: head shots then count
+  // triple. Body shots always land a little. Punch during his wind-up to counter and stop the punch.
+  // VR: your hands are your gloves; really move your head. Browser: J and K punch, L hits the body,
+  // A/D lean, S ducks, hold Space to block.
+  const boxing = (() => {
+    const L = newLevel(33);
+    const G = L.group;
+    const rand = mulberry32(3333);
+    L.grabless = true;
+    L.noLocomotion = true;
+    L.bounds = { minX: -12, maxX: 12, minZ: -4, maxZ: 4 };
+    L.env = {
+      sky: skyTexture([[0, '#0c0c14'], [1, '#0c0c14']]),
+      bg: 0x0c0c14, fog: [0x0c0c14, 14, 40], hemi: [0xfff0e0, 0x302030, 0.8],
+      sun: [0xffffff, 0.6], sunDir: new V3(0, 1, 0.2), ambient: [0x403040, 0.45], sprite: null,
+    };
+    const N = 4, GAP = 5, RING = 4.2;
+    const ringX = (k) => (k - (N - 1) / 2) * GAP;
+    const LEVELS = [
+      { name: 'Kid', hp: 18, windup: [0.9, 1.2], rest: [1.2, 2.0], open: 1.5, uppercut: 0.15, color: '#4fc3f7' },
+      { name: 'Champ', hp: 26, windup: [0.65, 0.9], rest: [0.8, 1.5], open: 1.2, uppercut: 0.25, color: '#ff9a3a' },
+      { name: 'Legend', hp: 34, windup: [0.45, 0.7], rest: [0.5, 1.1], open: 1.0, uppercut: 0.35, color: '#e5453a' },
+    ];
+    // ---------------------------------------------------------------- the gym
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(26, 12), lam(0x2a2a34)); floor.rotation.x = -Math.PI / 2; G.add(floor);
+    const canvasMat = lam(0xe8e0d0), ropeCols = [0xe5453a, 0xf4f4f0, 0x4a7ad8];
+    for (let k = 0; k < N; k++) {
+      const x = ringX(k), h = RING / 2;
+      addBox(G, RING + 0.6, 0.4, RING + 0.6, lam(0x3a3a4a), x, 0.2, 0);
+      const mat = new THREE.Mesh(new THREE.PlaneGeometry(RING, RING), canvasMat); mat.rotation.x = -Math.PI / 2; mat.position.set(x, 0.41, 0); G.add(mat);
+      for (const [cx, cz] of [[-h, -h], [h, -h], [-h, h], [h, h]]) addCyl(G, 0.08, 0.08, 1.6, 8, lam(0xd8d8e0), x + cx, 1.2, cz);
+      ropeCols.forEach((col, i) => {
+        const y = 0.85 + i * 0.32;
+        for (const [ax, az, bx, bz] of [[-h, -h, h, -h], [h, -h, h, h], [-h, h, h, h], [-h, -h, -h, h]]) {
+          const len = Math.hypot(bx - ax, bz - az), m = addBox(G, ax === bx ? 0.04 : len, 0.04, az === bz ? 0.04 : len, lam(col), x + (ax + bx) / 2, y, (az + bz) / 2);
+          void m;
+        }
+      });
+      const lamp = new THREE.Sprite(new THREE.SpriteMaterial({ map: warmGlowTex, color: 0xfff0d0, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
+      lamp.position.set(x, 5.5, 0); lamp.scale.set(5, 5, 1); G.add(lamp);
+    }
+    // the ring floor is 0.41 up: everything in the ring stands on it
+    const FY = 0.41;
+    makePlate(G, 'KNOCKOUT KID', 4, 0.6, new V3(0, 4.2, -5.8), 0, { bg: '#e5453a', fg: '#ffffff', size: 0.7 });
+    addBox(G, 26, 6, 0.2, lam(0x1a1a24), 0, 3, -6);
+
+    // ---------------------------------------------------------------- the opponent (one per ring)
+    function makeBoxer(col) {
+      const g = new THREE.Group(), skin = lam(0xd8a070), shorts = lam(new THREE.Color(col).getHex()), gloveM = new THREE.MeshLambertMaterial({ color: 0xe5453a, emissive: 0x000000 });
+      for (const sx of [-1, 1]) g.add(at(new THREE.Mesh(cyl(0.09, 0.08, 0.8, 8), skin), sx * 0.13, 0.4, 0));
+      g.add(at(new THREE.Mesh(cyl(0.24, 0.24, 0.28, 12), shorts), 0, 0.85, 0));
+      const torso = at(new THREE.Mesh(cyl(0.26, 0.22, 0.55, 12), skin), 0, 1.25, 0); g.add(torso);
+      const head = new THREE.Group(); head.position.set(0, 1.7, 0); g.add(head);
+      head.add(new THREE.Mesh(sph(0.17, 16, 12), skin));
+      const band = new THREE.Mesh(new THREE.TorusGeometry(0.17, 0.025, 6, 20), shorts); band.rotation.x = Math.PI / 2; band.position.y = 0.06; head.add(band);
+      const eyes = [];
+      for (const sx of [-1, 1]) { const e = at(new THREE.Mesh(sph(0.03, 8, 6), lam(0xffffff)), sx * 0.06, 0.03, 0.15); const p = at(new THREE.Mesh(sph(0.015, 6, 5), lam(0x111111)), sx * 0.06, 0.03, 0.175); head.add(e, p); eyes.push(p); }
+      const mouth = at(new THREE.Mesh(boxg(0.08, 0.015, 0.01), lam(0x5a2a2a)), 0, -0.07, 0.165); head.add(mouth);
+      const gloves = [-1, 1].map((sx) => { const gl = new THREE.Mesh(sph(0.11, 12, 10), gloveM.clone()); gl.scale.set(1, 1, 1.2); g.add(gl); return gl; });
+      const stars = [];
+      for (let i = 0; i < 4; i++) { const s = makePlate(head, '★', 0.12, 0.12, new V3(0, 0.28, 0), 0, { bg: 'rgba(0,0,0,0)', fg: '#ffd23f', size: 0.9 }); s.material.transparent = true; stars.push(s); }
+      G.add(g);
+      return { g, head, gloves, torso, stars, mouth };
+    }
+    const opps = [];
+    for (let k = 0; k < N; k++) { const b = makeBoxer(LEVELS[1].color); b.g.position.set(ringX(k), FY, -1.05); b.g.visible = false; opps.push(b); }
+
+    // ---------------------------------------------------------------- my gloves
+    const gloveMat = new THREE.MeshLambertMaterial({ color: 0x4a7ad8 });
+    const myGloves = {};
+    for (const s of SIDES) { const m = new THREE.Mesh(sph(0.1, 12, 10), gloveMat); m.scale.set(1, 1, 1.25); m.visible = false; L.overlay.add(m); myGloves[s] = m; }
+    L.setColor = (hex) => gloveMat.color.set(hex);
+    L.setColor(PLAYER_COLORS[state.colorIdx].hex);
+
+    // ---------------------------------------------------------------- the bout
+    // st: idle (between bouts), guard, windup, punch, open (after a miss), dazed (hit hard), down (knocked out), win (you lost)
+    const B = { k: 0, lv: 1, st: 'idle', t: 0, next: 0, kind: '', side: 1, hp: 0, myHp: 5, head0: new V3(), t0: 0, punches: 0, landed: 0, dodges: 0, blocks: 0, best: [0, 0, 0], hit: 0, counter: false };
+    try { if (Array.isArray(prefs.boxBest) && prefs.boxBest.length === 3) B.best = prefs.boxBest.map((x) => (Number.isFinite(x) ? x : 0)); } catch (e) { /* none */ }
+    L.box = B;
+    const LV = () => LEVELS[B.lv];
+    function mySlot() { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); ids.sort(); return Math.max(0, ids.indexOf(state.myPeer)) % N; }
+    function standInRing() {
+      B.k = mySlot();
+      const c = new V3(); camera.getWorldPosition(c);
+      dolly.position.x += ringX(B.k) - c.x; dolly.position.z += 0.25 - c.z; dolly.position.y = FY;
+      if (state.mode !== 'vr') { state.yaw = 0; state.pitch = -0.05; }
+    }
+    function startBout() {
+      Object.assign(B, { st: 'guard', t: 0, hp: LV().hp, myHp: 5, punches: 0, landed: 0, dodges: 0, blocks: 0, t0: performance.now() });
+      B.next = 1.5;
+      showToast(`Round 1 against the ${LV().name}. Watch his gloves!`); sfx('whistle', 1); sfx('cheer', 0.4);
+      forcePresence();
+    }
+    L.startBout = startBout;
+    function endBout(won) {
+      B.st = won ? 'down' : 'win'; B.t = 0;
+      const secs = (performance.now() - B.t0) / 1000;
+      if (won) {
+        const isBest = !B.best[B.lv] || secs < B.best[B.lv];
+        if (isBest) { B.best[B.lv] = Math.round(secs * 10) / 10; prefs.boxBest = B.best.slice(); savePrefs(); }
+        showToast(`KNOCKOUT! You beat the ${LV().name} in ${secs.toFixed(1)} s${isBest ? ' (your best!)' : ''}. ${B.landed} punches landed, ${B.dodges} dodged`);
+        sfx('fanfare', 1); setTimeout(() => sfx('cheer', 1), 300);
+      } else { showToast(`Down you go! The ${LV().name} wins this one. Try again`); sfx('buzzer', 0.8); }
+      forcePresence(); state.dirtyBoard = true;
+    }
+    const rr2 = (a) => a[0] + rand() * (a[1] - a[0]);
+    // where my head is, relative to my spot in the ring
+    const myHeadLocal = (out) => out.set(myHead.pos.x - ringX(B.k), myHead.pos.y - FY, myHead.pos.z);
+    const _h = new V3(), _g = new V3();
+    function guarding() {
+      if (state.mode === 'flat') return !!state.keys.Space;
+      // both hands up in front of the face
+      let n = 0;
+      for (const s of SIDES) { const h = myHands[s]; if (!h.ok) continue; if (Math.abs(h.pos.y - myHead.pos.y) < 0.25 && Math.hypot(h.pos.x - myHead.pos.x, h.pos.z - myHead.pos.z) < 0.35 && h.pos.z < myHead.pos.z) n++; }
+      return n >= 2;
+    }
+    function hurtMe(n, what) {
+      B.myHp = Math.max(0, B.myHp - n);
+      sfx('hurt', 1); sfx('thump', 0.8);
+      if (state.mode === 'vr') for (const s of SIDES) haptic(vrHands[s], 1, 150);
+      if (ui.hurt && state.mode === 'flat') { ui.hurt.style.opacity = '0.8'; setTimeout(() => { ui.hurt.style.opacity = '0'; }, 300); }
+      showToast(what);
+      if (B.myHp <= 0) endBout(false);
+      forcePresence();
+    }
+    function landOnHim(dmg, where, at) {
+      B.hp = Math.max(0, B.hp - dmg); B.landed += 1; B.hit = 0.2;
+      tone(where === 'body' ? 140 : 220, 90, 0.12, 'square', 0.25); sfx('thump', 0.7);
+      spawnFloat(dmg >= 3 ? `POW! ${dmg}` : dmg ? `${dmg}` : 'blocked', at, dmg >= 3 ? '#ffd23f' : dmg ? '#ffffff' : '#9aa0b0');
+      if (B.hp <= 0) endBout(true);
+      forcePresence();
+    }
+    // one of my punches arrives: at the head or the body
+    function myPunch(where, at) {
+      if (B.st === 'idle' || B.st === 'down' || B.st === 'win') return;
+      B.punches += 1;
+      if (where === 'body') { landOnHim(1, 'body', at); return; }
+      if (B.st === 'open' || B.st === 'dazed') { landOnHim(3, 'head', at); if (B.st === 'open' && rand() < 0.4) { B.st = 'dazed'; B.t = 0; } return; }
+      if (B.st === 'windup') { landOnHim(2, 'head', at); B.st = 'guard'; B.t = 0; B.next = rr2(LV().rest); showToast('Counter! You stopped his punch'); return; }
+      landOnHim(0, 'head', at); sfx('clang', 0.4);
+    }
+    L.myPunch = myPunch;
+    function throwPunch() {
+      const r = rand();
+      B.kind = r < LV().uppercut ? 'uppercut' : r < 0.6 ? 'hook' : 'jab';
+      B.side = rand() < 0.5 ? -1 : 1;
+      B.st = 'windup'; B.t = 0; B.wind = rr2(LV().windup);
+      myHeadLocal(B.head0);
+      tone(B.kind === 'uppercut' ? 300 : 500, B.kind === 'uppercut' ? 600 : 400, 0.15, 'triangle', 0.12);
+    }
+    function resolvePunch() {
+      myHeadLocal(_h);
+      const dx = Math.abs(_h.x - B.head0.x), duck = B.head0.y - _h.y;
+      let dodged = false;
+      if (B.kind === 'jab') dodged = dx > 0.22 || duck > 0.3;
+      else if (B.kind === 'hook') dodged = duck > 0.26 || (_h.x - B.head0.x) * B.side > 0.3;   // ducked, or leaned away from it
+      else dodged = dx > 0.22;
+      if (dodged) { B.dodges += 1; B.st = 'open'; B.t = 0; showToast(B.kind === 'uppercut' ? 'Slipped the uppercut! He’s open!' : 'Dodged! He’s open: hit his head!'); sfx('whoosh', 0.8); return; }
+      if (guarding()) { B.blocks += 1; B.st = 'open'; B.t = 0.6; sfx('clang', 0.8); showToast('Blocked!'); return; }
+      hurtMe(B.kind === 'uppercut' ? 2 : 1, B.kind === 'uppercut' ? 'Uppercut! Lean aside next time' : B.kind === 'hook' ? 'Hooked! Duck under the next one' : 'Jabbed! Lean aside or block');
+      B.st = 'guard'; B.t = 0; B.next = rr2(LV().rest);
+    }
+    function boutStep(dt) {
+      B.t += dt; B.hit = Math.max(0, B.hit - dt);
+      if (B.st === 'guard') { B.next -= dt; if (B.next <= 0) throwPunch(); }
+      else if (B.st === 'windup') { if (B.t >= B.wind) { B.st = 'punch'; B.t = 0; } }
+      else if (B.st === 'punch') { if (B.t >= 0.12) resolvePunch(); }
+      else if (B.st === 'open') { if (B.t >= LV().open) { B.st = 'guard'; B.t = 0; B.next = rr2(LV().rest); } }
+      else if (B.st === 'dazed') { if (B.t >= 1.6) { B.st = 'guard'; B.t = 0; B.next = rr2(LV().rest); } }
+    }
+    L.boutStep = boutStep;
+
+    // ---------------------------------------------------------------- VR punches: fast gloves into his head or body
+    const prevG = { left: new V3(), right: new V3() }, coolG = { left: 0, right: 0 };
+    function vrPunches(dt, now) {
+      const o = opps[B.k];
+      o.head.getWorldPosition(_g);
+      for (const s of SIDES) {
+        const h = myHands[s];
+        if (!h.ok) continue;
+        const v = h.pos.distanceTo(prevG[s]) / Math.max(dt, 1e-3);
+        prevG[s].copy(h.pos);
+        if (now < coolG[s] || v < 2.2) continue;
+        if (h.pos.distanceTo(_g) < 0.27) { coolG[s] = now + 380; myPunch('head', _g.clone()); haptic(vrHands[s], 0.8, 40); continue; }
+        const bx = o.g.position.x, bz = o.g.position.z;
+        if (Math.hypot(h.pos.x - bx, h.pos.z - bz) < 0.36 && h.pos.y > FY + 0.95 && h.pos.y < FY + 1.55) { coolG[s] = now + 380; myPunch('body', h.pos.clone()); haptic(vrHands[s], 0.6, 30); }
+      }
+    }
+    // browser punches: the gloves shoot out and land
+    const flatPunch = { left: 0, right: 0 };
+    function deskPunch(side, where) {
+      if (B.st === 'idle' || B.st === 'down' || B.st === 'win') { startBout(); return; }
+      const now = performance.now();
+      if (now < flatPunch[side]) return;
+      flatPunch[side] = now + 330;
+      setTimeout(() => { const o = opps[B.k]; o.head.getWorldPosition(_g); myPunch(where, where === 'body' ? o.torso.getWorldPosition(new V3()) : _g.clone()); }, 120);
+    }
+    L.deskPunch = deskPunch;
+    L.deskFire = () => deskPunch(flatPunch.alt = flatPunch.alt === 'left' ? 'right' : 'left', 'head');
+    L.onKey = (code) => {
+      if (code === 'KeyJ') { deskPunch('left', 'head'); return true; }
+      if (code === 'KeyK') { deskPunch('right', 'head'); return true; }
+      if (code === 'KeyL') { deskPunch(flatPunch.alt = flatPunch.alt === 'left' ? 'right' : 'left', 'body'); return true; }
+      return false;
+    };
+
+    // ---------------------------------------------------------------- drawing
+    function poseBoxer(o, st, kind, side, t, wind, now, hit, lvColor) {
+      const glove = (sx) => o.gloves[sx < 0 ? 0 : 1];
+      let headX = Math.sin(now * 0.003) * 0.04, headY = 1.7, lean = 0;
+      // guard: gloves up by the face
+      for (const sx of [-1, 1]) glove(sx).position.set(sx * 0.14, 1.62, 0.2);
+      for (const g of o.gloves) g.material.emissive.setHex(0x000000);
+      if (st === 'windup') {
+        const u = Math.min(1, t / wind), gl = glove(side);
+        gl.material.emissive.setHex(Math.floor(now / 90) % 2 ? 0xffd23f : 0x885500);
+        if (kind === 'jab') gl.position.set(side * 0.12, 1.65, -0.05 * u);
+        else if (kind === 'hook') gl.position.set(side * (0.14 + 0.35 * u), 1.62, 0.05);
+        else gl.position.set(side * 0.12, 1.3 - 0.2 * u, 0.1);
+        lean = -side * 0.1 * u;
+      } else if (st === 'punch') {
+        const gl = glove(side), u = Math.min(1, t / 0.12);
+        if (kind === 'jab') gl.position.set(side * 0.1, 1.7, 0.2 + 0.85 * u);
+        else if (kind === 'hook') gl.position.set(side * (0.49 - 0.5 * u), 1.7, 0.2 + 0.85 * u);
+        else gl.position.set(side * 0.1, 1.2 + 0.55 * u, 0.25 + 0.8 * u);
+      } else if (st === 'open') { for (const sx of [-1, 1]) glove(sx).position.set(sx * 0.32, 1.3, 0.15); headY = 1.68; }
+      else if (st === 'dazed') { for (const sx of [-1, 1]) glove(sx).position.set(sx * 0.3, 1.1, 0.12); headX = Math.sin(now * 0.008) * 0.08; }
+      else if (st === 'down') { o.g.rotation.x = Math.max(o.g.rotation.x - 0.05, -1.45); return; }
+      o.g.rotation.x = 0;
+      o.head.position.set(headX - (hit > 0 ? 0 : 0), headY, -hit * 0.4);
+      o.g.rotation.z = lean;
+      o.stars.forEach((s, i) => { s.visible = st === 'dazed'; const a = now * 0.006 + i * Math.PI / 2; s.position.set(Math.cos(a) * 0.22, 0.25, Math.sin(a) * 0.22); });
+      void lvColor;
+    }
+    const ST = ['idle', 'guard', 'windup', 'punch', 'open', 'dazed', 'down', 'win'], KINDS = ['jab', 'hook', 'uppercut'];
+    const hud = makePlate(camera, 'Ready', 0.6, 0.09, new V3(0, -0.24, -0.6), 0, { bg: '#14141e', fg: '#ffffff', size: 0.55 });
+    hud.material.depthTest = false; hud.renderOrder = 999; hud.visible = false;
+    let hudKey = '';
+    const hpBar = (n, max) => '█'.repeat(Math.ceil(n / max * 10)) + '░'.repeat(10 - Math.ceil(n / max * 10));
+    const statusText = () => (B.st === 'idle' ? `Knockout Kid: punch to start (${LV().name})` : B.st === 'down' ? 'KNOCKOUT! You win' : B.st === 'win' ? 'You’re down! Punch to go again' : `You ${'♥'.repeat(B.myHp)}${'♡'.repeat(5 - B.myHp)}   ${LV().name} ${hpBar(B.hp, LV().hp)}${B.st === 'open' || B.st === 'dazed' ? '   HE’S OPEN!' : ''}`);
+    L.update = (dt, now) => {
+      const here = state.level === L.idx && state.mode !== 'menu';
+      if (here) {
+        if (mySlot() !== B.k) standInRing();
+        if (B.st !== 'idle' && B.st !== 'down' && B.st !== 'win') boutStep(dt);
+        if (state.mode === 'vr') vrPunches(dt, performance.now());
+        // VR: A or X starts a bout
+        if (state.mode === 'vr') {
+          let a = false; for (const s of SIDES) { const gp = vrHands[s].source && vrHands[s].source.gamepad; if (gp && gp.buttons && gp.buttons[4] && gp.buttons[4].pressed) a = true; }
+          if (a && !B.aPrev && (B.st === 'idle' || B.st === 'down' || B.st === 'win')) startBout();
+          B.aPrev = a;
+        }
+      }
+      // my opponent, and the others'
+      opps.forEach((o, k) => {
+        if (k === B.k && here) { o.g.visible = true; poseBoxer(o, B.st, B.kind, B.side, B.t, B.wind || 1, now, B.hit, LV().color); return; }
+        let st = null;
+        for (const rec of remotes.values()) { const s2 = rec.lvState[L.id]; if (rec.lv === L.idx && rec.inGame && s2 && s2.kb && s2.kb[0] === k) st = s2.kb; }
+        o.g.visible = here && !!st;
+        if (st) poseBoxer(o, ST[st[1]] || 'guard', KINDS[st[2]] || 'jab', st[3] ? 1 : -1, 0.3, 1, now, 0, '');
+      });
+      // my gloves
+      for (const s of SIDES) {
+        const g = myGloves[s];
+        g.visible = here && (state.mode === 'vr' ? myHands[s].ok : true);
+        if (!g.visible) continue;
+        if (state.mode === 'vr') { g.position.copy(myHands[s].pos); g.quaternion.copy(myHands[s].quat); g.scale.set(1, 1, 1.25); }
+        else {
+          const sx = s === 'left' ? -1 : 1, out = Math.max(0, (flatPunch[s] - performance.now()) / 330);
+          const reach = out > 0.6 ? (1 - out) / 0.4 : out / 0.6;
+          const up = state.keys.Space ? 1 : 0;
+          g.position.set(sx * (0.24 - up * 0.1), -0.3 + up * 0.18, -0.55 - reach * 0.5).applyQuaternion(camera.quaternion).add(camera.getWorldPosition(_h));
+          g.scale.set(0.7, 0.7, 0.875);
+          g.quaternion.copy(camera.getWorldQuaternion(new Q4()));
+        }
+      }
+      if (here) {
+        const txt = statusText();
+        if (state.mode === 'vr') { hud.visible = true; if (txt !== hudKey) { hudKey = txt; hud.userData.draw(txt); } }
+        else { hud.visible = false; if (ui.status) { ui.status.hidden = false; if (ui.status.textContent !== txt) ui.status.textContent = txt; } }
+      } else hud.visible = false;
+    };
+    // browser: lean and duck by moving the camera
+    const lean = { x: 0, y: 0 };
+    L.flatCamera = (dt) => {
+      const k = state.keys, wx = (k.KeyD ? 0.38 : 0) - (k.KeyA ? 0.38 : 0), wy = k.KeyS ? -0.42 : 0, f = 1 - Math.exp(-dt * 18);
+      lean.x += (wx - lean.x) * f; lean.y += (wy - lean.y) * f;
+      camera.position.set(lean.x, 1.62 + lean.y, 0);
+      camera.rotation.set(state.pitch, state.yaw, 0, 'YXZ');
+      return true;
+    };
+    L.presence = () => ({ kb: [B.k, ST.indexOf(B.st), Math.max(0, KINDS.indexOf(B.kind)), B.side > 0 ? 1 : 0, B.hp, B.myHp, B.lv, Math.round((B.best[B.lv] || 0) * 10)] });
+    L.readPresence = (rec, pres, st) => {
+      const a = pres.kb;
+      if (!Array.isArray(a) || a.length !== 8 || !a.every((x) => Number.isInteger(x) && x >= 0 && x < 100000) || a[0] >= N) { st.kb = null; return; }
+      if (!st.kb || st.kb[7] !== a[7]) state.dirtyBoard = true;
+      st.kb = a;
+    };
+    L.rowFor = (st, isMe) => {
+      const lv = isMe ? B.lv : st.kb ? st.kb[6] : 1, best = isMe ? B.best[B.lv] : st.kb ? st.kb[7] / 10 : 0;
+      return { best: best || 1e9, text: best ? `KO the ${LEVELS[lv].name} in ${best.toFixed(1)} s` : 'no knockout yet' };
+    };
+    L.sortRows = (a, b) => (a.best || 1e9) - (b.best || 1e9);
+    L.board = makeBoard(G, 720, 460, 3, 1.92, -9.5, 2.6, -5.85, 0);
+    L.drawBoard = (rows) => {
+      const g = L.board.g, W = 720;
+      g.fillStyle = '#14141e'; g.fillRect(0, 0, W, 460);
+      g.strokeStyle = '#e5453a'; g.lineWidth = 8; g.strokeRect(4, 4, W - 8, 452);
+      g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+      g.fillStyle = '#ffd23f'; g.font = `800 56px ${DISPLAY}`; g.fillText('Fastest knockouts', 36, 80);
+      g.fillStyle = '#c8c0d8'; g.font = `400 24px ${BODY}`; g.fillText('Dodge or block, then counter while he’s open', 36, 118);
+      drawRows(g, rows, 176, 46, W);
+      L.board.tex.needsUpdate = true;
+    };
+    makeKiosk(L, 9.5, 3.2, -Math.PI / 2);
+    L.hudActions = [
+      { label: () => (B.st === 'idle' || B.st === 'down' || B.st === 'win' ? 'Start bout' : 'Restart'), run: () => startBout() },
+      { label: () => `Opponent: ${LV().name} ▸`, run: () => { if (B.st !== 'idle' && B.st !== 'down' && B.st !== 'win') { showToast('Change opponent between bouts'); return; } B.lv = (B.lv + 1) % LEVELS.length; state.hudDirty = true; state.dirtyBoard = true; } },
+    ];
+    L.hints = [['A / X', 'start a bout'], ['Punch', 'his head when he’s open, his body any time'], ['Glowing glove', 'dodge, duck or block']];
+    L.hintsFor = () => (state.mode === 'flat' ? [['J / K', 'punch'], ['L', 'body shot'], ['A / D', 'lean'], ['S', 'duck'], ['Hold Space', 'block']] : L.hints);
+    L.spawn = () => { dolly.position.set(0, FY, 0.25); camera.position.set(0, 1.6, 0); standInRing(); };
+    L.onEnter = () => { B.st = 'idle'; };
+    L.onExit = () => { hud.visible = false; for (const s of SIDES) myGloves[s].visible = false; if (ui.status) ui.status.hidden = true; dolly.position.y = 0; B.st = 'idle'; };
+    L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.4; camera.position.set(Math.sin(a) * 3, 2.4, 3.2); camera.lookAt(0, 1.4, -1); };
+    L.boxInternals = { B, LEVELS, startBout, boutStep, myPunch, resolvePunch, throwPunch, guarding };
+    MUSIC_THEMES.boxing = { gain: 0.75, bpm: 96, swing: 0.12, chords: ['Am', 'Am', 'Dm', 'E'], comp: { inst: 'brass', at: [0, 6, 10], dur: 0.2 }, bass: { at: [0, 6, 8, 14] }, drums: { k: 'x.....x.x.......', s: '....x.......x...', h: 'o.o.o.o.o.o.o.o.' }, cut: 4000 };
+    return L;
+  })();
+  // ================================================================ LEVEL: SNOWBALL FIGHT
+  // Red against blue on a snowy field, each side with snow forts to hide behind. Snowballs wait in piles at the back:
+  // grab one and throw. Three hits and you're out to the sideline until the next round. A snowball that lands melts
+  // back into the piles. Last team with anyone in wins the round; best of three. Bots fill the teams and take cover.
+  // (Built on the dodgeball game: the lowest-named player's page runs the rounds and the bots; every page judges
+  // hits on its own player.)
+  const snowball = (() => {
+    const L = newLevel(34);
+    const G = L.group;
+    L.teams = true; L.teamKey = 'sw';
+    L.bounds = { minX: -9, maxX: 9, minZ: -14, maxZ: 14 };
+    L.gravityScale = 1; L.airDrag = 0.03; L.rollFriction = 0.8;
+    L.throwSpeed = [4.5, 17, 0.1];
+    L.walkSpeed = 3.6;
+    L.env = {
+      sky: skyTexture([[0, '#6a9ad8'], [0.4, '#a8cbf0'], [0.5, '#e8f2fc'], [1, '#c8d8e8']]), bg: 0xc8dcf0, fog: [0xdce8f4, 35, 120], hemi: [0xf4f8ff, 0x8aa0c0, 0.95],
+      sun: [0xffffff, 0.7], sunDir: new V3(0.3, 1, 0.4), ambient: [0x8aa0c0, 0.35], sprite: { tex: paleSunTex, pos: new V3(-120, 140, -200), scale: 50 },
+    };
+    const HW = 6, HD = 10, BR = 0.075, NB = 14, TEAM_SIZE = 5, WIN_ROUNDS = 2, ROUND_MS = 120000, COUNT_MS = 4000, OVER_MS = 6000, HP = 3;
+    const DB_HEX = [0xe5453a, 0x3d82e8], DB_STR = ['#ff6a5a', '#6aa8ff'];
+    const ST = { idle: 0, count: 1, play: 2, over: 3 }, ST_N = ['idle', 'count', 'play', 'over'];
+    const _hd = new V3(), _t = new V3(), _v = new V3();
+
+    // ---------------------------------------------------------------- the field, the forts
+    const snowTex = canvasTexture(256, 256, (g) => {
+      g.fillStyle = '#eef4fa'; g.fillRect(0, 0, 256, 256);
+      for (let k = 0; k < 60; k++) { g.fillStyle = k % 2 ? 'rgba(200,220,240,0.4)' : 'rgba(255,255,255,0.7)'; g.beginPath(); g.ellipse((k * 97) % 256, (k * 53) % 256, 12 + (k % 5) * 6, 6 + (k % 3) * 4, k, 0, Math.PI * 2); g.fill(); }
+    }).tex;
+    snowTex.wrapS = snowTex.wrapT = THREE.RepeatWrapping; snowTex.repeat.set(10, 14);
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), new THREE.MeshLambertMaterial({ map: snowTex }));
+    floor.rotation.x = -Math.PI / 2; G.add(floor);
+    const paint = (c) => new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.22, depthWrite: false });
+    addBox(G, 2 * HW, 0.012, HD, paint(DB_HEX[0]), 0, 0.006, HD / 2);
+    addBox(G, 2 * HW, 0.012, HD, paint(DB_HEX[1]), 0, 0.006, -HD / 2);
+    for (let x = -HW; x <= HW; x += 1) addBox(G, 0.5, 0.02, 0.14, new THREE.MeshBasicMaterial({ color: 0xffffff }), x, 0.01, 0);   // a dashed centre line
+    const snowM = lam(0xf4f8ff), iceM = lam(0xd8e8f8);
+    // snow banks all round, pines beyond
+    for (const [x, z, w, d] of [[-9, 0, 1.2, 28], [9, 0, 1.2, 28], [0, -14, 18.4, 1.2], [0, 14, 18.4, 1.2]]) { const m = new THREE.Mesh(new THREE.BoxGeometry(w, 1.0, d), snowM); m.position.set(x, 0.5, z); m.scale.y = 1; G.add(m); }
+    for (let k = 0; k < 40; k++) { const a = (k / 40) * Math.PI * 2, rr2 = 20 + (k % 5) * 3, x = Math.cos(a) * rr2 * 0.8, z = Math.sin(a) * rr2; addCyl(G, 0.25, 0.3, 1.4, 6, lam(0x5a4030), x, 0.7, z); for (let j = 0; j < 3; j++) { const c = new THREE.Mesh(new THREE.ConeGeometry(1.4 - j * 0.35, 1.5, 8), lam(j === 2 ? 0xf4f8ff : 0x2f5a44)); c.position.set(x, 1.8 + j * 1.0, z); G.add(c); } }
+    // snow forts: three a side, low walls to duck behind (snowballs stop dead in them)
+    const FORTS = [];
+    for (const side of [1, -1]) for (const x of [-3.6, 0, 3.6]) {
+      const z = side * (x === 0 ? 2.6 : 4.2), f = { x0: x - 1.15, x1: x + 1.15, z0: z - 0.3, z1: z + 0.3, h: 1.05 };
+      FORTS.push(f);
+      addBox(G, 2.3, 1.05, 0.6, snowM, x, 0.525, z);
+      for (let k = 0; k < 5; k++) addBox(G, 0.32, 0.22, 0.62, iceM, x - 0.92 + k * 0.46, 1.16, z);   // a crenellated top
+    }
+    L.FORTS = FORTS;
+    // snow piles at the back of each half, where snowballs wait
+    for (const side of [1, -1]) for (const x of [-4, 0, 4]) { const m = new THREE.Mesh(new THREE.SphereGeometry(0.6, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2), snowM); m.scale.y = 0.45; m.position.set(x, 0, side * 8.2); G.add(m); }
+    for (const side of [1, -1]) { const f = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 0.8), new THREE.MeshLambertMaterial({ color: side > 0 ? 0xe5453a : 0x3d82e8, side: THREE.DoubleSide })); f.position.set(-6.5, 2.2, side * 11.5); G.add(f); addCyl(G, 0.04, 0.04, 2.6, 6, lam(0x8a6a44), -7.1, 1.3, side * 11.5); }
+    makePlate(G, 'SNOWBALL FIGHT', 7, 0.9, new V3(0, 3.0, -13.6), 0, { bg: '#3d82e8', fg: '#ffffff', size: 0.62 });
+    makePlate(G, 'SNOWBALL FIGHT', 7, 0.9, new V3(0, 3.0, 13.6), Math.PI, { bg: '#c83a30', fg: '#ffffff', size: 0.62 });
+    addBox(G, 0.2, 2.6, 0.2, lam(0x8a6a44), -3.4, 1.3, -13.6); addBox(G, 0.2, 2.6, 0.2, lam(0x8a6a44), 3.4, 1.3, -13.6);
+    addBox(G, 0.2, 2.6, 0.2, lam(0x8a6a44), -3.4, 1.3, 13.6); addBox(G, 0.2, 2.6, 0.2, lam(0x8a6a44), 3.4, 1.3, 13.6);
+    const scoreC = canvasTexture(512, 256);
+    for (const [z, ry] of [[-13.5, 0], [13.5, Math.PI]]) {
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 1.8), new THREE.MeshBasicMaterial({ map: scoreC.tex }));
+      m.position.set(0, 1.6, z - Math.sign(z) * 0.2); m.rotation.y = ry; G.add(m);
+    }
+    const fortHit = (p, r) => FORTS.find((f) => p.x > f.x0 - r && p.x < f.x1 + r && p.z > f.z0 - r && p.z < f.z1 + r && p.y < f.h + r);
+
+    // ---------------------------------------------------------------- the balls
+    const ballTex = canvasTexture(64, 32, (g) => { g.fillStyle = '#f8fbff'; g.fillRect(0, 0, 64, 32); g.fillStyle = 'rgba(160,190,220,0.4)'; for (let i = 0; i < 30; i++) g.fillRect((i * 37) % 64, (i * 23) % 32, 3, 3); }).tex;
+    const ballGeo = new THREE.SphereGeometry(BR, 16, 12);
+    const balls = [];
+    for (let i = 0; i < NB; i++) {
+      const side = i % 2 ? -1 : 1, pile = Math.floor(i / 2) % 3, k = Math.floor(i / 6);
+      const slot = new V3(-4 + pile * 4 + (k - 1) * 0.28, 0.3 + BR, side * (8.2 + (k === 1 ? 0.3 : -0.1)));
+      const b = makeBody(L, { geo: ballGeo, tex: ballTex, r: BR, slot });
+      b.gs = 1; b.restFor = 0; b.dbLive = false; b.dbWho = ''; b.dbTeam = -1; b.dbCarrier = null; b.dbHolder = null; b.idx = i;
+      balls.push(b);
+    }
+    L.dbBalls = balls;
+
+    // ---------------------------------------------------------------- state
+    const me = { hp: HP, team: -1, out: false, round: -1, heSeq: 0, evSeq: 0, evType: 0, evA: '', st: -1, lastHitBy: '', lastScore: [0, 0] };
+    L.me = me;
+    const RS = { round: 0, st: 'idle', left: 0, score: [0, 0], matchWin: -1, recvT: 0 };
+    L.rs = RS;
+    const H = { t0: 0, evSeq: 0, events: [] };
+    const humans = () => {
+      const out = [{ peer: state.myPeer, team: me.team, out: me.out, me: true }];
+      for (const rec of remotes.values()) {
+        if (rec.lv !== L.idx || !rec.inGame) continue;
+        const st = rec.lvState[L.id];
+        if (st && (st.team === 0 || st.team === 1)) out.push({ peer: rec.peer, team: st.team, out: !!st.out, rec });
+      }
+      return out;
+    };
+    const hostId = () => humans().map((h) => h.peer).sort()[0];
+    const isHost = () => hostId() === state.myPeer;
+    const teamOf = (peer) => { if (peer === state.myPeer) return me.team; if (typeof peer === 'string' && peer.startsWith('bot:')) { const b = bots[Number(peer.slice(4))]; return b ? b.team : -1; } const rec = remotes.get(peer), st = rec && rec.lvState[L.id]; return st && (st.team === 0 || st.team === 1) ? st.team : -1; };
+
+    // ---------------------------------------------------------------- the bots (run by the host, drawn by everyone)
+    const bots = [];
+    for (let k = 0; k < 2 * TEAM_SIZE; k++) {
+      const team = k < TEAM_SIZE ? 0 : 1, j = k % TEAM_SIZE;
+      const g = buildAvatar(team === 0 ? '#ff8a7a' : '#7ab0ff', [1, 2, 0, 1, 2][j], [1, 2, 3, 1, 0][j], true, 1, team === 0 ? 6 : 4);
+      const names = ['Frosty Fran', 'Slushy Sal', 'Blizzard Bo', 'Icicle Ike', 'Flurry Flo', 'Chilly Chip', 'Snowy Sue', 'Powder Pete', 'Sleet Sam', 'Mitten Max'];
+      const tag = new THREE.Sprite(new THREE.SpriteMaterial({ map: canvasTexture(256, 64, (c) => { rr(c, 4, 6, 248, 52, 26); c.fillStyle = 'rgba(20,16,32,0.8)'; c.fill(); c.fillStyle = '#fff'; c.font = `700 28px ${BODY}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(names[k], 128, 33, 230); }).tex, transparent: true, depthWrite: false }));
+      tag.scale.set(0.9, 0.225, 1); tag.position.y = 0.42; g.add(tag); g.visible = false; G.add(g);
+      bots.push({ hp: HP, k, team, j, g, active: false, out: false, x: 0, z: 0, ball: null, thrAt: 0, cool: 0, dodgeUntil: 0, dodgeDir: 0, skill: 0.5 + Math.random() * 0.4, vx: 0, name: names[k] });
+    }
+    L.dbBots = bots;
+    const botStart = (bt) => ({ x: -4.8 + bt.j * 2.4, z: bt.team === 0 ? 7.6 : -7.6 });
+    // the spot behind a fort that a bot hides at (each bot has its own)
+    const coverFor = (bt) => { const f = FORTS[(bt.team === 0 ? 0 : 3) + (bt.j % 3)], side = bt.team === 0 ? 1 : -1; return { x: (f.x0 + f.x1) / 2 + (bt.j >= 3 ? 0.6 : -0.6), z: (side > 0 ? f.z1 : f.z0) + side * 0.55 }; };
+    const botOutSpot = (bt) => ({ x: bt.team === 0 ? 7.5 : -7.5, z: (bt.team === 0 ? 1 : -1) * (2 + bt.j * 1.7) });
+    const aliveCount = (team) => humans().filter((h) => h.team === team && !h.out).length + bots.filter((b) => b.active && b.team === team && !b.out).length;
+    function resetBalls() {
+      for (const b of balls) {
+        if (b.held && b.held.peer === state.myPeer) loseFromMyHand(b);
+        if (!b.held || b.held.peer === state.myPeer) reclaimToSlot(b);
+        b.dbLive = false; b.dbCarrier = null;
+      }
+      for (const bt of bots) bt.ball = null;
+    }
+    function emit(type, a) {
+      H.evSeq += 1; H.events.push([H.evSeq, type, a]); while (H.events.length > 6) H.events.shift();
+      applyEvent(H.evSeq, type, a, true);
+      forcePresence();
+    }
+    function reviveFor(team) {
+      const hs = humans().filter((h) => h.team === team && h.out);
+      if (hs.length) { emit(3, hs[0].peer); return; }
+      const bt = bots.find((b) => b.active && b.team === team && b.out);
+      if (bt) { bt.out = false; bt.hp = HP; Object.assign(bt, botStart(bt)); }
+    }
+    function sendOut(whoId) {
+      if (typeof whoId === 'string' && whoId.startsWith('bot:')) { const bt = bots[Number(whoId.slice(4))]; if (bt) bt.out = true; }
+      else if (whoId) emit(5, whoId);
+    }
+    function applyEvent(seq, type, a, mine) {
+      if (!mine && seq <= me.heSeq) return;
+      if (!mine) me.heSeq = seq;
+      if (a !== state.myPeer) return;
+      if (type === 3 && me.out) { me.out = false; me.hp = HP; toSpot(); showToast('A teammate caught one: you\u2019re back in!'); sfx('chime', 0.8); }
+      if (type === 5 && !me.out) { goOut('Your throw was caught'); }
+    }
+    function startMatchLocal() { RS.score = [0, 0]; RS.matchWin = -1; }
+    function beginCount(now) {
+      RS.round += 1; RS.st = 'count'; H.t0 = now; RS.left = COUNT_MS;
+      const nh = [0, 0]; for (const h of humans()) nh[h.team] += 1;
+      for (const bt of bots) { bt.active = bt.j < Math.max(0, L.picker.n - nh[bt.team]); bt.out = false; bt.hp = HP; bt.ball = null; Object.assign(bt, botStart(bt)); bt.thrAt = 0; bt.cool = 0; }
+      resetBalls();
+      forcePresence();
+    }
+    function endRound(winner, now) {
+      RS.st = 'over'; H.t0 = now; if (winner >= 0) { RS.score[winner] += 1; if (RS.score[winner] >= WIN_ROUNDS) RS.matchWin = winner; }
+      RS.lastWinner = winner;
+      forcePresence();
+    }
+    function nearestEnemy(from, team) {
+      let best = null, bd = 1e9;
+      for (const h of humans()) { if (h.team === team || h.out) continue; const p = h.me ? myHead.pos : h.rec.cur && h.rec.cur.h ? h.rec.cur.h.pos : null; if (!p) continue; const d = Math.hypot(p.x - from.x, p.z - from.z); if (d < bd) { bd = d; best = { x: p.x, z: p.z }; } }
+      for (const b of bots) { if (!b.active || b.out || b.team === team) continue; const d = Math.hypot(b.x - from.x, b.z - from.z); if (d < bd) { bd = d; best = { x: b.x, z: b.z }; } }
+      return best;
+    }
+    function throwBall(bt, tgt, now) {
+      const b = bt.ball; if (!b) return;
+      const fx = bt.team === 0 ? 0 : 0, fz = bt.team === 0 ? -1 : 1;
+      const from = new V3(bt.x + 0.25, 1.75, bt.z + fz * 0.35), to = new V3(tgt.x, 1.2, tgt.z);
+      const dx = to.x - from.x, dz = to.z - from.z, dist = Math.max(1, Math.hypot(dx, dz)), speed = 9 + Math.random() * 3, tt = dist / speed;
+      const err = (Math.random() - 0.5) * 0.3 * (1.3 - bt.skill), c = Math.cos(err), s = Math.sin(err), hx = dx / dist, hz = dz / dist;
+      b.pos.copy(from); b.vel.set((hx * c - hz * s) * speed, (to.y - from.y + 0.5 * GRAVITY * tt * tt) / tt, (hx * s + hz * c) * speed);
+      b.v += 1; b.owner = state.myPeer; b.held = null; b.sleeping = false; b.restT = 0; b.data = {}; b.throwFrom.copy(from);
+      b.dbLive = true; b.dbWho = 'bot:' + bt.k; b.dbTeam = bt.team; b.dbCarrier = null; b.dbHolder = null;
+      bt.ball = null; bt.cool = now + 900 + Math.random() * 900;
+      sfx('whoosh', 0.5 / (1 + from.distanceTo(myHead.pos) * 0.12));
+      void fx;
+    }
+    function botStep(dt, now) {
+      for (const bt of bots) {
+        if (!bt.active) continue;
+        if (bt.out) { const o = botOutSpot(bt); bt.x += (o.x - bt.x) * Math.min(1, dt * 6); bt.z += (o.z - bt.z) * Math.min(1, dt * 6); continue; }
+        const own = bt.team === 0 ? [0.5, 9.7] : [-9.7, -0.5];
+        // bots don't walk through forts
+        const blocked = (x, z) => FORTS.some((f) => x > f.x0 - 0.3 && x < f.x1 + 0.3 && z > f.z0 - 0.3 && z < f.z1 + 0.3);
+        let goalX = bt.x, goalZ = bt.z;
+        // dodge a ball that's coming
+        if (now > bt.dodgeUntil && !bt.noDodge) {
+          for (const b of balls) {
+            if (!b.dbLive || b.dbTeam === bt.team || b.held) continue;
+            const rx = bt.x - b.pos.x, rz = bt.z - b.pos.z, d = Math.hypot(rx, rz);
+            if (d < 7 && (rx * b.vel.x + rz * b.vel.z) > 0.6 * d * Math.hypot(b.vel.x, b.vel.z) && Math.random() < 0.55 * dt * 10) { bt.dodgeUntil = now + 450; bt.dodgeDir = Math.random() < 0.5 ? -1 : 1; break; }
+          }
+        }
+        if (now < bt.dodgeUntil) goalX = bt.x + bt.dodgeDir * 3;
+        else if (!bt.ball) {
+          // fetch the nearest free ball on our side
+          let best = null, bd = 1e9;
+          for (const b of balls) { if (b.held || b.dbCarrier != null || b.dbLive) continue; if (bt.team === 0 ? b.pos.z < -0.8 : b.pos.z > 0.8) continue; const d = Math.hypot(b.pos.x - bt.x, b.pos.z - bt.z); if (d < bd) { bd = d; best = b; } }
+          if (best) {
+            goalX = best.pos.x; goalZ = clamp(best.pos.z, own[0], own[1]);
+            if (bd < 0.9 && now > bt.cool) { bt.ball = best; best.dbCarrier = bt.k; best.owner = state.myPeer; best.v += 1; bt.thrAt = now + 700 + Math.random() * 1300; }
+          } else { goalZ = bt.team === 0 ? 7 : -7; goalX = bt.x + Math.sin(now * 0.001 + bt.k) * 2; }
+        } else if (RS.st === 'play' && now > bt.thrAt) {
+          const tgt = nearestEnemy(bt, bt.team); if (tgt) throwBall(bt, tgt, now); else bt.thrAt = now + 500;
+        } else { const c = coverFor(bt); goalX = c.x + (now > bt.thrAt - 500 ? (bt.j % 2 ? 1.5 : -1.5) : 0); goalZ = c.z; }
+        // move
+        const dx = goalX - bt.x, dz = goalZ - bt.z, d = Math.hypot(dx, dz), sp = (now < bt.dodgeUntil ? 5 : 3.2) * dt;
+        if (RS.st === 'play' && d > 0.05) { const nx = bt.x + (dx / d) * Math.min(d, sp), nz = bt.z + (dz / d) * Math.min(d, sp); if (!blocked(nx, nz)) { bt.x = nx; bt.z = nz; } else if (!blocked(nx, bt.z)) bt.x = nx; else if (!blocked(bt.x, nz)) bt.z = nz; }
+        bt.x = clamp(bt.x, -5.7, 5.7); bt.z = clamp(bt.z, own[0], own[1]);
+        if (bt.ball) { bt.ball.pos.set(bt.x + 0.25, 1.1, bt.z + (bt.team === 0 ? -0.35 : 0.35)); bt.ball.vel.set(0, 0, 0); bt.ball.sleeping = false; }
+      }
+      // balls that hit the bots
+      for (const b of balls) {
+        if (!b.dbLive || b.held || b.dbCarrier != null) continue;
+        const sp = b.vel.length(); if (sp < 3) continue;
+        for (const bt of bots) {
+          if (!bt.active || bt.out || bt.team === b.dbTeam) continue;
+          if (Math.hypot(b.pos.x - bt.x, b.pos.z - bt.z) < b.r + 0.3 && b.pos.y > 0.1 && b.pos.y < 1.85) {
+            b.v += 1; b.owner = state.myPeer; b.vel.multiplyScalar(-0.25); b.vel.y = 2; b.dbLive = false;
+            bt.hp -= 1; splat(b.pos);
+            if (bt.hp <= 0) { bt.out = true; sfx('hurt', 0.4 / (1 + b.pos.distanceTo(myHead.pos) * 0.2)); if (bt.ball) { bt.ball.dbCarrier = null; bt.ball = null; } }
+            break;
+          }
+        }
+      }
+    }
+    function hostStep(dt, now) {
+      if (RS.st === 'idle') { if (humans().length) beginCount(now); return; }
+      if (RS.st === 'count') {
+        RS.left = COUNT_MS - (now - H.t0);
+        if (RS.left <= 0) { RS.st = 'play'; H.t0 = now; RS.left = ROUND_MS; resetBalls(); forcePresence(); }
+      } else if (RS.st === 'play') {
+        RS.left = ROUND_MS - (now - H.t0);
+        botStep(dt, now);
+        const a0 = aliveCount(0), a1 = aliveCount(1);
+        if (a0 === 0 || a1 === 0) endRound(a0 === 0 && a1 === 0 ? -1 : a0 === 0 ? 1 : 0, now);
+        else if (RS.left <= 0) endRound(a0 === a1 ? -1 : a0 > a1 ? 0 : 1, now);
+      } else if (RS.st === 'over') {
+        if (now - H.t0 > OVER_MS) { if (RS.matchWin >= 0) startMatchLocal(); beginCount(now); }
+      }
+    }
+
+    // a puff of snow where a snowball hits, and a white flash when it's you
+    const puffs = [];
+    function splat(p) {
+      for (let k = 0; k < 6; k++) { const m = new THREE.Mesh(sph(0.06, 6, 5), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true })); m.position.copy(p); G.add(m); puffs.push({ m, v: new V3((Math.random() - 0.5) * 3, Math.random() * 2.5, (Math.random() - 0.5) * 3), t: 0 }); }
+      sfx('thump', 0.5 / (1 + p.distanceTo(myHead.pos) * 0.15));
+    }
+    function flashWhite() { if (ui.hurt && state.mode === 'flat') { ui.hurt.style.opacity = '0.6'; setTimeout(() => { ui.hurt.style.opacity = '0'; }, 250); } }
+    function snowStep(dt) {
+      for (let i = puffs.length - 1; i >= 0; i--) { const q = puffs[i]; q.t += dt; q.v.y -= 9 * dt; q.m.position.addScaledVector(q.v, dt); q.m.material.opacity = 1 - q.t / 0.6; if (q.t > 0.6) { G.remove(q.m); q.m.material.dispose(); puffs.splice(i, 1); } }
+      // a snowball that's landed melts back into the piles (whoever owns it puts it back)
+      for (const b of balls) {
+        if (b.held || b.dbCarrier != null || b.dbLive || b.owner !== state.myPeer) { b.restFor = 0; continue; }
+        const atSlot = b.pos.distanceTo(b.slot) < 0.05;
+        if (atSlot) { b.restFor = 0; continue; }
+        if (b.vel.length() < 0.6 && b.pos.y < 0.5) b.restFor += dt; else b.restFor = 0;
+        if (b.restFor > 1.2) { b.restFor = 0; reclaimToSlot(b); }
+      }
+    }
+
+    // ---------------------------------------------------------------- you
+    function toSpot() {
+      const x = me.out ? (me.team === 0 ? 7.5 : -7.5) : (Math.random() - 0.5) * 8;
+      const z = me.out ? (me.team === 0 ? 1 : -1) * (3 + Math.random() * 5) : (me.team === 0 ? 7.6 : -7.6);
+      if (state.mode === 'vr') { dolly.rotation.y = me.team === 0 ? 0 : Math.PI; dolly.updateMatrixWorld(true); } else { state.yaw = me.team === 0 ? 0 : Math.PI; state.pitch = -0.05; }
+      camera.getWorldPosition(_hd);
+      dolly.position.x += x - _hd.x; dolly.position.z += z - _hd.z; dolly.position.y = 0;
+    }
+    function goOut(why) {
+      me.out = true; toSpot(); state.hudDirty = true;
+      showToast(`${why}: you\u2019re out! Cheer on your team`);
+      sfx('hurt', 0.8); haptic(vrHands.left, 0.7, 100); haptic(vrHands.right, 0.7, 100);
+      forcePresence();
+    }
+    function switchTeam(balance) {
+      if (me.team < 0) return;
+      me.team = 1 - me.team; me.out = false; toSpot();
+      sfx('zap', 1); showToast(balance ? `Teams balanced: you\u2019re on ${TEAM_NAMES[me.team]}` : `You\u2019re on ${TEAM_NAMES[me.team]} now`);
+      state.dirtyBoard = true; forcePresence();
+    }
+    L.switchTeam = switchTeam;
+    function newRoundLocal() {
+      for (const b of balls) if (b.held && b.held.peer === state.myPeer) { loseFromMyHand(b); release(b, _t.set(0, 0, 0)); }
+      me.out = false; me.hp = HP; toSpot();
+    }
+    function onCatch(b) {
+      b.dbLive = false;
+      sfx('clang', 1); showToast('Catch! They\u2019re out and a teammate returns');
+      haptic(vrHands.left, 0.6, 60); haptic(vrHands.right, 0.6, 60);
+      me.evSeq += 1; me.evType = 2; me.evA = b.dbWho || '';
+      if (isHost()) onCatchEvent(b.dbWho, me.team);
+      forcePresence();
+    }
+    function onCatchEvent(thrower, catcherTeam) { sendOut(thrower); reviveFor(catcherTeam); }
+    function checkMyHit() {
+      if (RS.st !== 'play' || me.out || me.team < 0) return;
+      for (const b of balls) {
+        if (!b.dbLive || b.dbTeam === me.team || b.held || b.dbCarrier != null) continue;
+        if (b.vel.length() < 3) continue;
+        const hy = myHead.pos.y;
+        if (Math.hypot(b.pos.x - myHead.pos.x, b.pos.z - myHead.pos.z) < b.r + 0.3 && b.pos.y > Math.max(0.1, hy - 1.5) && b.pos.y < hy + 0.15) {
+          b.v += 1; b.owner = state.myPeer; b.sleeping = false; b.vel.multiplyScalar(-0.25); b.vel.y = 2; b.dbLive = false;
+          me.evSeq += 1; me.evType = 1; me.evA = b.dbWho || '';
+          me.hp -= 1; splat(b.pos); flashWhite();
+          const by = b.dbWho && b.dbWho.startsWith('bot:') ? (bots[Number(b.dbWho.slice(4))] || { name: 'A bot' }).name : 'Someone';
+          if (me.hp <= 0) goOut(`${by} got you`);
+          else { showToast(`Splat! ${by} hit you. ${me.hp} ${me.hp === 1 ? 'hit' : 'hits'} left`); sfx('hurt', 0.6); haptic(vrHands.left, 0.5, 60); haptic(vrHands.right, 0.5, 60); state.hudDirty = true; forcePresence(); }
+          return;
+        }
+      }
+    }
+    // a ball's story, on every page: who threw it, whether it's still live
+    function trackBall(b) {
+      const holder = b.held ? b.held.peer : null;
+      if (b.dbHolder && !holder) {
+        if (b.vel.length() > 2.5 && b.dbCarrier == null) { b.dbLive = true; b.dbWho = b.dbHolder; b.dbTeam = teamOf(b.dbHolder); }
+      }
+      if (holder && !b.dbHolder) {
+        if (holder === state.myPeer && RS.st === 'play' && !me.out && b.dbLive && b.dbTeam !== me.team && b.dbTeam >= 0) { showToast('Caught it! (snowballs don\u2019t send anyone out, but now it\u2019s yours)'); sfx('clang', 0.6); }
+        b.dbLive = false;
+      }
+      b.dbHolder = holder;
+      if (b.dbLive && b.vel.length() < 2.2) b.dbLive = false;
+    }
+    const baseOBF = L.onBodyFrame;
+    L.onBodyFrame = (b, dt, now) => { baseOBF(b, dt, now); if (balls.includes(b)) trackBall(b); };
+    L.collide = (b) => {
+      let sup = groundBounce(b, 0.15, 0.4, 'grass');
+      const X = 8.6, Z = 13.6;
+      if (b.pos.x < -X + b.r) { b.pos.x = -X + b.r; if (b.vel.x < 0) { impact(b, -b.vel.x, 'ball'); b.vel.x *= -0.6; } }
+      if (b.pos.x > X - b.r) { b.pos.x = X - b.r; if (b.vel.x > 0) { impact(b, b.vel.x, 'ball'); b.vel.x *= -0.6; } }
+      if (b.pos.z < -Z + b.r) { b.pos.z = -Z + b.r; if (b.vel.z < 0) { impact(b, -b.vel.z, 'ball'); b.vel.z *= -0.6; } }
+      if (b.pos.z > Z - b.r) { b.pos.z = Z - b.r; if (b.vel.z > 0) { impact(b, b.vel.z, 'ball'); b.vel.z *= -0.6; } }
+      const f = fortHit(b.pos, b.r);
+      if (f && !b.held && b.dbCarrier == null) { if (b.dbLive) splat(b.pos); b.dbLive = false; b.vel.set(0, -1, 0); const cx = clamp(b.pos.x, f.x0 - b.r, f.x1 + b.r); if (b.pos.y < f.h) { b.pos.z = b.pos.z < (f.z0 + f.z1) / 2 ? f.z0 - b.r : f.z1 + b.r; } void cx; }
+      if (sup && b.pos.y <= b.r + 0.012) { if (b.dbLive) splat(b.pos); b.dbLive = false; }      // it hit the snow: it's done
+      return sup;
+    };
+    // you have to be close to a ball to pick it up (pointing at one across the gym doesn't fetch it)
+    L.grabRange = 1.5;
+    L.canGrab = (b) => {
+      if (!balls.includes(b)) return false;
+      if (me.out || me.team < 0 || RS.st !== 'play' || b.dbCarrier != null) return false;
+      return me.team === 0 ? b.pos.z > -0.5 : b.pos.z < 0.5;
+    };
+    L.autoGrab = () => {
+      if (me.out || RS.st !== 'play' || me.team < 0) return null;
+      let best = null, bd = 1.4;
+      for (const b of balls) { if (b.held || b.dbCarrier != null) continue; const d = Math.hypot(b.pos.x - myHead.pos.x, b.pos.z - myHead.pos.z) + Math.abs(b.pos.y - 1.0) * 0.4; if (d < bd && L.canGrab(b)) { bd = d; best = b; } }
+      return best;
+    };
+    // where you're allowed to stand
+    L.clampPlayer = (p) => {
+      const t = me.team < 0 ? 0 : me.team;
+      let x0 = -5.8, x1 = 5.8, z0, z1;
+      if (me.out) { x0 = t === 0 ? 6.6 : -8.4; x1 = t === 0 ? 8.4 : -6.6; z0 = t === 0 ? 1 : -9.5; z1 = t === 0 ? 9.5 : -1; }
+      else if (RS.st === 'count') { z0 = t === 0 ? 7.2 : -9.8; z1 = t === 0 ? 9.8 : -7.2; }
+      else { z0 = t === 0 ? 0.4 : -9.8; z1 = t === 0 ? 9.8 : -0.4; }
+      let x = clamp(p.x, x0, x1), z = clamp(p.z, z0, z1);
+      for (const f of FORTS) { const m = 0.25; if (x > f.x0 - m && x < f.x1 + m && z > f.z0 - m && z < f.z1 + m) { const dl = x - (f.x0 - m), dr = f.x1 + m - x, dn = z - (f.z0 - m), df = f.z1 + m - z, mn = Math.min(dl, dr, dn, df); if (mn === dl) x = f.x0 - m; else if (mn === dr) x = f.x1 + m; else if (mn === dn) z = f.z0 - m; else z = f.z1 + m; } }
+      return [x - p.x, z - p.z];
+    };
+    makeButton(L, new V3(7.6, 1.0, 5.5), 0xb388ff, 'Switch team', () => switchTeam(), { faceYaw: -Math.PI / 2 });
+    makeKiosk(L, 7.8, 8.2, -Math.PI / 2);
+    makePlayerPicker(L, { min: 1, max: TEAM_SIZE, def: 4, label: 'Per team', note: 'from the next round' });
+
+    // ---------------------------------------------------------------- scoreboard, HUD, roster
+    let boardKey = '';
+    function drawBoard() {
+      const left = Math.max(0, Math.ceil(RS.left / 1000));
+      const a0 = aliveCount(0), a1 = aliveCount(1);
+      const key = `${RS.score}|${RS.st}|${RS.round}|${a0}|${a1}|${left}|${RS.matchWin}`;
+      if (key === boardKey) return; boardKey = key;
+      const g = scoreC.g;
+      g.fillStyle = '#16142e'; g.fillRect(0, 0, 512, 256); g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillStyle = '#ffd23f'; g.font = `800 30px ${DISPLAY}`; g.fillText(RS.matchWin >= 0 ? `${TEAM_NAMES[RS.matchWin].toUpperCase()} WINS THE MATCH!` : `ROUND ${Math.max(1, RS.round)}  \u00b7  first to ${WIN_ROUNDS}`, 256, 30, 480);
+      g.font = `800 90px ${DISPLAY}`; g.fillStyle = DB_STR[0]; g.fillText(String(RS.score[0]), 120, 125); g.fillStyle = '#fff'; g.fillText('-', 256, 120); g.fillStyle = DB_STR[1]; g.fillText(String(RS.score[1]), 392, 125);
+      g.font = `700 26px ${BODY}`; g.fillStyle = DB_STR[0]; g.fillText(`Red: ${a0} left`, 120, 195); g.fillStyle = DB_STR[1]; g.fillText(`Blue: ${a1} left`, 392, 195);
+      g.fillStyle = '#a9a3cf'; g.fillText(RS.st === 'count' ? `Get ready\u2026 ${left}` : RS.st === 'play' ? `${left} s` : RS.st === 'over' ? 'Round over' : 'Waiting\u2026', 256, 232);
+      scoreC.tex.needsUpdate = true;
+    }
+    const hudPlate = makePlate(camera, 'Dodgeball', 0.55, 0.1, new V3(0, -0.2, -0.6), 0, { bg: '#16142e', fg: '#ffffff', size: 0.55 });
+    hudPlate.material.depthTest = false; hudPlate.renderOrder = 999; hudPlate.visible = false;
+    let hudKey = '';
+    const hudText = () => `${me.team >= 0 ? TEAM_NAMES[me.team] : ''}  \u00b7  ${me.out ? 'OUT' : '\u2744'.repeat(me.hp)}  \u00b7  ${RS.score[0]}-${RS.score[1]}  \u00b7  ${aliveCount(0)} v ${aliveCount(1)}`;
+    L.rowFor = (st, isMe) => { const team = isMe ? me.team : st.team, out = isMe ? me.out : !!st.out; return { team, out, text: out ? 'out' : 'in', color: DB_STR[team] || '#888' }; };
+    L.sortRows = (a, b) => (a.team - b.team) || ((a.out ? 1 : 0) - (b.out ? 1 : 0));
+    L.hudActions = [{ label: () => 'Switch team', run: () => switchTeam() }];
+    L.hints = [['Grip', 'grab a snowball from a pile'], ['Throw', 'let go while swinging'], ['Forts', 'duck behind them'], ['Three hits', 'and you\u2019re out']];
+    L.hintsFor = () => (state.mode === 'flat' ? [['E', 'grab a snowball (from the piles at the back)'], ['Hold Space', 'charge, let go to throw'], ['WASD', 'move, hide behind a fort'], ['Drag', 'aim']] : L.hints);
+
+    // ---------------------------------------------------------------- per frame
+    L.update = (dt, now) => {
+      const here = state.level === L.idx && state.mode !== 'menu';
+      for (const bt of bots) {
+        bt.g.visible = here && bt.active;
+        if (!bt.g.visible) continue;
+        if (!isHost()) { /* positions come from the host */ }
+        const faceZ = bt.out ? 0 : (bt.team === 0 ? -1 : 1);
+        bt.g.position.set(bt.x, 1.5 + (bt.out ? -0.3 : Math.abs(Math.sin(now * 0.008 + bt.k)) * 0.04), bt.z);
+        bt.g.rotation.y = bt.team === 0 ? 0 : Math.PI; void faceZ;
+      }
+      if (!here) { hudPlate.visible = false; return; }
+      autoBalance(L, me, now, switchTeam);
+      if (me.team < 0) me.team = pickTeam(L);
+      if (isHost()) hostStep(dt, now);
+      else if (RS.st !== 'idle' && RS.st === 'play') RS.left = Math.max(0, RS.left - dt * 1000);
+      if (RS.round !== me.round) { me.round = RS.round; if (RS.round > 0) { newRoundLocal(); showToast(RS.round > 0 ? `Round ${RS.round}: get ready!` : ''); } }
+      if (RS.st !== ST_N[me.st]) {
+        const was = ST_N[me.st]; me.st = ST[RS.st];
+        if (RS.st === 'play') { sfx('whistle', 1); showToast('GO! Grab a ball'); }
+        if (RS.st === 'over' && was === 'play') { const w = RS.score[0] > me.lastScore[0] ? 0 : RS.score[1] > me.lastScore[1] ? 1 : -1; me.lastScore = RS.score.slice(); showToast(RS.matchWin >= 0 ? `${TEAM_NAMES[RS.matchWin]} wins the match!` : w >= 0 ? `${TEAM_NAMES[w]} wins the round!` : 'Round drawn'); sfx(w === me.team ? 'fanfare' : 'buzzer', 0.9); }
+      }
+      if (RS.score[0] < me.lastScore[0] || RS.score[1] < me.lastScore[1]) me.lastScore = RS.score.slice();
+      checkMyHit();
+      snowStep(dt);
+      drawBoard();
+      const txt = hudText();
+      if (state.mode === 'vr') { hudPlate.visible = true; if (txt !== hudKey) { hudKey = txt; hudPlate.userData.draw(txt); } }
+      else { hudPlate.visible = false; if (ui.status) { ui.status.hidden = false; if (txt !== hudKey) { hudKey = txt; ui.status.textContent = txt; } } }
+    };
+    L.onEnter = () => { me.team = pickTeam(L); me.out = false; me.hp = HP; me.round = -1; me.st = -1; L.enteredAt = performance.now(); boardKey = ''; hudKey = ''; toSpot(); };
+    L.onExit = () => { hudPlate.visible = false; if (ui.status) ui.status.hidden = true; for (const bt of bots) bt.g.visible = false; };
+    L.spawn = () => { if (me.team < 0) me.team = pickTeam(L); toSpot(); };
+    L.attract = (now) => { camera.position.set(Math.sin(now * 0.0002) * 3, 3, 12); camera.lookAt(0, 1, -2); };
+    MUSIC_THEMES.snowball = { gain: 0.8, bpm: 120, swing: 0.15, chords: ['G', 'C', 'D', 'G'], comp: { inst: 'vibes', at: [0, 6, 8, 14], dur: 0.25 }, bass: { at: [0, 8] }, drums: { k: 'x.......x.......', sh: '-.-.-.-.-.-.-.-.' }, lead: { inst: 'musicbox', p: 0.25, up: 12 }, cut: 4600 };
+
+    // ---------------------------------------------------------------- network
+    L.presence = () => {
+      const p = { sw: [me.team, me.out ? 1 : 0, me.evSeq, me.evType, me.evA] };
+      if (isHost()) {
+        p.dh = [RS.round, ST[RS.st], Math.round(RS.left), RS.score[0], RS.score[1], RS.matchWin];
+        p.db = bots.map((b) => [b.active ? 1 : 0, Math.round(b.x * 10), Math.round(b.z * 10), b.out ? 1 : 0, b.ball ? b.ball.idx : -1, b.hp]);
+        p.he = H.events.slice();
+      }
+      return p;
+    };
+    L.readPresence = (rec, pres, st) => {
+      const a = pres.sw;
+      if (Array.isArray(a) && a.length === 5 && (a[0] === 0 || a[0] === 1 || a[0] === -1) && typeof a[2] === 'number' && typeof a[4] === 'string') {
+        st.team = a[0]; st.out = a[1] === 1;
+        if (isHost() && a[3] === 2 && a[2] > (st.evSeen || 0) && st.evInit) { st.evSeen = a[2]; onCatchEvent(a[4], a[0]); }
+        else if (a[2] > (st.evSeen || 0)) st.evSeen = a[2];
+        st.evInit = true;
+      }
+      if (rec.peer === hostId() && !isHost()) {
+        const h = pres.dh, bb = pres.db, he = pres.he;
+        if (Array.isArray(h) && h.length === 6 && h.every((x) => typeof x === 'number' && isFinite(x))) {
+          RS.round = h[0]; RS.st = ST_N[clamp(h[1] | 0, 0, 3)]; RS.left = h[2]; RS.recvT = performance.now(); RS.score = [h[3] | 0, h[4] | 0]; RS.matchWin = h[5] | 0;
+        }
+        if (Array.isArray(bb) && bb.length === bots.length) bb.forEach((x, k) => { if (Array.isArray(x) && x.length === 6 && x.every((n) => typeof n === 'number' && isFinite(n))) { const bt = bots[k]; bt.active = x[0] === 1; bt.x = x[1] / 10; bt.z = x[2] / 10; bt.out = x[3] === 1; bt.hp = x[5] | 0; const bi = x[4] | 0; if (bi >= 0 && bi < balls.length) balls[bi].dbCarrier = k; } });
+        if (Array.isArray(he)) for (const e of he) if (Array.isArray(e) && e.length === 3 && typeof e[0] === 'number' && typeof e[1] === 'number') applyEvent(e[0], e[1], e[2], false);
+      }
+    };
+    L.swInternals = { FORTS, splat, snowStep, RS, H, bots, balls, me, humans, isHost, hostStep, botStep, beginCount, endRound, aliveCount, checkMyHit, trackBall, reviveFor, sendOut, throwBall, toSpot, goOut, switchTeam, onCatch, teamOf, nearestEnemy };
+    return L;
+  })();
+
+  // ================================================================ LEVEL: TOBOGGAN RUN
+  // A downhill sled race on a snowy mountain. Gravity does the work; you steer round the snowmen, hit the blue ice
+  // strips for speed, and fly off two jumps. Tucking down goes faster but steers less; braking slows you.
+  // VR: lean left or right to steer (or use the stick), crouch to tuck, trigger brakes, A starts a race.
+  // Browser: A/D steer, W tucks, S brakes. Bots race too; friends race alongside (each page runs its own sled).
+  const toboggan = (() => {
+    const L = newLevel(35);
+    const G = L.group;
+    const rand = mulberry32(3535);
+    L.grabless = true;
+    L.noLocomotion = true;
+    L.env = {
+      sky: skyTexture([[0, '#4a7ac8'], [0.4, '#9ac0ec'], [0.5, '#e8f2fc'], [1, '#c8d8e8']]),
+      bg: 0xc8dcf0, fog: [0xdce8f4, 60, 260], hemi: [0xf4f8ff, 0x8aa0c0, 0.95],
+      sun: [0xffffff, 0.75], sunDir: new V3(0.4, 1, 0.5), ambient: [0x8aa0c0, 0.35], sprite: { tex: paleSunTex, pos: new V3(160, 200, -300), scale: 60 },
+    };
+    const HW = 4.2, GRAV = 9.8, MU = 0.03, DRAG = 0.011, COUNT_MS = 3500;
+
+    // ---------------------------------------------------------------- the run
+    const CTRL = [[0, 60, 10], [0, 59.4, 0], [3, 56, -30], [-6, 51, -65], [4, 45, -105], [12, 40, -140], [2, 34, -180], [-10, 28, -220], [-4, 21, -262], [8, 14, -300], [6, 8, -335], [0, 3, -370], [0, 1.2, -395], [0, 0.6, -430], [0, 0.5, -460]];
+    const curve = new THREE.CatmullRomCurve3(CTRL.map(([x, y, z]) => new V3(x, y, z)), false, 'centripetal');
+    const N = 1400;
+    const P = curve.getSpacedPoints(N - 1);
+    const TLEN = curve.getLength(), DS = TLEN / (N - 1);
+    const T = P.map((p, i) => new V3().subVectors(P[Math.min(N - 1, i + 1)], P[Math.max(0, i - 1)]).setY(0).normalize());
+    const NR = T.map((t) => new V3(-t.z, 0, t.x));
+    const SLOPE = P.map((p, i) => (i < N - 1 ? (p.y - P[i + 1].y) / DS : 0));
+    const START_S = 8, FINISH_S = TLEN - 70;
+    L.run = { P, T, NR, N, TLEN, DS, FINISH_S };
+    const at_ = (s) => clamp(Math.floor(s / DS), 0, N - 2);
+    function posAt(s, lat, out) {
+      const i = at_(s), u = clamp(s / DS - i, 0, 1), a = P[i], b = P[i + 1];
+      out.set(a.x + (b.x - a.x) * u + NR[i].x * lat, a.y + (b.y - a.y) * u, a.z + (b.z - a.z) * u + NR[i].z * lat);
+      return out;
+    }
+    // the snow: a wide ribbon down the mountain, the groomed run in the middle, banks at its edges
+    function ribbon(l0, l1, yOff, mat, vScale) {
+      const pos = [], uv = [], idx = [];
+      for (let i = 0; i < N; i++) {
+        const p = P[i], n = NR[i], y0 = p.y + (typeof yOff === 'function' ? yOff(l0) : yOff), y1 = p.y + (typeof yOff === 'function' ? yOff(l1) : yOff);
+        pos.push(p.x + n.x * l0, y0, p.z + n.z * l0, p.x + n.x * l1, y1, p.z + n.z * l1);
+        uv.push(0, (i * DS) / vScale, 1, (i * DS) / vScale);
+        if (i < N - 1) { const a = i * 2; idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3); }
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+      geo.setIndex(idx); geo.computeVertexNormals();
+      const m = new THREE.Mesh(geo, mat); G.add(m); return m;
+    }
+    const snowTex = canvasTexture(128, 128, (g) => { g.fillStyle = '#eef4fa'; g.fillRect(0, 0, 128, 128); for (let k = 0; k < 40; k++) { g.fillStyle = k % 2 ? 'rgba(200,220,240,0.45)' : 'rgba(255,255,255,0.8)'; g.beginPath(); g.ellipse((k * 37) % 128, (k * 59) % 128, 6 + (k % 4) * 4, 3 + (k % 3) * 2, k, 0, Math.PI * 2); g.fill(); } });
+    snowTex.tex.wrapS = snowTex.tex.wrapT = THREE.RepeatWrapping;
+    const runTex = canvasTexture(128, 128, (g) => { g.fillStyle = '#dce8f4'; g.fillRect(0, 0, 128, 128); g.strokeStyle = 'rgba(150,180,210,0.5)'; g.lineWidth = 2; for (let x = 8; x < 128; x += 16) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x + 4, 128); g.stroke(); } });
+    runTex.tex.wrapS = runTex.tex.wrapT = THREE.RepeatWrapping;
+    for (const sx of [-1, 1]) ribbon(sx * (HW + 1.2), sx * 60, (l) => (Math.abs(l) > 10 ? 0.6 : 0.6), new THREE.MeshLambertMaterial({ map: snowTex.tex, side: THREE.DoubleSide }), 12);
+    ribbon(-HW, HW, 0.02, new THREE.MeshLambertMaterial({ map: runTex.tex, side: THREE.DoubleSide }), 6);
+    for (const sx of [-1, 1]) ribbon(sx * HW, sx * (HW + 1.2), (l) => (Math.abs(l) > HW + 0.5 ? 0.6 : 0.02), new THREE.MeshLambertMaterial({ color: 0xf4f8ff, side: THREE.DoubleSide }), 6);
+    // trees down both sides, mountains beyond
+    {
+      const n = 340, trunks = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.25, 0.3, 1, 6), lam(0x5a4030), n), crowns = new THREE.InstancedMesh(new THREE.ConeGeometry(1, 1, 8), lam(0xffffff), n);
+      const m4 = new THREE.Matrix4(), q = new Q4(), sc = new V3(), p = new V3(), col = new THREE.Color();
+      for (let k = 0; k < n; k++) {
+        const s = rand() * TLEN, side = rand() < 0.5 ? -1 : 1, lat = side * (HW + 3 + rand() * 30), h = 2.5 + rand() * 3;
+        posAt(s, lat, p); p.y += 0.6;
+        m4.compose(new V3(p.x, p.y + 0.5, p.z), q, sc.set(1, 1.2, 1)); trunks.setMatrixAt(k, m4);
+        m4.compose(new V3(p.x, p.y + 1 + h / 2, p.z), q, sc.set(1.3 + rand() * 0.6, h, 1.3 + rand() * 0.6)); crowns.setMatrixAt(k, m4);
+        crowns.setColorAt(k, col.set(rand() < 0.3 ? '#e8f0f8' : ['#2f5a44', '#3a6a4a', '#2a5040'][Math.floor(rand() * 3)]));
+      }
+      trunks.frustumCulled = crowns.frustumCulled = false; G.add(trunks, crowns);
+      for (let k = 0; k < 14; k++) { const a = (k / 14) * Math.PI * 2, d = 320 + rand() * 80, s = 60 + rand() * 60; const m = new THREE.Mesh(new THREE.ConeGeometry(s, s * 1.5, 8), lam(0x8a9ab0)); m.position.set(Math.cos(a) * d, s * 0.5 - 20, -200 + Math.sin(a) * d); G.add(m); const c = new THREE.Mesh(new THREE.ConeGeometry(s * 0.42, s * 0.6, 8), lam(0xf4f8ff)); c.position.set(m.position.x, m.position.y + s * 0.47, m.position.z); G.add(c); }
+    }
+    // marker poles down both edges of the run, red on the left and blue on the right
+    {
+      const n = Math.floor(TLEN / 8) * 2, poles = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.05, 0.05, 1.4, 6), lam(0xffffff), n), m4 = new THREE.Matrix4(), q = new Q4(), sc = new V3(1, 1, 1), p = new V3(), col = new THREE.Color();
+      let k = 0;
+      for (let s = 4; s < TLEN - 4 && k < n - 1; s += 8) for (const sx of [-1, 1]) { posAt(s, sx * (HW + 0.3), p); m4.compose(new V3(p.x, p.y + 0.7, p.z), q, sc); poles.setMatrixAt(k, m4); poles.setColorAt(k, col.set(sx < 0 ? '#e5453a' : '#3d82e8')); k++; }
+      poles.count = k; poles.frustumCulled = false; G.add(poles);
+    }
+    // things on the run: ice strips (speed), jumps, snowmen (bonk)
+    const quad = (s, len, w, lat, y, mat) => { const p = posAt(s, lat, new V3()); const m = new THREE.Mesh(new THREE.PlaneGeometry(w, len), mat); m.rotation.x = -Math.PI / 2; const g = new THREE.Group(); g.add(m); g.position.set(p.x, p.y + y, p.z); g.rotation.y = Math.atan2(-T[at_(s)].x, -T[at_(s)].z); const sl = SLOPE[at_(s)]; m.rotation.x += Math.atan(sl) * 0; G.add(g); return g; };
+    const ICE = [70, 150, 235, 310].map((s, k) => ({ s, lat: [-1.6, 1.4, 0, -1.2][k], w: 2.4, len: 4 }));
+    const iceMat = new THREE.MeshBasicMaterial({ color: 0x7ad8ff, transparent: true, opacity: 0.75 });
+    for (const b of ICE) quad(b.s, b.len, b.w, b.lat, 0.06, iceMat);
+    const JUMPS = [118, 272].map((s) => ({ s }));
+    for (const j of JUMPS) {
+      const p = posAt(j.s, 0, new V3()), g = new THREE.Group();
+      const ramp = new THREE.Mesh(new THREE.BoxGeometry(HW * 2 - 0.4, 0.08, 3), new THREE.MeshLambertMaterial({ color: 0xf4f8ff }));
+      ramp.rotation.x = 0.2; ramp.position.y = 0.3; g.add(ramp);
+      for (let k = 0; k < 8; k++) g.add(at(new THREE.Mesh(boxg((HW * 2 - 0.4) / 8, 0.04, 0.2), lam(k % 2 ? 0xe5453a : 0xffffff)), -HW + 0.2 + (k + 0.5) * (HW * 2 - 0.4) / 8, 0.6, -1.4));
+      g.position.set(p.x, p.y, p.z); g.rotation.y = Math.atan2(-T[at_(j.s)].x, -T[at_(j.s)].z); G.add(g);
+    }
+    const SNOWMEN = [[52, 1.2], [96, -1.8], [134, 1.8], [170, -0.6], [205, 2.0], [250, -2.2], [290, 1.0], [325, -1.4], [350, 1.8]].map(([s, lat]) => ({ s, lat }));
+    for (const sm of SNOWMEN) {
+      const p = posAt(sm.s, sm.lat, new V3()), g = new THREE.Group(), w = lam(0xffffff);
+      g.add(at(new THREE.Mesh(sph(0.45, 14, 10), w), 0, 0.4, 0), at(new THREE.Mesh(sph(0.32, 14, 10), w), 0, 1.0, 0), at(new THREE.Mesh(sph(0.22, 12, 8), w), 0, 1.45, 0));
+      const nose = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.25, 8), lam(0xf5821f)); nose.rotation.x = Math.PI / 2; nose.position.set(0, 1.45, 0.25); g.add(nose);
+      for (const sx of [-1, 1]) g.add(at(new THREE.Mesh(sph(0.03, 6, 5), lam(0x111111)), sx * 0.08, 1.52, 0.19));
+      g.add(at(new THREE.Mesh(cyl(0.16, 0.16, 0.25, 10), lam(0x1a1a22)), 0, 1.72, 0), at(new THREE.Mesh(cyl(0.25, 0.25, 0.03, 12), lam(0x1a1a22)), 0, 1.6, 0));
+      g.position.set(p.x, p.y, p.z); g.rotation.y = Math.atan2(T[at_(sm.s)].x, T[at_(sm.s)].z); G.add(g); sm.g = g;
+    }
+    // start hut and gate, finish banner
+    {
+      const p0 = posAt(START_S, 0, new V3());
+      addBox(G, 6, 3, 4, lam(0x8a5a30), p0.x - 8, p0.y + 1.5, p0.z + 6);
+      const roof = new THREE.Mesh(new THREE.ConeGeometry(4.6, 2, 4), lam(0xe5453a)); roof.rotation.y = Math.PI / 4; roof.position.set(p0.x - 8, p0.y + 4, p0.z + 6); G.add(roof);
+      for (const [s, txt, col] of [[START_S, 'START', '#8bd450'], [FINISH_S, 'FINISH', '#ffd23f']]) {
+        const p = posAt(s, 0, new V3()), yaw = Math.atan2(-T[at_(s)].x, -T[at_(s)].z);
+        for (const sx of [-1, 1]) { const q = posAt(s, sx * (HW + 0.6), new V3()); addCyl(G, 0.1, 0.1, 4, 8, lam(0x2b2d42), q.x, q.y + 2, q.z); }
+        const b = makePlate(G, txt, HW * 2 + 1.2, 0.8, new V3(p.x, p.y + 3.8, p.z), yaw, { bg: col, fg: '#16142e', size: 0.7 });
+        void b;
+      }
+    }
+
+    // ---------------------------------------------------------------- sleds
+    function makeSled(col) {
+      const g = new THREE.Group(), wood = lam(0xb07840), m = lam(col);
+      g.add(at(new THREE.Mesh(boxg(0.7, 0.06, 1.5), wood), 0, 0.18, 0));
+      for (const sx of [-1, 1]) { g.add(at(new THREE.Mesh(boxg(0.05, 0.05, 1.6), lam(0x9aa0b0)), sx * 0.33, 0.06, 0)); const curl = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.025, 6, 10, Math.PI), lam(0x9aa0b0)); curl.rotation.y = Math.PI / 2; curl.position.set(sx * 0.33, 0.15, -0.8); g.add(curl); }
+      g.add(at(new THREE.Mesh(boxg(0.7, 0.18, 0.06), m), 0, 0.3, -0.72));
+      G.add(g);
+      return g;
+    }
+    const mySled = makeSled(PLAYER_COLORS[state.colorIdx].hex);
+    const rider = new THREE.Group(); rider.position.set(0, 0.95, 0.25); mySled.add(rider);
+    let riderKey = '';
+    const BOTS = [{ name: 'Sledding Sue', col: '#ff7ac8', f: 0.97 }, { name: 'Downhill Dave', col: '#ffd23f', f: 1.0 }, { name: 'Avalanche Al', col: '#8bd450', f: 0.94 }].map((d, i) => {
+      const sled = makeSled(d.col), r = buildAvatar(d.col, [1, 2, 0][i], [1, 2, 3][i], true, 1, 4);
+      r.position.set(0, 0.95, 0.25); sled.add(r); sled.visible = false;
+      const tag = new THREE.Sprite(new THREE.SpriteMaterial({ map: canvasTexture(256, 64, (c) => { rr(c, 4, 6, 248, 52, 26); c.fillStyle = 'rgba(20,16,32,0.8)'; c.fill(); c.fillStyle = '#fff'; c.font = `700 28px ${BODY}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(d.name, 128, 33, 230); }).tex, transparent: true, depthWrite: false }));
+      tag.scale.set(0.9, 0.225, 1); tag.position.y = 1.85; sled.add(tag);
+      return Object.assign({ i, sled, s: START_S, lat: 0, v: 0, air: 0, airV: 0, done: 0, steer: 0, ice: -1, jump: -1, bonkT: 0, line: 0 }, d);
+    });
+    L.sledBots = BOTS;
+
+    // ---------------------------------------------------------------- my sled and the race
+    const K = { s: START_S, lat: 0, v: 0, air: 0, airV: 0, steer: 0, tuck: false, brake: 0, ice: -1, jump: -1, bonkT: 0, done: 0 };
+    const RACE = { id: 0, st: 'idle', startAt: 0, botsOn: true, best: 0 };
+    try { if (Number.isFinite(prefs.sledBest)) RACE.best = prefs.sledBest; } catch (e) { /* none */ }
+    L.sled = K; L.sledRace = RACE;
+    const laneLat = (k) => [-2.7, -0.9, 0.9, 2.7][k % 4];
+    function racers() { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort(); }
+    function toGrid() {
+      const k = Math.max(0, racers().indexOf(state.myPeer));
+      Object.assign(K, { s: START_S, lat: laneLat(k), v: 0, air: 0, airV: 0, steer: 0, ice: -1, jump: -1, done: 0 });
+      const n = racers().length;
+      BOTS.forEach((b, i) => Object.assign(b, { s: START_S - 3, lat: laneLat(n + i), v: 0, air: 0, airV: 0, done: 0, ice: -1, jump: -1, line: [-1.5, 0.5, 2][i] }));
+      calibrated = false;
+    }
+    function startRace(fromPeer) {
+      RACE.id = Math.floor(Date.now() / 1000); RACE.startAt = Date.now() + COUNT_MS; RACE.st = 'count';
+      RACE.botsOn = racers().length < 4;
+      toGrid(); state.hudDirty = true;
+      showToast(fromPeer ? `${fromPeer} started a race! Get ready…` : 'Race! Get ready…'); sfx('whistle', 0.8);
+      forcePresence();
+    }
+    L.startRace = startRace;
+    const raceT = () => (RACE.st === 'idle' ? 0 : (Date.now() - RACE.startAt) / 1000);
+    // one step of a sled: gravity down the slope, friction, air drag; steering, the banks, ice, jumps, snowmen
+    function sledStep(o, dt, steer, tuck, brake, isMe) {
+      const i = at_(o.s), slope = SLOPE[i];
+      const drag = DRAG * (tuck ? 0.65 : 1);
+      if (o.air <= 0) o.v += (GRAV * slope - MU * GRAV - drag * o.v * o.v - brake * 5) * dt;
+      else o.v -= drag * o.v * o.v * dt;
+      if (o.s > FINISH_S + 20) o.v -= 3 * dt;   // the run-out after the finish
+      o.v = Math.max(0, o.v);
+      o.s += o.v * dt;
+      o.lat += steer * (1.4 + o.v * 0.22) * (tuck ? 0.55 : 1) * (o.air > 0 ? 0.3 : 1) * dt;
+      if (Math.abs(o.lat) > HW - 0.4) { o.lat = Math.sign(o.lat) * (HW - 0.4); o.v *= Math.exp(-1.8 * dt); if (isMe && Math.random() < dt * 8) tone(180, 120, 0.08, 'sawtooth', 0.05); }
+      // ice strips: a burst of speed
+      ICE.forEach((b, k) => { if (o.ice !== k && o.air <= 0 && Math.abs(o.s - b.s) < b.len / 2 && Math.abs(o.lat - b.lat) < b.w / 2) { o.ice = k; o.v += 4; if (isMe) { sfx('whoosh', 0.9); spawnFloat('Zoom!', posAt(o.s + 4, o.lat, new V3()).add(new V3(0, 2, 0)), '#7ad8ff'); } } });
+      // jumps
+      JUMPS.forEach((j, k) => { if (o.jump !== k && o.s > j.s && o.s < j.s + 2) { o.jump = k; o.air = 0.01; o.airV = 2 + o.v * 0.28; if (isMe) { sfx('whoosh', 0.7); tone(300, 700, 0.3, 'triangle', 0.12); } } });
+      if (o.air > 0) { o.air += o.airV * dt; o.airV -= GRAV * dt; if (o.air <= 0) { o.air = 0; if (isMe) { sfx('thump', 0.8); if (state.mode === 'vr') for (const sd of SIDES) haptic(vrHands[sd], 0.8, 90); } } }
+      // snowmen
+      if (o.air <= 0.5) for (const sm of SNOWMEN) if (Math.abs(o.s - sm.s) < 0.7 && Math.abs(o.lat - sm.lat) < 0.75 && performance.now() > o.bonkT) {
+        o.bonkT = performance.now() + 900; o.v *= 0.4; o.lat += Math.sign(o.lat - sm.lat || 1) * 0.6;
+        if (isMe) { showToast('Bonk! Snowman'); sfx('thump', 1); tone(200, 100, 0.2, 'square', 0.12); if (state.mode === 'vr') for (const sd of SIDES) haptic(vrHands[sd], 1, 150); }
+        sm.g.rotation.z = (Math.random() - 0.5) * 0.6;
+      }
+      if (!o.done && o.s >= FINISH_S && RACE.st !== 'idle') { o.done = raceT(); if (isMe) finished(); }
+    }
+    function finished() {
+      const t = K.done, place = standings().findIndex((r) => r.me) + 1;
+      const isBest = !RACE.best || t < RACE.best;
+      if (isBest) { RACE.best = Math.round(t * 10) / 10; prefs.sledBest = RACE.best; savePrefs(); }
+      showToast(`Finished ${['1st', '2nd', '3rd', '4th', '5th', '6th'][place - 1] || ''} in ${t.toFixed(1)} s${isBest ? ' (your best!)' : ''}`);
+      sfx(place === 1 ? 'fanfare' : 'chime', 1); setTimeout(() => sfx('cheer', 0.7), 250);
+      forcePresence(); state.dirtyBoard = true;
+    }
+    function standings() {
+      const rows = [{ name: state.name || 'You', me: true, s: K.s, done: K.done }];
+      for (const rec of remotes.values()) { const st = rec.lvState[L.id]; if (rec.lv === L.idx && st && st.tg && st.tg[0] === RACE.id) rows.push({ name: rec.name, s: st.tg[1] / 10, done: st.tg[3] / 10 }); }
+      if (RACE.botsOn) for (const b of BOTS) rows.push({ name: b.name, bot: true, s: b.s, done: b.done });
+      rows.sort((a, b) => (a.done && b.done ? a.done - b.done : a.done ? -1 : b.done ? 1 : b.s - a.s));
+      return rows;
+    }
+    function botDrive(b, dt) {
+      // follow its line down the run, swerving round snowmen ahead
+      let want = b.line + Math.sin(b.s * 0.03 + b.i) * 1.2;
+      for (const sm of SNOWMEN) if (sm.s > b.s && sm.s - b.s < 18 && Math.abs(sm.lat - want) < 1.3) want = sm.lat + (sm.lat > 0 ? -1.6 : 1.6);
+      for (const ic of ICE) if (ic.s > b.s && ic.s - b.s < 25) want = ic.lat;
+      b.steer = clamp((want - b.lat) * 0.9, -1, 1);
+      sledStep(b, dt, b.steer, false, 0, false);
+      b.v *= Math.pow(b.f, dt * 0.6);
+    }
+
+    // ---------------------------------------------------------------- input: lean in VR, keys in a browser
+    let calibrated = false;
+    const calib = { x: 0, z: 0, y: 0, yaw: 0 };
+    const _e = new THREE.Euler();
+    function calibrate() { calib.x = camera.position.x; calib.z = camera.position.z; calib.y = camera.position.y; _e.setFromQuaternion(camera.quaternion, 'YXZ'); calib.yaw = _e.y; calibrated = true; }
+    function inputs() {
+      let steer = 0, tuck = false, brake = 0, start = false, recenter = false;
+      if (state.mode === 'vr') {
+        if (!calibrated) calibrate();
+        // lean: how far your head has moved sideways from where you sat down
+        const dx = camera.position.x - calib.x, dz = camera.position.z - calib.z, c = Math.cos(calib.yaw), s = Math.sin(calib.yaw);
+        const side = dx * c - dz * s;
+        steer = clamp(side / 0.22, -1, 1);
+        tuck = calib.y - camera.position.y > 0.22;
+        for (const sd of SIDES) {
+          const gp = vrHands[sd].source && vrHands[sd].source.gamepad;
+          if (!gp) continue;
+          const ax = gp.axes && gp.axes.length >= 4 ? gp.axes[2] : 0;
+          if (Math.abs(ax) > Math.abs(steer) && Math.abs(ax) > 0.2) steer = ax;
+          if (gp.buttons[0] && gp.buttons[0].value > 0.3) brake = Math.max(brake, gp.buttons[0].value);
+          if (gp.buttons[4] && gp.buttons[4].pressed) start = true;
+          if (gp.buttons[5] && gp.buttons[5].pressed) recenter = true;
+        }
+      } else if (state.mode === 'flat') {
+        const k = state.keys;
+        steer = ((k.KeyD || k.ArrowRight) ? 1 : 0) - ((k.KeyA || k.ArrowLeft) ? 1 : 0) || (typeof stick !== 'undefined' ? stick.x : 0);
+        tuck = !!(k.KeyW || k.ArrowUp); brake = (k.KeyS || k.ArrowDown) ? 1 : 0;
+      }
+      return { steer, tuck, brake, start, recenter };
+    }
+    let startHeld = false;
+
+    // ---------------------------------------------------------------- per frame
+    const _p = new V3(), _seat = new V3();
+    const hud = makePlate(camera, 'Ready', 0.5, 0.09, new V3(0, -0.24, -0.6), 0, { bg: '#16142e', fg: '#ffffff', size: 0.55 });
+    hud.material.depthTest = false; hud.renderOrder = 999; hud.visible = false;
+    let hudKey = '', lastCount = 0;
+    function placeSled(g, o) {
+      posAt(o.s, o.lat, _p);
+      const i = at_(o.s), yaw = Math.atan2(-T[i].x, -T[i].z);
+      g.position.set(_p.x, _p.y + 0.04 + o.air, _p.z);
+      g.rotation.set(Math.atan(SLOPE[i]) * 0.9 - (o.air > 0 ? o.airV * 0.03 : 0), yaw - (o.steer || 0) * 0.25, -(o.steer || 0) * 0.12, 'YXZ');
+    }
+    L.update = (dt, now) => {
+      const here = state.level === L.idx && state.mode !== 'menu';
+      // join a race someone else started
+      for (const rec of remotes.values()) { const st = rec.lvState[L.id]; if (here && rec.lv === L.idx && st && st.tg && st.tg[0] > RACE.id && st.tg[2] > Date.now() - 500) { RACE.id = st.tg[0]; RACE.startAt = st.tg[2]; RACE.st = 'count'; RACE.botsOn = racers().length < 4; toGrid(); showToast(`${rec.name} started a race! Get ready…`); } }
+      if (RACE.st === 'count') {
+        const left = RACE.startAt - Date.now(), n = Math.ceil(left / 1000);
+        if (left <= 0) { RACE.st = 'run'; sfx('whistle', 1); showToast('GO!'); K.v = 2.5; for (const b of BOTS) b.v = 2.2; }
+        else if (n !== lastCount) { lastCount = n; tone(660, 660, 0.15, 'square', 0.15); }
+      }
+      if (here) {
+        const inp = inputs();
+        if (inp.start && !startHeld && RACE.st !== 'count' && RACE.st !== 'run') startRace();
+        startHeld = inp.start;
+        if (inp.recenter) calibrate();
+        K.steer += (inp.steer - K.steer) * Math.min(1, dt * 8); K.tuck = inp.tuck; K.brake = inp.brake;
+        const going = RACE.st === 'run' || RACE.st === 'over';
+        const steps = Math.max(1, Math.ceil(dt / 0.02));
+        for (let k = 0; k < steps; k++) {
+          if (going) sledStep(K, dt / steps, K.steer, K.tuck, K.brake, true);
+          if (RACE.st === 'run' && RACE.botsOn) for (const b of BOTS) botDrive(b, dt / steps);
+        }
+        if (RACE.st === 'run' && K.done && (!RACE.botsOn || BOTS.every((b) => b.done)) && K.v < 0.3) RACE.st = 'over';
+        // sliding sound
+        if (snd.ctx && Math.random() < dt * Math.min(12, K.v)) tone(2000 + Math.random() * 1500, 0, 0.03, 'sine', 0.008 * Math.min(1, K.v / 8));
+      }
+      placeSled(mySled, K);
+      mySled.visible = here;
+      const rkey = `${state.colorIdx}|${state.hat}|${state.face}|${state.mode}`;
+      if (rkey !== riderKey) { riderKey = rkey; rider.clear(); if (state.mode !== 'vr') rider.add(buildAvatar(PLAYER_COLORS[state.colorIdx].hex, state.hat, state.face, true)); }
+      rider.position.y = K.tuck ? 0.75 : 0.95;
+      for (const b of BOTS) { b.sled.visible = here && RACE.botsOn && RACE.st !== 'idle'; if (b.sled.visible) placeSled(b.sled, b); }
+      // VR: you sit on the sled
+      if (here && state.mode === 'vr') {
+        if (!calibrated) calibrate();
+        const i = at_(K.s), yaw = Math.atan2(-T[i].x, -T[i].z);
+        _seat.set(0, 0.75, 0.25).applyAxisAngle(UP, yaw).add(mySled.position);
+        const ry = yaw - calib.yaw;
+        dolly.rotation.set(0, ry, 0);
+        const off = new V3(calib.x, 0, calib.z).applyAxisAngle(UP, ry);
+        dolly.position.set(_seat.x - off.x, mySled.position.y + 1.1 - calib.y, _seat.z - off.z);
+      }
+      // others' sleds
+      for (const rec of remotes.values()) {
+        const st = rec.lvState[L.id], show = here && inMyLevel(rec) && st && st.tg;
+        if (!show) { if (rec.sled) rec.sled.visible = false; continue; }
+        if (!rec.sled) rec.sled = makeSled(PLAYER_COLORS[rec.colorIdx] ? PLAYER_COLORS[rec.colorIdx].hex : '#ffffff');
+        rec.sled.visible = true;
+        placeSled(rec.sled, { s: st.tg[1] / 10, lat: st.tg[4] / 100, air: st.tg[5] / 100, steer: 0, airV: 0 });
+      }
+      if (here) {
+        const t = raceT(), rows = standings(), place = rows.findIndex((r) => r.me) + 1;
+        const txt = RACE.st === 'count' ? `Get ready… ${Math.max(1, Math.ceil((RACE.startAt - Date.now()) / 1000))}` : RACE.st === 'run' || RACE.st === 'over' ? `${K.done ? `Done ${K.done.toFixed(1)} s` : `${t.toFixed(1)} s`}  ·  ${place}/${rows.length}  ·  ${Math.round(K.v * 3.6)} km/h` : `Practice run  ·  ${Math.round(K.v * 3.6)} km/h  ·  best ${RACE.best ? RACE.best.toFixed(1) + ' s' : '-'}`;
+        if (state.mode === 'vr') { hud.visible = true; if (txt !== hudKey) { hudKey = txt; hud.userData.draw(txt); } }
+        else { hud.visible = false; if (ui.status) { ui.status.hidden = false; if (ui.status.textContent !== txt) ui.status.textContent = txt; } }
+      } else hud.visible = false;
+    };
+    // browser: a chase camera behind the sled
+    let chase = null;
+    L.flatCamera = (dt) => {
+      const i = at_(K.s), f = T[i];
+      const want = posAt(Math.max(0, K.s - 6.5), K.lat * 0.8, new V3());
+      want.y += 3.1 + K.air;
+      if (!chase || chase.distanceTo(want) > 20) chase = want.clone();
+      chase.lerp(want, Math.min(1, dt * 6));
+      dolly.rotation.set(0, 0, 0); dolly.position.set(chase.x, chase.y - 1.6, chase.z);
+      camera.position.set(0, 1.6, 0);
+      camera.lookAt(mySled.position.x + f.x * 6, mySled.position.y + 0.6, mySled.position.z + f.z * 6);
+      return true;
+    };
+    L.publishPose = () => {
+      if (state.mode === 'vr') return null;
+      const q = new Q4().setFromEuler(new THREE.Euler(0, mySled.rotation.y, 0));
+      const head = new V3(0, 0.95 + 0.3, 0.25).applyQuaternion(q).add(mySled.position);
+      return { h: [head, q], l: [head.clone().add(new V3(-0.2, -0.4, 0)), q], r: [head.clone().add(new V3(0.2, -0.4, 0)), q] };
+    };
+    L.presence = () => ({ tg: [RACE.id, Math.round(K.s * 10), RACE.startAt, Math.round(K.done * 10), Math.round(K.lat * 100), Math.round(K.air * 100), Math.round(RACE.best * 10)] });
+    L.readPresence = (rec, pres, st) => {
+      const a = pres.tg;
+      if (!Array.isArray(a) || a.length !== 7 || !a.every((x) => typeof x === 'number' && Number.isFinite(x))) { st.tg = null; return; }
+      if (!st.tg || st.tg[3] !== a[3] || st.tg[6] !== a[6]) state.dirtyBoard = true;
+      st.tg = a;
+    };
+    L.rowFor = (st, isMe) => { const best = isMe ? RACE.best : st.tg ? st.tg[6] / 10 : 0; return { best: best || 1e9, text: best ? `best ${best.toFixed(1)} s` : 'no run yet' }; };
+    L.sortRows = (a, b) => (a.best || 1e9) - (b.best || 1e9);
+    {
+      const p0 = posAt(START_S, 0, new V3());
+      L.board = makeBoard(G, 720, 460, 3, 1.92, p0.x + 7, p0.y + 2.2, p0.z + 4, -Math.PI / 2 + 0.3);
+      makeKiosk(L, p0.x - 6, p0.z + 3, Math.PI / 2);
+    }
+    L.drawBoard = (rows) => {
+      const g = L.board.g, W = 720;
+      g.fillStyle = '#16142e'; g.fillRect(0, 0, W, 460);
+      g.strokeStyle = '#7ad8ff'; g.lineWidth = 8; g.strokeRect(4, 4, W - 8, 452);
+      g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+      g.fillStyle = '#7ad8ff'; g.font = `800 56px ${DISPLAY}`; g.fillText('Toboggan Run', 36, 80);
+      g.fillStyle = '#c8d8e8'; g.font = `400 24px ${BODY}`; g.fillText('Fastest runs top to bottom', 36, 118);
+      drawRows(g, rows, 176, 46, W);
+      L.board.tex.needsUpdate = true;
+    };
+    L.hudActions = [{ label: () => (RACE.st === 'count' || RACE.st === 'run' ? 'Restart race' : 'Start race'), run: () => startRace() }, { label: () => 'Back to the top', run: () => { RACE.st = 'idle'; toGrid(); } }];
+    L.hints = [['Lean', 'steer'], ['Crouch', 'tuck for speed'], ['Trigger', 'brake'], ['A', 'start a race'], ['B', 'recentre']];
+    L.hintsFor = () => (state.mode === 'flat' ? [['A / D', 'steer'], ['W', 'tuck (faster)'], ['S', 'brake'], ['Start race', 'top right']] : L.hints);
+    L.clampPlayer = () => [0, 0];
+    L.spawn = () => { toGrid(); chase = null; };
+    L.onEnter = () => { RACE.st = 'idle'; toGrid(); calibrated = false; };
+    L.onExit = () => { hud.visible = false; dolly.rotation.set(0, 0, 0); dolly.position.y = 0; if (ui.status) ui.status.hidden = true; for (const rec of remotes.values()) if (rec.sled) rec.sled.visible = false; };
+    L.attract = (now) => { const a = reduceMotion ? 0 : now * 0.00004; const p = posAt(60 + (a * 400) % 200, 0, new V3()); camera.position.set(p.x + 12, p.y + 8, p.z + 14); camera.lookAt(p); };
+    L.sledInternals = { K, RACE, BOTS, sledStep, botDrive, startRace, toGrid, standings, posAt, SNOWMEN, ICE, JUMPS, FINISH_S, START_S };
+    MUSIC_THEMES.toboggan = { gain: 0.8, bpm: 132, swing: 0.05, chords: ['D', 'G', 'A', 'D'], comp: { inst: 'vibes', at: [0, 4, 8, 12], dur: 0.2 }, bass: { at: [0, 8, 10] }, drums: { k: 'x...x...x...x...', sh: '-.-.-.-.-.-.-.-.' }, lead: { inst: 'musicbox', p: 0.3, up: 12 }, cut: 5000 };
     return L;
   })();
   // ---------------------------------------------------------------- VR controllers

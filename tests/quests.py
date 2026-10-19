@@ -13,7 +13,7 @@ from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parent.parent
 THREE_JS = os.environ.get("THREE_JS")
-QUESTS = {3: "Sunstone Keep", 10: "Skyline Siege", 11: "Hexwood Hollow", 22: "Pirate Cove"}
+QUESTS = {3: "Sunstone Keep", 10: "Skyline Siege", 11: "Hexwood Hollow", 22: "Pirate Cove", 30: "Frostpeak Caverns"}
 
 
 def main():
