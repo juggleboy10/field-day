@@ -52,6 +52,7 @@ js/games/beats.js
 js/games/juggle.js
 js/games/workout.js
 js/games/wallrush.js
+js/games/football.js
 js/app/vr-controls.js
 js/app/flat-controls.js
 js/app/modes.js

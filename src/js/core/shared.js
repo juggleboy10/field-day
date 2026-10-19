@@ -526,10 +526,11 @@
     { id: 'juggle', name: 'Juggle Jam', short: 'Juggling', glyph: '\u{1F939}', blurb: 'Learn to juggle under the big top: one to five balls, with slow motion while you get the hang of it.' },
     { id: 'workout', name: 'Sunrise Workout', short: 'Workout', glyph: '\u{1F94A}', blurb: 'A coached workout to a beat on a rooftop at dawn: punch the pads, squat, dodge and reach.' },
     { id: 'wallrush', name: 'Wall Rush', short: 'Wall Rush', glyph: '\u{1F9F1}', blurb: 'Walls with body-shaped holes slide toward you: squat, lunge and stretch to fit through.' },
+    { id: 'football', name: 'Two-Minute Drill', short: 'Football', glyph: '\u{1F3C8}', blurb: 'You\u2019re the quarterback: two minutes, ball on your 25. Read the coverage, beat the rush, score all you can.' },
   ];
-  const KIOSK_COLORS = [0xf5821f, 0xe8e4d8, 0x8bd450, 0xb388ff, 0xff4d6a, 0x2ec4b6, 0x3fbf7f, 0xff9ad0, 0xffd27a, 0x4fc3f7, 0x4a8aff, 0xb06aff, 0xffb36b, 0xff9ad0, 0x8bd450, 0xd8f43a, 0xff7a3a, 0xe5453a, 0xe8a040, 0x2ec4d8, 0xf2c14e, 0xd84a3a, 0x2a8ab8, 0x9a6aff, 0x6ad04a, 0xff3aa8, 0xffd23f, 0xff9a5c, 0x4fc3f7];
+  const KIOSK_COLORS = [0xf5821f, 0xe8e4d8, 0x8bd450, 0xb388ff, 0xff4d6a, 0x2ec4b6, 0x3fbf7f, 0xff9ad0, 0xffd27a, 0x4fc3f7, 0x4a8aff, 0xb06aff, 0xffb36b, 0xff9ad0, 0x8bd450, 0xd8f43a, 0xff7a3a, 0xe5453a, 0xe8a040, 0x2ec4d8, 0xf2c14e, 0xd84a3a, 0x2a8ab8, 0x9a6aff, 0x6ad04a, 0xff3aa8, 0xffd23f, 0xff9a5c, 0x4fc3f7, 0x8a5a2a];
   const LEVEL_CATS = [
-    { id: 'ball', name: 'Ball sports', glyph: '\u26BD', games: [0, 1, 5, 15] },
+    { id: 'ball', name: 'Ball sports', glyph: '\u26BD', games: [0, 1, 5, 15, 29] },
     { id: 'battle', name: 'Team battles', glyph: '\u{1F3AF}', games: [14, 4, 17, 21] },
     { id: 'lanes', name: 'Golf and lanes', glyph: '\u26F3', games: [2, 6, 7, 20] },
     { id: 'adv', name: 'Adventures', glyph: '\u{1F5E1}\uFE0F', games: [3, 10, 11, 22] },
@@ -537,7 +538,7 @@
     { id: 'party', name: 'Party games', glyph: '\u{1F389}', games: [13, 12, 18, 23] },
     { id: 'active', name: 'Get active', glyph: '\u{1F4AA}', games: [25, 26, 27, 28] },
   ];
-  const PICKER_ORDER = [8, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 3, 10, 11, 0, 1, 2, 4, 5, 6, 7, 9];
+  const PICKER_ORDER = [8, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 3, 10, 11, 0, 1, 2, 4, 5, 6, 7, 9];
   function makeKiosk(L, x, z, yaw) {
     const fx = Math.sin(yaw), fz = Math.cos(yaw);   // direction the kiosk faces
     const rx = Math.cos(yaw), rz = -Math.sin(yaw);  // its right-hand side
