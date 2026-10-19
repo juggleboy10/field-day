@@ -25798,7 +25798,9 @@ kbd {
   // You're the quarterback, two minutes on the clock, ball on your own 25. Pick a play, hike it, read the coverage
   // and throw before the rush gets home. Completions keep the clock running (hurry up and snap); incompletions,
   // out-of-bounds plays, spikes and timeouts stop it. Touchdowns are 7, field goals 3, and every score or turnover
-  // gives you the ball back at your 25 until time runs out. Each player runs their own drill; best scores go on the board.
+  // gives you the ball back at your 25 until time runs out. With friends in the room, whoever starts the drill is the
+  // quarterback and everyone else joins the play as a receiver or a defender (their choice), in place of a bot.
+  // The quarterback's device runs the play; everyone else follows it, and their real positions catch, cover and tackle.
   // VR: A or X hikes, grip takes the ball, throw it for real (a little help guides a good throw to the receiver you
   // meant). Browser: Space hikes; then look at a receiver, hold Space and let go: a tap is a fast bullet, a long
   // hold is a soft lob over the coverage.
@@ -25807,7 +25809,7 @@ kbd {
     const G = L.group;
     const rand = mulberry32(2929);
     L.chargeKick = true;
-    Object.defineProperty(L, 'walkSpeed', { get: () => (S && (S.phase === 'live' || S.phase === 'run') ? (state.mode === 'vr' ? 6.2 : 4.6) : 3) });
+    Object.defineProperty(L, 'walkSpeed', { get: () => (S && (S.phase === 'live' || S.phase === 'run' || S.phase === 'air' || S.phase === 'yac') ? (state.mode === 'vr' ? 6.2 : 4.6) : 3) });
     L.bounds = { minX: -26, maxX: 26, minZ: -60, maxZ: 22 };
     L.env = {
       sky: skyTexture([[0, '#0b1230'], [0.35, '#1d2a5a'], [0.48, '#3a4a7a'], [0.5, '#2a3a2a'], [1, '#101810']]),
@@ -25953,6 +25955,16 @@ kbd {
     };
     try { const b = prefs.fbBest; if (Array.isArray(b) && b.length === 3) S.best = b.map((x) => (Number.isFinite(x) ? x : 0)); } catch (e) { /* none yet */ }
     L.fb = S;
+
+    // ================================================================ MULTIPLAYER
+    // MP.qb: the peer whose drive I'm playing in (null: my own game, or none). MP.want: what I'd like to play when
+    // someone else is quarterback (1 receiver, 2 defense, 0 watch). The quarterback hands out the spots.
+    const MP = { qb: null, qbName: '', want: 1, slot: -1, role: 0, seenMsg: -1, msgSeq: 0, seenCatch: false, lastPh: '', snap: null };
+    L.mp = MP;
+    const PH = ['idle', 'pre', 'live', 'air', 'yac', 'run', 'dead', 'kick', 'over'];
+    const following = () => !!MP.qb;
+    const active = () => S.phase !== 'idle' && S.phase !== 'over';
+    const humanRec = (peer) => { if (!peer) return null; const rec = remotes.get(peer); return rec && rec.lv === L.idx && rec.inGame && rec.hasH ? rec : null; };
     const goalZ = () => -S.ballOn * YD;
     const fdZ = () => -Math.min(S.toGo, S.ballOn) * YD;
     const D = () => DIFFS[S.diff];
@@ -26010,6 +26022,8 @@ kbd {
     }
     function newDrive() { S.ballOn = 75; S.down = 1; S.toGo = 10; S.drives += 1; S.running = false; setFormation(); }
     function startGame() {
+      if (following()) { showToast(`${MP.qbName} is quarterback right now. You can start the next drill when theirs is over`); return; }
+      S.gid = Date.now();
       Object.assign(S, { phase: 'pre', clock: 120, running: false, score: 0, tos: 3, drives: 0, completions: 0, attempts: 0, passYds: 0, rushYds: 0, tds: 0, ints: 0 });
       newDrive(); standQB();
       showToast('Two minutes on the clock. Ball on your 25. Go!');
@@ -26017,6 +26031,7 @@ kbd {
     }
     L.startGame = startGame;
     function choosePlay(i) {
+      if (following()) return;
       if (S.phase !== 'pre' && S.phase !== 'idle') return;
       S.play = (i + PLAYS.length) % PLAYS.length;
       setFormation();
@@ -26025,6 +26040,7 @@ kbd {
     }
     L.choosePlay = choosePlay;
     function hike() {
+      if (following()) return;
       if (S.phase === 'idle') { startGame(); return; }
       if (S.phase !== 'pre') return;
       S.phase = 'live'; S.snapT = 0; S.running = true;
@@ -26040,18 +26056,21 @@ kbd {
     }
     L.hike = hike;
     function spike() {
+      if (following()) return;
       if (S.phase !== 'pre' || !S.running || S.down >= 4) { if (S.phase === 'pre' && !S.running) showToast('The clock is already stopped'); return; }
       S.clock = Math.max(0, S.clock - 2); S.running = false;
       showToast('Spiked it: the clock stops'); sfx('thump', 0.7);
       S.down += 1; setFormation();
     }
     function timeout() {
+      if (following()) return;
       if (S.phase !== 'pre' || !S.running) return;
       if (S.tos <= 0) { showToast('No timeouts left'); return; }
       S.tos -= 1; S.running = false;
       showToast(`Timeout! ${S.tos} left`); sfx('whistle', 0.8); state.hudDirty = true;
     }
     function fieldGoal() {
+      if (following()) return;
       if (S.phase !== 'pre') return;
       const dist = S.ballOn + 17;
       if (dist > 57) { showToast(`A ${dist}-yard field goal? Too far. Get inside their 40`); return; }
@@ -26067,10 +26086,16 @@ kbd {
     // ---------------------------------------------------------------- throwing
     const _v = new V3(), _q = new Q4(), _f = new V3();
     // the throw that reaches receiver r at catch height, with horizontal speed vh (lob slow, bullet fast)
+    // where a receiver will be in T seconds: on the route for a bot, carrying on the way they're going for a person
+    function recAt(r, T, out) {
+      if (!r.human) return routeAt(r, S.snapT + T, out);
+      out[0] = clamp(r.x + (r.svx || 0) * T * 0.85, -HALF_W + 0.5, HALF_W - 0.5); out[1] = r.z + (r.svz || 0) * T * 0.85;
+      return out;
+    }
     function passTo(r, from, vh) {
       let T = 0.6;
-      for (let k = 0; k < 6; k++) { routeAt(r, S.snapT + T, _p); T = clamp(Math.hypot(_p[0] - from.x, _p[1] - from.z) / vh, 0.25, 4); }
-      routeAt(r, S.snapT + T, _p);
+      for (let k = 0; k < 6; k++) { recAt(r, T, _p); T = clamp(Math.hypot(_p[0] - from.x, _p[1] - from.z) / vh, 0.25, 4); }
+      recAt(r, T, _p);
       const dx = _p[0] - from.x, dz = _p[1] - from.z, y = 1.35 - from.y;
       return { v: new V3(dx / T, (y + 0.5 * G_ACC * T * T) / T, dz / T), T, at: [_p[0], _p[1]] };
     }
@@ -26087,7 +26112,7 @@ kbd {
       let best = null, ba = 0.42;
       const qx = myHead.pos.x, qz = myHead.pos.z;
       for (const r of REC) {
-        if (S.phase === 'live') routeAt(r, S.snapT + 0.5, _p); else { _p[0] = r.x; _p[1] = r.z; }
+        if (S.phase === 'live') recAt(r, 0.5, _p); else { _p[0] = r.x; _p[1] = r.z; }
         const dx = _p[0] - qx, dz = _p[1] - qz, d = Math.hypot(dx, dz) || 1, a = Math.acos(clamp((dx * _f.x + dz * _f.z) / d, -1, 1));
         if (a < ba) { ba = a; best = r; }
       }
@@ -26117,6 +26142,7 @@ kbd {
       throwFlat(c);
     };
     L.onChargeStart = () => {
+      if (following()) { S.skipKick = true; return; }
       // before the snap, Space hikes the ball (and the release that follows doesn't throw)
       if (S.phase === 'pre' || S.phase === 'idle') { S.skipKick = true; hike(); }
       else if (S.phase !== 'live' || S.thrown) S.skipKick = true;
@@ -26124,6 +26150,7 @@ kbd {
     L.throwLabel = () => (S.phase === 'live' ? 'Throw' : S.phase === 'run' ? 'Run!' : S.phase === 'pre' || S.phase === 'idle' ? 'Hike' : '…');
     // VR: take the ball in your hand, throw it for real
     L.onVRGrab = (h) => {
+      if (following()) return false;
       if (S.phase !== 'live' || S.thrown || S.held) return false;
       if (myHands[h.side].pos.distanceTo(S.bp) > 0.5) return false;
       S.held = h.side; sfx('grab', 0.5); haptic(vrHands[h.side], 0.4, 30);
@@ -26186,7 +26213,7 @@ kbd {
       }
       void newDown;
       S.running = keepRunning && S.running;
-      S.msg = msg;
+      S.msg = msg; MP.msgSeq += 1;
       showToast(msg);
       spawnFloat(msg.split('.')[0], new V3(0, 2.6, -4), col);
       forcePresence(); state.hudDirty = true; state.dirtyBoard = true;
@@ -26225,6 +26252,17 @@ kbd {
       if (S.phase === 'pre' && S.clock <= 0) { gameOver(); return; }
       if (live) S.snapT += dt;
       const qx = myHead.pos.x, qz = myHead.pos.z;
+      // friends playing a receiver or a defender: their spot follows them
+      for (const p of [...REC, ...COV]) {
+        if (!p.human) continue;
+        const rec = humanRec(p.human);
+        if (!rec) { p.human = null; continue; }
+        const hp = rec.tgt.h.pos, px = p.x, pz = p.z;
+        p.x = hp.x; p.z = hp.z; p.hy = hp.y;
+        p.vx = (p.x - px) / dt; p.vz = (p.z - pz) / dt;
+        const k = Math.min(1, dt * 6); p.svx = (p.svx || 0) + (p.vx - (p.svx || 0)) * k; p.svz = (p.svz || 0) + (p.vz - (p.svz || 0)) * k;
+        if (Math.hypot(p.vx, p.vz) > 0.3) p.yaw = Math.atan2(-p.vx, -p.vz);
+      }
       // the line: blockers hold the rushers up until one beats his man
       if (live) {
         if (S.phase !== 'run') RUSH.forEach((p, i) => {
@@ -26243,7 +26281,7 @@ kbd {
         if (S.phase === 'run') {
           S.runT += dt;
           // everyone on defense comes after you (the coverage once they notice); your blockers get in the way of the rushers
-          for (const d of DEFS) { d.react -= dt; if (d.react <= 0) moveTo(d, qx, qz, D().vDef * 0.95, dt); }
+          for (const d of DEFS) { d.react -= dt; if (d.react <= 0 && !d.human) moveTo(d, qx, qz, D().vDef * 0.95, dt); }
           // rushers still blocked take a moment to shed the block (on a draw the line opens a hole up the middle)
           RUSH.forEach((d, i) => {
             if (d.free) { moveTo(d, qx, qz, D().vRush, dt); return; }
@@ -26260,13 +26298,13 @@ kbd {
       }
       // receivers and their defenders
       if (live) {
-        for (const r of REC) if (r !== S.catcher) { routeAt(r, S.snapT, _p); const dx = _p[0] - r.x, dz = _p[1] - r.z; r.vx = dx / dt; r.vz = dz / dt; if (Math.hypot(dx, dz) > 0.01) r.yaw = Math.atan2(-dx, -dz); r.x = _p[0]; r.z = _p[1]; }
+        for (const r of REC) if (r !== S.catcher && !r.human) { routeAt(r, S.snapT, _p); const dx = _p[0] - r.x, dz = _p[1] - r.z; r.vx = dx / dt; r.vz = dz / dt; if (Math.hypot(dx, dz) > 0.01) r.yaw = Math.atan2(-dx, -dz); r.x = _p[0]; r.z = _p[1]; }
         for (const c of COV) {
-          if (S.phase === 'run') continue;
+          if (S.phase === 'run' || c.human) continue;
           if (S.phase === 'air' && S.target && c.react <= 0 && near(c, S.landAt[0], S.landAt[1], 9)) { moveTo(c, S.landAt[0], S.landAt[1], D().vDef + 0.4, dt); continue; }
           if (S.phase === 'yac' && S.catcher) { moveTo(c, S.catcher.x, S.catcher.z, D().vDef + 0.3, dt); continue; }
           c.react -= dt;
-          routeAt(c.man, Math.max(0, S.snapT - D().lag), _p2);
+          if (c.man.human) { _p2[0] = c.man.x; _p2[1] = c.man.z; } else routeAt(c.man, Math.max(0, S.snapT - D().lag), _p2);
           moveTo(c, _p2[0] - c.man.side * 0.3 * 0, _p2[1] - D().cushion * YD * 0.6, D().vDef, dt);
         }
         // the safety stays deep over the deepest receiver
@@ -26298,18 +26336,18 @@ kbd {
       else S.landAt = [S.bp.x + S.bv.x, S.bp.z + S.bv.z];
       // defenders first: a ball through a defender is picked off or knocked down
       for (const d of DEFS) {
-        const dist = capsuleDist(S.bp, d);
+        const dist = reach(S.bp, d, 0.3);
         if (dist < 0.62 && S.airT > 0.25) {
-          if (rand() < 0.42) { S.ballCarrier = d; endPlay('int'); spawnFloat('Picked off!', new V3(d.x, 2.6, d.z), '#ff6a5a'); return; }
+          if (rand() < (d.human ? 0.55 : 0.42)) { S.ballCarrier = d; endPlay('int'); spawnFloat('Picked off!', new V3(d.x, 2.6, d.z), '#ff6a5a'); return; }
           S.bv.set((rand() - 0.5) * 4, 3, (rand() - 0.5) * 4); S.batted = true; tone(300, 200, 0.08, 'square', 0.15);
           endPlayLater('inc', 'Broken up!');
           return;
         }
       }
       for (const r of REC) {
-        if (capsuleDist(S.bp, r) < 1.1) {
-          const contested = DEFS.some((d) => capsuleDist(S.bp, d) < 1.4);
-          if (rand() < (contested ? 0.58 : 0.97)) { catchIt(r); return; }
+        if (reach(S.bp, r, 0.5) < 1.1) {
+          const contested = DEFS.some((d) => reach(S.bp, d, 0.3) < 1.4);
+          if (rand() < (contested ? (r.human ? 0.68 : 0.58) : 0.97)) { catchIt(r); return; }
           S.bv.multiplyScalar(-0.2); S.bv.y = 2;
           endPlayLater('inc', contested ? 'Broken up!' : 'Dropped it!');
           return;
@@ -26318,12 +26356,23 @@ kbd {
       if (Math.abs(S.bp.x) > HALF_W + 1 || S.bp.y < 0.1) endPlay('inc', { msg: Math.abs(S.bp.x) > HALF_W ? 'Incomplete, out of bounds' : 'Incomplete' });
     }
     function endPlayLater(kind, msg) { endPlay(kind, { msg }); }
+    // how close the ball is to a player: their body, or for a person, their real hands (a hand counts for `hand` extra)
+    function reach(b, p, hand) {
+      let d = capsuleDist(b, p);
+      const rec = p.human && humanRec(p.human);
+      if (rec) {
+        d = Math.hypot(b.x - p.x, b.z - p.z, b.y - clamp(b.y, Math.max(0.3, (p.hy || 1.6) - 1.5), (p.hy || 1.6) + 0.15));
+        if (rec.hasL) d = Math.min(d, rec.tgt.l.pos.distanceTo(b) + 0.55 - hand);
+        if (rec.hasR) d = Math.min(d, rec.tgt.r.pos.distanceTo(b) + 0.55 - hand);
+      }
+      return d;
+    }
     function capsuleDist(b, p) {
       const y = clamp(b.y, 0.4, 2.3);
       return Math.hypot(b.x - p.x, b.z - p.z, (b.y - y) * 1.0);
     }
     function catchIt(r) {
-      S.catcher = r; r.caught = true; S.phase = 'yac'; S.yacT = 0.4 + rand() * 1.6;
+      S.catcher = r; r.caught = true; S.phase = 'yac'; S.yacT = 0.4 + rand() * 1.6; MP.catchSeq = (MP.catchSeq || 0) + 1;
       sfx('mitt', 1);
       spawnFloat('Caught!', new V3(r.x, 2.6, r.z), '#8bd450');
       state.hudDirty = true;
@@ -26331,6 +26380,15 @@ kbd {
     function stepYac(dt) {
       const r = S.catcher;
       S.yacT -= dt;
+      if (r.human) {
+        // a friend with the ball: they run it themselves; bots chase and tackle, so can a friend on defense
+        S.bp.set(r.x + 0.2, Math.max(1.0, (r.hy || 1.6) - 0.5), r.z - 0.2);
+        if (r.z <= goalZ()) { endPlay('td'); return; }
+        if (Math.abs(r.x) > HALF_W) { endPlay('oob', { z: r.z, name: recName(r) }); return; }
+        for (const d of DEFS) if (Math.hypot(d.x - r.x, d.z - r.z) < (d.human ? 0.9 : 0.8)) { endPlay('tackle', { z: r.z, name: recName(r) }); return; }
+        if (S.yacT < -12) endPlay('tackle', { z: r.z, name: recName(r) });
+        return;
+      }
       // run downfield, drifting away from the nearest defender
       let nd = null, ndd = 1e9;
       for (const d of DEFS) { const dd = Math.hypot(d.x - r.x, d.z - r.z); if (dd < ndd) { ndd = dd; nd = d; } }
@@ -26343,7 +26401,7 @@ kbd {
       if ((nd && ndd < 0.8) || S.yacT <= 0 && nd && ndd < 2.2) { endPlay('tackle', { z: r.z, name: recName(r) }); }
       if (S.yacT < -6) endPlay('tackle', { z: r.z, name: recName(r) });
     }
-    const recName = (r) => ['Left wideout', 'Slot', 'Right wideout'][r.i];
+    const recName = (r) => (r.human && humanRec(r.human) ? humanRec(r.human).name : ['Left wideout', 'Slot', 'Right wideout'][r.i]);
     function stepKick(dt) {
       const k = S.fg; k.t += dt;
       const u = Math.min(1, k.t / k.T);
@@ -26352,7 +26410,7 @@ kbd {
         S.phase = 'dead'; S.resultT = 0; S.running = false;
         if (k.good) { S.score += 3; S.msg = `Field goal is good from ${k.dist}! +3`; sfx('cheer', 1); spawnFloat('IT’S GOOD!', new V3(0, 3, -6), '#ffd23f'); }
         else { S.msg = `No good from ${k.dist}`; sfx('buzzer', 0.8); }
-        S.pending = k.good ? 'score' : 'turnover';
+        S.pending = k.good ? 'score' : 'turnover'; MP.msgSeq += 1;
         showToast(S.msg); forcePresence(); state.dirtyBoard = true; state.hudDirty = true;
       }
     }
@@ -26370,7 +26428,7 @@ kbd {
     }
     function draw(now) {
       const live = S.phase === 'live' || S.phase === 'air' || S.phase === 'yac' || S.phase === 'run';
-      for (const p of [...LINE, ...RUSH, ...REC, ...DEFS]) drawPerson(p, now, live);
+      for (const p of [...LINE, ...RUSH, ...REC, ...DEFS]) { p.g.visible = !p.human && !p.mine; if (p.g.visible) drawPerson(p, now, live); }
       ball.position.copy(S.bp);
       if (S.phase === 'air' || S.phase === 'kick') {
         const v = S.phase === 'air' ? S.bv : _v.subVectors(S.fg.to, S.fg.from);
@@ -26380,8 +26438,9 @@ kbd {
       else ball.quaternion.identity();
       ballShadow.position.set(S.bp.x, 0.02, S.bp.z);
       // rings: in a browser, the receiver you're looking at; colour shows how open they are
-      const look = state.mode === 'flat' && (S.phase === 'live' || S.phase === 'pre') && !PLAYS[S.play].draw ? lookTarget() : null;
+      const look = state.mode === 'flat' && !following() && (S.phase === 'live' || S.phase === 'pre') && !PLAYS[S.play].draw ? lookTarget() : null;
       for (const r of REC) {
+        if (following() && !r.mine) { r.ring.material.opacity = 0; continue; }
         let sep = 9; for (const d of DEFS) sep = Math.min(sep, Math.hypot(d.x - r.x, d.z - r.z));
         const show = (live && S.phase !== 'run') && !S.thrown || r === look || r === S.target && S.phase === 'air';
         r.ring.position.set(r.x, 0.03, r.z);
@@ -26430,13 +26489,142 @@ kbd {
     const hudPlate = makePlate(camera, 'Ready', 0.6, 0.09, new V3(0, -0.22, -0.6), 0, { bg: '#0c0f1a', fg: '#ffffff', size: 0.55 });
     hudPlate.material.depthTest = false; hudPlate.renderOrder = 999; hudPlate.visible = false;
     let hudKey = '';
-    const statusLine = () => (S.phase === 'idle' ? 'Two-Minute Drill: Hike to start' : S.phase === 'over' ? `Final: ${S.score} points` : `${clockText()}  ·  ${downText()}  ·  ${spotText()}  ·  ${S.score} pts  ·  ${PLAYS[S.play].name}`);
+    const statusLine = () => (following() ? `${clockText()}  \u00B7  ${downText()}  \u00B7  ${spotText()}  \u00B7  ${S.score} pts  \u00B7  QB ${MP.qbName}  \u00B7  you: ${MP.role === 1 ? 'receiver' : MP.role === 2 ? 'defense' : 'watching'}` : S.phase === 'idle' ? 'Two-Minute Drill: Hike to start' : S.phase === 'over' ? `Final: ${S.score} points` : `${clockText()}  ·  ${downText()}  ·  ${spotText()}  ·  ${S.score} pts  ·  ${PLAYS[S.play].name}`);
+
+
+    // ---------------------------------------------------------------- multiplayer: the quarterback's side
+    const PEOPLE = [...LINE, ...RUSH, ...REC, ...COV, SAF];
+    const q2 = (x) => Math.round(x * 100) / 100;
+    // hand out the receiver and defender spots to the friends who want them (only between plays)
+    function assignSpots() {
+      if (S.phase === 'live' || S.phase === 'air' || S.phase === 'yac' || S.phase === 'run') return;
+      const here = [...remotes.values()].filter((rec) => rec.lv === L.idx && rec.inGame && rec.hasH).sort((a, b) => (a.peer < b.peer ? -1 : 1));
+      const want = (rec) => { const st = rec.lvState[L.id]; return st && st.fw && st.fw[1] === S.gid ? st.fw[0] : st && st.fw ? st.fw[0] : 1; };
+      for (const [list, kind, order] of [[REC, 1, [1, 0, 2]], [COV, 2, [1, 0, 2]]]) {
+        const keep = new Set(here.filter((rec) => want(rec) === kind).map((rec) => rec.peer));
+        for (const p of list) if (p.human && !keep.has(p.human)) p.human = null;
+        for (const peer of keep) {
+          if (list.some((p) => p.human === peer)) continue;
+          const i = order.find((k) => !list[k].human);
+          if (i !== undefined) { list[i].human = peer; const rec = remotes.get(peer); if (rec) { const pp = list[i]; pp.x = rec.tgt.h.pos.x; pp.z = rec.tgt.h.pos.z; } }
+        }
+      }
+    }
+    function snapshot() {
+      const p = [];
+      for (const q of PEOPLE) p.push(q2(q.x), q2(q.z), q2(q.yaw));
+      return {
+        g: S.gid, ph: PH.indexOf(S.phase), c: Math.round(S.clock * 10), s: S.score, d: S.down, t: S.toGo, o: S.ballOn, to: S.tos, pl: S.play, df: S.diff,
+        b: [q2(S.bp.x), q2(S.bp.y), q2(S.bp.z), q2(S.bv.x), q2(S.bv.y), q2(S.bv.z)], p, f: RUSH.reduce((m, q, i) => m | (q.free ? 1 << i : 0), 0),
+        h: [...REC, ...COV].map((q) => q.human || ''), m: [MP.msgSeq, S.msg || ''], k: [MP.catchSeq || 0, S.catcher ? S.catcher.i : -1], n: state.name || 'Player',
+      };
+    }
+
+    // ---------------------------------------------------------------- multiplayer: everyone else's side
+    const int = (x, lo, hi) => Number.isInteger(x) && x >= lo && x <= hi;
+    const num = (x) => typeof x === 'number' && Number.isFinite(x) && Math.abs(x) < 500;
+    function validSnap(q) {
+      return q && typeof q === 'object' && int(q.g, 1, 1e14) && int(q.ph, 0, PH.length - 1) && int(q.c, 0, 2000) && int(q.s, 0, 9999) && int(q.d, 1, 5) && int(q.t, -99, 99) && int(q.o, 1, 99)
+        && int(q.to, 0, 3) && int(q.pl, 0, PLAYS.length - 1) && int(q.df, 0, DIFFS.length - 1) && Array.isArray(q.b) && q.b.length === 6 && q.b.every(num)
+        && Array.isArray(q.p) && q.p.length === PEOPLE.length * 3 && q.p.every(num) && int(q.f, 0, 15) && Array.isArray(q.h) && q.h.length === 6 && q.h.every((x) => typeof x === 'string' && x.length < 80)
+        && Array.isArray(q.m) && int(q.m[0], 0, 1e9) && typeof q.m[1] === 'string' && Array.isArray(q.k) && int(q.k[0], 0, 1e9) && int(q.k[1], -1, 2);
+    }
+    // where I should line up for my spot
+    function mySpot() {
+      if (MP.role === 1 && MP.slot >= 0) return { x: REC[MP.slot].sx, z: 0.9, yaw: 0, label: ['the left wideout', 'the slot receiver', 'the right wideout'][MP.slot] };
+      if (MP.role === 2 && MP.slot >= 0) return { x: COV[MP.slot].man.sx, z: -6, yaw: Math.PI, label: `covering the ${['left wideout', 'slot', 'right wideout'][MP.slot]}` };
+      return { x: HALF_W + 2.5, z: 2, yaw: Math.PI / 2, label: 'watching from the sideline' };
+    }
+    function goToSpot() {
+      const sp = mySpot();
+      camera.getWorldPosition(_v);
+      dolly.position.x += sp.x - _v.x; dolly.position.z += sp.z - _v.z;
+      if (state.mode !== 'vr') { state.yaw = sp.yaw; state.pitch = -0.05; }
+    }
+    function applySnap(q, now) {
+      const prevPh = S.phase;
+      Object.assign(S, { phase: PH[q.ph], clock: q.c / 10, score: q.s, down: q.d, toGo: q.t, ballOn: q.o, tos: q.to, diff: q.df, gid: q.g });
+      if (S.play !== q.pl) { S.play = q.pl; for (const r of REC) r.path = routePath(r); }
+      S.bp.set(q.b[0], q.b[1], q.b[2]); S.bv.set(q.b[3], q.b[4], q.b[5]);
+      PEOPLE.forEach((pp, i) => { pp.tx = q.p[i * 3]; pp.tz = q.p[i * 3 + 1]; pp.tyaw = q.p[i * 3 + 2]; if (pp.x === undefined || Math.hypot(pp.tx - pp.x, pp.tz - pp.z) > 6) { pp.x = pp.tx; pp.z = pp.tz; } });
+      RUSH.forEach((pp, i) => { pp.free = !!(q.f & (1 << i)); });
+      // which spot is mine, and who else has one
+      MP.slot = -1; MP.role = 0;
+      [...REC, ...COV].forEach((pp, i) => { pp.human = q.h[i] && q.h[i] !== state.myPeer ? q.h[i] : null; pp.mine = q.h[i] === state.myPeer; if (pp.mine) { MP.slot = i % 3; MP.role = i < 3 ? 1 : 2; } });
+      field.position.z = (100 - S.ballOn) * YD;
+      // news from the quarterback
+      if (MP.seenMsg >= 0 && q.m[0] !== MP.seenMsg && q.m[1]) { showToast(q.m[1]); spawnFloat(q.m[1].split('.')[0], new V3(0, 2.6, -4), '#ffffff'); }
+      MP.seenMsg = q.m[0];
+      if (q.k[0] !== MP.catchSeq && MP.catchSeq !== undefined && q.k[1] >= 0 && REC[q.k[1]].mine) { showToast('You caught it! Run!'); sfx('mitt', 1); if (state.mode === 'vr') for (const sd of SIDES) haptic(vrHands[sd], 0.7, 80); }
+      MP.catchSeq = q.k[0]; MP.carrier = q.k[1];
+      // lining up for the next play
+      if (S.phase === 'pre' && prevPh !== 'pre') {
+        goToSpot();
+        if (MP.role === 1) { drawRoutes(false); routeLines[MP.slot].visible = true; }
+        else drawRoutes(false);
+      }
+      if (S.phase === 'live' && prevPh === 'pre') { drawRoutes(false); if (MP.role === 1) showToast('Hike! Run your route and get open'); else if (MP.role === 2) showToast('Hike! Stay with your man'); }
+      state.hudDirty = true;
+    }
+    function followerFrame(dt, now) {
+      const k = 1 - Math.exp(-dt * 12);
+      for (const pp of PEOPLE) {
+        if (pp.tx === undefined) continue;
+        pp.vx = (pp.tx - pp.x) * 8; pp.vz = (pp.tz - pp.z) * 8;
+        pp.x += (pp.tx - pp.x) * k; pp.z += (pp.tz - pp.z) * k;
+        let dy = pp.tyaw - pp.yaw; while (dy > Math.PI) dy -= Math.PI * 2; while (dy < -Math.PI) dy += Math.PI * 2; pp.yaw += dy * k;
+      }
+      // the ball flies between updates; if I'm the one carrying it, it's in my hands
+      if (S.phase === 'air') { S.bv.y -= G_ACC * dt; S.bp.addScaledVector(S.bv, dt); }
+      if (S.phase === 'yac' && MP.carrier >= 0 && REC[MP.carrier].mine) S.bp.set(myHead.pos.x + 0.2, myHead.pos.y - 0.55, myHead.pos.z - 0.2);
+      fdLine.position.z = fdZ();
+      // my lining-up spot
+      const sp = mySpot(), r0 = REC[0].ring;
+      void r0;
+      spotRing.visible = S.phase === 'pre' && MP.role > 0 && Math.hypot(myHead.pos.x - sp.x, myHead.pos.z - sp.z) > 1.0;
+      spotRing.position.set(sp.x, 0.03, sp.z);
+    }
+    const spotRing = new THREE.Mesh(new THREE.RingGeometry(0.45, 0.6, 28), new THREE.MeshBasicMaterial({ color: 0xffd23f, transparent: true, opacity: 0.9, depthWrite: false }));
+    spotRing.rotation.x = -Math.PI / 2; spotRing.visible = false; G.add(spotRing);
+    // join whoever's quarterback (the earliest drive running in this room)
+    function pickQB() {
+      let best = null;
+      for (const rec of remotes.values()) {
+        const st = rec.lvState[L.id];
+        if (rec.lv !== L.idx || !rec.inGame || !st || !st.fq || Date.now() - st.fqT > 3000) continue;
+        const ph = PH[st.fq.ph];
+        if (ph === 'idle' || ph === 'over') continue;
+        if (!best || st.fq.g < best.g || (st.fq.g === best.g && rec.peer < best.peer)) best = { g: st.fq.g, peer: rec.peer, name: rec.name };
+      }
+      // my own drive wins if it started first
+      if (best && !following() && active() && S.gid && S.gid < best.g) best = null;
+      if (best && best.peer !== MP.qb) {
+        const was = following();
+        if (!was && active()) showToast(`${best.name} is already playing quarterback: you're joining their drive`);
+        MP.qb = best.peer; MP.qbName = best.name; MP.seenMsg = -1; MP.catchSeq = undefined;
+        S.phase = 'idle'; S.held = null;
+        const st = remotes.get(best.peer).lvState[L.id];
+        applySnap(st.fq, performance.now());
+        goToSpot();
+        const sp = mySpot();
+        showToast(`${best.name} is quarterback. You're ${sp.label}${MP.role === 1 ? ': run your route (the yellow line) and catch it' : MP.role === 2 ? ': stay with your man, knock it down or pick it off' : ''}`);
+      } else if (!best && following()) {
+        MP.qb = null; MP.slot = -1; MP.role = 0;
+        for (const pp of [...REC, ...COV]) { pp.human = null; pp.mine = false; }
+        S.phase = 'idle'; spotRing.visible = false;
+        setFormation();
+        showToast('That drive is over. Start your own, or wait for the next one');
+      }
+    }
 
     // ---------------------------------------------------------------- per frame
     let aPrev = false;
     L.update = (dt, now) => {
       const here = state.level === L.idx && state.mode !== 'menu';
-      if (here && S.phase !== 'idle' && S.phase !== 'over') {
+      if (here) pickQB();
+      if (here && !following() && active()) assignSpots();
+      if (here && following()) followerFrame(dt, now);
+      else if (here && S.phase !== 'idle' && S.phase !== 'over') {
         // substeps, so a slow frame plays at the same speed
         const n = Math.max(1, Math.ceil(dt / 0.02));
         for (let i = 0; i < n && S.phase !== 'over'; i++) step(dt / n);
@@ -26445,8 +26633,12 @@ kbd {
       if (here && state.mode === 'vr') {
         let a = false;
         for (const s of SIDES) { const gp = vrHands[s].source && vrHands[s].source.gamepad; if (gp && gp.buttons && gp.buttons[4] && gp.buttons[4].pressed) a = true; }
-        if (a && !aPrev && (S.phase === 'pre' || S.phase === 'idle' || S.phase === 'over')) { if (S.phase === 'over') startGame(); else hike(); }
+        if (a && !aPrev && !following() && (S.phase === 'pre' || S.phase === 'idle' || S.phase === 'over')) { if (S.phase === 'over') startGame(); else hike(); }
         aPrev = a;
+        let bb = false;
+        for (const s2 of SIDES) { const gp = vrHands[s2].source && vrHands[s2].source.gamepad; if (gp && gp.buttons && gp.buttons[5] && gp.buttons[5].pressed) bb = true; }
+        if (bb && !MP.bPrev && following()) cycleRole();
+        MP.bPrev = bb;
       }
       losLine.position.z = 0;
       fdLine.position.z = fdZ(); fdLine.visible = S.phase !== 'idle' && S.toGo < S.ballOn;
@@ -26472,25 +26664,45 @@ kbd {
       if (code === 'KeyG') { fieldGoal(); return true; }
       return false;
     };
+    const ROLE_NAMES = ['Watching', 'Receiver', 'Defense'];
+    function cycleRole() {
+      MP.want = (MP.want + 1) % 3;
+      showToast(`Next play you'll be: ${ROLE_NAMES[MP.want]}`);
+      forcePresence(); state.hudDirty = true;
+    }
     L.hudActions = [
-      { label: () => (S.phase === 'idle' || S.phase === 'over' ? 'Start drill' : 'New game'), run: () => startGame() },
-      { label: () => `Play: ${PLAYS[S.play].name} ▸`, run: () => choosePlay(S.play + 1) },
-      { label: () => 'Spike', run: () => spike(), show: () => S.phase === 'pre' && S.running },
-      { label: () => `Timeout (${S.tos})`, run: () => timeout(), show: () => S.phase === 'pre' && S.running },
-      { label: () => 'Field goal', run: () => fieldGoal(), show: () => S.phase === 'pre' && S.ballOn <= 40 },
-      { label: () => `Defense: ${DIFFS[S.diff].name} ▸`, run: () => { if (S.phase !== 'idle' && S.phase !== 'over') { showToast('Change the defense between games'); return; } S.diff = (S.diff + 1) % DIFFS.length; setFormation(); state.hudDirty = true; } },
+      { label: () => (S.phase === 'idle' || S.phase === 'over' ? 'Start drill' : 'New game'), run: () => startGame(), show: () => !following() },
+      { label: () => `You: ${ROLE_NAMES[MP.want]} \u25B8`, run: () => cycleRole(), show: () => following() || [...remotes.values()].some((rec) => rec.lv === L.idx && rec.inGame) },
+      { label: () => `Play: ${PLAYS[S.play].name} \u25B8`, run: () => choosePlay(S.play + 1), show: () => !following() },
+      { label: () => 'Spike', run: () => spike(), show: () => !following() && S.phase === 'pre' && S.running },
+      { label: () => `Timeout (${S.tos})`, run: () => timeout(), show: () => !following() && S.phase === 'pre' && S.running },
+      { label: () => 'Field goal', run: () => fieldGoal(), show: () => !following() && S.phase === 'pre' && S.ballOn <= 40 },
+      { label: () => `Defense: ${DIFFS[S.diff].name} \u25B8`, show: () => !following(), run: () => { if (S.phase !== 'idle' && S.phase !== 'over') { showToast('Change the defense between games'); return; } S.diff = (S.diff + 1) % DIFFS.length; setFormation(); state.hudDirty = true; } },
     ];
-    L.hintsFor = () => (state.mode === 'flat'
+    L.hintsFor = () => (following()
+      ? (MP.role === 1 ? [['Yellow line', 'your route'], [state.mode === 'flat' ? 'WASD + Shift' : 'Stick', 'run'], ['Catch', state.mode === 'vr' ? 'get your hands to the ball' : 'be where the ball comes down'], ['After the catch', 'run for the end zone']]
+        : MP.role === 2 ? [['Your man', 'stay with him'], [state.mode === 'flat' ? 'WASD + Shift' : 'Stick', 'run'], ['The ball', state.mode === 'vr' ? 'get a hand on it: knock it down or pick it off' : 'get in its path'], ['Tackle', 'reach the ball carrier']]
+          : [['Sideline', 'you\u2019re watching'], ['You: Watching', 'switch to receiver or defense']])
+      : state.mode === 'flat'
       ? [['Space', S.phase === 'live' ? 'hold and let go to throw (tap = bullet, hold = lob)' : 'hike'], ['Look', 'aim at a receiver'], ['1-5', 'pick a play'], ['WASD', 'move; cross the line to run (Shift sprints)'], ['K / T / G', 'spike, timeout, field goal']]
       : [['A / X', 'hike'], ['Grip', 'take the ball, then throw it'], ['Stick', 'cross the line to run it'], ['Call sheet', 'buttons on your left']]);
     L.hints = L.hintsFor();
     L.spawn = () => { standQB(); };
     L.onEnter = () => { setFormation(); sbKey = ''; hudKey = ''; };
-    L.onExit = () => { hudPlate.visible = false; if (ui.status) ui.status.hidden = true; if (S.phase !== 'idle' && S.phase !== 'over') S.phase = 'idle'; };
+    L.onExit = () => { hudPlate.visible = false; spotRing.visible = false; if (ui.status) ui.status.hidden = true; if (S.phase !== 'idle' && S.phase !== 'over') S.phase = 'idle'; if (following()) { MP.qb = null; for (const pp of [...REC, ...COV]) { pp.human = null; pp.mine = false; } } };
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 6, 4, 10); camera.lookAt(0, 1, -10); };
     // the board lists everyone's best drill
-    L.presence = () => ({ fb: [S.score, S.best[S.diff], S.diff, S.phase === 'over' ? 2 : S.phase === 'idle' ? 0 : 1] });
+    L.presence = () => {
+      const p = { fb: [following() ? 0 : S.score, S.best[S.diff], S.diff, following() ? 0 : S.phase === 'over' ? 2 : S.phase === 'idle' ? 0 : 1], fw: [MP.want, following() ? S.gid || 0 : 0] };
+      if (!following() && S.gid && (active() || S.phase === 'over')) p.fq = snapshot();
+      return p;
+    };
     L.readPresence = (rec, pres, st) => {
+      if (Array.isArray(pres.fw) && pres.fw.length === 2 && int(pres.fw[0], 0, 2) && int(pres.fw[1], 0, 1e14)) st.fw = pres.fw.slice(); else st.fw = null;
+      if (pres.fq && validSnap(pres.fq)) {
+        st.fq = pres.fq; st.fqT = Date.now();
+        if (MP.qb === rec.peer) { MP.qbName = rec.name; applySnap(pres.fq, performance.now()); }
+      } else st.fq = null;
       const a = pres.fb;
       if (!Array.isArray(a) || a.length !== 4 || !a.every((x) => Number.isInteger(x) && x >= 0 && x < 10000)) return;
       if (a[0] !== st.score || a[1] !== st.best) state.dirtyBoard = true;
@@ -26512,7 +26724,7 @@ kbd {
       L.board.tex.needsUpdate = true;
     };
     MUSIC_THEMES.football = { gain: 0.75, bpm: 112, swing: 0, chords: ['C', 'F', 'G', 'C'], comp: { inst: 'brass', at: [0, 6, 8], dur: 0.2 }, bass: { at: [0, 8, 10] }, drums: { k: 'x...x...x...x...', s: '....x.......x...', h: 'o.o.o.o.o.o.o.o.' }, cut: 4200 };
-    L.fbInternals = { S, PLAYS, DIFFS, REC, COV, SAF, RUSH, LINE, routeAt, passTo, hike, startGame, choosePlay, step, endPlay, release, throwFlat, lookTarget, fieldGoal, spike, timeout, setFormation, YD };
+    L.fbInternals = { MP, assignSpots, snapshot, applySnap, pickQB, cycleRole, S, PLAYS, DIFFS, REC, COV, SAF, RUSH, LINE, routeAt, passTo, hike, startGame, choosePlay, step, endPlay, release, throwFlat, lookTarget, fieldGoal, spike, timeout, setFormation, YD };
     setFormation();
     return L;
   })();
