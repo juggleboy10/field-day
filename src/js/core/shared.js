@@ -533,18 +533,25 @@
     { id: 'boxing', name: 'Knockout Kid', short: 'Boxing', glyph: '\u{1F94A}', blurb: 'Spar with a cartoon boxer: slip and duck his punches, block, and counter while he\u2019s open.' },
     { id: 'snowball', name: 'Snowball Fight', short: 'Snowballs', glyph: '\u2603\uFE0F', blurb: 'Red against blue among snow forts. Three hits and you\u2019re out. Friends or bots.' },
     { id: 'toboggan', name: 'Toboggan Run', short: 'Toboggan', glyph: '\u{1F6F7}', blurb: 'A downhill sled race: lean to steer, tuck for speed, dodge the snowmen and fly off the jumps.' },
+    { id: 'darts', name: 'Pub Darts', short: 'Darts', glyph: '\u{1F3AF}', blurb: 'Darts in a cosy pub against Dart Dave: 301 down to zero, or Around the Clock.' },
+    { id: 'volleyball', name: 'Beach Volleyball', short: 'Volleyball', glyph: '\u{1F3D0}', blurb: 'Two against two on the sand: bump, set and spike. First to 15. Friends join a side, bots fill in.' },
+    { id: 'pillow', name: 'Pillow Fight Castle', short: 'Pillows', glyph: '\u{1F3F0}', blurb: 'Red against blue in a bouncy castle, a pillow in each hand. Three bonks and you\u2019re out. Friends or bots.' },
+    { id: 'haunted', name: 'Haunted Mansion', short: 'Haunted', glyph: '\u{1F47B}', blurb: 'A dark old house and a flashlight: catch the ghosts in your beam, room by room, up to the Phantom Duke.' },
+    { id: 'llama', name: 'Llama Derby', short: 'Llamas', glyph: '\u{1F999}', blurb: 'Two laps round a ranch on a llama: shake the reins to go faster, jump the hay bales, grab the carrots.' },
+    { id: 'rps', name: 'Rock-Paper-Scissors Tournament', short: 'RPS', glyph: '\u270A', blurb: 'An eight-player knockout, best of three: throw on the count. Friends take places in the bracket, bots fill the rest.' },
+    { id: 'dance', name: 'Dance-Off', short: 'Dance', glyph: '\u{1FAA9}', blurb: 'Copy Disco Dot\u2019s moves like a mirror, on the beat, in a disco. Three songs, slow to fast.' },
   ];
-  const KIOSK_COLORS = [0xf5821f, 0xe8e4d8, 0x8bd450, 0xb388ff, 0xff4d6a, 0x2ec4b6, 0x3fbf7f, 0xff9ad0, 0xffd27a, 0x4fc3f7, 0x4a8aff, 0xb06aff, 0xffb36b, 0xff9ad0, 0x8bd450, 0xd8f43a, 0xff7a3a, 0xe5453a, 0xe8a040, 0x2ec4d8, 0xf2c14e, 0xd84a3a, 0x2a8ab8, 0x9a6aff, 0x6ad04a, 0xff3aa8, 0xffd23f, 0xff9a5c, 0x4fc3f7, 0x8a5a2a, 0x9af0ff, 0xff4d8a, 0xff9ad0, 0xe5453a, 0xb8e0ff, 0x7ad8ff];
+  const KIOSK_COLORS = [0xf5821f, 0xe8e4d8, 0x8bd450, 0xb388ff, 0xff4d6a, 0x2ec4b6, 0x3fbf7f, 0xff9ad0, 0xffd27a, 0x4fc3f7, 0x4a8aff, 0xb06aff, 0xffb36b, 0xff9ad0, 0x8bd450, 0xd8f43a, 0xff7a3a, 0xe5453a, 0xe8a040, 0x2ec4d8, 0xf2c14e, 0xd84a3a, 0x2a8ab8, 0x9a6aff, 0x6ad04a, 0xff3aa8, 0xffd23f, 0xff9a5c, 0x4fc3f7, 0x8a5a2a, 0x9af0ff, 0xff4d8a, 0xff9ad0, 0xe5453a, 0xb8e0ff, 0x7ad8ff, 0xd8b060, 0xffd23f, 0xff5a8a, 0x9a7ad8, 0xe8c860, 0xff4d8a, 0xff4dc8];
   const LEVEL_CATS = [
-    { id: 'ball', name: 'Ball sports', glyph: '\u26BD', games: [0, 1, 5, 15, 29] },
-    { id: 'battle', name: 'Team battles', glyph: '\u{1F3AF}', games: [14, 4, 17, 21, 34] },
-    { id: 'lanes', name: 'Golf and lanes', glyph: '\u26F3', games: [2, 6, 7, 20, 31] },
-    { id: 'adv', name: 'Adventures', glyph: '\u{1F5E1}\uFE0F', games: [3, 10, 11, 22, 30] },
-    { id: 'race', name: 'Racing and parkour', glyph: '\u{1F3C1}', games: [9, 16, 19, 24, 35] },
-    { id: 'party', name: 'Party games', glyph: '\u{1F389}', games: [13, 12, 18, 23, 32] },
-    { id: 'active', name: 'Get active', glyph: '\u{1F4AA}', games: [25, 26, 27, 28, 33] },
+    { id: 'ball', name: 'Ball sports', glyph: '\u26BD', games: [0, 1, 5, 15, 29, 37] },
+    { id: 'battle', name: 'Team battles', glyph: '\u{1F3AF}', games: [14, 4, 17, 21, 34, 38] },
+    { id: 'lanes', name: 'Golf and lanes', glyph: '\u26F3', games: [2, 6, 7, 20, 31, 36] },
+    { id: 'adv', name: 'Adventures', glyph: '\u{1F5E1}\uFE0F', games: [3, 10, 11, 22, 30, 39] },
+    { id: 'race', name: 'Racing and parkour', glyph: '\u{1F3C1}', games: [9, 16, 19, 24, 35, 40] },
+    { id: 'party', name: 'Party games', glyph: '\u{1F389}', games: [13, 12, 18, 23, 32, 41] },
+    { id: 'active', name: 'Get active', glyph: '\u{1F4AA}', games: [25, 26, 27, 28, 33, 42] },
   ];
-  const PICKER_ORDER = [8, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 3, 10, 11, 0, 1, 2, 4, 5, 6, 7, 9];
+  const PICKER_ORDER = [8, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 3, 10, 11, 0, 1, 2, 4, 5, 6, 7, 9];
   function makeKiosk(L, x, z, yaw) {
     const fx = Math.sin(yaw), fz = Math.cos(yaw);   // direction the kiosk faces
     const rx = Math.cos(yaw), rz = -Math.sin(yaw);  // its right-hand side

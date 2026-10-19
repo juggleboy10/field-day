@@ -196,7 +196,7 @@
       for (const sx of [-1, 1]) addBox(G, 0.06, 0.12, WING.d - 0.4, new THREE.MeshBasicMaterial({ color: col }), o.x + sx * (WING.w / 2 - 0.18), 1.08, o.z);
       // the games, full size
       // (about 2.5 m apart, so the doorways and their labels don't overlap)
-      const n = c.games.length, r = 3.6, span = 0.7 * (n - 1);
+      const n = c.games.length, r = n > 5 ? 3.8 : 3.6, span = (n > 5 ? 0.63 : 0.7) * (n - 1);
       c.games.forEach((lv, j) => {
         const a = n > 1 ? (j / (n - 1) - 0.5) * span : 0;
         const p = makePortal(o.x + Math.sin(a) * r, o.z + 0.4 - Math.cos(a) * r, a, KIOSK_COLORS[lv], 1, 320, 120);
