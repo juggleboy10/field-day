@@ -37,7 +37,7 @@ PLAYS = """([runs]) => {
       I.throwFlat(c);
     }
     let guard = 0;
-    while ((S.phase === 'live' || S.phase === 'air' || S.phase === 'yac') && guard++ < 1200) I.step(dt);
+    while ((S.phase === 'live' || S.phase === 'air' || S.phase === 'yac' || S.phase === 'run') && guard++ < 1200) I.step(dt);
     out.push({ play, who, msg: S.msg, phase: S.phase, gain: before.ballOn - S.ballOn, running: S.running, score: S.score, down: S.down });
   }
   return out;
@@ -103,9 +103,15 @@ def main():
         # the clock runs out
         over = page.evaluate("""() => { const I = window.__fd.LEVELS[29].fbInternals, S = I.S; I.startGame(); S.clock = 1; S.running = true; for (let i = 0; i < 120; i++) I.step(1 / 60); return S.phase; }""")
         print("after the clock runs out:", over)
+        # running it: a QB Draw, hold W and Shift with the real frames running, and you cross the line and get tackled (or score)
+        page.evaluate("() => { const fd = window.__fd, L = fd.LEVELS[29], I = L.fbInternals; L.update = window.__fbUpdate; I.startGame(); I.choosePlay(4); fd.state.yaw = 0; fd.state.pitch = 0; I.hike(); fd.state.keys.KeyW = true; fd.state.keys.ShiftLeft = true; }")
+        page.wait_for_function("() => { const S = window.__fd.LEVELS[29].fbInternals.S; return S.phase === 'dead' || S.phase === 'pre' || S.phase === 'over'; }", timeout=30000)
+        run = page.evaluate("() => { const fd = window.__fd, S = fd.LEVELS[29].fbInternals.S; fd.state.keys.KeyW = false; fd.state.keys.ShiftLeft = false; return { msg: S.msg, ballOn: S.ballOn, running: S.running }; }")
+        print("QB draw:", run)
         browser.close()
     checks = [
-        ("four plays", len(names) == 4),
+        ("five plays", len(names) == 5),
+        ("you can run it: a QB draw gains yards", ("QB run for" in run["msg"] and run["ballOn"] < 75) or "TOUCHDOWN" in run["msg"]),
         ("passes get completed", len(comp) >= len(res) * 0.35),
         ("but not every one (the defense plays)", len(comp) < len(res)),
         ("completions gain yards", all(r['gain'] != 0 or 'for 0' in r['msg'] for r in comp)),
