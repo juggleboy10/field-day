@@ -499,7 +499,7 @@
   const LEVEL_META = [
     { id: 'hoops', name: 'Rooftop hoops', short: 'Hoops', glyph: '\u{1F3C0}', blurb: 'Shoot around on a city rooftop at dusk.' },
     { id: 'baseball', name: 'Sandlot baseball', short: 'Baseball', glyph: '\u26BE', blurb: 'Take swings against a pitching machine, or pitch to a friend.' },
-    { id: 'discgolf', name: 'Maple Hollow disc golf', short: 'Disc golf', glyph: '\u{1F94F}', blurb: 'Three holes through an autumn park.' },
+    { id: 'discgolf', name: 'Maple Hollow disc golf', short: 'Disc golf', glyph: '\u{1F94F}', blurb: 'Nine holes through an autumn park: a pond carry, a dogleg and a tunnel of maples.' },
     { id: 'dungeon', name: 'Sunstone Keep', short: 'Dungeon', glyph: '\u2694\uFE0F', blurb: 'Fight through a crypt together and claim the Sunstone.' },
     { id: 'lasertag', name: 'Neon laser tag', short: 'Laser tag', glyph: '\u26A1', blurb: 'Red versus blue in a glowing arena. First team to 15 tags.' },
     { id: 'soccer', name: 'Sunday soccer', short: 'Soccer', glyph: '\u26BD', blurb: 'Walk the ball up the pitch and kick it in. First to 5 goals.' },

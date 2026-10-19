@@ -158,11 +158,11 @@
           impact(b, -vn, 'wood');
           b.vel.addScaledVector(B.n, -1.05 * vn);
           // a bean bag is floppy: a real landing soaks up most of its slide
-          if (vn < -1.5) { const keep = 0.42; const t = _b.copy(b.vel).addScaledVector(B.n, -b.vel.dot(B.n)); b.vel.addScaledVector(t, keep - 1); }
+          if (vn < -1.5) { const keep = 0.48; const t = _b.copy(b.vel).addScaledVector(B.n, -b.vel.dot(B.n)); b.vel.addScaledVector(t, keep - 1); }
         }
         // sliding: the board's grip slows it, and a slow bag sticks
         const vt = _b.copy(b.vel).addScaledVector(B.n, -b.vel.dot(B.n)), sp = vt.length();
-        const nsp = Math.max(0, sp - 4.2 * h);
+        const nsp = Math.max(0, sp - 3.9 * h);
         if (nsp < 0.05) b.vel.addScaledVector(vt, -1); else b.vel.addScaledVector(vt, -(1 - nsp / sp));
         sup = true;
       }
@@ -194,7 +194,7 @@
     function throwFor(from, end, power, yawOff) {
       const H = holeOf(end), dx = H.x - from.x, dz = H.z - from.z, dHole = Math.hypot(dx, dz);
       const e = power - 0.6, k = Math.abs(e) < 0.06 ? 0 : Math.sign(e) * (Math.abs(e) - 0.06) * 0.62;
-      const dist = dHole * (1 + k) + (Math.random() - 0.5) * 0.24;
+      const dist = dHole * (1 + k) - 0.18 + (Math.random() - 0.5) * 0.24;   // a touch short: it slides the rest of the way
       const a = Math.atan2(dx, dz) + (yawOff || 0) + (Math.random() - 0.5) * 0.02;
       return lob(from, from.x + Math.sin(a) * dist, from.z + Math.cos(a) * dist, H.y + 0.02, 0.72);
     }

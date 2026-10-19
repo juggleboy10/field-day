@@ -11,6 +11,10 @@
       { tee: new V3(32, 0, -8), basket: new V3(60, 0, 14), par: 3, name: 'Pond carry' },
       { tee: new V3(66, 0, 22), basket: new V3(52, 0, 58), par: 4, name: 'The dogleg' },
       { tee: new V3(44, 0, 62), basket: new V3(12, 0, 30), par: 4, name: 'Homeward' },
+      // the back three, swinging west through the maples and finishing by the first tee
+      { tee: new V3(8, 0, 38), basket: new V3(-22, 0, 56), par: 3, name: 'Long meadow' },
+      { tee: new V3(-28, 0, 52), basket: new V3(-32, 0, 14), par: 3, name: 'Maple tunnel' },
+      { tee: new V3(-28, 0, 8), basket: new V3(-12, 0, -14), par: 3, name: 'Lily pond' },
     ];
     for (const h of HOLES) {
       h.dir = new V3().subVectors(h.basket, h.tee).setY(0);
@@ -128,8 +132,16 @@
       return true;
     }
     // a pond for hole 4 to carry over (trees keep clear of it)
-    const POND = { x: 47, z: 4, r: 7 };
-    trees.push({ x: POND.x, z: POND.z, tr: 0, th: 0, cr: POND.r, cy: -50 });
+    const PONDS = [{ x: 47, z: 4, r: 7 }, { x: -20, z: -3, r: 5 }];   // hole 4's carry, and one guarding the last basket
+    for (const P of PONDS) trees.push({ x: P.x, z: P.z, tr: 0, th: 0, cr: P.r, cy: -50 });
+    // hole 8 runs down an avenue of maples: trees close on both sides (placed before the random ones)
+    {
+      const h8 = HOLES[7];
+      for (let k = 0; k < 6; k++) {
+        const m = h8.tee.clone().lerp(h8.basket, 0.2 + k * 0.12);
+        for (const sd of [-1, 1]) { const q = m.clone().addScaledVector(h8.right, sd * (5.2 + (k % 2) * 0.6)); addTree(q.x, q.z, 2.2, true); }
+      }
+    }
     for (let n = 0; trees.length < 260 && n < 6000; n++) {
       addTree(lerp(AREA.minX - 12, AREA.maxX + 12, rand()), lerp(AREA.minZ - 12, AREA.maxZ + 12, rand()), 1.8 + rand() * 1.9, false);
     }
@@ -143,7 +155,7 @@
       const h5 = HOLES[4], m5 = h5.tee.clone().lerp(h5.basket, 0.5).addScaledVector(h5.right, -1.6);
       addTree(m5.x, m5.z, 3.2, true);
     }
-    {
+    for (const POND of PONDS) {
       const water = new THREE.Mesh(new THREE.CircleGeometry(POND.r, 40), new THREE.MeshLambertMaterial({ color: 0x4a8ab8, emissive: 0x0a2a40 }));
       water.rotation.x = -Math.PI / 2; water.position.set(POND.x, 0.02, POND.z); G.add(water);
       const bank = new THREE.Mesh(new THREE.RingGeometry(POND.r, POND.r + 0.7, 40), lam(0x8a7a5a));
@@ -194,7 +206,7 @@
       const sections = [
         ['In VR', 'Your disc waits by your hand. Squeeze grip or trigger to hold it, then let go mid-throw. Tilt your hand to curve it. Left stick moves, right stick turns.'],
         ['In a browser', 'Aim with the mouse. Hold Space, then let go to throw; a longer hold throws farther.'],
-        ['Scoring', 'After each throw you walk to your disc automatically. Three holes, par 3 each. Discs curve left as they slow down.'],
+        ['Scoring', 'After each throw you walk to your disc automatically. Nine holes, from par 3s to a couple of long par 4s. Discs curve left as they slow down.'],
       ];
       let y = 124;
       for (const [label, body] of sections) {

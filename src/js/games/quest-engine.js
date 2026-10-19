@@ -300,7 +300,7 @@
     function makeEnemy(id, type, x, z, y) {
       const T = ENEMIES[type];
       const yy = y !== undefined ? y : T.fly || 0;
-      const e = { id, type, x, z, y: yy, yaw: 0, hp: T.hp, hpMax: T.hp, st: 0, ac: 0, t: 0, cd: 1 + rand(), rx: x, rz: z, ry: yy, ryaw: 0, lastAc: 0, flash: 0, dieT: 0, room: L.roomAt(new V3(x, 0, z)), strafe: rand() < 0.5 ? 1 : -1, slowUntil: 0, fx: 0, burstLeft: 0, burstT: 0, dive: false };
+      const e = { id, type, x, z, y: yy, yaw: 0, hp: T.hp, hpMax: T.hp, st: 0, ac: 0, t: 0, cd: 1 + rand(), rx: x, rz: z, ry: yy, ryaw: 0, lastAc: 0, flash: 0, dieT: 0, room: L.roomAt(new V3(x, 0, z)), strafe: rand() < 0.5 ? 1 : -1, slowUntil: 0, fx: 0, burstLeft: 0, burstT: 0, dive: false, champ: 0 };
       Object.assign(e, enemyMesh(type));
       e.g.position.set(x, yy, z);
       L.enemies.set(id, e);
@@ -328,20 +328,47 @@
         const T = ENEMIES[type];
         if (T.ai === 'boss') { e.hp = e.hpMax = T.hp + (T.perPlayer || 8) * Math.min(4, n); host.summonT = performance.now() + 9000; sfx('roar', 0.9); }
       }
+      // from the second fight on, one foe in each wave is a champion: bigger, golden, tougher, and it hits harder
+      const fresh = Array.from(L.enemies.values()).filter((e) => e.st !== 3 && !e.champ && CHAMP_OK(e.type));
+      if (roomIdx >= 2 && fresh.length) {
+        const c = fresh.reduce((a, b) => (ENEMIES[b.type].hp > ENEMIES[a.type].hp ? b : a));
+        c.hp = c.hpMax = Math.max(6, Math.ceil(c.hpMax * 2.5)) + Math.min(3, n - 1) * 2;
+        makeChamp(c);
+        showToast('A champion leads this wave!');
+      }
       forcePresence();
     }
     L.spawnWave = spawnWave;
+    const CHAMP_OK = (type) => { const T = ENEMIES[type]; return T.ai !== 'boss' && T.ai !== 'kamikaze' && T.ai !== 'turret' && !T.fly && !T.split; };
+    const champGold = new THREE.MeshLambertMaterial({ color: 0xffd23f, emissive: 0x6a4a00 });
+    function makeChamp(e) {
+      if (e.champ) return;
+      e.champ = 1;
+      const T = ENEMIES[e.type];
+      for (const m of e.mats) m.userData.base = 0x4a3200;
+      // a little gold crown, and a glow at its feet
+      const crown = new THREE.Group();
+      const band = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.17, 0.07, 10, 1, true), champGold);
+      crown.add(band);
+      for (let k = 0; k < 5; k++) { const a = (k / 5) * Math.PI * 2, sp = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.1, 4), champGold); sp.position.set(Math.cos(a) * 0.15, 0.08, Math.sin(a) * 0.15); crown.add(sp); }
+      crown.position.y = T.h + 0.06;
+      e.g.add(crown);
+      const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: warmGlowTex, color: 0xffc23a, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.55 }));
+      glow.scale.set(T.r * 4, T.r * 2, 1); glow.position.y = 0.15;
+      e.g.add(glow);
+    }
+    L.makeChamp = makeChamp;
 
     function dropLoot(e) {
       const T = ENEMIES[e.type];
       const boss = T.ai === 'boss';
-      const coins = boss ? 14 : T.hp >= 4 ? 4 : 1 + Math.floor(rand() * 3);
+      const coins = boss ? 14 : e.champ ? 9 : T.hp >= 4 ? 4 : 1 + Math.floor(rand() * 3);
       for (let k = 0; k < coins; k++) {
         const a = rand() * Math.PI * 2, d = 0.3 + rand() * (boss ? 1.6 : 0.6);
         L.pickups.set(L.nextId, { id: L.nextId, type: 0, x: e.x + Math.cos(a) * d, z: e.z + Math.sin(a) * d });
         L.nextId++;
       }
-      if (rand() < (boss ? 1 : 0.25)) { L.pickups.set(L.nextId, { id: L.nextId, type: 1, x: e.x, z: e.z + 0.2 }); L.nextId++; }
+      if (rand() < (boss || e.champ ? 1 : 0.25)) { L.pickups.set(L.nextId, { id: L.nextId, type: 1, x: e.x, z: e.z + 0.2 }); L.nextId++; }
       // keep the list from growing without end
       if (L.pickups.size > 28) { const old = Array.from(L.pickups.keys()).slice(0, L.pickups.size - 28); for (const id of old) L.pickups.delete(id); }
     }
@@ -673,7 +700,7 @@
         else e.arm.rotation.x = armX;
         e.g.position.set(e.rx, (T.fly ? e.ry : 0) + bob, e.rz);
         e.g.rotation.y = e.ryaw;
-        e.g.scale.setScalar(scale);
+        e.g.scale.setScalar(scale * (e.champ ? 1.28 : 1));
         e.shadow.position.set(e.rx, 0.01, e.rz);
         e.shadow.material.opacity = T.fly ? 0.25 : 0.5;
         if (T.ai === 'boss' && T.boss.slam && e.st === 1) slam = e;
@@ -698,7 +725,7 @@
 
     // ---------------------------------------------------------------- me
     const MAX_HP = 3;
-    L.me = { hp: MAX_HP, coins: 0, kills: 0, down: false, downT: 0, invT: 0, hxSeq: 0, hx: [], shSeq: 0, sh: [], pc: [], dr: [-1, -1, -1], swordCool: new Map(), lastTool: null, ff: [], ffSeq: 0 };
+    L.me = { maxHp: MAX_HP, might: 0, ward: 0, vamp: 0, vampN: 0, lucky: 0, chests: new Set(), relics: new Set(), hp: MAX_HP, coins: 0, kills: 0, down: false, downT: 0, invT: 0, hxSeq: 0, hx: [], shSeq: 0, sh: [], pc: [], dr: [-1, -1, -1], swordCool: new Map(), lastTool: null, ff: [], ffSeq: 0 };
     const me = L.me;
     L.allowRecall = true;
     const hostId = () => {
@@ -726,6 +753,7 @@
     function takeDamage(n) {
       const now = performance.now();
       if (!inGameHere() || me.down || now < me.invT || L.q.done) return;
+      if (me.ward > 0) { me.ward -= 1; me.invT = now + 900; sfx('clang', 1); showToast(me.ward ? `Your ward takes the blow (${me.ward} left)` : 'Your ward takes the blow, and fades'); state.hudDirty = true; return; }
       me.hp = Math.max(0, me.hp - n);
       me.invT = now + 900;
       hurtT = now;
@@ -778,15 +806,21 @@
         if (d3 < T.blast) takeDamage(T.dmg);
       } else {
         sfx('whoosh', 0.8 / (1 + d * 0.2));
-        if ((T.fly ? d3 : d) < T.reach + 0.3) takeDamage(T.dmg || 1);
+        if ((T.fly ? d3 : d) < T.reach + 0.3 * (e.champ ? 1.28 : 1)) takeDamage((T.dmg || 1) + (e.champ ? 1 : 0));
       }
     };
 
     // ---------------------------------------------------------------- hitting enemies
     function reportHit(e, dmg, fx) {
       if (!e || e.st === 3) return;
+      dmg = Math.min(4, dmg + me.might);
       const lethal = e.hp - dmg <= 0;
-      if (lethal) { me.kills += 1; state.dirtyBoard = true; }
+      if (lethal) {
+        me.kills += 1; state.dirtyBoard = true;
+        if (e.champ) { showToast('Champion defeated!'); sfx('fanfare', 0.5); }
+        // a vampire blessing: every fourth foe you finish gives back a heart
+        if (me.vamp && ++me.vampN % 4 === 0 && me.hp < me.maxHp && !me.down) { me.hp += 1; sfx('potion', 0.7); spawnFloat('+\u2665', new V3(e.rx, 2.0, e.rz), '#ff6a8a'); state.hudDirty = true; }
+      }
       e.flash = 0.15;
       sfx('hit', 0.8);
       if (L.isHost()) L.damageEnemy(e.id, dmg, fx || 0);
@@ -1242,7 +1276,9 @@
     L.onUse = () => { if (state.mode !== 'flat' || me.down) return me.down; for (const rec of remotes.values()) { const st = rec.lvState[L.id]; if (rec.lv === L.idx && rec.hasH && st && st.down && Math.hypot(rec.cur.h.pos.x - myHead.pos.x, rec.cur.h.pos.z - myHead.pos.z) < 1.6) return true; } return false; };
     function onNewRun() {
       clearWorld();
-      Object.assign(me, { hp: MAX_HP, coins: 0, kills: 0, down: false, pc: [], hx: [], sh: [] });
+      Object.assign(me, { maxHp: MAX_HP, might: 0, ward: 0, vamp: 0, vampN: 0, lucky: 0, hp: MAX_HP, coins: 0, kills: 0, down: false, pc: [], hx: [], sh: [] });
+      me.chests.clear(); me.relics.clear();
+      if (L.resetChests) L.resetChests();
       me.swordCool.clear();
       L.hostState.waveT = 0;
       L.hostState.projLog = [];
@@ -1293,13 +1329,13 @@
     function hostSnapshot() {
       const q = L.q;
       const e = [];
-      for (const en of L.enemies.values()) e.push([en.id, en.type, r2(en.x), r2(en.z), r2(en.yaw), Math.max(0, Math.round(en.hp)), en.hpMax, en.st, en.ac, r2(en.y), en.fx]);
+      for (const en of L.enemies.values()) e.push([en.id, en.type, r2(en.x), r2(en.z), r2(en.yaw), Math.max(0, Math.round(en.hp)), en.hpMax, en.st, en.ac, r2(en.y), en.fx, en.champ ? 1 : 0]);
       const p = L.hostState.projLog.map((a) => [a.id, r2(a.pos.x), r2(a.pos.y), r2(a.pos.z), r2(a.vel.x), r2(a.vel.y), r2(a.vel.z), a.ptype]);
       const k = Array.from(L.pickups.values()).slice(-28).map((a) => [a.id, a.type, r2(a.x), r2(a.z)]);
       return { q: [q.r, q.pg, q.wave, q.spawned, q.done], e, p, k, n: L.nextId };
     }
     L.presence = () => {
-      const p = { dq: [me.hp, me.coins, me.kills, me.down ? 1 : 0, L.q.r], hx: me.hx.slice(), sh: me.sh.slice(), pc: me.pc.slice(-24), dr: me.dr.slice(), ff: me.ff.slice(), rv: me.rv.slice() };
+      const p = { dq: [me.hp, me.coins, me.kills, me.down ? 1 : 0, L.q.r, me.relics.size], hx: me.hx.slice(), sh: me.sh.slice(), pc: me.pc.slice(-24), dr: me.dr.slice(), ff: me.ff.slice(), rv: me.rv.slice() };
       if (L.isHost()) p.dh = hostSnapshot();
       return p;
     };
@@ -1313,9 +1349,10 @@
       const seen = new Set();
       if (Array.isArray(dh.e)) {
         for (const a of dh.e.slice(0, 30)) {
-          if (!Array.isArray(a) || a.length !== 11 || !int(a[0], 0, 1e9) || !int(a[1], 0, ENEMIES.length - 1) || !num(a[2], 300) || !num(a[3], 300) || !num(a[4], 50) || !int(a[5], 0, 999) || !int(a[6], 1, 999) || !int(a[7], 0, 5) || !int(a[8], 0, 1e9) || !num(a[9], 30) || !int(a[10], 0, 1)) continue;
+          if (!Array.isArray(a) || (a.length !== 11 && a.length !== 12) || !int(a[0], 0, 1e9) || !int(a[1], 0, ENEMIES.length - 1) || !num(a[2], 300) || !num(a[3], 300) || !num(a[4], 50) || !int(a[5], 0, 999) || !int(a[6], 1, 999) || !int(a[7], 0, 5) || !int(a[8], 0, 1e9) || !num(a[9], 30) || !int(a[10], 0, 1)) continue;
           let e = L.enemies.get(a[0]);
           if (!e) { e = makeEnemy(a[0], a[1], a[2], a[3], a[9]); e.lastAc = a[8]; }
+          if (a[11] === 1) makeChamp(e);
           e.x = a[2]; e.z = a[3]; e.yaw = a[4]; e.hp = a[5]; e.hpMax = a[6]; e.y = a[9]; e.fx = a[10];
           if (a[7] === 3 && e.st !== 3) { e.dieT = 0; sfx('poof', 0.8 / (1 + Math.hypot(e.x - myHead.pos.x, e.z - myHead.pos.z) * 0.08)); }
           e.st = a[7]; e.ac = a[8];
@@ -1346,16 +1383,17 @@
     }
     L.readPresence = (rec, pres, st) => {
       const a = Array.isArray(pres.dq) ? pres.dq : [];
-      const hp = int(a[0], 0, MAX_HP) ? a[0] : MAX_HP, coins = int(a[1], 0, 99999) ? a[1] : 0, kills = int(a[2], 0, 99999) ? a[2] : 0;
+      const hp = int(a[0], 0, 6) ? a[0] : MAX_HP, relics = int(a[5], 0, 9) ? a[5] : 0, coins = int(a[1], 0, 99999) ? a[1] : 0, kills = int(a[2], 0, 99999) ? a[2] : 0;
       const down = a[3] === 1;
       if (coins !== st.coins || kills !== st.kills || down !== st.down) state.dirtyBoard = true;
       if (st.init && down && !st.down) showToast(`${rec.name} is down`);
-      Object.assign(st, { hp, coins, kills, down, init: true });
+      if (relics !== st.relics) state.dirtyBoard = true;
+      Object.assign(st, { hp, coins, kills, down, relics, init: true });
       // a friend revived me
       if (Array.isArray(pres.rv)) for (const r of pres.rv.slice(-4)) {
         if (!Array.isArray(r) || r.length !== 2 || !int(r[0], 0, 1e9) || typeof r[1] !== 'string' || r[0] <= (st.rvSeq || 0)) continue;
         st.rvSeq = r[0];
-        if (st.rvInit && r[1] === state.myPeer && me.down) { me.down = false; me.hp = Math.min(MAX_HP, 2); me.invT = performance.now() + 1500; showToast(`${rec.name} revived you!`); sfx('potion', 1); state.hudDirty = true; forcePresence(); }
+        if (st.rvInit && r[1] === state.myPeer && me.down) { me.down = false; me.hp = Math.min(me.maxHp, 2); me.invT = performance.now() + 1500; showToast(`${rec.name} revived you!`); sfx('potion', 1); state.hudDirty = true; forcePresence(); }
       }
       st.rvInit = true;
       if (Array.isArray(pres.ff)) for (const f of pres.ff.slice(-6)) {
@@ -1398,6 +1436,127 @@
       }
     };
 
+    // ---------------------------------------------------------------- treasure chests and hidden relics
+    // When an area is cleared, a chest appears in it. Everyone opens their own: a few coins and a blessing that lasts
+    // the rest of the run. Three relics are tucked away in the corners of the areas, for the explorers.
+    const BLESSINGS = [
+      { name: 'Mighty', text: 'your hits do +1 damage', ok: () => me.might < 2, apply: () => { me.might += 1; } },
+      { name: 'Hearty', text: 'one more heart', ok: () => me.maxHp < 5, apply: () => { me.maxHp += 1; me.hp = Math.min(me.maxHp, me.hp + 1); } },
+      { name: 'Warded', text: 'the next two blows are blocked', ok: () => me.ward < 2, apply: () => { me.ward = 2; } },
+      { name: 'Vampiric', text: 'every fourth foe you finish heals you', ok: () => !me.vamp, apply: () => { me.vamp = 1; } },
+      { name: 'Lucky', text: 'coins count double', ok: () => !me.lucky, apply: () => { me.lucky = 1; } },
+    ];
+    L.BLESSINGS = BLESSINGS;
+    const chestWood = new THREE.MeshLambertMaterial({ color: 0x8a5a2a }), chestBand = new THREE.MeshLambertMaterial({ color: 0xe8b54a, emissive: 0x3a2400 });
+    const prng = mulberry32(cfg.seed + 977);
+    const isFree = (x, z, m) => playable(x, z, m) && !(L.SOLIDS || []).some(([x0, x1, z0, z1]) => x > x0 - m && x < x1 + m && z > z0 - m && z < z1 + m);
+    const CHESTS = [];
+    ROOMS.forEach((rm, i) => {
+      if (!rm.waves.length) return;
+      let spot = null;
+      for (const [ox, oz] of [[2.6, 0.8], [-2.6, 0.8], [3.4, -1.6], [-3.4, -1.6], [0, 2.8], [4.5, 2.5], [-4.5, 2.5], [1.5, 0]]) if (isFree(rm.cx + ox, rm.cz + oz, 0.9)) { spot = [rm.cx + ox, rm.cz + oz]; break; }
+      if (!spot) spot = [rm.cx + 1.5, rm.cz];
+      const g = new THREE.Group();
+      g.add(at(new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.42, 0.5), chestWood), 0, 0.21, 0));
+      g.add(at(new THREE.Mesh(new THREE.BoxGeometry(0.82, 0.06, 0.52), chestBand), 0, 0.36, 0));
+      const lid = new THREE.Group(); lid.position.set(0, 0.42, -0.25);
+      const lidBox = at(new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.16, 0.5), chestWood), 0, 0.08, 0.25);
+      lid.add(lidBox, at(new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.12, 0.06), chestBand), 0, 0.02, 0.51));
+      g.add(lid);
+      const shine = new THREE.Sprite(new THREE.SpriteMaterial({ map: warmGlowTex, color: 0xffd060, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0 }));
+      shine.position.y = 0.55; shine.scale.set(1.2, 1.2, 1); g.add(shine);
+      // face the way back toward the start, so the lid opens toward you as you arrive
+      g.position.set(spot[0], 0, spot[1]); g.rotation.y = 0;
+      g.visible = false;
+      G.add(g);
+      CHESTS.push({ room: i, g, lid, shine, x: spot[0], z: spot[1], open: 0, popT: 0 });
+    });
+    L.CHESTS = CHESTS;
+    function openChest(c) {
+      me.chests.add(c.room);
+      const choices = BLESSINGS.filter((b) => b.ok());
+      const coins = 3 + Math.floor(Math.random() * 3);
+      me.coins += coins;
+      sfx('coin', 1); setTimeout(() => sfx('fanfare', 0.45), 120);
+      if (choices.length) {
+        const b = choices[Math.floor(Math.random() * choices.length)];
+        b.apply();
+        showToast(`Treasure! ${b.name}: ${b.text} (+${coins} coins)`);
+        spawnFloat(b.name, new V3(c.x, 1.4, c.z), '#ffd23f');
+      } else { me.hp = me.maxHp; showToast(`Treasure! Fully healed (+${coins} coins)`); spawnFloat('Healed', new V3(c.x, 1.4, c.z), '#ff6a8a'); }
+      if (state.mode === 'vr') for (const s2 of SIDES) haptic(vrHands[s2], 0.5, 80);
+      state.dirtyBoard = true; state.hudDirty = true;
+      forcePresence();
+    }
+    L.openChest = openChest;
+    // relics: three corners, spread through the quest
+    const relicGeo = new THREE.OctahedronGeometry(0.12, 0);
+    const relicMat = new THREE.MeshLambertMaterial({ color: new THREE.Color(C.accent || '#e8b54a').getHex(), emissive: 0x302010 });
+    const RELICS = [];
+    {
+      const fights = ROOMS.map((rm, i) => i).filter((i) => ROOMS[i].waves.length);
+      const pick = fights.length >= 3 ? [fights[0], fights[Math.floor(fights.length / 2)], fights[fights.length - 1]] : [fights[0], fights[fights.length - 1], fights[0]].filter((x) => x !== undefined);
+      const used = new Set();
+      pick.forEach((i, n) => {
+        const rm = ROOMS[i];
+        const corners = [[rm.x0 + 0.9, rm.z0 + 0.9], [rm.x1 - 0.9, rm.z0 + 0.9], [rm.x0 + 0.9, rm.z1 - 0.9], [rm.x1 - 0.9, rm.z1 - 0.9], [rm.x0 + 0.9, rm.cz], [rm.x1 - 0.9, rm.cz]];
+        const start = Math.floor(prng() * corners.length);
+        for (let k = 0; k < corners.length; k++) {
+          const [x, z] = corners[(start + k) % corners.length], key = `${x},${z}`;
+          if (used.has(key) || !isFree(x, z, 0.5)) continue;
+          used.add(key);
+          const m = new THREE.Mesh(relicGeo, relicMat);
+          const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: warmGlowTex, color: 0xfff0c0, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.5 }));
+          glow.scale.set(0.5, 0.5, 1);
+          const g = new THREE.Group(); g.add(m, glow); g.position.set(x, 0.45, z); G.add(g);
+          RELICS.push({ id: n, g, m, glow, x, z, phase: prng() * 6 });
+          break;
+        }
+      });
+    }
+    L.RELICS = RELICS;
+    L.resetChests = () => { for (const c of CHESTS) { c.open = 0; c.lid.rotation.x = 0; c.g.visible = false; c.popT = 0; } for (const rl of RELICS) rl.g.visible = true; };
+    const _rh = new V3();
+    function treasureStep(dt, now) {
+      const here = inGameHere() && !me.down;
+      const touching = (x, y, z, rad, reach) => {
+        if (Math.hypot(myHead.pos.x - x, myHead.pos.z - z) < reach) return true;
+        for (const sd of SIDES) if (myHands[sd].ok && myHands[sd].pos.distanceTo(_rh.set(x, y, z)) < rad) return true;
+        return false;
+      };
+      for (const c of CHESTS) {
+        const show = L.q.pg > c.room;
+        if (show && !c.g.visible) { c.g.visible = true; c.popT = now; }
+        if (!show) { c.g.visible = false; continue; }
+        const mine = me.chests.has(c.room);
+        const pop = Math.min(1, (now - c.popT) / 400);
+        c.g.scale.setScalar(0.3 + 0.7 * pop);
+        if (!mine && here && touching(c.x, 0.4, c.z, 0.5, 1.05)) openChest(c);
+        const want = me.chests.has(c.room) ? -1.9 : 0;
+        c.lid.rotation.x += (want - c.lid.rotation.x) * Math.min(1, dt * 6);
+        c.shine.material.opacity = mine ? Math.max(0, c.shine.material.opacity - dt * 0.6) : 0.35 + 0.2 * Math.sin(now * 0.005);
+      }
+      for (const rl of RELICS) {
+        if (me.relics.has(rl.id)) { rl.g.visible = false; continue; }
+        rl.g.visible = true;
+        rl.g.position.y = 0.45 + Math.sin(now * 0.003 + rl.phase) * 0.06;
+        rl.m.rotation.y = now * 0.002 + rl.phase;
+        rl.glow.material.opacity = 0.3 + 0.3 * Math.max(0, Math.sin(now * 0.004 + rl.phase));
+        if (here && L.q.pg > 0 && touching(rl.x, rl.g.position.y, rl.z, 0.4, 0.85)) {
+          me.relics.add(rl.id);
+          me.coins += 5;
+          sfx('coin', 1); sfx('potion', 0.6);
+          const n = me.relics.size, all = n === RELICS.length;
+          if (all) { me.maxHp = Math.min(6, me.maxHp + 1); me.hp = Math.min(me.maxHp, me.hp + 1); }
+          showToast(all ? `All ${RELICS.length} relics found! A bonus heart (+5 coins)` : `Secret relic found! ${n} of ${RELICS.length} (+5 coins)`);
+          spawnFloat('Relic!', new V3(rl.x, 1.3, rl.z), '#8be0ff');
+          state.dirtyBoard = true; state.hudDirty = true;
+          forcePresence();
+        }
+      }
+    }
+    L.treasureStep = treasureStep;
+
     // ---------------------------------------------------------------- per frame
     const _hand = new V3();
     let wasHost = false;
@@ -1412,6 +1571,7 @@
       swordStep(dt, now);
       stepShots(dt);
       L.syncLootMeshes(now);
+      treasureStep(dt, now);
       // wands: A or X switches spell in VR; charging weapons glow brighter
       for (const t of L.tools) {
         if (t.kind === 'wand') {
@@ -1486,12 +1646,12 @@
           let touch = d < 0.6;
           for (const s of SIDES) if (myHands[s].ok && myHands[s].pos.distanceTo(_hand.set(u.pos.x, 0.35, u.pos.z)) < 0.35) touch = true;
           if (!touch) continue;
-          if (p.type === 1 && me.hp >= MAX_HP) continue;
+          if (p.type === 1 && me.hp >= me.maxHp) continue;
           L.claimed.add(p.id);
           me.pc.push(p.id);
           if (me.pc.length > 40) me.pc.shift();
-          if (p.type === 0) { me.coins += 1; sfx('coin', 0.8); }
-          else { me.hp = Math.min(MAX_HP, me.hp + 2); sfx('potion', 1); showToast('Healed'); }
+          if (p.type === 0) { me.coins += me.lucky ? 2 : 1; sfx('coin', 0.8); }
+          else { me.hp = Math.min(me.maxHp, me.hp + 2); sfx('potion', 1); showToast('Healed'); }
           state.dirtyBoard = true;
           state.hudDirty = true;
           forcePresence();
@@ -1525,7 +1685,7 @@
       const left = aliveEnemies().length;
       return left ? `${r.name}: ${left} left` : `${r.name}: cleared`;
     }
-    const hearts = () => { const n = clamp(me.hp | 0, 0, MAX_HP); return '\u2665'.repeat(n) + '\u2661'.repeat(MAX_HP - n); };
+    const hearts = () => { const n = clamp(me.hp | 0, 0, me.maxHp); return '\u2665'.repeat(n) + '\u2661'.repeat(me.maxHp - n); };
     let statusKey = '';
     function updateStatus() {
       if (!ui.status) return;
@@ -1533,12 +1693,12 @@
       ui.status.hidden = !show;
       if (!show) return;
       const wand = L.tools.find((x) => x.kind === 'wand' && x.held && x.held.peer === state.myPeer);
-      const key = `${hearts()}|${me.coins}|${objective()}|${wand ? wand.spell : ''}`;
+      const key = `${hearts()}|${me.coins}|${me.relics.size}|${objective()}|${wand ? wand.spell : ''}`;
       if (key === statusKey) return;
       statusKey = key;
       ui.status.replaceChildren();
-      const h = document.createElement('span'); h.className = 'hearts'; h.textContent = hearts(); h.setAttribute('aria-label', `${me.hp} of ${MAX_HP} hearts`);
-      const c = document.createElement('span'); c.textContent = wand ? SPELLS[wand.spell || 0].name : `${me.coins} coins`;
+      const h = document.createElement('span'); h.className = 'hearts'; h.textContent = hearts(); h.setAttribute('aria-label', `${me.hp} of ${me.maxHp} hearts`);
+      const c = document.createElement('span'); c.textContent = wand ? SPELLS[wand.spell || 0].name : `${me.coins} coins${RELICS.length ? `, relics ${me.relics.size}/${RELICS.length}` : ''}`;
       if (wand) c.style.color = SPELLS[wand.spell || 0].hex;
       const o = document.createElement('span'); o.className = 'obj'; o.textContent = objective();
       ui.status.append(h, c, o);
@@ -1555,7 +1715,7 @@
       if (!wristMesh.visible) return;
       wristMesh.position.set(0, 0.07, 0.03).applyQuaternion(lh.quat).add(lh.pos);
       wristMesh.quaternion.copy(camera.getWorldQuaternion(_wq));
-      const key = `${me.hp}|${me.coins}|${objective()}`;
+      const key = `${me.hp}|${me.maxHp}|${me.coins}|${objective()}`;
       if (key === wristKey) return;
       wristKey = key;
       const g = wrist.g;
@@ -1563,7 +1723,7 @@
       rr(g, 2, 2, 252, 108, 16); g.fillStyle = 'rgba(20,14,24,0.88)'; g.fill();
       g.textBaseline = 'middle'; g.textAlign = 'left';
       g.font = `700 34px ${BODY}`;
-      for (let i = 0; i < MAX_HP; i++) { g.fillStyle = i < me.hp ? '#ff4d6a' : '#5a4a5e'; g.fillText('\u2665', 14 + i * 30, 32); }
+      for (let i = 0; i < me.maxHp; i++) { g.fillStyle = i < me.hp ? '#ff4d6a' : '#5a4a5e'; g.fillText('\u2665', 14 + i * 30, 32); }
       g.textAlign = 'right'; g.fillStyle = '#ffd23f'; g.font = `800 32px ${DISPLAY}`;
       g.fillText(`${me.coins} \u25CF`, 242, 32);
       g.textAlign = 'center'; g.fillStyle = '#ece4f4'; g.font = `400 21px ${BODY}`;
@@ -1572,8 +1732,8 @@
     }
 
     L.rowFor = (st, isMe) => {
-      const coins = isMe ? me.coins : (st.coins || 0), kills = isMe ? me.kills : (st.kills || 0);
-      return { coins, kills, text: `${coins} coins, ${kills} defeated` };
+      const coins = isMe ? me.coins : (st.coins || 0), kills = isMe ? me.kills : (st.kills || 0), relics = isMe ? me.relics.size : (st.relics || 0);
+      return { coins, kills, text: `${coins} coins, ${kills} defeated${relics ? `, ${relics} relic${relics > 1 ? 's' : ''}` : ''}` };
     };
     L.sortRows = (a, b) => (b.coins - a.coins) || (b.kills - a.kills);
     L.drawBoard = (rows) => {

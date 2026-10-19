@@ -8,7 +8,7 @@
     const rand = mulberry32(4114);
     const HL = 6.705, HW = 3.05, NET_H = 0.88, KITCH = 2.13, BR = 0.037;   // half length (x), half width (z)
     const GRAV = 9.8, DRAG = 0.06, WIN = 11, MAG = 0.5;   // MAG: how hard spin bends the ball (Magnus)
-    const SIDE_AIR = 0.3, SIDE_KICK = 1.8;   // sidespin only bends it a little in the air; it mostly shows when it bounces   // drag from a real ball: 26 g, 7.4 cm, holes and all
+    const SIDE_AIR = 0.3, SIDE_KICK = 1.8, TOP_AIR = 0.55;   // spin only bends it a little in the air; it mostly shows when it bounces
     const R = { minX: -11, maxX: 11, minZ: -7, maxZ: 7 };
     L.bounds = R;
     L.env = {
@@ -227,8 +227,8 @@
     // drag, gravity and spin over one small step. Spin (w, at most 1 long) pushes the ball along w x v: topspin dips it,
     // backspin floats it, sidespin curves it. It wears off slowly in the air.
     function airStep(p, h, sp) {
-      const wx = p.wx || 0, wy = p.wy || 0, wz = p.wz || 0, ws = wy * SIDE_AIR;
-      const ax = MAG * (ws * p.vz - wz * p.vy), ay = MAG * (wz * p.vx - wx * p.vz), az = MAG * (wx * p.vy - ws * p.vx);
+      const wx = p.wx || 0, wy = p.wy || 0, wz = p.wz || 0, ws = wy * SIDE_AIR, tx = wx * TOP_AIR, tz = wz * TOP_AIR;
+      const ax = MAG * (ws * p.vz - tz * p.vy), ay = MAG * (tz * p.vx - tx * p.vz), az = MAG * (tx * p.vy - ws * p.vx);
       p.vx += (ax - DRAG * sp * p.vx) * h; p.vy += (ay - GRAV - DRAG * sp * p.vy) * h; p.vz += (az - DRAG * sp * p.vz) * h;
       if (wx || wy || wz) { const f = 1 - 0.12 * h; p.wx = wx * f; p.wy = wy * f; p.wz = wz * f; }
     }
@@ -276,10 +276,22 @@
       }
       return out;
     }
+    // the last check on any shot: lift it until it clears the net, and if that sends it long, take a little pace off
+    function clearNet(from, v) {
+      for (let i = 0; i < 16; i++) {
+        const f = flyTo(from, v);
+        if (f.netY < NET_H + 0.1) { v.vy += 0.25; continue; }
+        if (Math.abs(f.x) > HL - 0.15 && Math.sign(f.x) !== Math.sign(from.x || 1)) { v.vx *= 0.93; v.vz *= 0.93; continue; }
+        break;
+      }
+      return v;
+    }
     function hitBall(side, v) {
       const b = PB.b, s = Math.hypot(v.vx, v.vy, v.vz), k = s > 16 ? 16 / s : 1;
       if (PB.ph === 'serve') PB.serveFromZ = b.z;
-      b.vx = v.vx * k; b.vy = v.vy * k; b.vz = v.vz * k;
+      v = { vx: v.vx * k, vy: v.vy * k, vz: v.vz * k, wx: v.wx, wy: v.wy, wz: v.wz };
+      clearNet(b, v);
+      b.vx = v.vx; b.vy = v.vy; b.vz = v.vz;
       b.wx = v.wx || 0; b.wy = v.wy || 0; b.wz = v.wz || 0;
       onHit(side);
       tone(520, 380, 0.05, 'square', 0.25);
@@ -587,7 +599,7 @@
       if (PB.mySide < 0 && PB.botOn) { PB.bot.x = a[20]; PB.bot.z = a[21]; }
     };
     L.hudActions = [{ label: () => `Shot: ${SPINS[PB.spinMode]} \u25b8`, show: () => PB.mySide >= 0, run: () => cycleSpin() }, { label: () => 'New game', show: () => botSide() >= 0, run: () => { newGame(); showToast(`New game against Dink Daisy. First to ${WIN}, win by 2`); } }];
-    PB.internals = { bounceSpin, airStep, predictLanding, botStep, SPINS, deskHit: (now) => deskHit(now), HL, HW, KITCH, NET_H, paddles, takeSide, leaveCourt, newGame, startServe, onHit, onBounce, stepBall, hitBall, aimed, target, players, botSide, iAmAuth, serveZ };
+    PB.internals = { bounceSpin, airStep, predictLanding, botStep, SPINS, deskHit: (now) => deskHit(now), HL, HW, KITCH, NET_H, paddles, takeSide, leaveCourt, newGame, startServe, onHit, onBounce, stepBall, hitBall, aimed, clearNet, flyTo, target, players, botSide, iAmAuth, serveZ };
     return L;
   })();
 
