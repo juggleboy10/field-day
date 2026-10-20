@@ -165,6 +165,7 @@
     L.update = (dt, now) => {
       const here = state.level === L.idx && state.mode !== 'menu';
       fair.tick(dt);
+      prizes.tick();
       if (!here) { gun.visible = false; return; }
       if (mySlot() !== R.k) standAtBooth();
       R.cool = Math.max(0, R.cool - dt);
@@ -216,9 +217,10 @@
       L.board.tex.needsUpdate = true;
     };
     makeKiosk(L, 6.2, 4.6, -Math.PI * 0.75);
+    const prizes = CARNIVAL.prizeStand(L, 6.2, 1.6, -Math.PI / 2);   // spend your tickets here
     L.hudActions = [{ label: () => (R.ph === 'play' ? 'Restart' : 'Start round'), run: () => startRound() }];
-    L.hints = [['Trigger', 'fire a cork (the first shot starts the round)'], ['Golden ducks', '5 points'], ['Bunnies', 'cost you 3']];
-    L.hintsFor = () => (state.mode === 'flat' ? [['Aim', 'with the crosshair'], ['Click or Space', 'fire a cork'], ['Golden ducks', '5 points; bunnies cost 3']] : L.hints);
+    L.hints = [['Trigger', 'fire a cork (the first shot starts the round)'], ['Golden ducks', '5 points'], ['Bunnies', 'cost you 3'], ['Prize stand', 'on the right: spend your tickets']];
+    L.hintsFor = () => (state.mode === 'flat' ? [['Aim', 'with the crosshair'], ['Click or Space', 'fire a cork'], ['Golden ducks', '5 points; bunnies cost 3'], ['Prize stand', 'on the right: spend your tickets']] : L.hints);
     L.spawn = () => { dolly.position.set(0, 0, 0.45); standAtBooth(); };
     L.onEnter = () => { R.ph = 'idle'; };
     L.onExit = () => { if (ui.status) ui.status.hidden = true; gun.visible = false; R.ph = 'idle'; for (const c of corks) { c.on = false; c.m.visible = false; } };

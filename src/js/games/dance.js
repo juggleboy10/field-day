@@ -221,18 +221,23 @@
     L.throwLabel = () => (D.st === 'play' ? '…' : 'Dance!');
 
     // ---------------------------------------------------------------- per frame
+    // Dot shows each move ahead of time: as soon as one beat's move is done she's already into the next, and holds it
+    // until its beat comes round, so you can watch her and copy (and the sign names it)
+    const poseL = (m) => (m < 0 ? restL : new V3(-MOVES[m].r[0], MOVES[m].r[1], MOVES[m].r[2]));
+    const poseR = (m) => (m < 0 ? restR : new V3(-MOVES[m].l[0], MOVES[m].l[1], MOVES[m].l[2]));
     function poseDot(beat) {
-      // Dot does each move from half a beat before it until the next, and bounces on the beat
-      let cur = null, nxt = null;
-      for (const n of chart) { if (n.b - 0.6 <= beat) cur = n; else { nxt = n; break; } }
+      let ci = chart.findIndex((n) => n.b >= beat - 0.15);
+      const cur = ci >= 0 ? chart[ci] : null, prev = ci > 0 ? chart[ci - 1] : null;
       const bounce = Math.abs(Math.sin(beat * Math.PI)) * 0.06;
       dot.position.y = 0.4 + 1.62 * 1.35 - bounce;
       dot.rotation.z = Math.sin(beat * Math.PI) * 0.06;
-      const k = cur ? clamp((beat - (cur.b - 0.6)) / 0.4, 0, 1) : 0;
-      const tgtL = cur ? new V3(-MOVES[cur.m].r[0], MOVES[cur.m].r[1], MOVES[cur.m].r[2]) : restL, tgtR = cur ? new V3(-MOVES[cur.m].l[0], MOVES[cur.m].l[1], MOVES[cur.m].l[2]) : restR;
-      dotL.position.lerpVectors(restL, tgtL, k); dotR.position.lerpVectors(restR, tgtR, k);
-      void nxt;
-      return cur;
+      const from = prev ? prev.b - 0.15 : (cur ? cur.b - 3 : 0);
+      const k = cur ? clamp((beat - from) / 0.45, 0, 1) : 0;
+      const pm = prev ? prev.m : -1, cm = cur ? cur.m : -1;
+      dotL.position.lerpVectors(poseL(pm), poseL(cm), k); dotR.position.lerpVectors(poseR(pm), poseR(cm), k);
+      // a little dip on the beat she's waiting for
+      if (cur && Math.abs(beat - cur.b) < 0.15) dot.position.y -= 0.05;
+      return cur && beat > cur.b - 3 ? cur : null;
     }
     function drawTrack(beat) {
       const g = trackC.g, W = 1024, Hh = 192, hitX = 140, pxPerBeat = 170;
@@ -262,7 +267,7 @@
         D.aPrev = a;
       }
       const cur = poseDot(beat);
-      const nm = cur && D.st === 'play' ? MOVES[cur.m].name : D.st === 'play' ? 'Get ready…' : '';
+      const nm = cur && D.st === 'play' ? `Next: ${MOVES[cur.m].name}` : D.st === 'play' ? 'Get ready…' : '';
       if (D.st === 'play' && nm !== moveSign.userData.v) { moveSign.userData.v = nm; moveSign.userData.draw(nm); }
       // the floor, the lights, the mirrorball
       if (Math.floor(beat) !== D.lastBeat) { D.lastBeat = Math.floor(beat); drawFloor(beat); }
@@ -311,7 +316,7 @@
       { label: () => (D.st === 'play' ? 'Stop' : 'Dance!'), run: () => { if (D.st === 'play') { D.st = 'idle'; quiet(false); state.hudDirty = true; } else start(); } },
       { label: () => `Song: ${SP().name} ▸`, run: () => { if (D.st === 'play') { showToast('Change songs between dances'); return; } D.si = (D.si + 1) % SONGS.length; state.hudDirty = true; } },
     ];
-    L.hints = [['A / X', 'start dancing'], ['Copy Disco Dot', 'like a mirror'], ['Blue and pink', 'your left and right hands, on the beat']];
+    L.hints = [['A / X', 'start dancing'], ['Copy Disco Dot', 'she shows each move before its beat'], ['Blue and pink', 'your left and right hands, on the beat']];
     L.hintsFor = () => (state.mode === 'flat' ? [['Arrow keys', 'or WASD: the move, on the beat'], ['The pink ring', 'is the beat'], ['Space', 'start']] : L.hints);
     L.spawn = () => { dolly.position.set(0, 0, 0.9); if (state.mode !== 'vr') { state.yaw = 0; state.pitch = -0.05; } };
     L.onEnter = () => { D.st = 'idle'; moveSign.userData.draw(''); moveSign.userData.v = ''; };

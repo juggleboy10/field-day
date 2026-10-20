@@ -50,6 +50,12 @@ def main():
             page.wait_for_timeout(250)
             shot("strongman")
             page.wait_for_timeout(2500)
+            page.evaluate("() => { const fd = window.__fd; fd.dolly.position.set(3.4, 0, 0.7); fd.state.yaw = -Math.PI / 2; fd.state.pitch = -0.1; }")
+            page.wait_for_timeout(1500)
+            shot("prizes")
+            # buy the duck at the stand (there are tickets by now)
+            bought = page.evaluate("() => { const fd = window.__fd, L = fd.LEVELS[43]; const b = L.buttons.find((x) => /Rubber duck/.test(x.label)); const sk = fd.LEVELS[31].skeeSave; sk.owned = sk.owned.filter((x) => x !== 'duck'); sk.tickets = Math.max(sk.tickets, 50); b.onPress(b); return sk.owned.includes('duck'); }")
+            check(bought, "strongman: the prize stand didn't sell the duck")
             sw = page.evaluate("() => window.__fd.LEVELS[43].strongInternals.S.swings")
             check(sw >= 4, f"strongman: a browser swing didn't strike ({sw})")
         # ---- Duck Shooting Gallery
@@ -107,6 +113,25 @@ def main():
             page.wait_for_timeout(3000)
             page.keyboard.press("KeyS")
             shot("whack")
+        # ---- Speed of Light
+        if want("light"):
+            go(47)
+            page.evaluate("() => window.__fd.LEVELS[47].lightInternals.startRound()")
+            page.wait_for_timeout(1200)
+            shot("light")
+            # aim the browser view at the lit button and click, a few times
+            got = 0
+            for _ in range(5):
+                page.evaluate("""() => { const fd = window.__fd, L = fd.LEVELS[47], I = L.lightInternals, S = I.S;
+                  const p = I.panels[S.k].btns[S.lit].p, h = new window.THREE.Vector3(); fd.camera.getWorldPosition(h);
+                  const d = new window.THREE.Vector3().subVectors(p, h); fd.state.yaw = Math.atan2(-d.x, -d.z); fd.state.pitch = Math.atan2(d.y, Math.hypot(d.x, d.z)); }""")
+                page.wait_for_timeout(250)
+                page.evaluate("() => window.__fd.LEVELS[47].deskFire()")
+            ls = page.evaluate("""() => { const L = window.__fd.LEVELS[47], I = L.lightInternals, S = I.S, sk = window.__fd.LEVELS[31].skeeSave; const out = { hits: S.hits };
+              const t0 = sk.tickets; I.endRound(); out.tickets = sk.tickets - t0; out.wrong = I.press(S.lit === 0 ? 1 : 0); return out; }""")
+            print("Speed of Light:", ls)
+            check(ls["hits"] >= 4, f"light: aimed clicks didn't hit {ls}")
+            check(ls["tickets"] == -(-ls["hits"] // 3), f"light: tickets {ls}")
         if errors:
             fails.append("page errors: " + "; ".join(errors[:5]))
         browser.close()

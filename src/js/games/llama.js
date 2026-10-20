@@ -28,11 +28,20 @@
     const FINISH = LAPS * TLEN;
     const idx = (s) => ((Math.floor(s / DS) % N) + N) % N;
     function posAt(s, lat, out) {
-      const i = idx(s), u = clamp(s / DS - Math.floor(s / DS), 0, 1), a = P[i], b = P[(i + 1) % N];
-      out.set(a.x + (b.x - a.x) * u + NR[i].x * lat, 0, a.z + (b.z - a.z) * u + NR[i].z * lat);
+      const i = idx(s), u = clamp(s / DS - Math.floor(s / DS), 0, 1), a = P[i], b = P[(i + 1) % N], na = NR[i], nb = NR[(i + 1) % N];
+      // (the sideways direction is blended too, so nothing off the centre line jumps from one point to the next)
+      const nx = na.x + (nb.x - na.x) * u, nz = na.z + (nb.z - na.z) * u;
+      out.set(a.x + (b.x - a.x) * u + nx * lat, 0, a.z + (b.z - a.z) * u + nz * lat);
       return out;
     }
-    const yawAt = (s) => { const t = T[idx(s)]; return Math.atan2(-t.x, -t.z); };
+    const yawAt = (s) => { const i = idx(s), u = clamp(s / DS - Math.floor(s / DS), 0, 1), a = T[i], b = T[(i + 1) % N]; return Math.atan2(-(a.x + (b.x - a.x) * u), -(a.z + (b.z - a.z) * u)); };
+    // what you ride with: a heading and a height that change smoothly (no bobbing with the gallop), so the view never shakes
+    const RIDE = { yaw: 0, y: 0, on: false };
+    function rideStep(dt, yaw, y) {
+      if (!RIDE.on) { RIDE.yaw = yaw; RIDE.y = y; RIDE.on = true; }
+      let d = yaw - RIDE.yaw; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2;
+      RIDE.yaw += d * Math.min(1, dt * 3); RIDE.y += (y - RIDE.y) * Math.min(1, dt * 4);
+    }
     L.track = { P, TLEN, posAt };
     // grass, the dirt track, fences
     const grassTex = canvasTexture(128, 128, (g) => { g.fillStyle = '#6aa848'; g.fillRect(0, 0, 128, 128); for (let k = 0; k < 400; k++) { g.fillStyle = rand() < 0.5 ? 'rgba(60,120,40,0.5)' : 'rgba(140,190,90,0.5)'; g.fillRect(rand() * 128, rand() * 128, 2, 4); } });
@@ -152,6 +161,7 @@
     const laneLat = (k) => [-2.4, -0.8, 0.8, 2.4][k % 4];
     function racers() { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort(); }
     function toGrid() {
+      RIDE.on = false;
       const k = Math.max(0, racers().indexOf(state.myPeer));
       Object.assign(K, { s: -2, lat: laneLat(k), v: 0, air: 0, airV: 0, steer: 0, done: 0, stumble: 0, carrots: [], boost: 0 });
       const n = racers().length;
@@ -334,12 +344,12 @@
       // VR: you ride on the llama
       if (here && state.mode === 'vr') {
         if (!calibrated) calibrate();
-        const yaw = yawAt(K.s);
-        _seat.set(0, 2.15, 0.05).applyAxisAngle(UP, yaw).add(mine.g.position);
-        const ry = yaw - calib.yaw;
+        rideStep(dt, yawAt(K.s), K.air);
+        posAt(K.s, K.lat, _seat); _seat.add(new V3(0, 0, 0.05).applyAxisAngle(UP, RIDE.yaw));
+        const ry = RIDE.yaw - calib.yaw;
         dolly.rotation.set(0, ry, 0);
         const off = new V3(calib.x, 0, calib.z).applyAxisAngle(UP, ry);
-        dolly.position.set(_seat.x - off.x, _seat.y + 0.75 - calib.y, _seat.z - off.z);
+        dolly.position.set(_seat.x - off.x, 2.15 + RIDE.y + 0.75 - calib.y, _seat.z - off.z);
       }
       // others' llamas
       for (const rec of remotes.values()) {
@@ -361,15 +371,14 @@
     // browser: a chase camera behind the llama
     let chase = null;
     L.flatCamera = (dt) => {
-      const yaw = yawAt(K.s), f = T[idx(K.s)];
-      const want = posAt(K.s - 5.5, K.lat * 0.8, new V3());
-      want.y += 3.2 + K.air * 0.6;
+      rideStep(dt, yawAt(K.s), K.air);
+      const fx = -Math.sin(RIDE.yaw), fz = -Math.cos(RIDE.yaw), me = posAt(K.s, K.lat, new V3());
+      const want = new V3(me.x - fx * 5.5, 3.2 + RIDE.y * 0.6, me.z - fz * 5.5);
       if (!chase || chase.distanceTo(want) > 20) chase = want.clone();
-      chase.lerp(want, Math.min(1, dt * 5));
+      chase.lerp(want, Math.min(1, dt * 4));
       dolly.rotation.set(0, 0, 0); dolly.position.set(chase.x, chase.y - 1.6, chase.z);
       camera.position.set(0, 1.6, 0);
-      camera.lookAt(mine.g.position.x + f.x * 6, 1.6, mine.g.position.z + f.z * 6);
-      void yaw;
+      camera.lookAt(me.x + fx * 6, 1.6, me.z + fz * 6);
       return true;
     };
     L.publishPose = () => {
@@ -407,7 +416,7 @@
     L.hints = [['Shake the reins', 'both hands up and down: faster'], ['Lean', 'steer'], ['A / X', 'start, then jump'], ['Both hands up', 'jump too'], ['B', 'recentre']];
     L.hintsFor = () => (state.mode === 'flat' ? [['Tap Space', 'giddy-up (or click, or W)'], ['A / D', 'steer'], ['J', 'jump the hay bales'], ['Carrots', 'speed; mud slows you']] : L.hints);
     L.clampPlayer = () => [0, 0];
-    L.spawn = () => { toGrid(); chase = null; };
+    L.spawn = () => { toGrid(); chase = null; RIDE.on = false; };
     L.onEnter = () => { RACE.st = 'idle'; toGrid(); calibrated = false; };
     L.onExit = () => { hud.visible = false; dolly.rotation.set(0, 0, 0); dolly.position.y = 0; if (ui.status) ui.status.hidden = true; for (const rec of remotes.values()) if (rec.llama) rec.llama.g.visible = false; };
     L.attract = (now) => { const a = reduceMotion ? 0 : now * 0.00004; const p = posAt((a * 400) % TLEN, 0, new V3()); camera.position.set(p.x + 10, 6, p.z + 12); camera.lookAt(p.x, 1, p.z); };

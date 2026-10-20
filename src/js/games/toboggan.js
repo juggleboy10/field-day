@@ -29,9 +29,20 @@
     L.run = { P, T, NR, N, TLEN, DS, FINISH_S };
     const at_ = (s) => clamp(Math.floor(s / DS), 0, N - 2);
     function posAt(s, lat, out) {
-      const i = at_(s), u = clamp(s / DS - i, 0, 1), a = P[i], b = P[i + 1];
-      out.set(a.x + (b.x - a.x) * u + NR[i].x * lat, a.y + (b.y - a.y) * u, a.z + (b.z - a.z) * u + NR[i].z * lat);
+      const i = at_(s), u = clamp(s / DS - i, 0, 1), a = P[i], b = P[i + 1], na = NR[i], nb = NR[i + 1];
+      // (the sideways direction is blended too, so nothing off the centre line jumps from one point to the next)
+      const nx = na.x + (nb.x - na.x) * u, nz = na.z + (nb.z - na.z) * u;
+      out.set(a.x + (b.x - a.x) * u + nx * lat, a.y + (b.y - a.y) * u, a.z + (b.z - a.z) * u + nz * lat);
       return out;
+    }
+    // the run's heading at s, blended between points
+    function yawAt(s) { const i = at_(s), u = clamp(s / DS - i, 0, 1), a = T[i], b = T[i + 1]; return Math.atan2(-(a.x + (b.x - a.x) * u), -(a.z + (b.z - a.z) * u)); }
+    // what you ride with: a heading and a height that change smoothly, so the view never shakes
+    const RIDE = { yaw: 0, y: 0, on: false };
+    function rideStep(dt, yaw, y) {
+      if (!RIDE.on) { RIDE.yaw = yaw; RIDE.y = y; RIDE.on = true; }
+      let d = yaw - RIDE.yaw; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2;
+      RIDE.yaw += d * Math.min(1, dt * 3); RIDE.y += (y - RIDE.y) * Math.min(1, dt * 5);
     }
     // the snow: a wide ribbon down the mountain, the groomed run in the middle, banks at its edges
     function ribbon(l0, l1, yOff, mat, vScale) {
@@ -139,6 +150,7 @@
     const laneLat = (k) => [-2.7, -0.9, 0.9, 2.7][k % 4];
     function racers() { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort(); }
     function toGrid() {
+      RIDE.on = false;
       const k = Math.max(0, racers().indexOf(state.myPeer));
       Object.assign(K, { s: START_S, lat: laneLat(k), v: 0, air: 0, airV: 0, steer: 0, ice: -1, jump: -1, done: 0 });
       const n = racers().length;
@@ -242,7 +254,7 @@
     let hudKey = '', lastCount = 0;
     function placeSled(g, o) {
       posAt(o.s, o.lat, _p);
-      const i = at_(o.s), yaw = Math.atan2(-T[i].x, -T[i].z);
+      const i = at_(o.s), yaw = yawAt(o.s);
       g.position.set(_p.x, _p.y + 0.04 + o.air, _p.z);
       g.rotation.set(Math.atan(SLOPE[i]) * 0.9 - (o.air > 0 ? o.airV * 0.03 : 0), yaw - (o.steer || 0) * 0.25, -(o.steer || 0) * 0.12, 'YXZ');
     }
@@ -280,12 +292,12 @@
       // VR: you sit on the sled
       if (here && state.mode === 'vr') {
         if (!calibrated) calibrate();
-        const i = at_(K.s), yaw = Math.atan2(-T[i].x, -T[i].z);
-        _seat.set(0, 0.75, 0.25).applyAxisAngle(UP, yaw).add(mySled.position);
-        const ry = yaw - calib.yaw;
+        rideStep(dt, yawAt(K.s), mySled.position.y);
+        _seat.set(0, 0.75, 0.25).applyAxisAngle(UP, RIDE.yaw).add(mySled.position);
+        const ry = RIDE.yaw - calib.yaw;
         dolly.rotation.set(0, ry, 0);
         const off = new V3(calib.x, 0, calib.z).applyAxisAngle(UP, ry);
-        dolly.position.set(_seat.x - off.x, mySled.position.y + 1.1 - calib.y, _seat.z - off.z);
+        dolly.position.set(_seat.x - off.x, RIDE.y + 1.1 - calib.y, _seat.z - off.z);
       }
       // others' sleds
       for (const rec of remotes.values()) {
@@ -305,14 +317,14 @@
     // browser: a chase camera behind the sled
     let chase = null;
     L.flatCamera = (dt) => {
-      const i = at_(K.s), f = T[i];
-      const want = posAt(Math.max(0, K.s - 6.5), K.lat * 0.8, new V3());
-      want.y += 3.1 + K.air;
+      rideStep(dt, yawAt(K.s), mySled.position.y);
+      const fx = -Math.sin(RIDE.yaw), fz = -Math.cos(RIDE.yaw);
+      const want = new V3(mySled.position.x - fx * 6.5, RIDE.y + 3.1, mySled.position.z - fz * 6.5);
       if (!chase || chase.distanceTo(want) > 20) chase = want.clone();
-      chase.lerp(want, Math.min(1, dt * 6));
+      chase.lerp(want, Math.min(1, dt * 4));
       dolly.rotation.set(0, 0, 0); dolly.position.set(chase.x, chase.y - 1.6, chase.z);
       camera.position.set(0, 1.6, 0);
-      camera.lookAt(mySled.position.x + f.x * 6, mySled.position.y + 0.6, mySled.position.z + f.z * 6);
+      camera.lookAt(mySled.position.x + fx * 6, RIDE.y + 0.6, mySled.position.z + fz * 6);
       return true;
     };
     L.publishPose = () => {
@@ -349,8 +361,8 @@
     L.hints = [['Lean', 'steer'], ['Crouch', 'tuck for speed'], ['Trigger', 'brake'], ['A', 'start a race'], ['B', 'recentre']];
     L.hintsFor = () => (state.mode === 'flat' ? [['A / D', 'steer'], ['W', 'tuck (faster)'], ['S', 'brake'], ['Start race', 'top right']] : L.hints);
     L.clampPlayer = () => [0, 0];
-    L.spawn = () => { toGrid(); chase = null; };
-    L.onEnter = () => { RACE.st = 'idle'; toGrid(); calibrated = false; };
+    L.spawn = () => { toGrid(); chase = null; RIDE.on = false; };
+    L.onEnter = () => { RACE.st = 'idle'; toGrid(); calibrated = false; RIDE.on = false; };
     L.onExit = () => { hud.visible = false; dolly.rotation.set(0, 0, 0); dolly.position.y = 0; if (ui.status) ui.status.hidden = true; for (const rec of remotes.values()) if (rec.sled) rec.sled.visible = false; };
     L.attract = (now) => { const a = reduceMotion ? 0 : now * 0.00004; const p = posAt(60 + (a * 400) % 200, 0, new V3()); camera.position.set(p.x + 12, p.y + 8, p.z + 14); camera.lookAt(p); };
     L.sledInternals = { K, RACE, BOTS, sledStep, botDrive, startRace, toGrid, standings, posAt, SNOWMEN, ICE, JUMPS, FINISH_S, START_S };

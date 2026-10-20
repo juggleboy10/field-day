@@ -250,7 +250,7 @@ kbd {
 
 <section id="panel" class="panel" aria-labelledby="title">
   <h1 id="title">Field Day</h1>
-  <p class="lede">A clubhouse and forty-six games to play with friends, in VR or right here in the browser. Everyone who has this page open can join you.</p>
+  <p class="lede">A clubhouse and forty-seven games to play with friends, in VR or right here in the browser. Everyone who has this page open can join you.</p>
   <p id="net" class="net" data-state="connecting"><span class="dot" aria-hidden="true"></span><span id="net-text">Looking for other players…</span></p>
   <fieldset class="levels">
     <legend class="field-label">Pick a game</legend>
@@ -1209,8 +1209,9 @@ kbd {
     { id: 'duckshoot', name: 'Duck Shooting Gallery', short: 'Duck Shoot', glyph: '\u{1F986}', blurb: 'Pop the tin ducks with a cork gun in 40 seconds: golden ducks are worth 5, but leave the bunnies alone.' },
     { id: 'ringtoss', name: 'Ring Toss', short: 'Ring Toss', glyph: '\u{1F37E}', blurb: 'Ten rings, a table of bottles: drop a ring over a neck for tickets. Red bottles pay double, the gold one big.' },
     { id: 'whack', name: 'Whack-a-Mole', short: 'Whack', glyph: '\u{1F528}', blurb: 'Nine holes, 45 seconds, moles popping up faster and faster. Golden moles are worth 3. A mallet in each hand.' },
+    { id: 'lightspeed', name: 'Speed of Light', short: 'Lightspeed', glyph: '\u{1F4A1}', blurb: 'Thirty buttons on a wall: hit each one the moment it lights up. How many in 30 seconds?' },
   ];
-  const KIOSK_COLORS = [0xf5821f, 0xe8e4d8, 0x8bd450, 0xb388ff, 0xff4d6a, 0x2ec4b6, 0x3fbf7f, 0xff9ad0, 0xffd27a, 0x4fc3f7, 0x4a8aff, 0xb06aff, 0xffb36b, 0xff9ad0, 0x8bd450, 0xd8f43a, 0xff7a3a, 0xe5453a, 0xe8a040, 0x2ec4d8, 0xf2c14e, 0xd84a3a, 0x2a8ab8, 0x9a6aff, 0x6ad04a, 0xff3aa8, 0xffd23f, 0xff9a5c, 0x4fc3f7, 0x8a5a2a, 0x9af0ff, 0xff4d8a, 0xff9ad0, 0xe5453a, 0xb8e0ff, 0x7ad8ff, 0xd8b060, 0xffd23f, 0xff5a8a, 0x9a7ad8, 0xe8c860, 0xff4d8a, 0xff4dc8, 0xe5453a, 0xffd23f, 0x4a7ad8, 0x8bd450];
+  const KIOSK_COLORS = [0xf5821f, 0xe8e4d8, 0x8bd450, 0xb388ff, 0xff4d6a, 0x2ec4b6, 0x3fbf7f, 0xff9ad0, 0xffd27a, 0x4fc3f7, 0x4a8aff, 0xb06aff, 0xffb36b, 0xff9ad0, 0x8bd450, 0xd8f43a, 0xff7a3a, 0xe5453a, 0xe8a040, 0x2ec4d8, 0xf2c14e, 0xd84a3a, 0x2a8ab8, 0x9a6aff, 0x6ad04a, 0xff3aa8, 0xffd23f, 0xff9a5c, 0x4fc3f7, 0x8a5a2a, 0x9af0ff, 0xff4d8a, 0xff9ad0, 0xe5453a, 0xb8e0ff, 0x7ad8ff, 0xd8b060, 0xffd23f, 0xff5a8a, 0x9a7ad8, 0xe8c860, 0xff4d8a, 0xff4dc8, 0xe5453a, 0xffd23f, 0x4a7ad8, 0x8bd450, 0x4fc3f7];
   const LEVEL_CATS = [
     { id: 'ball', name: 'Ball sports', glyph: '\u26BD', games: [0, 1, 5, 15, 29, 37] },
     { id: 'battle', name: 'Team battles', glyph: '\u{1F3AF}', games: [14, 4, 17, 21, 34, 38] },
@@ -1219,9 +1220,9 @@ kbd {
     { id: 'race', name: 'Racing and parkour', glyph: '\u{1F3C1}', games: [9, 16, 19, 24, 35, 40] },
     { id: 'party', name: 'Party games', glyph: '\u{1F389}', games: [13, 12, 18, 23, 32, 41] },
     { id: 'active', name: 'Get active', glyph: '\u{1F4AA}', games: [25, 27, 28, 33, 42] },
-    { id: 'carnival', name: 'Carnival', glyph: '\u{1F3A1}', games: [31, 26, 43, 44, 45, 46] },
+    { id: 'carnival', name: 'Carnival', glyph: '\u{1F3A1}', games: [31, 26, 43, 44, 45, 46, 47] },
   ];
-  const PICKER_ORDER = [8, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 3, 10, 11, 0, 1, 2, 4, 5, 6, 7, 9];
+  const PICKER_ORDER = [8, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 3, 10, 11, 0, 1, 2, 4, 5, 6, 7, 9];
   function makeKiosk(L, x, z, yaw) {
     const fx = Math.sin(yaw), fz = Math.cos(yaw);   // direction the kiosk faces
     const rx = Math.cos(yaw), rz = -Math.sin(yaw);  // its right-hand side
@@ -24291,9 +24292,9 @@ kbd {
         d.m.material.color.setHex(color); d.m.material.opacity = 1;
         d.m.position.copy(pos); d.m.position.x += px * sgn * 0.05; d.m.position.y += py * sgn * 0.05;
         d.m.rotation.set(0, 0, rot + (sgn < 0 ? Math.PI : 0));
-        d.v.set(px * sgn * 1.6 + dirX * 1.2, py * sgn * 1.6 + dirY * 1.2 + 0.6, 2.5);
+        d.v.set(px * sgn * 2.2 + dirX * 1.2, py * sgn * 2.2 + dirY * 1.2 + 0.4, -0.6);   // apart and away from you, not into your face
         d.w.set((rand() - 0.5) * 8, (rand() - 0.5) * 8, (rand() - 0.5) * 8);
-        d.t = 0.7; d.m.visible = true;
+        d.t = 0.45; d.m.visible = true;
       }
     }
 
@@ -24479,7 +24480,8 @@ kbd {
         const n = o.n;
         blockPos(n, now, o.m.position);
         const age = D.look - (n.t - now);
-        o.m.scale.setScalar(clamp(age / 0.25, 0.2, 1));
+        // grows in as it arrives, and shrinks away once it's past where you cut (so it never fills your view)
+        o.m.scale.setScalar(clamp(age / 0.25, 0.2, 1) * clamp(1 - (o.m.position.z - (HZ + 0.12)) / 0.4, 0, 1));
         // slicing (only once it's near you)
         if (Math.abs(o.m.position.z - HZ) < 0.9) {
           for (const side of state.mode === 'vr' ? ['left', 'right'] : ['flat']) {
@@ -24510,7 +24512,7 @@ kbd {
         // gone past you
         if (o.n && o.m.position.z > HZ + 0.7) {
           o.n = null; o.m.visible = false;
-          addMiss('miss'); spawnFloat('Miss', new V3(BB.laneX + COLS[n.col], ROWS[n.row] + 0.2, HZ + 0.3), '#ffffff');
+          addMiss('miss'); spawnFloat('Miss', new V3(BB.laneX + COLS[n.col], ROWS[n.row] + 0.35, HZ - 1.2), '#ffffff');
           if (BB.st !== 'play') return;
         }
       }
@@ -24519,6 +24521,7 @@ kbd {
         const n = o.n;
         blockPos(n, now, o.m.position);
         o.m.rotation.x += dt * 2; o.m.rotation.y += dt * 3;
+        o.m.scale.setScalar(clamp(1 - (o.m.position.z - (HZ + 0.12)) / 0.4, 0.001, 1));   // and bombs shrink away past you too
         if (Math.abs(o.m.position.z - HZ) < 0.9) {
           for (const side of state.mode === 'vr' ? ['left', 'right'] : ['flat']) {
             const hit = sweepHit(blade[side], o.m.position, 0.22, dt);
@@ -24654,7 +24657,7 @@ kbd {
         d.t -= dt; d.v.y -= 6 * dt;
         d.m.position.addScaledVector(d.v, dt);
         d.m.rotation.x += d.w.x * dt; d.m.rotation.y += d.w.y * dt; d.m.rotation.z += d.w.z * dt;
-        d.m.material.opacity = clamp(d.t / 0.4, 0, 1);
+        d.m.material.opacity = clamp(d.t / 0.45, 0, 1) * 0.8; d.m.scale.setScalar(0.4 + 0.6 * clamp(d.t / 0.45, 0, 1));
         if (d.t <= 0) d.m.visible = false;
       }
       BB.fx = Math.max(0, BB.fx - dt * 3);
@@ -26321,9 +26324,9 @@ kbd {
       if (!r) {
         // nobody there: throw it where you look (throwing it away is fine)
         camera.getWorldQuaternion(_q); _f.set(0, 0, -1).applyQuaternion(_q);
-        release(_f.clone().multiplyScalar(14 + c * 8).add(new V3(0, 3, 0)), from); return;
+        release(_f.clone().multiplyScalar(16 + c * 6).add(new V3(0, 1.5, 0)), from); return;
       }
-      const vh = 24 - c * 11, pr = pressure();
+      const vh = 26 - c * 8, pr = pressure();
       const p = passTo(r, from, vh);
       const err = 0.012 + pr * 0.1 + p.T * 0.008;
       p.v.x += (rand() - 0.5) * 2 * err * vh; p.v.z += (rand() - 0.5) * err * vh; p.v.y += (rand() - 0.5) * err * 6;
@@ -26351,21 +26354,25 @@ kbd {
     };
     L.onVRRelease = (h, vel) => {
       if (S.held !== h.side) return;
-      const v = vel.clone().multiplyScalar(1.9);
+      const v = vel.clone().multiplyScalar(1.6);
+      // line drives: keep it from sailing up into the sky, and cap the speed
+      const vh0 = Math.hypot(v.x, v.z);
+      if (v.y > vh0 * 0.32 + 1) v.y = vh0 * 0.32 + 1;
+      if (v.length() > 27) v.multiplyScalar(27 / v.length());
       if (v.length() < 4 || S.phase === 'run') { S.held = null; return; }   // just let go (or past the line): it stays by you
       const from = S.bp.clone();
       // which receiver did you mean? Fly the throw, and see who's near where it comes down
       let best = null, bd = 1e9;
       for (const r of REC) {
         const vh = Math.hypot(v.x, v.z) || 1;
-        const p = passTo(r, from, clamp(vh, 9, 28));
+        const p = passTo(r, from, clamp(vh, 16, 28));
         const T = p.T, lx = from.x + v.x * T, lz = from.z + v.z * T;
         const d = Math.hypot(lx - p.at[0], lz - p.at[1]);
         if (d < bd) { bd = d; best = { r, p, vh }; }
       }
       if (best && bd < 5 + best.p.T * 2.5) {
         // a little help: most of the way to a perfect pass, with a touch of pressure error
-        const k = 0.7, pr = pressure();
+        const k = 0.8, pr = pressure();
         v.multiplyScalar(1 - k).addScaledVector(best.p.v, k);
         v.x += (rand() - 0.5) * pr * 2; v.y += (rand() - 0.5) * pr;
         S.target = best.r;
@@ -26877,7 +26884,7 @@ kbd {
         : MP.role === 2 ? [['Your man', 'stay with him'], [state.mode === 'flat' ? 'WASD + Shift' : 'Stick', 'run'], ['The ball', state.mode === 'vr' ? 'get a hand on it: knock it down or pick it off' : 'get in its path'], ['Tackle', 'reach the ball carrier']]
           : [['Sideline', 'you\u2019re watching'], ['You: Watching', 'switch to receiver or defense']])
       : state.mode === 'flat'
-      ? [['Space', S.phase === 'live' ? 'hold and let go to throw (tap = bullet, hold = lob)' : 'hike'], ['Look', 'aim at a receiver'], ['1-5', 'pick a play'], ['WASD', 'move; cross the line to run (Shift sprints)'], ['K / T / G', 'spike, timeout, field goal']]
+      ? [['Space', S.phase === 'live' ? 'hold and let go to throw (tap = bullet, hold = a softer touch)' : 'hike'], ['Look', 'aim at a receiver'], ['1-5', 'pick a play'], ['WASD', 'move; cross the line to run (Shift sprints)'], ['K / T / G', 'spike, timeout, field goal']]
       : [['A / X', 'hike'], ['Grip', 'take the ball, then throw it'], ['Stick', 'cross the line to run it'], ['Call sheet', 'buttons on your left']]);
     L.hints = L.hintsFor();
     L.spawn = () => { standQB(); };
@@ -27060,6 +27067,33 @@ kbd {
       forcePresence(); state.dirtyBoard = true;
     }
     L.skeeSave = SAVE;
+    // a smaller prize stand for the other carnival games (TL), facing yaw: the same prizes, the same tickets
+    L.makePrizeStand = (TL, x, z, yaw) => {
+      const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = yaw; TL.group.add(g);
+      const fx = Math.sin(yaw), fz = Math.cos(yaw), rx = Math.cos(yaw), rz = -Math.sin(yaw);
+      g.add(at(new THREE.Mesh(boxg(2.6, 1.0, 0.6), lam(0x4a2a6a)), 0, 0.5, 0), at(new THREE.Mesh(boxg(2.6, 1.6, 0.12), lam(0x3a2a5a)), 0, 1.8, -0.35));
+      const sign = makePlate(g, 'PRIZES', 1.6, 0.32, new V3(0, 2.85, -0.28), 0, { bg: '#ff4d8a', fg: '#ffffff', size: 0.62 }); void sign;
+      const tc = canvasTexture(512, 128);
+      const tb = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.35), new THREE.MeshBasicMaterial({ map: tc.tex })); tb.position.set(0, 2.4, -0.28); g.add(tb);
+      const meshes = PRIZES.map((p, i) => { const m = p.make(); m.position.set(-1.0 + i * 0.5, 1.04, -0.12); m.scale.setScalar(1.2); g.add(m); return m; });
+      PRIZES.forEach((p, i) => {
+        const lx = -1.0 + i * 0.5, lz = 0.36;
+        makeButton(TL, new V3(x + rx * lx + fx * lz, 1.05, z + rz * lx + fz * lz), 0xffd23f, `${p.name}: ${p.cost}`, () => buyPrize(p), { faceYaw: yaw, pedestal: false });
+      });
+      let key = '';
+      return {
+        tick() {
+          const k = `${SAVE.tickets}|${SAVE.owned.join()}`;
+          if (k === key) return; key = k;
+          const c = tc.g;
+          c.fillStyle = '#14142a'; c.fillRect(0, 0, 512, 128);
+          c.fillStyle = '#ffd23f'; c.font = `900 56px ${DISPLAY}`; c.textAlign = 'center'; c.textBaseline = 'middle';
+          c.fillText(`\u{1F39F}\uFE0F ${SAVE.tickets} tickets`, 256, 64);
+          tc.tex.needsUpdate = true;
+          PRIZES.forEach((p, i) => meshes[i].traverse((o) => { if (o.material) { o.material.transparent = true; o.material.opacity = SAVE.owned.includes(p.id) ? 1 : 0.35; } }));
+        },
+      };
+    };
     // every carnival game pays out in these same tickets, spent at this prize counter
     L.addTickets = (n, at) => {
       if (!(n > 0)) return;
@@ -28368,9 +28402,20 @@ kbd {
     L.run = { P, T, NR, N, TLEN, DS, FINISH_S };
     const at_ = (s) => clamp(Math.floor(s / DS), 0, N - 2);
     function posAt(s, lat, out) {
-      const i = at_(s), u = clamp(s / DS - i, 0, 1), a = P[i], b = P[i + 1];
-      out.set(a.x + (b.x - a.x) * u + NR[i].x * lat, a.y + (b.y - a.y) * u, a.z + (b.z - a.z) * u + NR[i].z * lat);
+      const i = at_(s), u = clamp(s / DS - i, 0, 1), a = P[i], b = P[i + 1], na = NR[i], nb = NR[i + 1];
+      // (the sideways direction is blended too, so nothing off the centre line jumps from one point to the next)
+      const nx = na.x + (nb.x - na.x) * u, nz = na.z + (nb.z - na.z) * u;
+      out.set(a.x + (b.x - a.x) * u + nx * lat, a.y + (b.y - a.y) * u, a.z + (b.z - a.z) * u + nz * lat);
       return out;
+    }
+    // the run's heading at s, blended between points
+    function yawAt(s) { const i = at_(s), u = clamp(s / DS - i, 0, 1), a = T[i], b = T[i + 1]; return Math.atan2(-(a.x + (b.x - a.x) * u), -(a.z + (b.z - a.z) * u)); }
+    // what you ride with: a heading and a height that change smoothly, so the view never shakes
+    const RIDE = { yaw: 0, y: 0, on: false };
+    function rideStep(dt, yaw, y) {
+      if (!RIDE.on) { RIDE.yaw = yaw; RIDE.y = y; RIDE.on = true; }
+      let d = yaw - RIDE.yaw; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2;
+      RIDE.yaw += d * Math.min(1, dt * 3); RIDE.y += (y - RIDE.y) * Math.min(1, dt * 5);
     }
     // the snow: a wide ribbon down the mountain, the groomed run in the middle, banks at its edges
     function ribbon(l0, l1, yOff, mat, vScale) {
@@ -28478,6 +28523,7 @@ kbd {
     const laneLat = (k) => [-2.7, -0.9, 0.9, 2.7][k % 4];
     function racers() { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort(); }
     function toGrid() {
+      RIDE.on = false;
       const k = Math.max(0, racers().indexOf(state.myPeer));
       Object.assign(K, { s: START_S, lat: laneLat(k), v: 0, air: 0, airV: 0, steer: 0, ice: -1, jump: -1, done: 0 });
       const n = racers().length;
@@ -28581,7 +28627,7 @@ kbd {
     let hudKey = '', lastCount = 0;
     function placeSled(g, o) {
       posAt(o.s, o.lat, _p);
-      const i = at_(o.s), yaw = Math.atan2(-T[i].x, -T[i].z);
+      const i = at_(o.s), yaw = yawAt(o.s);
       g.position.set(_p.x, _p.y + 0.04 + o.air, _p.z);
       g.rotation.set(Math.atan(SLOPE[i]) * 0.9 - (o.air > 0 ? o.airV * 0.03 : 0), yaw - (o.steer || 0) * 0.25, -(o.steer || 0) * 0.12, 'YXZ');
     }
@@ -28619,12 +28665,12 @@ kbd {
       // VR: you sit on the sled
       if (here && state.mode === 'vr') {
         if (!calibrated) calibrate();
-        const i = at_(K.s), yaw = Math.atan2(-T[i].x, -T[i].z);
-        _seat.set(0, 0.75, 0.25).applyAxisAngle(UP, yaw).add(mySled.position);
-        const ry = yaw - calib.yaw;
+        rideStep(dt, yawAt(K.s), mySled.position.y);
+        _seat.set(0, 0.75, 0.25).applyAxisAngle(UP, RIDE.yaw).add(mySled.position);
+        const ry = RIDE.yaw - calib.yaw;
         dolly.rotation.set(0, ry, 0);
         const off = new V3(calib.x, 0, calib.z).applyAxisAngle(UP, ry);
-        dolly.position.set(_seat.x - off.x, mySled.position.y + 1.1 - calib.y, _seat.z - off.z);
+        dolly.position.set(_seat.x - off.x, RIDE.y + 1.1 - calib.y, _seat.z - off.z);
       }
       // others' sleds
       for (const rec of remotes.values()) {
@@ -28644,14 +28690,14 @@ kbd {
     // browser: a chase camera behind the sled
     let chase = null;
     L.flatCamera = (dt) => {
-      const i = at_(K.s), f = T[i];
-      const want = posAt(Math.max(0, K.s - 6.5), K.lat * 0.8, new V3());
-      want.y += 3.1 + K.air;
+      rideStep(dt, yawAt(K.s), mySled.position.y);
+      const fx = -Math.sin(RIDE.yaw), fz = -Math.cos(RIDE.yaw);
+      const want = new V3(mySled.position.x - fx * 6.5, RIDE.y + 3.1, mySled.position.z - fz * 6.5);
       if (!chase || chase.distanceTo(want) > 20) chase = want.clone();
-      chase.lerp(want, Math.min(1, dt * 6));
+      chase.lerp(want, Math.min(1, dt * 4));
       dolly.rotation.set(0, 0, 0); dolly.position.set(chase.x, chase.y - 1.6, chase.z);
       camera.position.set(0, 1.6, 0);
-      camera.lookAt(mySled.position.x + f.x * 6, mySled.position.y + 0.6, mySled.position.z + f.z * 6);
+      camera.lookAt(mySled.position.x + fx * 6, RIDE.y + 0.6, mySled.position.z + fz * 6);
       return true;
     };
     L.publishPose = () => {
@@ -28688,8 +28734,8 @@ kbd {
     L.hints = [['Lean', 'steer'], ['Crouch', 'tuck for speed'], ['Trigger', 'brake'], ['A', 'start a race'], ['B', 'recentre']];
     L.hintsFor = () => (state.mode === 'flat' ? [['A / D', 'steer'], ['W', 'tuck (faster)'], ['S', 'brake'], ['Start race', 'top right']] : L.hints);
     L.clampPlayer = () => [0, 0];
-    L.spawn = () => { toGrid(); chase = null; };
-    L.onEnter = () => { RACE.st = 'idle'; toGrid(); calibrated = false; };
+    L.spawn = () => { toGrid(); chase = null; RIDE.on = false; };
+    L.onEnter = () => { RACE.st = 'idle'; toGrid(); calibrated = false; RIDE.on = false; };
     L.onExit = () => { hud.visible = false; dolly.rotation.set(0, 0, 0); dolly.position.y = 0; if (ui.status) ui.status.hidden = true; for (const rec of remotes.values()) if (rec.sled) rec.sled.visible = false; };
     L.attract = (now) => { const a = reduceMotion ? 0 : now * 0.00004; const p = posAt(60 + (a * 400) % 200, 0, new V3()); camera.position.set(p.x + 12, p.y + 8, p.z + 14); camera.lookAt(p); };
     L.sledInternals = { K, RACE, BOTS, sledStep, botDrive, startRace, toGrid, standings, posAt, SNOWMEN, ICE, JUMPS, FINISH_S, START_S };
@@ -29003,6 +29049,8 @@ kbd {
       if (v.length() < 1.2 || v.z > -0.5) { myDarts[S.thrown].visible = false; return; }   // put it down
       // a touch of help: trim the sideways wobble of a real throw
       v.x *= 0.85;
+      // and a touch more carry (throws measured from the controller come out a little short)
+      v.multiplyScalar(1.08); v.y += 0.45;
       launch(0, myHands[h.side].pos.clone(), v);
     };
 
@@ -29109,6 +29157,7 @@ kbd {
     L.bounds = { minX: -12, maxX: 12, minZ: -7, maxZ: 7 };
     L.walkSpeed = 4;
     L.canHop = true;
+    L.vrHop = true;   // A or X (or the right stick up) jumps in VR, J in a browser: jump at the net to block a spike
     L.env = {
       sky: skyTexture([[0, '#3a8ae0'], [0.55, '#8ac8f4'], [1, '#fff0d0']]),
       bg: 0x8ac8f4, fog: [0xbfe0f4, 50, 160], hemi: [0xffffff, 0xd8b880, 0.8],
@@ -29250,7 +29299,7 @@ kbd {
     L.overNet = overNet;
     // a spot in the court of the given team
     const inCourt = (team, x, z, m) => new V3(sgn(team) * clamp(Math.abs(x), 1.2, HX - (m || 0.5)), BR, clamp(z, -HZ + (m || 0.5), HZ - (m || 0.5)));
-    // shot kinds: 0 serve, 1 pass, 2 set, 3 spike, 4 free ball (over the net, soft)
+    // shot kinds: 0 serve, 1 pass, 2 set, 3 spike, 4 free ball (over the net, soft), 5 block (straight back down on their side)
     function shotVel(slot, kind, from, aim) {
       const t = teamOf(slot), s = sgn(t), o = 1 - t;
       if (kind === 1) { // pass to the setter's spot by the net
@@ -29260,6 +29309,7 @@ kbd {
         const hz = from.z > 0 ? -1.8 : 1.8;
         return lob(from, new V3(s * 1.1, 2.6, hz), Math.max(4.2, from.y + 1.4));
       }
+      if (kind === 5) return overNet(from, flat(from, inCourt(o, 1.4 + rand() * 1.8, from.z + (rand() - 0.5) * 1.5, 0.4), 9));
       const to = aim || inCourt(o, 5 + rand() * 2, (rand() - 0.5) * 6);
       if (kind === 3) return overNet(from, flat(from, to, 13));
       if (kind === 0) return overNet(from, lob(from, to, 4.6));
@@ -29270,6 +29320,7 @@ kbd {
     function applyHit(slot, p, v, kind) {
       const t = teamOf(slot);
       if (V.ph === 'serve') { if (slot !== V.server) return; V.ph = 'rally'; V.lastTeam = t; V.touches = 3; V.lastSlot = slot; }
+      else if (kind === 5) { if (V.ph !== 'rally') return; V.lastTeam = t; V.touches = 3; V.lastSlot = slot; }   // a block isn't one of the three touches
       else {
         if (V.ph !== 'rally') return;
         if (V.lastTeam !== t) { V.touches = 1; V.lastTeam = t; } else V.touches += 1;
@@ -29277,7 +29328,8 @@ kbd {
         V.lastSlot = slot;
       }
       V.p.copy(p); V.v.copy(v); V.cool[slot] = 0.45; V.hitN = (V.hitN || 0) + 1; V.sinceHit = 0;
-      V.spin = (rand() - 0.5) * 20;
+      V.spin = (rand() - 0.5) * 20; V.lastKind = kind;
+      if (kind === 5) { sfx('slam', 0.9); spawnFloat('BLOCKED!', p.clone().add(new V3(0, 0.5, 0)), '#4fc3f7'); forcePresence(); return; }
       const loud = kind === 3 ? 1 : 0.6;
       sfx(kind === 3 ? 'slam' : 'ball', loud); tone(kind === 3 ? 160 : 260, 120, 0.06, 'square', 0.12);
       if (kind === 3) spawnFloat('SPIKE!', p.clone().add(new V3(0, 0.4, 0)), '#ffd23f');
@@ -29360,12 +29412,18 @@ kbd {
           else if (V.ph === 'serve' || V.ph === 'dead' || V.ph === 'idle' || V.ph === 'over') { tx = s * 4.2; tz = sl % 2 ? 2 : -2; }
           else if (sl === chaser) { tx = land.x - s * 0.25; tz = land.z; }
           else if (side === t) { const next = V.lastTeam === t ? V.touches + 1 : 1; if (next === 1) { tx = s * 1.6; tz = 0; } else { tx = s * 3.2; tz = V.p.z > 0 ? -1.8 : 1.8; } }
+          else if (V.ph === 'rally' && V.lastTeam === 1 - t && V.touches >= 2 && sl === s0) { tx = s * 0.9; tz = clamp(V.p.z, -3, 3); }   // up to the net to block
           else { tx = s * 4.5; tz = sl % 2 ? 2.2 : -2.2; }
           tx = clamp(tx, s < 0 ? -HX - 1 : 0.4, s < 0 ? -0.4 : HX + 1); tz = clamp(tz, -HZ - 1, HZ + 1);
           const dx = tx - b.x, dz = tz - b.z, d = Math.hypot(dx, dz), step = (V.ph === 'rally' && V.sinceHit < lv.react && V.lastTeam !== t) ? 0 : Math.min(d, lv.speed * dt);
           if (d > 0.01) { b.x += dx / d * step; b.z += dz / d * step; }
           // play the ball when it's in reach
           V.cool[sl] = Math.max(0, V.cool[sl] - dt);
+          // a bot up at the net now and then blocks a spike
+          if (V.ph === 'rally' && V.lastKind === 3 && V.lastTeam === 1 - t && Math.abs(V.p.x) < 0.8 && V.v.x * s > 0 && Math.abs(b.x) < 2.2 && Math.abs(V.p.z - b.z) < 1.0 && b.blockN !== V.hitN) {
+            b.blockN = V.hitN;
+            if (rand() < 0.22) { b.jump = 0.5; const from = V.p.clone(); from.x = s * 0.25; from.y = Math.max(from.y, NET_H + 0.25); applyHit(sl, from, shotVel(sl, 5, from, null), 5); continue; }
+          }
           if (V.ph !== 'rally' || V.cool[sl] > 0) continue;
           const onMySide = Math.sign(V.p.x) === s || Math.abs(V.p.x) < 0.3;
           const hd = Math.hypot(V.p.x - b.x, V.p.z - b.z), nearNet = Math.abs(V.p.x) < 3.2;
@@ -29453,6 +29511,13 @@ kbd {
         return;
       }
       if (V.ph !== 'rally') return;
+      // a block: their spike coming over the net, and my hands up in its way
+      if (V.lastTeam === 1 - t && V.lastKind === 3 && Math.abs(V.p.x) < 1.4 && V.v.x * s > 0) {
+        let blocked = false;
+        if (state.mode === 'vr') { for (const sd of SIDES) { const h = myHands[sd]; if (h.ok && h.pos.distanceTo(V.p) < BR + 0.2) blocked = true; } }
+        else { const hd = Math.hypot(V.p.x - myHead.pos.x, V.p.z - myHead.pos.z); if (Math.abs(myHead.pos.x) < 1.4 && hd < 0.85 && V.p.y > myHead.pos.y + 0.05 && V.p.y < myHead.pos.y + 0.75) blocked = true; }
+        if (blocked) { const b = V.p.clone(); b.x = s * 0.25; b.y = Math.max(b.y, NET_H + 0.25); V.p.copy(b); myTouch(5, null); return; }
+      }
       const onMySide = Math.sign(V.p.x) === s || Math.abs(V.p.x) < 0.4;
       if (!onMySide) return;
       if (state.mode === 'vr') {
@@ -29496,7 +29561,7 @@ kbd {
     const PH = ['idle', 'serve', 'rally', 'dead', 'over'];
     const r2 = (x) => Math.round(x * 100) / 100;
     function snapshot() {
-      return { g: V.g, ph: PH.indexOf(V.ph), b: [V.p.x, V.p.y, V.p.z, V.v.x, V.v.y, V.v.z].map(r2), s: V.score.slice(), sv: V.server, t: V.touches, lt: V.lastTeam, ls: V.lastSlot, pl: P.flatMap((p) => [r2(p.x), r2(p.z)]), h: V.people.slice(), m: [V.msgSeq, V.msg], w: V.winner, lv: V.lv };
+      return { g: V.g, ph: PH.indexOf(V.ph), b: [V.p.x, V.p.y, V.p.z, V.v.x, V.v.y, V.v.z].map(r2), s: V.score.slice(), sv: V.server, t: V.touches, lt: V.lastTeam, ls: V.lastSlot, pl: P.flatMap((p) => [r2(p.x), r2(p.z)]), h: V.people.slice(), m: [V.msgSeq, V.msg], w: V.winner, lv: V.lv, lk: V.lastKind === undefined ? -1 : V.lastKind };
     }
     const fin = (x, m) => typeof x === 'number' && Number.isFinite(x) && Math.abs(x) < m;
     function validSnap(q) {
@@ -29508,7 +29573,7 @@ kbd {
     }
     let seenMsg = -1, lastSnapB = '';
     function applySnap(q) {
-      V.g = q.g; V.ph = PH[q.ph]; V.score = q.s.slice(); V.server = q.sv; V.touches = q.t; V.lastTeam = q.lt; V.lastSlot = q.ls; V.people = q.h.slice(); V.winner = q.w; V.lv = q.lv;
+      V.g = q.g; V.ph = PH[q.ph]; V.score = q.s.slice(); V.server = q.sv; V.touches = q.t; V.lastTeam = q.lt; V.lastSlot = q.ls; V.people = q.h.slice(); V.winner = q.w; V.lv = q.lv; if (Number.isInteger(q.lk)) V.lastKind = q.lk;
       for (let s = 0; s < 4; s++) { P[s].tx = q.pl[s * 2]; P[s].tz = q.pl[s * 2 + 1]; }
       // the ball: take the host's, unless I've just hit it myself (mine is newer)
       const key = q.b.join();
@@ -29533,7 +29598,7 @@ kbd {
       } else st.vw = null;
       // their touch of the ball
       const h = pres.vh;
-      if (Array.isArray(h) && h.length === 9 && h.every((x) => fin(x, 1e6)) && Number.isInteger(h[0]) && Number.isInteger(h[1]) && h[1] >= 0 && h[1] <= 4 && Number.isInteger(h[2]) && h[2] >= 0 && h[2] < 4) {
+      if (Array.isArray(h) && h.length === 9 && h.every((x) => fin(x, 1e6)) && Number.isInteger(h[0]) && Number.isInteger(h[1]) && h[1] >= 0 && h[1] <= 5 && Number.isInteger(h[2]) && h[2] >= 0 && h[2] < 4) {
         if (isHost() && state.level === L.idx && V.hitSeq[rec.peer] !== h[0] && V.people[h[2]] === rec.peer && V.hitSeq[rec.peer] !== undefined) {
           applyHit(h[2], new V3(h[3], h[4], h[5]), new V3(h[6], h[7], h[8]), h[1]);
         }
@@ -29637,8 +29702,8 @@ kbd {
       { label: () => (V.ph === 'idle' || V.ph === 'over' ? 'Start match' : 'Restart'), run: () => { if (isHost()) startMatch(); else requestStart(); } },
       { label: () => `Bots: ${LEVELS[V.lv].name} ▸`, run: () => { if (!isHost()) { showToast('The first player in the room picks the bots'); return; } V.lv = (V.lv + 1) % LEVELS.length; forcePresence(); state.hudDirty = true; } },
     ];
-    L.hints = [['A / X', 'start a match'], ['Bump or set', 'just get your hands to the ball'], ['Spike', 'swing hard at a high ball by the net'], ['White ring', 'where the ball is coming down']];
-    L.hintsFor = () => (state.mode === 'flat' ? [['WASD', 'move (Shift runs)'], ['Walk under the ball', 'to play it'], ['Hold Space', 'to spike, aimed where you look']] : L.hints);
+    L.hints = [['A / X', 'start a match, then jump'], ['Jump at the net', 'hands up to block their spike'], ['Bump or set', 'just get your hands to the ball'], ['Spike', 'swing hard at a high ball by the net'], ['White ring', 'where the ball is coming down']];
+    L.hintsFor = () => (state.mode === 'flat' ? [['WASD', 'move (Shift runs)'], ['Walk under the ball', 'to play it'], ['Hold Space', 'to spike, aimed where you look'], ['J at the net', 'jump to block their spike']] : L.hints);
     L.spawn = () => { dolly.position.set(-4, 0, 1); if (state.mode !== 'vr') { state.yaw = -Math.PI / 2; state.pitch = 0; } };
     L.onEnter = () => { drawScore.key = ''; ME.claim = null; seenMsg = -1; };
     L.onExit = () => { if (ui.status) ui.status.hidden = true; marker.visible = false; if (isHost() && V.ph !== 'over') V.ph = 'idle'; };
@@ -30538,11 +30603,20 @@ kbd {
     const FINISH = LAPS * TLEN;
     const idx = (s) => ((Math.floor(s / DS) % N) + N) % N;
     function posAt(s, lat, out) {
-      const i = idx(s), u = clamp(s / DS - Math.floor(s / DS), 0, 1), a = P[i], b = P[(i + 1) % N];
-      out.set(a.x + (b.x - a.x) * u + NR[i].x * lat, 0, a.z + (b.z - a.z) * u + NR[i].z * lat);
+      const i = idx(s), u = clamp(s / DS - Math.floor(s / DS), 0, 1), a = P[i], b = P[(i + 1) % N], na = NR[i], nb = NR[(i + 1) % N];
+      // (the sideways direction is blended too, so nothing off the centre line jumps from one point to the next)
+      const nx = na.x + (nb.x - na.x) * u, nz = na.z + (nb.z - na.z) * u;
+      out.set(a.x + (b.x - a.x) * u + nx * lat, 0, a.z + (b.z - a.z) * u + nz * lat);
       return out;
     }
-    const yawAt = (s) => { const t = T[idx(s)]; return Math.atan2(-t.x, -t.z); };
+    const yawAt = (s) => { const i = idx(s), u = clamp(s / DS - Math.floor(s / DS), 0, 1), a = T[i], b = T[(i + 1) % N]; return Math.atan2(-(a.x + (b.x - a.x) * u), -(a.z + (b.z - a.z) * u)); };
+    // what you ride with: a heading and a height that change smoothly (no bobbing with the gallop), so the view never shakes
+    const RIDE = { yaw: 0, y: 0, on: false };
+    function rideStep(dt, yaw, y) {
+      if (!RIDE.on) { RIDE.yaw = yaw; RIDE.y = y; RIDE.on = true; }
+      let d = yaw - RIDE.yaw; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2;
+      RIDE.yaw += d * Math.min(1, dt * 3); RIDE.y += (y - RIDE.y) * Math.min(1, dt * 4);
+    }
     L.track = { P, TLEN, posAt };
     // grass, the dirt track, fences
     const grassTex = canvasTexture(128, 128, (g) => { g.fillStyle = '#6aa848'; g.fillRect(0, 0, 128, 128); for (let k = 0; k < 400; k++) { g.fillStyle = rand() < 0.5 ? 'rgba(60,120,40,0.5)' : 'rgba(140,190,90,0.5)'; g.fillRect(rand() * 128, rand() * 128, 2, 4); } });
@@ -30662,6 +30736,7 @@ kbd {
     const laneLat = (k) => [-2.4, -0.8, 0.8, 2.4][k % 4];
     function racers() { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort(); }
     function toGrid() {
+      RIDE.on = false;
       const k = Math.max(0, racers().indexOf(state.myPeer));
       Object.assign(K, { s: -2, lat: laneLat(k), v: 0, air: 0, airV: 0, steer: 0, done: 0, stumble: 0, carrots: [], boost: 0 });
       const n = racers().length;
@@ -30844,12 +30919,12 @@ kbd {
       // VR: you ride on the llama
       if (here && state.mode === 'vr') {
         if (!calibrated) calibrate();
-        const yaw = yawAt(K.s);
-        _seat.set(0, 2.15, 0.05).applyAxisAngle(UP, yaw).add(mine.g.position);
-        const ry = yaw - calib.yaw;
+        rideStep(dt, yawAt(K.s), K.air);
+        posAt(K.s, K.lat, _seat); _seat.add(new V3(0, 0, 0.05).applyAxisAngle(UP, RIDE.yaw));
+        const ry = RIDE.yaw - calib.yaw;
         dolly.rotation.set(0, ry, 0);
         const off = new V3(calib.x, 0, calib.z).applyAxisAngle(UP, ry);
-        dolly.position.set(_seat.x - off.x, _seat.y + 0.75 - calib.y, _seat.z - off.z);
+        dolly.position.set(_seat.x - off.x, 2.15 + RIDE.y + 0.75 - calib.y, _seat.z - off.z);
       }
       // others' llamas
       for (const rec of remotes.values()) {
@@ -30871,15 +30946,14 @@ kbd {
     // browser: a chase camera behind the llama
     let chase = null;
     L.flatCamera = (dt) => {
-      const yaw = yawAt(K.s), f = T[idx(K.s)];
-      const want = posAt(K.s - 5.5, K.lat * 0.8, new V3());
-      want.y += 3.2 + K.air * 0.6;
+      rideStep(dt, yawAt(K.s), K.air);
+      const fx = -Math.sin(RIDE.yaw), fz = -Math.cos(RIDE.yaw), me = posAt(K.s, K.lat, new V3());
+      const want = new V3(me.x - fx * 5.5, 3.2 + RIDE.y * 0.6, me.z - fz * 5.5);
       if (!chase || chase.distanceTo(want) > 20) chase = want.clone();
-      chase.lerp(want, Math.min(1, dt * 5));
+      chase.lerp(want, Math.min(1, dt * 4));
       dolly.rotation.set(0, 0, 0); dolly.position.set(chase.x, chase.y - 1.6, chase.z);
       camera.position.set(0, 1.6, 0);
-      camera.lookAt(mine.g.position.x + f.x * 6, 1.6, mine.g.position.z + f.z * 6);
-      void yaw;
+      camera.lookAt(me.x + fx * 6, 1.6, me.z + fz * 6);
       return true;
     };
     L.publishPose = () => {
@@ -30917,7 +30991,7 @@ kbd {
     L.hints = [['Shake the reins', 'both hands up and down: faster'], ['Lean', 'steer'], ['A / X', 'start, then jump'], ['Both hands up', 'jump too'], ['B', 'recentre']];
     L.hintsFor = () => (state.mode === 'flat' ? [['Tap Space', 'giddy-up (or click, or W)'], ['A / D', 'steer'], ['J', 'jump the hay bales'], ['Carrots', 'speed; mud slows you']] : L.hints);
     L.clampPlayer = () => [0, 0];
-    L.spawn = () => { toGrid(); chase = null; };
+    L.spawn = () => { toGrid(); chase = null; RIDE.on = false; };
     L.onEnter = () => { RACE.st = 'idle'; toGrid(); calibrated = false; };
     L.onExit = () => { hud.visible = false; dolly.rotation.set(0, 0, 0); dolly.position.y = 0; if (ui.status) ui.status.hidden = true; for (const rec of remotes.values()) if (rec.llama) rec.llama.g.visible = false; };
     L.attract = (now) => { const a = reduceMotion ? 0 : now * 0.00004; const p = posAt((a * 400) % TLEN, 0, new V3()); camera.position.set(p.x + 10, 6, p.z + 12); camera.lookAt(p.x, 1, p.z); };
@@ -31486,18 +31560,23 @@ kbd {
     L.throwLabel = () => (D.st === 'play' ? '…' : 'Dance!');
 
     // ---------------------------------------------------------------- per frame
+    // Dot shows each move ahead of time: as soon as one beat's move is done she's already into the next, and holds it
+    // until its beat comes round, so you can watch her and copy (and the sign names it)
+    const poseL = (m) => (m < 0 ? restL : new V3(-MOVES[m].r[0], MOVES[m].r[1], MOVES[m].r[2]));
+    const poseR = (m) => (m < 0 ? restR : new V3(-MOVES[m].l[0], MOVES[m].l[1], MOVES[m].l[2]));
     function poseDot(beat) {
-      // Dot does each move from half a beat before it until the next, and bounces on the beat
-      let cur = null, nxt = null;
-      for (const n of chart) { if (n.b - 0.6 <= beat) cur = n; else { nxt = n; break; } }
+      let ci = chart.findIndex((n) => n.b >= beat - 0.15);
+      const cur = ci >= 0 ? chart[ci] : null, prev = ci > 0 ? chart[ci - 1] : null;
       const bounce = Math.abs(Math.sin(beat * Math.PI)) * 0.06;
       dot.position.y = 0.4 + 1.62 * 1.35 - bounce;
       dot.rotation.z = Math.sin(beat * Math.PI) * 0.06;
-      const k = cur ? clamp((beat - (cur.b - 0.6)) / 0.4, 0, 1) : 0;
-      const tgtL = cur ? new V3(-MOVES[cur.m].r[0], MOVES[cur.m].r[1], MOVES[cur.m].r[2]) : restL, tgtR = cur ? new V3(-MOVES[cur.m].l[0], MOVES[cur.m].l[1], MOVES[cur.m].l[2]) : restR;
-      dotL.position.lerpVectors(restL, tgtL, k); dotR.position.lerpVectors(restR, tgtR, k);
-      void nxt;
-      return cur;
+      const from = prev ? prev.b - 0.15 : (cur ? cur.b - 3 : 0);
+      const k = cur ? clamp((beat - from) / 0.45, 0, 1) : 0;
+      const pm = prev ? prev.m : -1, cm = cur ? cur.m : -1;
+      dotL.position.lerpVectors(poseL(pm), poseL(cm), k); dotR.position.lerpVectors(poseR(pm), poseR(cm), k);
+      // a little dip on the beat she's waiting for
+      if (cur && Math.abs(beat - cur.b) < 0.15) dot.position.y -= 0.05;
+      return cur && beat > cur.b - 3 ? cur : null;
     }
     function drawTrack(beat) {
       const g = trackC.g, W = 1024, Hh = 192, hitX = 140, pxPerBeat = 170;
@@ -31527,7 +31606,7 @@ kbd {
         D.aPrev = a;
       }
       const cur = poseDot(beat);
-      const nm = cur && D.st === 'play' ? MOVES[cur.m].name : D.st === 'play' ? 'Get ready…' : '';
+      const nm = cur && D.st === 'play' ? `Next: ${MOVES[cur.m].name}` : D.st === 'play' ? 'Get ready…' : '';
       if (D.st === 'play' && nm !== moveSign.userData.v) { moveSign.userData.v = nm; moveSign.userData.draw(nm); }
       // the floor, the lights, the mirrorball
       if (Math.floor(beat) !== D.lastBeat) { D.lastBeat = Math.floor(beat); drawFloor(beat); }
@@ -31576,7 +31655,7 @@ kbd {
       { label: () => (D.st === 'play' ? 'Stop' : 'Dance!'), run: () => { if (D.st === 'play') { D.st = 'idle'; quiet(false); state.hudDirty = true; } else start(); } },
       { label: () => `Song: ${SP().name} ▸`, run: () => { if (D.st === 'play') { showToast('Change songs between dances'); return; } D.si = (D.si + 1) % SONGS.length; state.hudDirty = true; } },
     ];
-    L.hints = [['A / X', 'start dancing'], ['Copy Disco Dot', 'like a mirror'], ['Blue and pink', 'your left and right hands, on the beat']];
+    L.hints = [['A / X', 'start dancing'], ['Copy Disco Dot', 'she shows each move before its beat'], ['Blue and pink', 'your left and right hands, on the beat']];
     L.hintsFor = () => (state.mode === 'flat' ? [['Arrow keys', 'or WASD: the move, on the beat'], ['The pink ring', 'is the beat'], ['Space', 'start']] : L.hints);
     L.spawn = () => { dolly.position.set(0, 0, 0.9); if (state.mode !== 'vr') { state.yaw = 0; state.pitch = -0.05; } };
     L.onEnter = () => { D.st = 'idle'; moveSign.userData.draw(''); moveSign.userData.v = ''; };
@@ -31671,7 +31750,9 @@ kbd {
       lights(G, new V3(x - w / 2, H + 0.05, z + d / 2 + 0.2), new V3(x + w / 2, H + 0.05, z + d / 2 + 0.2), Math.round(w * 3));
     }
     const tickets = (n, at) => { if (typeof skeeball !== 'undefined' && skeeball.addTickets) skeeball.addTickets(n, at); };
-    return { env, backdrop, booth, lights, tickets };
+    // a prize stand (the Skee-Ball prizes, the same tickets) in another carnival game; call .tick() each frame
+    const prizeStand = (L, x, z, yaw) => (typeof skeeball !== 'undefined' && skeeball.makePrizeStand ? skeeball.makePrizeStand(L, x, z, yaw) : { tick() {} });
+    return { env, backdrop, booth, lights, tickets, prizeStand };
   })();
   // ================================================================ LEVEL: STRONGMAN BELL (carnival)
   // Swing the big mallet down on the pad and the puck shoots up the tower: Wimp, Weakling, Not bad, Strong,
@@ -31799,17 +31880,18 @@ kbd {
       const v = _h.distanceTo(S.prevHead) / Math.max(dt, 1e-3), down = S.prevHead.y - _h.y;
       const t = towers[S.k];
       if (S.cool <= 0 && down > 0 && _h.y < PAD_Y + 0.15 && S.prevHead.y >= PAD_Y + 0.12 && Math.hypot(_h.x - t.x, _h.z - PAD_Z) < 0.42) {
-        strike((v - 2) / 8 + (rand() - 0.5) * 0.06);
+        strike((v - 2.5) / 12 + (rand() - 0.5) * 0.08);
       }
       S.prevHead.copy(_h);
     }
     // browser: the power needle, and a press to swing
-    const needle = (now) => (1 - Math.cos(now / 1000 * 2.7)) / 2;
+    // (it sweeps at an even speed, so the top is only there for a moment)
+    const needle = (now) => { const u = (now / 1000 / 0.55) % 2; return 1 - Math.abs(u - 1); };
     L.deskFire = (now) => {
       if (S.cool > 0 || now < S.flatSwing + 400) return;
       S.flatSwing = now; S.flatPow = needle(now);
       sfx('whoosh', 0.5);
-      setTimeout(() => { const p = S.flatPow; strike(p > 0.975 ? 1.05 : p * 0.98); }, 220);
+      setTimeout(() => { const p = S.flatPow; strike(p > 0.93 ? 1.05 : p * 0.94); }, 220);
     };
     L.throwLabel = () => 'Swing';
 
@@ -31818,6 +31900,7 @@ kbd {
     L.update = (dt, now) => {
       const here = state.level === L.idx && state.mode !== 'menu';
       fair.tick(dt);
+      prizes.tick();
       if (!here) { mallet.visible = false; return; }
       if (mySlot() !== S.k) standAtTower();
       S.cool = Math.max(0, S.cool - dt);
@@ -31878,8 +31961,9 @@ kbd {
       L.board.tex.needsUpdate = true;
     };
     makeKiosk(L, 6.0, 4.2, -Math.PI * 0.75);
-    L.hints = [['Grip', 'pick up the mallet from its stand'], ['Swing down', 'hard, onto the red pad'], ['Tickets', 'spend them at the Skee-Ball prize counter']];
-    L.hintsFor = () => (state.mode === 'flat' ? [['Space or click', 'swing when the needle is at the top'], ['Tickets', 'spend them at the Skee-Ball prize counter']] : L.hints);
+    const prizes = CARNIVAL.prizeStand(L, 6.0, 0.6, -Math.PI / 2);   // spend your tickets here
+    L.hints = [['Grip', 'pick up the mallet from its stand'], ['Swing down', 'hard, onto the red pad'], ['Tickets', 'spend them at the prize stand on the right']];
+    L.hintsFor = () => (state.mode === 'flat' ? [['Space or click', 'swing when the needle is at the top'], ['Tickets', 'spend them at the prize stand on the right']] : L.hints);
     L.spawn = () => { dolly.position.set(0, 0, 1.75); standAtTower(); };
     L.onEnter = () => { S.cool = 0; };
     L.onExit = () => { if (ui.status) ui.status.hidden = true; if (ui.power) ui.power.hidden = true; meterOn = false; S.hand = null; mallet.visible = false; };
@@ -32055,6 +32139,7 @@ kbd {
     L.update = (dt, now) => {
       const here = state.level === L.idx && state.mode !== 'menu';
       fair.tick(dt);
+      prizes.tick();
       if (!here) { gun.visible = false; return; }
       if (mySlot() !== R.k) standAtBooth();
       R.cool = Math.max(0, R.cool - dt);
@@ -32106,9 +32191,10 @@ kbd {
       L.board.tex.needsUpdate = true;
     };
     makeKiosk(L, 6.2, 4.6, -Math.PI * 0.75);
+    const prizes = CARNIVAL.prizeStand(L, 6.2, 1.6, -Math.PI / 2);   // spend your tickets here
     L.hudActions = [{ label: () => (R.ph === 'play' ? 'Restart' : 'Start round'), run: () => startRound() }];
-    L.hints = [['Trigger', 'fire a cork (the first shot starts the round)'], ['Golden ducks', '5 points'], ['Bunnies', 'cost you 3']];
-    L.hintsFor = () => (state.mode === 'flat' ? [['Aim', 'with the crosshair'], ['Click or Space', 'fire a cork'], ['Golden ducks', '5 points; bunnies cost 3']] : L.hints);
+    L.hints = [['Trigger', 'fire a cork (the first shot starts the round)'], ['Golden ducks', '5 points'], ['Bunnies', 'cost you 3'], ['Prize stand', 'on the right: spend your tickets']];
+    L.hintsFor = () => (state.mode === 'flat' ? [['Aim', 'with the crosshair'], ['Click or Space', 'fire a cork'], ['Golden ducks', '5 points; bunnies cost 3'], ['Prize stand', 'on the right: spend your tickets']] : L.hints);
     L.spawn = () => { dolly.position.set(0, 0, 0.45); standAtBooth(); };
     L.onEnter = () => { R.ph = 'idle'; };
     L.onExit = () => { if (ui.status) ui.status.hidden = true; gun.visible = false; R.ph = 'idle'; for (const c of corks) { c.on = false; c.m.visible = false; } };
@@ -32282,6 +32368,7 @@ kbd {
     L.update = (dt, now) => {
       const here = state.level === L.idx && state.mode !== 'menu';
       fair.tick(dt);
+      prizes.tick();
       if (!here) { reticle.visible = false; return; }
       if (mySlot() !== T.k) standAtBooth();
       const n = Math.max(1, Math.ceil(dt / 0.004));
@@ -32321,9 +32408,10 @@ kbd {
       L.board.tex.needsUpdate = true;
     };
     makeKiosk(L, 6.2, 4.8, -Math.PI * 0.75);
+    const prizes = CARNIVAL.prizeStand(L, 6.2, 1.6, -Math.PI / 2);   // spend your tickets here
     L.hudActions = [{ label: () => (T.ph === 'play' ? 'New game' : 'Start game'), run: () => newGame() }];
-    L.hints = [['Grip', 'a ring appears in your hand'], ['Toss', 'underhand, a gentle lob'], ['Gold bottle', '15 tickets']];
-    L.hintsFor = () => (state.mode === 'flat' ? [['Mouse', 'aim (your hand wobbles)'], ['Hold Space', 'steady it, let go to toss'], ['Gold bottle', '15 tickets']] : L.hints);
+    L.hints = [['Grip', 'a ring appears in your hand'], ['Toss', 'underhand, a gentle lob'], ['Gold bottle', '15 tickets'], ['Prize stand', 'on the right: spend your tickets']];
+    L.hintsFor = () => (state.mode === 'flat' ? [['Mouse', 'aim (your hand wobbles)'], ['Hold Space', 'steady it, let go to toss'], ['Gold bottle', '15 tickets'], ['Prize stand', 'on the right: spend your tickets']] : L.hints);
     L.spawn = () => { dolly.position.set(0, 0, 0.35); standAtBooth(); };
     L.onEnter = () => { aim.last = null; };
     L.onExit = () => { if (ui.status) ui.status.hidden = true; reticle.visible = false; T.held = null; };
@@ -32434,7 +32522,8 @@ kbd {
       if (m.want && m.up > 0.4 && !m.hit) {
         const pts = m.gold ? 3 : 1;
         m.hit = 1; m.want = 0; W.score += pts; W.hits += 1;
-        const p = holePos(W.k, i, new V3()); p.y += 0.25;
+        // (the points pop up over the back board, out of the way of the moles)
+        const p = holePos(W.k, i, new V3()); p.y = TOPY + 1.05; p.z = CZ - 0.42;
         spawnFloat(pts > 1 ? '+3 GOLD!' : '+1', p, pts > 1 ? '#ffd23f' : '#ffffff');
         tone(pts > 1 ? 1200 : 700, 300, 0.08, 'square', 0.15); sfx('thump', 0.6);
         forcePresence(); state.dirtyBoard = true;
@@ -32488,6 +32577,7 @@ kbd {
     L.update = (dt, now) => {
       const here = state.level === L.idx && state.mode !== 'menu';
       fair.tick(dt);
+      prizes.tick();
       if (!here) { for (const s of SIDES) mallets[s].visible = false; flatMallet.visible = false; return; }
       if (mySlot() !== W.k) standAtCabinet();
       if (W.ph === 'play') roundStep(dt);
@@ -32545,15 +32635,209 @@ kbd {
       L.board.tex.needsUpdate = true;
     };
     makeKiosk(L, 5.8, 4.4, -Math.PI * 0.75);
+    const prizes = CARNIVAL.prizeStand(L, 5.0, 0.6, -Math.PI / 2);   // spend your tickets here
     L.hudActions = [{ label: () => (W.ph === 'play' ? 'Restart' : 'Start round'), run: () => startRound() }];
-    L.hints = [['A / X', 'start a round'], ['Mallets', 'one in each hand: bop the moles'], ['Golden moles', '3 points']];
-    L.hintsFor = () => (state.mode === 'flat' ? [['Q W E / A S D / Z X C', 'the nine holes'], ['Or click', 'a mole'], ['Golden moles', '3 points']] : L.hints);
+    L.hints = [['A / X', 'start a round'], ['Mallets', 'one in each hand: bop the moles'], ['Golden moles', '3 points'], ['Prize stand', 'on the right: spend your tickets']];
+    L.hintsFor = () => (state.mode === 'flat' ? [['Q W E / A S D / Z X C', 'the nine holes'], ['Or click', 'a mole'], ['Golden moles', '3 points'], ['Prize stand', 'on the right: spend your tickets']] : L.hints);
     L.spawn = () => { dolly.position.set(0, 0, 0.3); standAtCabinet(); };
     L.onEnter = () => { W.ph = 'idle'; for (const c of moles) c.key = ''; };
     L.onExit = () => { if (ui.status) ui.status.hidden = true; W.ph = 'idle'; for (const c of moles) for (const m of c.list) m.want = 0; };
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 2, 2.0, 2.5); camera.lookAt(0, 0.9, -0.4); };
     L.whackInternals = { W, moles, bop, roundStep, startRound, endRound, holePos, KEYS };
     MUSIC_THEMES.whack = { gain: 0.7, bpm: 138, swing: 0.1, chords: ['C', 'F', 'G', 'C'], comp: { inst: 'synth', at: [0, 2, 4, 6, 8, 10, 12, 14], dur: 0.08 }, bass: { at: [0, 4, 8, 12] }, drums: { k: 'x...x...x...x...', s: '....x.......x...', h: 'o.o.o.o.o.o.o.o.' }, cut: 5000 };
+    return L;
+  })();
+  // ================================================================ LEVEL: SPEED OF LIGHT (carnival)
+  // A wall of thirty buttons, six across and five high. One lights up at a time: hit it as fast as you can and the
+  // next one lights somewhere else. Thirty seconds: how many can you get? A light you're too slow for moves on.
+  // Points pay out tickets (spend them at the prize stand).
+  // VR: slap the lit button with either hand. Browser: aim at it and click (or press Space).
+  const lightspeed = (() => {
+    const L = newLevel(47);
+    const G = L.group;
+    const rand = mulberry32(4747);
+    L.grabless = true;
+    L.bounds = { minX: -7, maxX: 7, minZ: -2, maxZ: 6 };
+    L.env = CARNIVAL.env();
+    const fair = CARNIVAL.backdrop(G, rand, { pathW: 13, pathD: 7, pathZ: 2, wheelX: -18 });
+    const N = 3, PITCH = 2.6, COLS = 6, ROWS = 5, GX = 0.27, GY = 0.22, PZ = -0.6, Y0 = 0.95, ROUND = 30, BR = 0.075;
+    const panelX = (k) => (k - (N - 1) / 2) * PITCH;
+    const btnPos = (k, i, out) => out.set(panelX(k) + ((i % COLS) - (COLS - 1) / 2) * GX, Y0 + Math.floor(i / COLS) * GY, PZ + 0.05);
+
+    // ---------------------------------------------------------------- the panels
+    const glowM = new THREE.SpriteMaterial({ map: warmGlowTex, color: 0x9af0ff, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true });
+    const panels = [];
+    for (let k = 0; k < N; k++) {
+      const x = panelX(k);
+      addBox(G, COLS * GX + 0.3, ROWS * GY + 0.3, 0.1, lam(0x1a1a2a), x, Y0 + (ROWS - 1) * GY / 2, PZ);
+      addBox(G, COLS * GX + 0.36, 0.06, 0.14, lam(0x4fc3f7), x, Y0 + (ROWS - 1) * GY + 0.18, PZ);
+      for (const sx of [-1, 1]) addBox(G, 0.08, Y0 + ROWS * GY + 0.6, 0.12, lam(0x2a2a3a), x + sx * (COLS * GX / 2 + 0.2), (Y0 + ROWS * GY + 0.6) / 2, PZ);
+      makePlate(G, 'SPEED OF LIGHT', 1.6, 0.26, new V3(x, Y0 + ROWS * GY + 0.45, PZ + 0.06), 0, { bg: '#4fc3f7', fg: '#14142a', size: 0.62 });
+      const sc = canvasTexture(256, 64);
+      const score = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.22), new THREE.MeshBasicMaterial({ map: sc.tex })); score.position.set(x, Y0 + ROWS * GY + 0.16, PZ + 0.06); G.add(score);
+      const btns = [];
+      for (let i = 0; i < COLS * ROWS; i++) {
+        const p = btnPos(k, i, new V3());
+        const mat = new THREE.MeshLambertMaterial({ color: 0x3a4a5a, emissive: 0x000000 });
+        const b = new THREE.Mesh(cyl(BR, BR, 0.04, 18), mat); b.rotation.x = Math.PI / 2; b.position.copy(p); G.add(b);
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(BR + 0.01, 0.008, 6, 20), lam(0x8a9aaa)); ring.position.copy(p); G.add(ring);
+        const glow = new THREE.Sprite(glowM.clone()); glow.position.copy(p).add(new V3(0, 0, 0.03)); glow.scale.set(0.4, 0.4, 1); glow.visible = false; G.add(glow);
+        btns.push({ b, mat, glow, p });
+      }
+      panels.push({ k, btns, sc, key: '' });
+    }
+
+    // ---------------------------------------------------------------- the round
+    const S = { k: 0, ph: 'idle', t0: 0, lit: -1, litT: 0, hits: 0, misses: 0, best: 0, react: 0, flash: -1, flashT: 0 };
+    try { if (Number.isInteger(prefs.lightBest)) S.best = prefs.lightBest; } catch (e) { /* none */ }
+    L.light = S;
+    function mySlot() { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); ids.sort(); return Math.max(0, ids.indexOf(state.myPeer)) % N; }
+    function standAtPanel() {
+      S.k = mySlot();
+      const c = new V3(); camera.getWorldPosition(c);
+      dolly.position.x += panelX(S.k) - c.x; dolly.position.z += (state.mode === 'vr' ? 0 : 1.4) - c.z;
+      if (state.mode !== 'vr') { state.yaw = 0; state.pitch = -0.12; }
+    }
+    const elapsed = () => (performance.now() - S.t0) / 1000;
+    function lightNext() {
+      let i; do { i = Math.floor(rand() * COLS * ROWS); } while (i === S.lit);
+      S.lit = i; S.litT = performance.now();
+    }
+    function startRound() {
+      Object.assign(S, { ph: 'play', t0: performance.now(), hits: 0, misses: 0, react: 0 });
+      lightNext();
+      sfx('whistle', 0.7); showToast(`${ROUND} seconds! Hit each light as fast as you can`);
+      forcePresence(); state.dirtyBoard = true;
+    }
+    L.startRound = startRound;
+    function endRound() {
+      S.ph = 'over'; S.lit = -1;
+      const isBest = S.hits > S.best;
+      if (isBest) { S.best = S.hits; prefs.lightBest = S.best; savePrefs(); }
+      const n = Math.ceil(S.hits / 3), avg = S.hits ? Math.round(S.react / S.hits * 1000) : 0;
+      showToast(`Time! ${S.hits} lights${avg ? `, ${avg} ms each on average` : ''}${isBest && S.hits ? ' (your best!)' : ''}. ${n} tickets`);
+      sfx(S.hits >= 30 ? 'fanfare' : 'chime', 0.8);
+      CARNIVAL.tickets(n, new V3(panelX(S.k), Y0 + ROWS * GY + 0.7, PZ + 0.2));
+      forcePresence(); state.dirtyBoard = true;
+    }
+    // a hit on button i
+    function press(i) {
+      if (S.ph !== 'play') { startRound(); return false; }
+      if (i !== S.lit) return false;
+      const rt = (performance.now() - S.litT) / 1000;
+      S.hits += 1; S.react += rt; S.flash = i; S.flashT = 0.25;
+      tone(880 + Math.min(12, S.hits) * 40, 0, 0.06, 'square', 0.12);
+      lightNext();
+      forcePresence(); state.dirtyBoard = true;
+      return true;
+    }
+    L.press = press;
+    // VR: a hand on the lit button
+    const _p = new V3(), prevH = { left: new V3(), right: new V3() };
+    function vrHits() {
+      if (S.lit < 0) return;
+      const p = panels[S.k].btns[S.lit].p;
+      for (const s of SIDES) {
+        const h = myHands[s]; if (!h.ok) continue;
+        const close = Math.hypot(h.pos.x - p.x, h.pos.y - p.y) < BR + 0.05 && h.pos.z < p.z + 0.08;
+        if (close && press(S.lit)) haptic(vrHands[s], 0.7, 30);
+        prevH[s].copy(h.pos);
+      }
+    }
+    // browser: aim and click
+    const _cp = new V3(), _q = new Q4(), _f = new V3();
+    L.deskFire = () => {
+      if (S.ph !== 'play') { startRound(); return; }
+      camera.getWorldPosition(_cp); camera.getWorldQuaternion(_q); _f.set(0, 0, -1).applyQuaternion(_q);
+      if (_f.z > -0.05) return;
+      const t = (PZ + 0.05 - _cp.z) / _f.z, x = _cp.x + _f.x * t, y = _cp.y + _f.y * t;
+      let best = -1, bd = BR + 0.04;
+      panels[S.k].btns.forEach((b, i) => { const d = Math.hypot(b.p.x - x, b.p.y - y); if (d < bd) { bd = d; best = i; } });
+      if (best >= 0 && !press(best)) sfx('wood', 0.2);
+    };
+    L.throwLabel = () => (S.ph === 'play' ? 'Hit' : 'Start');
+
+    // ---------------------------------------------------------------- per frame
+    function drawScore(pn, hits, t) {
+      const key = `${hits}|${t}`;
+      if (key === pn.key) return; pn.key = key;
+      const g = pn.sc.g;
+      g.fillStyle = '#14142a'; g.fillRect(0, 0, 256, 64);
+      g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillStyle = '#9af0ff'; g.font = `900 40px ${DISPLAY}`; g.fillText(String(hits), 70, 34);
+      g.fillStyle = '#ffffff'; g.font = `700 30px ${BODY}`; g.fillText(t ? `${t}s` : '', 190, 34);
+      pn.sc.tex.needsUpdate = true;
+    }
+    const COLS_LIT = [0x4fc3f7, 0x8bff6a, 0xffd23f, 0xff4d8a];
+    L.update = (dt, now) => {
+      const here = state.level === L.idx && state.mode !== 'menu';
+      fair.tick(dt);
+      prizes.tick();
+      if (!here) return;
+      if (mySlot() !== S.k) standAtPanel();
+      if (S.ph === 'play') {
+        if (elapsed() >= ROUND) endRound();
+        else {
+          // too slow: the light moves on
+          if ((performance.now() - S.litT) / 1000 > 1.6) { S.misses += 1; tone(220, 160, 0.08, 'square', 0.06); lightNext(); }
+          if (state.mode === 'vr') vrHits();
+        }
+      }
+      // VR: A or X starts
+      if (state.mode === 'vr') {
+        let a = false; for (const s of SIDES) { const gp = vrHands[s].source && vrHands[s].source.gamepad; if (gp && gp.buttons && gp.buttons[4] && gp.buttons[4].pressed) a = true; }
+        if (a && !S.aPrev && S.ph !== 'play') startRound();
+        S.aPrev = a;
+      }
+      S.flashT = Math.max(0, S.flashT - dt);
+      panels.forEach((pn) => {
+        const mine = pn.k === S.k;
+        pn.btns.forEach((b, i) => {
+          const lit = mine && S.ph === 'play' && i === S.lit, flash = mine && i === S.flash && S.flashT > 0;
+          const idleShow = S.ph !== 'play' && Math.floor(now / 140 + i * 7) % 29 === 0;   // a twinkle while nobody's playing
+          const col = lit ? COLS_LIT[S.hits % COLS_LIT.length] : flash ? 0xffffff : idleShow ? 0x4fc3f7 : 0x3a4a5a;
+          b.mat.color.setHex(col); b.mat.emissive.setHex(lit || flash ? col : idleShow ? 0x1a3a4a : 0x000000);
+          b.glow.visible = lit || flash; if (b.glow.visible) b.glow.material.color.setHex(col);
+          b.b.position.z = b.p.z - (flash ? 0.015 : 0);
+        });
+        if (mine) drawScore(pn, S.hits, S.ph === 'play' ? Math.max(0, Math.ceil(ROUND - elapsed())) : 0);
+      });
+      if (ui.status && state.mode === 'flat') {
+        ui.status.hidden = false;
+        const txt = S.ph === 'play' ? `${Math.ceil(ROUND - elapsed())} s  ·  ${S.hits} lights  ·  aim at the lit button and click` : `Speed of Light  ·  press Space to start  ·  best ${S.best}`;
+        if (ui.status.textContent !== txt) ui.status.textContent = txt;
+      }
+    };
+    L.presence = () => ({ ls: [S.k, S.hits, S.best, S.ph === 'play' ? 1 : 0] });
+    L.readPresence = (rec, pres, st) => {
+      const a = pres.ls;
+      if (!Array.isArray(a) || a.length !== 4 || !a.every((x) => Number.isInteger(x) && x >= 0 && x < 1e6) || a[0] >= N) { st.ls = null; return; }
+      if (!st.ls || st.ls[1] !== a[1] || st.ls[2] !== a[2]) state.dirtyBoard = true;
+      st.ls = a;
+    };
+    L.rowFor = (st, isMe) => { const b = isMe ? S.best : st.ls ? st.ls[2] : 0, now = isMe ? (S.ph === 'play' ? S.hits : 0) : st.ls && st.ls[3] ? st.ls[1] : 0; return { best: b, text: `${now ? `${now} now · ` : ''}best ${b}` }; };
+    L.sortRows = (a, b) => (b.best || 0) - (a.best || 0);
+    L.board = makeBoard(G, 720, 460, 2.2, 1.4, -5.6, 1.9, 1.6, Math.PI / 2);
+    L.drawBoard = (rows) => {
+      const g = L.board.g, W = 720;
+      g.fillStyle = '#14142a'; g.fillRect(0, 0, W, 460); g.strokeStyle = '#4fc3f7'; g.lineWidth = 8; g.strokeRect(4, 4, W - 8, 452);
+      g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+      g.fillStyle = '#9af0ff'; g.font = `800 56px ${DISPLAY}`; g.fillText('Fastest hands', 36, 80);
+      g.fillStyle = '#c8d8e8'; g.font = `400 24px ${BODY}`; g.fillText('Most lights hit in 30 seconds', 36, 118);
+      drawRows(g, rows, 176, 46, W);
+      L.board.tex.needsUpdate = true;
+    };
+    makeKiosk(L, 5.8, 4.4, -Math.PI * 0.75);
+    const prizes = CARNIVAL.prizeStand(L, 5.0, 0.6, -Math.PI / 2);   // spend your tickets here
+    L.hudActions = [{ label: () => (S.ph === 'play' ? 'Restart' : 'Start round'), run: () => startRound() }];
+    L.hints = [['A / X', 'start a round'], ['Slap', 'the lit button with either hand'], ['Prize stand', 'on the right: spend your tickets']];
+    L.hintsFor = () => (state.mode === 'flat' ? [['Aim', 'at the lit button'], ['Click or Space', 'hit it'], ['Prize stand', 'on the right: spend your tickets']] : L.hints);
+    L.spawn = () => { dolly.position.set(0, 0, 0); standAtPanel(); };
+    L.onEnter = () => { S.ph = 'idle'; S.lit = -1; for (const pn of panels) pn.key = ''; };
+    L.onExit = () => { if (ui.status) ui.status.hidden = true; S.ph = 'idle'; S.lit = -1; };
+    L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 2, 1.8, 2.8); camera.lookAt(0, 1.4, -0.6); };
+    L.lightInternals = { S, panels, press, startRound, endRound, lightNext, btnPos };
+    MUSIC_THEMES.lightspeed = { gain: 0.7, bpm: 140, swing: 0, chords: ['Em', 'C', 'G', 'D'], comp: { inst: 'synth', at: [0, 2, 4, 6, 8, 10, 12, 14], dur: 0.08 }, bass: { at: [0, 4, 8, 12] }, drums: { k: 'x...x...x...x...', h: 'o.o.o.o.o.o.o.o.' }, cut: 5200 };
     return L;
   })();
   // ---------------------------------------------------------------- VR controllers

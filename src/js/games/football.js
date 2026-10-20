@@ -332,9 +332,9 @@
       if (!r) {
         // nobody there: throw it where you look (throwing it away is fine)
         camera.getWorldQuaternion(_q); _f.set(0, 0, -1).applyQuaternion(_q);
-        release(_f.clone().multiplyScalar(14 + c * 8).add(new V3(0, 3, 0)), from); return;
+        release(_f.clone().multiplyScalar(16 + c * 6).add(new V3(0, 1.5, 0)), from); return;
       }
-      const vh = 24 - c * 11, pr = pressure();
+      const vh = 26 - c * 8, pr = pressure();
       const p = passTo(r, from, vh);
       const err = 0.012 + pr * 0.1 + p.T * 0.008;
       p.v.x += (rand() - 0.5) * 2 * err * vh; p.v.z += (rand() - 0.5) * err * vh; p.v.y += (rand() - 0.5) * err * 6;
@@ -362,21 +362,25 @@
     };
     L.onVRRelease = (h, vel) => {
       if (S.held !== h.side) return;
-      const v = vel.clone().multiplyScalar(1.9);
+      const v = vel.clone().multiplyScalar(1.6);
+      // line drives: keep it from sailing up into the sky, and cap the speed
+      const vh0 = Math.hypot(v.x, v.z);
+      if (v.y > vh0 * 0.32 + 1) v.y = vh0 * 0.32 + 1;
+      if (v.length() > 27) v.multiplyScalar(27 / v.length());
       if (v.length() < 4 || S.phase === 'run') { S.held = null; return; }   // just let go (or past the line): it stays by you
       const from = S.bp.clone();
       // which receiver did you mean? Fly the throw, and see who's near where it comes down
       let best = null, bd = 1e9;
       for (const r of REC) {
         const vh = Math.hypot(v.x, v.z) || 1;
-        const p = passTo(r, from, clamp(vh, 9, 28));
+        const p = passTo(r, from, clamp(vh, 16, 28));
         const T = p.T, lx = from.x + v.x * T, lz = from.z + v.z * T;
         const d = Math.hypot(lx - p.at[0], lz - p.at[1]);
         if (d < bd) { bd = d; best = { r, p, vh }; }
       }
       if (best && bd < 5 + best.p.T * 2.5) {
         // a little help: most of the way to a perfect pass, with a touch of pressure error
-        const k = 0.7, pr = pressure();
+        const k = 0.8, pr = pressure();
         v.multiplyScalar(1 - k).addScaledVector(best.p.v, k);
         v.x += (rand() - 0.5) * pr * 2; v.y += (rand() - 0.5) * pr;
         S.target = best.r;
@@ -888,7 +892,7 @@
         : MP.role === 2 ? [['Your man', 'stay with him'], [state.mode === 'flat' ? 'WASD + Shift' : 'Stick', 'run'], ['The ball', state.mode === 'vr' ? 'get a hand on it: knock it down or pick it off' : 'get in its path'], ['Tackle', 'reach the ball carrier']]
           : [['Sideline', 'you\u2019re watching'], ['You: Watching', 'switch to receiver or defense']])
       : state.mode === 'flat'
-      ? [['Space', S.phase === 'live' ? 'hold and let go to throw (tap = bullet, hold = lob)' : 'hike'], ['Look', 'aim at a receiver'], ['1-5', 'pick a play'], ['WASD', 'move; cross the line to run (Shift sprints)'], ['K / T / G', 'spike, timeout, field goal']]
+      ? [['Space', S.phase === 'live' ? 'hold and let go to throw (tap = bullet, hold = a softer touch)' : 'hike'], ['Look', 'aim at a receiver'], ['1-5', 'pick a play'], ['WASD', 'move; cross the line to run (Shift sprints)'], ['K / T / G', 'spike, timeout, field goal']]
       : [['A / X', 'hike'], ['Grip', 'take the ball, then throw it'], ['Stick', 'cross the line to run it'], ['Call sheet', 'buttons on your left']]);
     L.hints = L.hintsFor();
     L.spawn = () => { standQB(); };

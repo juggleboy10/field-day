@@ -113,6 +113,18 @@ def main():
             me2 = page.evaluate("() => { const V = window.__fd.LEVELS[37].vbInternals.V; return { lastSlot: V.lastSlot, touches: V.touches, lastTeam: V.lastTeam, vy: V.v.y }; }")
             print("  browser touch:", me, me2)
             check(me2["lastSlot"] == me["slot"] and me2["touches"] == 1, f"volleyball: I didn't play the ball {me} {me2}")
+            # a block: their spike comes over the net right at me, standing at the net
+            page.evaluate("() => { const fd = window.__fd; fd.LEVELS[37].vbInternals.V.ph = 'idle'; fd.dolly.position.set(-0.7, 0, 0); }")
+            page.wait_for_timeout(600)
+            page.evaluate("""() => { const fd = window.__fd, I = fd.LEVELS[37].vbInternals, V = I.V; V.ph = 'rally'; V.lastTeam = 1; V.touches = 3; V.lastKind = 3; I.ME.cool = 0;
+              const h = fd.myHead.pos; V.p.set(0.2, h.y + 0.35, h.z); V.v.set(-3, -0.5, 0); }""")
+            try:
+                page.wait_for_function("() => window.__fd.LEVELS[37].vbInternals.V.lastKind === 5", timeout=5000)
+            except Exception:
+                pass
+            blk = page.evaluate("() => { const V = window.__fd.LEVELS[37].vbInternals.V; return { kind: V.lastKind, team: V.lastTeam, vx: V.v.x }; }")
+            print("  block:", blk)
+            check(blk["kind"] == 5 and blk["team"] == 0, f"volleyball: no block at the net {blk}")
         # ---- Pillow Fight Castle
         if want("pillow"):
             go(38)

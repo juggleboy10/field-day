@@ -100,7 +100,8 @@
       if (m.want && m.up > 0.4 && !m.hit) {
         const pts = m.gold ? 3 : 1;
         m.hit = 1; m.want = 0; W.score += pts; W.hits += 1;
-        const p = holePos(W.k, i, new V3()); p.y += 0.25;
+        // (the points pop up over the back board, out of the way of the moles)
+        const p = holePos(W.k, i, new V3()); p.y = TOPY + 1.05; p.z = CZ - 0.42;
         spawnFloat(pts > 1 ? '+3 GOLD!' : '+1', p, pts > 1 ? '#ffd23f' : '#ffffff');
         tone(pts > 1 ? 1200 : 700, 300, 0.08, 'square', 0.15); sfx('thump', 0.6);
         forcePresence(); state.dirtyBoard = true;
@@ -154,6 +155,7 @@
     L.update = (dt, now) => {
       const here = state.level === L.idx && state.mode !== 'menu';
       fair.tick(dt);
+      prizes.tick();
       if (!here) { for (const s of SIDES) mallets[s].visible = false; flatMallet.visible = false; return; }
       if (mySlot() !== W.k) standAtCabinet();
       if (W.ph === 'play') roundStep(dt);
@@ -211,9 +213,10 @@
       L.board.tex.needsUpdate = true;
     };
     makeKiosk(L, 5.8, 4.4, -Math.PI * 0.75);
+    const prizes = CARNIVAL.prizeStand(L, 5.0, 0.6, -Math.PI / 2);   // spend your tickets here
     L.hudActions = [{ label: () => (W.ph === 'play' ? 'Restart' : 'Start round'), run: () => startRound() }];
-    L.hints = [['A / X', 'start a round'], ['Mallets', 'one in each hand: bop the moles'], ['Golden moles', '3 points']];
-    L.hintsFor = () => (state.mode === 'flat' ? [['Q W E / A S D / Z X C', 'the nine holes'], ['Or click', 'a mole'], ['Golden moles', '3 points']] : L.hints);
+    L.hints = [['A / X', 'start a round'], ['Mallets', 'one in each hand: bop the moles'], ['Golden moles', '3 points'], ['Prize stand', 'on the right: spend your tickets']];
+    L.hintsFor = () => (state.mode === 'flat' ? [['Q W E / A S D / Z X C', 'the nine holes'], ['Or click', 'a mole'], ['Golden moles', '3 points'], ['Prize stand', 'on the right: spend your tickets']] : L.hints);
     L.spawn = () => { dolly.position.set(0, 0, 0.3); standAtCabinet(); };
     L.onEnter = () => { W.ph = 'idle'; for (const c of moles) c.key = ''; };
     L.onExit = () => { if (ui.status) ui.status.hidden = true; W.ph = 'idle'; for (const c of moles) for (const m of c.list) m.want = 0; };

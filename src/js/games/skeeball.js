@@ -137,6 +137,33 @@
       forcePresence(); state.dirtyBoard = true;
     }
     L.skeeSave = SAVE;
+    // a smaller prize stand for the other carnival games (TL), facing yaw: the same prizes, the same tickets
+    L.makePrizeStand = (TL, x, z, yaw) => {
+      const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = yaw; TL.group.add(g);
+      const fx = Math.sin(yaw), fz = Math.cos(yaw), rx = Math.cos(yaw), rz = -Math.sin(yaw);
+      g.add(at(new THREE.Mesh(boxg(2.6, 1.0, 0.6), lam(0x4a2a6a)), 0, 0.5, 0), at(new THREE.Mesh(boxg(2.6, 1.6, 0.12), lam(0x3a2a5a)), 0, 1.8, -0.35));
+      const sign = makePlate(g, 'PRIZES', 1.6, 0.32, new V3(0, 2.85, -0.28), 0, { bg: '#ff4d8a', fg: '#ffffff', size: 0.62 }); void sign;
+      const tc = canvasTexture(512, 128);
+      const tb = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.35), new THREE.MeshBasicMaterial({ map: tc.tex })); tb.position.set(0, 2.4, -0.28); g.add(tb);
+      const meshes = PRIZES.map((p, i) => { const m = p.make(); m.position.set(-1.0 + i * 0.5, 1.04, -0.12); m.scale.setScalar(1.2); g.add(m); return m; });
+      PRIZES.forEach((p, i) => {
+        const lx = -1.0 + i * 0.5, lz = 0.36;
+        makeButton(TL, new V3(x + rx * lx + fx * lz, 1.05, z + rz * lx + fz * lz), 0xffd23f, `${p.name}: ${p.cost}`, () => buyPrize(p), { faceYaw: yaw, pedestal: false });
+      });
+      let key = '';
+      return {
+        tick() {
+          const k = `${SAVE.tickets}|${SAVE.owned.join()}`;
+          if (k === key) return; key = k;
+          const c = tc.g;
+          c.fillStyle = '#14142a'; c.fillRect(0, 0, 512, 128);
+          c.fillStyle = '#ffd23f'; c.font = `900 56px ${DISPLAY}`; c.textAlign = 'center'; c.textBaseline = 'middle';
+          c.fillText(`\u{1F39F}\uFE0F ${SAVE.tickets} tickets`, 256, 64);
+          tc.tex.needsUpdate = true;
+          PRIZES.forEach((p, i) => meshes[i].traverse((o) => { if (o.material) { o.material.transparent = true; o.material.opacity = SAVE.owned.includes(p.id) ? 1 : 0.35; } }));
+        },
+      };
+    };
     // every carnival game pays out in these same tickets, spent at this prize counter
     L.addTickets = (n, at) => {
       if (!(n > 0)) return;

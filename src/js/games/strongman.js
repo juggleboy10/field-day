@@ -124,17 +124,18 @@
       const v = _h.distanceTo(S.prevHead) / Math.max(dt, 1e-3), down = S.prevHead.y - _h.y;
       const t = towers[S.k];
       if (S.cool <= 0 && down > 0 && _h.y < PAD_Y + 0.15 && S.prevHead.y >= PAD_Y + 0.12 && Math.hypot(_h.x - t.x, _h.z - PAD_Z) < 0.42) {
-        strike((v - 2) / 8 + (rand() - 0.5) * 0.06);
+        strike((v - 2.5) / 12 + (rand() - 0.5) * 0.08);
       }
       S.prevHead.copy(_h);
     }
     // browser: the power needle, and a press to swing
-    const needle = (now) => (1 - Math.cos(now / 1000 * 2.7)) / 2;
+    // (it sweeps at an even speed, so the top is only there for a moment)
+    const needle = (now) => { const u = (now / 1000 / 0.55) % 2; return 1 - Math.abs(u - 1); };
     L.deskFire = (now) => {
       if (S.cool > 0 || now < S.flatSwing + 400) return;
       S.flatSwing = now; S.flatPow = needle(now);
       sfx('whoosh', 0.5);
-      setTimeout(() => { const p = S.flatPow; strike(p > 0.975 ? 1.05 : p * 0.98); }, 220);
+      setTimeout(() => { const p = S.flatPow; strike(p > 0.93 ? 1.05 : p * 0.94); }, 220);
     };
     L.throwLabel = () => 'Swing';
 
@@ -143,6 +144,7 @@
     L.update = (dt, now) => {
       const here = state.level === L.idx && state.mode !== 'menu';
       fair.tick(dt);
+      prizes.tick();
       if (!here) { mallet.visible = false; return; }
       if (mySlot() !== S.k) standAtTower();
       S.cool = Math.max(0, S.cool - dt);
@@ -203,8 +205,9 @@
       L.board.tex.needsUpdate = true;
     };
     makeKiosk(L, 6.0, 4.2, -Math.PI * 0.75);
-    L.hints = [['Grip', 'pick up the mallet from its stand'], ['Swing down', 'hard, onto the red pad'], ['Tickets', 'spend them at the Skee-Ball prize counter']];
-    L.hintsFor = () => (state.mode === 'flat' ? [['Space or click', 'swing when the needle is at the top'], ['Tickets', 'spend them at the Skee-Ball prize counter']] : L.hints);
+    const prizes = CARNIVAL.prizeStand(L, 6.0, 0.6, -Math.PI / 2);   // spend your tickets here
+    L.hints = [['Grip', 'pick up the mallet from its stand'], ['Swing down', 'hard, onto the red pad'], ['Tickets', 'spend them at the prize stand on the right']];
+    L.hintsFor = () => (state.mode === 'flat' ? [['Space or click', 'swing when the needle is at the top'], ['Tickets', 'spend them at the prize stand on the right']] : L.hints);
     L.spawn = () => { dolly.position.set(0, 0, 1.75); standAtTower(); };
     L.onEnter = () => { S.cool = 0; };
     L.onExit = () => { if (ui.status) ui.status.hidden = true; if (ui.power) ui.power.hidden = true; meterOn = false; S.hand = null; mallet.visible = false; };

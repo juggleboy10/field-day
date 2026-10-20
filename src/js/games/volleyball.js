@@ -15,6 +15,7 @@
     L.bounds = { minX: -12, maxX: 12, minZ: -7, maxZ: 7 };
     L.walkSpeed = 4;
     L.canHop = true;
+    L.vrHop = true;   // A or X (or the right stick up) jumps in VR, J in a browser: jump at the net to block a spike
     L.env = {
       sky: skyTexture([[0, '#3a8ae0'], [0.55, '#8ac8f4'], [1, '#fff0d0']]),
       bg: 0x8ac8f4, fog: [0xbfe0f4, 50, 160], hemi: [0xffffff, 0xd8b880, 0.8],
@@ -156,7 +157,7 @@
     L.overNet = overNet;
     // a spot in the court of the given team
     const inCourt = (team, x, z, m) => new V3(sgn(team) * clamp(Math.abs(x), 1.2, HX - (m || 0.5)), BR, clamp(z, -HZ + (m || 0.5), HZ - (m || 0.5)));
-    // shot kinds: 0 serve, 1 pass, 2 set, 3 spike, 4 free ball (over the net, soft)
+    // shot kinds: 0 serve, 1 pass, 2 set, 3 spike, 4 free ball (over the net, soft), 5 block (straight back down on their side)
     function shotVel(slot, kind, from, aim) {
       const t = teamOf(slot), s = sgn(t), o = 1 - t;
       if (kind === 1) { // pass to the setter's spot by the net
@@ -166,6 +167,7 @@
         const hz = from.z > 0 ? -1.8 : 1.8;
         return lob(from, new V3(s * 1.1, 2.6, hz), Math.max(4.2, from.y + 1.4));
       }
+      if (kind === 5) return overNet(from, flat(from, inCourt(o, 1.4 + rand() * 1.8, from.z + (rand() - 0.5) * 1.5, 0.4), 9));
       const to = aim || inCourt(o, 5 + rand() * 2, (rand() - 0.5) * 6);
       if (kind === 3) return overNet(from, flat(from, to, 13));
       if (kind === 0) return overNet(from, lob(from, to, 4.6));
@@ -176,6 +178,7 @@
     function applyHit(slot, p, v, kind) {
       const t = teamOf(slot);
       if (V.ph === 'serve') { if (slot !== V.server) return; V.ph = 'rally'; V.lastTeam = t; V.touches = 3; V.lastSlot = slot; }
+      else if (kind === 5) { if (V.ph !== 'rally') return; V.lastTeam = t; V.touches = 3; V.lastSlot = slot; }   // a block isn't one of the three touches
       else {
         if (V.ph !== 'rally') return;
         if (V.lastTeam !== t) { V.touches = 1; V.lastTeam = t; } else V.touches += 1;
@@ -183,7 +186,8 @@
         V.lastSlot = slot;
       }
       V.p.copy(p); V.v.copy(v); V.cool[slot] = 0.45; V.hitN = (V.hitN || 0) + 1; V.sinceHit = 0;
-      V.spin = (rand() - 0.5) * 20;
+      V.spin = (rand() - 0.5) * 20; V.lastKind = kind;
+      if (kind === 5) { sfx('slam', 0.9); spawnFloat('BLOCKED!', p.clone().add(new V3(0, 0.5, 0)), '#4fc3f7'); forcePresence(); return; }
       const loud = kind === 3 ? 1 : 0.6;
       sfx(kind === 3 ? 'slam' : 'ball', loud); tone(kind === 3 ? 160 : 260, 120, 0.06, 'square', 0.12);
       if (kind === 3) spawnFloat('SPIKE!', p.clone().add(new V3(0, 0.4, 0)), '#ffd23f');
@@ -266,12 +270,18 @@
           else if (V.ph === 'serve' || V.ph === 'dead' || V.ph === 'idle' || V.ph === 'over') { tx = s * 4.2; tz = sl % 2 ? 2 : -2; }
           else if (sl === chaser) { tx = land.x - s * 0.25; tz = land.z; }
           else if (side === t) { const next = V.lastTeam === t ? V.touches + 1 : 1; if (next === 1) { tx = s * 1.6; tz = 0; } else { tx = s * 3.2; tz = V.p.z > 0 ? -1.8 : 1.8; } }
+          else if (V.ph === 'rally' && V.lastTeam === 1 - t && V.touches >= 2 && sl === s0) { tx = s * 0.9; tz = clamp(V.p.z, -3, 3); }   // up to the net to block
           else { tx = s * 4.5; tz = sl % 2 ? 2.2 : -2.2; }
           tx = clamp(tx, s < 0 ? -HX - 1 : 0.4, s < 0 ? -0.4 : HX + 1); tz = clamp(tz, -HZ - 1, HZ + 1);
           const dx = tx - b.x, dz = tz - b.z, d = Math.hypot(dx, dz), step = (V.ph === 'rally' && V.sinceHit < lv.react && V.lastTeam !== t) ? 0 : Math.min(d, lv.speed * dt);
           if (d > 0.01) { b.x += dx / d * step; b.z += dz / d * step; }
           // play the ball when it's in reach
           V.cool[sl] = Math.max(0, V.cool[sl] - dt);
+          // a bot up at the net now and then blocks a spike
+          if (V.ph === 'rally' && V.lastKind === 3 && V.lastTeam === 1 - t && Math.abs(V.p.x) < 0.8 && V.v.x * s > 0 && Math.abs(b.x) < 2.2 && Math.abs(V.p.z - b.z) < 1.0 && b.blockN !== V.hitN) {
+            b.blockN = V.hitN;
+            if (rand() < 0.22) { b.jump = 0.5; const from = V.p.clone(); from.x = s * 0.25; from.y = Math.max(from.y, NET_H + 0.25); applyHit(sl, from, shotVel(sl, 5, from, null), 5); continue; }
+          }
           if (V.ph !== 'rally' || V.cool[sl] > 0) continue;
           const onMySide = Math.sign(V.p.x) === s || Math.abs(V.p.x) < 0.3;
           const hd = Math.hypot(V.p.x - b.x, V.p.z - b.z), nearNet = Math.abs(V.p.x) < 3.2;
@@ -359,6 +369,13 @@
         return;
       }
       if (V.ph !== 'rally') return;
+      // a block: their spike coming over the net, and my hands up in its way
+      if (V.lastTeam === 1 - t && V.lastKind === 3 && Math.abs(V.p.x) < 1.4 && V.v.x * s > 0) {
+        let blocked = false;
+        if (state.mode === 'vr') { for (const sd of SIDES) { const h = myHands[sd]; if (h.ok && h.pos.distanceTo(V.p) < BR + 0.2) blocked = true; } }
+        else { const hd = Math.hypot(V.p.x - myHead.pos.x, V.p.z - myHead.pos.z); if (Math.abs(myHead.pos.x) < 1.4 && hd < 0.85 && V.p.y > myHead.pos.y + 0.05 && V.p.y < myHead.pos.y + 0.75) blocked = true; }
+        if (blocked) { const b = V.p.clone(); b.x = s * 0.25; b.y = Math.max(b.y, NET_H + 0.25); V.p.copy(b); myTouch(5, null); return; }
+      }
       const onMySide = Math.sign(V.p.x) === s || Math.abs(V.p.x) < 0.4;
       if (!onMySide) return;
       if (state.mode === 'vr') {
@@ -402,7 +419,7 @@
     const PH = ['idle', 'serve', 'rally', 'dead', 'over'];
     const r2 = (x) => Math.round(x * 100) / 100;
     function snapshot() {
-      return { g: V.g, ph: PH.indexOf(V.ph), b: [V.p.x, V.p.y, V.p.z, V.v.x, V.v.y, V.v.z].map(r2), s: V.score.slice(), sv: V.server, t: V.touches, lt: V.lastTeam, ls: V.lastSlot, pl: P.flatMap((p) => [r2(p.x), r2(p.z)]), h: V.people.slice(), m: [V.msgSeq, V.msg], w: V.winner, lv: V.lv };
+      return { g: V.g, ph: PH.indexOf(V.ph), b: [V.p.x, V.p.y, V.p.z, V.v.x, V.v.y, V.v.z].map(r2), s: V.score.slice(), sv: V.server, t: V.touches, lt: V.lastTeam, ls: V.lastSlot, pl: P.flatMap((p) => [r2(p.x), r2(p.z)]), h: V.people.slice(), m: [V.msgSeq, V.msg], w: V.winner, lv: V.lv, lk: V.lastKind === undefined ? -1 : V.lastKind };
     }
     const fin = (x, m) => typeof x === 'number' && Number.isFinite(x) && Math.abs(x) < m;
     function validSnap(q) {
@@ -414,7 +431,7 @@
     }
     let seenMsg = -1, lastSnapB = '';
     function applySnap(q) {
-      V.g = q.g; V.ph = PH[q.ph]; V.score = q.s.slice(); V.server = q.sv; V.touches = q.t; V.lastTeam = q.lt; V.lastSlot = q.ls; V.people = q.h.slice(); V.winner = q.w; V.lv = q.lv;
+      V.g = q.g; V.ph = PH[q.ph]; V.score = q.s.slice(); V.server = q.sv; V.touches = q.t; V.lastTeam = q.lt; V.lastSlot = q.ls; V.people = q.h.slice(); V.winner = q.w; V.lv = q.lv; if (Number.isInteger(q.lk)) V.lastKind = q.lk;
       for (let s = 0; s < 4; s++) { P[s].tx = q.pl[s * 2]; P[s].tz = q.pl[s * 2 + 1]; }
       // the ball: take the host's, unless I've just hit it myself (mine is newer)
       const key = q.b.join();
@@ -439,7 +456,7 @@
       } else st.vw = null;
       // their touch of the ball
       const h = pres.vh;
-      if (Array.isArray(h) && h.length === 9 && h.every((x) => fin(x, 1e6)) && Number.isInteger(h[0]) && Number.isInteger(h[1]) && h[1] >= 0 && h[1] <= 4 && Number.isInteger(h[2]) && h[2] >= 0 && h[2] < 4) {
+      if (Array.isArray(h) && h.length === 9 && h.every((x) => fin(x, 1e6)) && Number.isInteger(h[0]) && Number.isInteger(h[1]) && h[1] >= 0 && h[1] <= 5 && Number.isInteger(h[2]) && h[2] >= 0 && h[2] < 4) {
         if (isHost() && state.level === L.idx && V.hitSeq[rec.peer] !== h[0] && V.people[h[2]] === rec.peer && V.hitSeq[rec.peer] !== undefined) {
           applyHit(h[2], new V3(h[3], h[4], h[5]), new V3(h[6], h[7], h[8]), h[1]);
         }
@@ -543,8 +560,8 @@
       { label: () => (V.ph === 'idle' || V.ph === 'over' ? 'Start match' : 'Restart'), run: () => { if (isHost()) startMatch(); else requestStart(); } },
       { label: () => `Bots: ${LEVELS[V.lv].name} ▸`, run: () => { if (!isHost()) { showToast('The first player in the room picks the bots'); return; } V.lv = (V.lv + 1) % LEVELS.length; forcePresence(); state.hudDirty = true; } },
     ];
-    L.hints = [['A / X', 'start a match'], ['Bump or set', 'just get your hands to the ball'], ['Spike', 'swing hard at a high ball by the net'], ['White ring', 'where the ball is coming down']];
-    L.hintsFor = () => (state.mode === 'flat' ? [['WASD', 'move (Shift runs)'], ['Walk under the ball', 'to play it'], ['Hold Space', 'to spike, aimed where you look']] : L.hints);
+    L.hints = [['A / X', 'start a match, then jump'], ['Jump at the net', 'hands up to block their spike'], ['Bump or set', 'just get your hands to the ball'], ['Spike', 'swing hard at a high ball by the net'], ['White ring', 'where the ball is coming down']];
+    L.hintsFor = () => (state.mode === 'flat' ? [['WASD', 'move (Shift runs)'], ['Walk under the ball', 'to play it'], ['Hold Space', 'to spike, aimed where you look'], ['J at the net', 'jump to block their spike']] : L.hints);
     L.spawn = () => { dolly.position.set(-4, 0, 1); if (state.mode !== 'vr') { state.yaw = -Math.PI / 2; state.pitch = 0; } };
     L.onEnter = () => { drawScore.key = ''; ME.claim = null; seenMsg = -1; };
     L.onExit = () => { if (ui.status) ui.status.hidden = true; marker.visible = false; if (isHost() && V.ph !== 'over') V.ph = 'idle'; };

@@ -75,5 +75,7 @@
       lights(G, new V3(x - w / 2, H + 0.05, z + d / 2 + 0.2), new V3(x + w / 2, H + 0.05, z + d / 2 + 0.2), Math.round(w * 3));
     }
     const tickets = (n, at) => { if (typeof skeeball !== 'undefined' && skeeball.addTickets) skeeball.addTickets(n, at); };
-    return { env, backdrop, booth, lights, tickets };
+    // a prize stand (the Skee-Ball prizes, the same tickets) in another carnival game; call .tick() each frame
+    const prizeStand = (L, x, z, yaw) => (typeof skeeball !== 'undefined' && skeeball.makePrizeStand ? skeeball.makePrizeStand(L, x, z, yaw) : { tick() {} });
+    return { env, backdrop, booth, lights, tickets, prizeStand };
   })();

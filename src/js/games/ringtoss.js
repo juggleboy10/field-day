@@ -163,6 +163,7 @@
     L.update = (dt, now) => {
       const here = state.level === L.idx && state.mode !== 'menu';
       fair.tick(dt);
+      prizes.tick();
       if (!here) { reticle.visible = false; return; }
       if (mySlot() !== T.k) standAtBooth();
       const n = Math.max(1, Math.ceil(dt / 0.004));
@@ -202,9 +203,10 @@
       L.board.tex.needsUpdate = true;
     };
     makeKiosk(L, 6.2, 4.8, -Math.PI * 0.75);
+    const prizes = CARNIVAL.prizeStand(L, 6.2, 1.6, -Math.PI / 2);   // spend your tickets here
     L.hudActions = [{ label: () => (T.ph === 'play' ? 'New game' : 'Start game'), run: () => newGame() }];
-    L.hints = [['Grip', 'a ring appears in your hand'], ['Toss', 'underhand, a gentle lob'], ['Gold bottle', '15 tickets']];
-    L.hintsFor = () => (state.mode === 'flat' ? [['Mouse', 'aim (your hand wobbles)'], ['Hold Space', 'steady it, let go to toss'], ['Gold bottle', '15 tickets']] : L.hints);
+    L.hints = [['Grip', 'a ring appears in your hand'], ['Toss', 'underhand, a gentle lob'], ['Gold bottle', '15 tickets'], ['Prize stand', 'on the right: spend your tickets']];
+    L.hintsFor = () => (state.mode === 'flat' ? [['Mouse', 'aim (your hand wobbles)'], ['Hold Space', 'steady it, let go to toss'], ['Gold bottle', '15 tickets'], ['Prize stand', 'on the right: spend your tickets']] : L.hints);
     L.spawn = () => { dolly.position.set(0, 0, 0.35); standAtBooth(); };
     L.onEnter = () => { aim.last = null; };
     L.onExit = () => { if (ui.status) ui.status.hidden = true; reticle.visible = false; T.held = null; };

@@ -305,6 +305,8 @@
       if (v.length() < 1.2 || v.z > -0.5) { myDarts[S.thrown].visible = false; return; }   // put it down
       // a touch of help: trim the sideways wobble of a real throw
       v.x *= 0.85;
+      // and a touch more carry (throws measured from the controller come out a little short)
+      v.multiplyScalar(1.08); v.y += 0.45;
       launch(0, myHands[h.side].pos.clone(), v);
     };
 

@@ -239,9 +239,9 @@
         d.m.material.color.setHex(color); d.m.material.opacity = 1;
         d.m.position.copy(pos); d.m.position.x += px * sgn * 0.05; d.m.position.y += py * sgn * 0.05;
         d.m.rotation.set(0, 0, rot + (sgn < 0 ? Math.PI : 0));
-        d.v.set(px * sgn * 1.6 + dirX * 1.2, py * sgn * 1.6 + dirY * 1.2 + 0.6, 2.5);
+        d.v.set(px * sgn * 2.2 + dirX * 1.2, py * sgn * 2.2 + dirY * 1.2 + 0.4, -0.6);   // apart and away from you, not into your face
         d.w.set((rand() - 0.5) * 8, (rand() - 0.5) * 8, (rand() - 0.5) * 8);
-        d.t = 0.7; d.m.visible = true;
+        d.t = 0.45; d.m.visible = true;
       }
     }
 
@@ -427,7 +427,8 @@
         const n = o.n;
         blockPos(n, now, o.m.position);
         const age = D.look - (n.t - now);
-        o.m.scale.setScalar(clamp(age / 0.25, 0.2, 1));
+        // grows in as it arrives, and shrinks away once it's past where you cut (so it never fills your view)
+        o.m.scale.setScalar(clamp(age / 0.25, 0.2, 1) * clamp(1 - (o.m.position.z - (HZ + 0.12)) / 0.4, 0, 1));
         // slicing (only once it's near you)
         if (Math.abs(o.m.position.z - HZ) < 0.9) {
           for (const side of state.mode === 'vr' ? ['left', 'right'] : ['flat']) {
@@ -458,7 +459,7 @@
         // gone past you
         if (o.n && o.m.position.z > HZ + 0.7) {
           o.n = null; o.m.visible = false;
-          addMiss('miss'); spawnFloat('Miss', new V3(BB.laneX + COLS[n.col], ROWS[n.row] + 0.2, HZ + 0.3), '#ffffff');
+          addMiss('miss'); spawnFloat('Miss', new V3(BB.laneX + COLS[n.col], ROWS[n.row] + 0.35, HZ - 1.2), '#ffffff');
           if (BB.st !== 'play') return;
         }
       }
@@ -467,6 +468,7 @@
         const n = o.n;
         blockPos(n, now, o.m.position);
         o.m.rotation.x += dt * 2; o.m.rotation.y += dt * 3;
+        o.m.scale.setScalar(clamp(1 - (o.m.position.z - (HZ + 0.12)) / 0.4, 0.001, 1));   // and bombs shrink away past you too
         if (Math.abs(o.m.position.z - HZ) < 0.9) {
           for (const side of state.mode === 'vr' ? ['left', 'right'] : ['flat']) {
             const hit = sweepHit(blade[side], o.m.position, 0.22, dt);
@@ -602,7 +604,7 @@
         d.t -= dt; d.v.y -= 6 * dt;
         d.m.position.addScaledVector(d.v, dt);
         d.m.rotation.x += d.w.x * dt; d.m.rotation.y += d.w.y * dt; d.m.rotation.z += d.w.z * dt;
-        d.m.material.opacity = clamp(d.t / 0.4, 0, 1);
+        d.m.material.opacity = clamp(d.t / 0.45, 0, 1) * 0.8; d.m.scale.setScalar(0.4 + 0.6 * clamp(d.t / 0.45, 0, 1));
         if (d.t <= 0) d.m.visible = false;
       }
       BB.fx = Math.max(0, BB.fx - dt * 3);
