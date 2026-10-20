@@ -419,6 +419,7 @@
     }
     function finishRace() {
       RACE.myFinish = Math.round(raceNow()); RACE.state = 'over'; RACE.over = true;
+      RECORDS.add(L, `c${L.courseIdx || 0}`, RACE.myFinish / 1000);
       const rank = standings().findIndex((r) => r.me) + 1;
       showToast(`Finished in ${(RACE.myFinish / 1000).toFixed(1)} s! ${rank === 1 ? '1st place!' : `Place ${rank}`} \u00B7 Race again from the buttons just ahead`);
       sfx('fanfare', 1); setTimeout(() => sfx('cheer', 0.8), 250);
@@ -427,6 +428,7 @@
     makeButton(L, new V3(2.4, 1.0, -1.6), 0x8bd450, 'START race', () => startRace(), { faceYaw: 0 });
     makeButton(L, new V3(2.4, 1.0, 0.2), 0xff7a3a, 'Back to start', () => { toStart(); showToast('Back at the start'); }, { faceYaw: 0 });
     makeKiosk(L, -3.4, 2.4, Math.PI / 2);
+    RECORDS.def(L, ['Skyline Sprint', 'Rooftop Rush', 'Crane Yard'].map((n, i) => ({ k: `c${i}`, label: `Fastest: ${n}`, low: true, fmt: 'time' })));
     // choose a course (not mid-race)
     function nextCourse() {
       if (RACE.state === 'count' || RACE.state === 'run') { showToast('Finish or restart the race first'); return; }

@@ -280,6 +280,7 @@
       H.ph = 'won';
       const t = Math.round(H.time * 10) / 10;
       if (!H.best || t < H.best) { H.best = t; prefs.hauntBest = t; savePrefs(); }
+      RECORDS.add(L, 'time', t);
       say(`The mansion is free! ${H.caught} ghosts caught in ${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`);
       state.dirtyBoard = true;
       forcePresence();
@@ -314,7 +315,7 @@
     }
     let seenMsg = -1;
     function applySnap(q) {
-      const prevRoom = H.room;
+      const prevRoom = H.room, prevPh = H.ph;
       H.g = q.g; H.ph = PH[q.ph]; H.room = q.rm; H.bossHp = q.bh; H.open = q.o.slice(); H.caught = q.c; H.time = q.t;
       const n = q.gh.length / 6;
       if (H.ghosts.length !== n || prevRoom !== H.room) H.ghosts = [];
@@ -323,6 +324,7 @@
         const g = H.ghosts[k] || (H.ghosts[k] = { x: a[0], y: a[1], z: a[2], wob: rand() * 10 });
         g.tx = a[0]; g.ty = a[1]; g.tz = a[2]; g.meter = a[3] / 20; if (g.st !== 2 && a[4] === 2) { sfx('zap', 0.5); } g.st = a[4]; g.boss = !!a[5];
       }
+      if (prevPh === 'hunt' && H.ph === 'won' && q.t > 0) RECORDS.add(L, 'time', q.t);
       if (q.b[0] !== ME.seenBoo) { if (ME.seenBoo && q.b[1] === state.myPeer) scared(); ME.seenBoo = q.b[0]; }
       if (seenMsg >= 0 && q.m[0] !== seenMsg && q.m[1]) showToast(q.m[1]);
       seenMsg = q.m[0];
@@ -442,6 +444,7 @@
       L.board.tex.needsUpdate = true;
     };
     makeKiosk(L, -RW / 2 + 0.6, ROOMS[0].z + 4.2, Math.PI / 2);
+    RECORDS.def(L, [{ k: 'time', label: 'Fastest to free the mansion', low: true, fmt: 'time' }]);
     L.hudActions = [{ label: () => (H.ph === 'hunt' ? 'Restart hunt' : 'Start hunt'), run: () => { if (isHost()) startHunt(); else showToast('The first player in the room starts the hunt'); } }];
     L.hints = [['A / X', 'start the hunt'], ['Flashlight', 'in your right hand: hold a ghost in the beam'], ['BOO!', 'keep the light moving, they sneak up']];
     L.hintsFor = () => (state.mode === 'flat' ? [['Mouse', 'point the flashlight'], ['WASD', 'walk'], ['Hold a ghost', 'in the beam until it’s sucked in']] : L.hints);

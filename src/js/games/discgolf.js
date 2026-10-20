@@ -221,6 +221,7 @@
     drawSign();
     redraws.push(drawSign);
     makeKiosk(L, -2.4, 6.6, Math.PI);
+    RECORDS.def(L, [{ k: 'round', label: 'Best nine holes (fewest throws)', low: true }]);
     makeButton(L, new V3(2.3, 1.0, 6.4), 0xf5821f, 'Restart round', () => restartRound(), { faceYaw: Math.PI });
 
     // ---------------------------------------------------------------- my disc
@@ -507,6 +508,7 @@
         if (next === 0) {
           const s = L.stats;
           showToast(`Round complete: ${s.total} (${toPar(s.total - s.parDone)})`);
+          if (s.done >= HOLES.length) RECORDS.add(L, 'round', s.total);
           sfx('cheer', 0.7);
           D.phase = 'between';
           D.t0 = now;

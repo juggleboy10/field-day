@@ -202,6 +202,7 @@
       if (why === 'done') {
         const n = R.fits + R.crashes, acc = n ? R.fits / n : 0, key = String(R.mi), nb = R.score > (R.best[key] || 0);
         if (nb) { R.best[key] = R.score; prefs.wrBest = R.best; savePrefs(); }
+        RECORDS.add(L, `m${R.mi}`, R.score);
         R.result = { score: R.score, fits: R.fits, crashes: R.crashes, acc, newBest: nb };
         showToast(`${R.fits} of ${n} walls! ${R.score.toLocaleString()} points${nb ? ' · new best' : ''}`);
         sfx('fanfare', 0.9);
@@ -301,6 +302,7 @@
     const btnBase = btns.map((b) => b.pos.x);
     function moveButtons() { btns.forEach((b, i) => { const x = btnBase[i] + R.spotX, dx = x - b.pos.x; b.pos.x = x; b.mesh.position.x += dx; b.plate.position.x += dx; }); }
     makeKiosk(L, -4.2, 2.4, Math.PI / 2);
+    RECORDS.def(L, MODES.map((m, i) => ({ k: `m${i}`, label: `Best score: ${m.name}` })));
     L.hudActions = [
       { label: () => `Mode: ${MODES[R.mi].name} ▸`, show: () => R.st !== 'go', run: nextMode },
       { label: () => (R.st === 'go' ? 'Stop' : 'Start'), run: () => (R.st === 'go' ? stop('quit') : start()) },

@@ -110,6 +110,7 @@
     drawSign();
     redraws.push(drawSign);
     makeKiosk(L, AR.maxX - 0.7, 1.8, -Math.PI / 2);
+    RECORDS.def(L, [{ k: 'tags', label: 'Most tags in a game' }]);
     makeButton(L, new V3(AR.maxX - 0.7, 1.0, 3.6), 0xb388ff, 'Switch team', () => switchTeam(), { faceYaw: -Math.PI / 2 });
     makeButton(L, new V3(AR.maxX - 0.7, 1.0, 5.2), 0x8bd450, 'Start game', () => startGame(), { faceYaw: -Math.PI / 2 });
     // and one at each base, by the back wall
@@ -457,6 +458,7 @@
       const s = scores();
       if (!me.winT && me.round > 0 && (s[0] >= WIN || s[1] >= WIN)) {
         me.winT = now;
+        if (me.round > 0 && me.team >= 0) RECORDS.add(L, 'tags', me.tags);
         const w = s[0] >= WIN ? 0 : 1;
         sfx(w === me.team ? 'fanfare' : 'buzzer', 1);
         showToast(`${TEAM_NAMES[w]} team wins ${s[w]} to ${s[1 - w]}!`);

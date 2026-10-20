@@ -65,6 +65,8 @@
       S.ph = 'over'; S.lit = -1;
       const isBest = S.hits > S.best;
       if (isBest) { S.best = S.hits; prefs.lightBest = S.best; savePrefs(); }
+      RECORDS.add(L, 'hits', S.hits);
+      if (S.hits >= 20) RECORDS.add(L, 'react', S.react / S.hits * 1000);
       const n = Math.ceil(S.hits / 3), avg = S.hits ? Math.round(S.react / S.hits * 1000) : 0;
       showToast(`Time! ${S.hits} lights${avg ? `, ${avg} ms each on average` : ''}${isBest && S.hits ? ' (your best!)' : ''}. ${n} tickets`);
       sfx(S.hits >= 30 ? 'fanfare' : 'chime', 0.8);
@@ -179,6 +181,7 @@
       L.board.tex.needsUpdate = true;
     };
     makeKiosk(L, 5.8, 4.4, -Math.PI * 0.75);
+    RECORDS.def(L, [{ k: 'hits', label: 'Most lights in 30 seconds' }, { k: 'react', label: 'Quickest average (20+ lights)', low: true, fmt: 'ms' }]);
     const prizes = CARNIVAL.prizeStand(L, 5.0, 0.6, -Math.PI / 2);   // spend your tickets here
     L.hudActions = [{ label: () => (S.ph === 'play' ? 'Restart' : 'Start round'), run: () => startRound() }];
     L.hints = [['A / X', 'start a round'], ['Slap', 'the lit button with either hand'], ['Prize stand', 'on the right: spend your tickets']];

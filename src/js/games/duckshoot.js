@@ -93,6 +93,7 @@
       R.ph = 'over';
       const isBest = R.score > R.best;
       if (isBest) { R.best = R.score; prefs.duckBest = R.best; savePrefs(); }
+      RECORDS.add(L, 'score', R.score);
       const n = Math.max(0, Math.ceil(R.score / 3));
       showToast(`Time! ${R.score} points from ${R.shots} corks${isBest && R.score ? ' (your best!)' : ''}. ${n} tickets`);
       sfx(R.score >= 20 ? 'fanfare' : 'chime', 0.8);
@@ -217,6 +218,7 @@
       L.board.tex.needsUpdate = true;
     };
     makeKiosk(L, 6.2, 4.6, -Math.PI * 0.75);
+    RECORDS.def(L, [{ k: 'score', label: 'Best score in 40 seconds' }]);
     const prizes = CARNIVAL.prizeStand(L, 6.2, 1.6, -Math.PI / 2);   // spend your tickets here
     L.hudActions = [{ label: () => (R.ph === 'play' ? 'Restart' : 'Start round'), run: () => startRound() }];
     L.hints = [['Trigger', 'fire a cork (the first shot starts the round)'], ['Golden ducks', '5 points'], ['Bunnies', 'cost you 3'], ['Prize stand', 'on the right: spend your tickets']];

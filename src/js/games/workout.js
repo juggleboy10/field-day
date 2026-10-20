@@ -173,6 +173,7 @@
       if (why === 'done') {
         const tot = W.hits + W.misses, acc = tot ? W.hits / tot : 0, key = String(W.si), nb = W.score > (W.best[key] || 0);
         if (nb) { W.best[key] = W.score; prefs.woBest = W.best; savePrefs(); }
+        RECORDS.add(L, `s${W.si}`, W.score);
         W.result = { score: W.score, acc, kcal: W.kcal, reps: Object.assign({}, W.reps), newBest: nb };
         showToast(`Workout done! ${Math.round(acc * 100)}% · about ${Math.round(W.kcal)} kcal${nb ? ' · new best' : ''}`);
         sfx('fanfare', 0.9);
@@ -327,6 +328,7 @@
     const btnBase = btns.map((b) => b.pos.x);
     function moveButtons() { btns.forEach((b, i) => { const x = btnBase[i] + W.spotX; const dx = x - b.pos.x; b.pos.x = x; b.mesh.position.x += dx; b.plate.position.x += dx; }); }
     makeKiosk(L, -3.6, 2.6, Math.PI / 2);
+    RECORDS.def(L, SESSIONS.map((m, i) => ({ k: `s${i}`, label: `Best score: ${m.name}` })));
     L.hudActions = [
       { label: () => `Session: ${SESSIONS[W.si].name} ▸`, show: () => W.st !== 'go', run: nextSession },
       { label: () => (W.st === 'go' ? 'Stop' : 'Start'), run: () => (W.st === 'go' ? stop('quit') : start()) },

@@ -204,6 +204,7 @@
     // the results board, on the left bank of the start pool, facing the water
     const boardAt = riverPoint(START_S - 4, -(W[Math.round(START_S / DS)] / 2 + 3.4), new V3());
     const boardC = makeBoard(G, 720, 460, 3.2, 2.05, boardAt.x, boardAt.y + 3.2, boardAt.z, yawAt(START_S) + Math.PI / 2, false);
+    { const ra = riverPoint(START_S - 7.5, -(W[Math.round(START_S / DS)] / 2 + 3.4), new V3()); RECORDS.def(L, [{ k: 'run', label: 'Fastest run down the river', low: true, fmt: 'time' }], { x: ra.x, y: ra.y + 1.3, z: ra.z, yaw: yawAt(START_S) + Math.PI / 2 }); }
     { const i = Math.round(START_S / DS); for (const sx of [-1.3, 1.3]) addCyl(G, 0.05, 0.05, 2.4, 6, lam(0x2b2d42), boardAt.x + T[i].x * sx, boardAt.y + 1.2, boardAt.z + T[i].z * sx); }
 
     // ---------------------------------------------------------------- boats and paddles
@@ -280,6 +281,7 @@
     L.startRace = startRace;
     function finishRace() {
       RACE.myFinish = Math.max(1, Math.round(raceNow())); RACE.state = 'over';
+      RECORDS.add(L, 'run', RACE.myFinish / 1000);
       const rank = standings().findIndex((r) => r.me) + 1;
       showToast(`Finished in ${fmt(RACE.myFinish)}! ${rank === 1 ? '1st place!' : `Place ${rank}`}`);
       sfx('fanfare', 1); setTimeout(() => sfx('cheer', 0.8), 250);

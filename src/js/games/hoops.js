@@ -258,6 +258,7 @@
     redraws.push(drawSign);
     makeButton(L, new V3(2.8, 1.03, 2.75), 0xf5821f, 'Reset balls', () => resetBodies(L), { faceYaw: -Math.PI / 2 });
     makeKiosk(L, -4.2, 3.9, Math.PI * 0.75);
+    RECORDS.def(L, [{ k: 'long', label: 'Longest shot made', fmt: (v) => `${v.toFixed(1)} m` }]);
     makePlayerPicker(L, { min: 2, max: 8, def: 4, label: 'Lightning players', note: 'from the next game' });
 
     // balls
@@ -327,6 +328,7 @@
       const pts = Math.hypot(b.throwFrom.x - RIM.x, b.throwFrom.z - RIM.z) > THREE_PT ? 3 : 2;
       if (L.gameBallMade && L.gameBallMade(b, pts)) return;   // Lightning handles its own balls
       L.stats.score += pts;
+      RECORDS.add(L, 'long', Math.hypot(b.throwFrom.x - RIM.x, b.throwFrom.z - RIM.z));
       state.dirtyBoard = true;
       forcePresence();
       celebrate(null, pts);

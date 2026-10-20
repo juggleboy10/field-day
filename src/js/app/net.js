@@ -27,6 +27,7 @@
     }
     Object.assign(p, L.presence());
     if (L.picker) p.pc = [L.picker.n, L.picker.t];
+    { const r = RECORDS.mine(L); if (r) p.rcd = r; }
     if (L.sitOut) p.so = L.sitOut.on ? 1 : 0;
     // voice: is my mic on (1), muted (2) or off (0), and am I talking right now (for the others' voice check)
     p.vo = VOICE.stream ? (VOICE.muted ? 2 : 1) : 0;
@@ -98,6 +99,7 @@
     const st = rec.lvState[L.id] || (rec.lvState[L.id] = {});
     if (L.picker && pres.pc) L.picker.merge(pres.pc);
     if (L.sitOut) { if (pres.so === 1 !== !!st.sitOut) state.dirtyBoard = true; st.sitOut = pres.so === 1; }
+    if (pres.rcd && rec.name) RECORDS.merge(L, rec.name, pres.rcd);
     L.readPresence(rec, pres, st);
     if (Array.isArray(pres.b)) for (const c of pres.b.slice(0, L.bodies.length)) applyClaim(peer.peer, c, L);
     if (Array.isArray(pres.t)) for (const c of pres.t.slice(0, L.tools.length)) applyToolClaim(peer.peer, c, L);

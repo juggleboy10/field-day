@@ -101,6 +101,7 @@
       if (won) {
         const isBest = !B.best[B.lv] || secs < B.best[B.lv];
         if (isBest) { B.best[B.lv] = Math.round(secs * 10) / 10; prefs.boxBest = B.best.slice(); savePrefs(); }
+        RECORDS.add(L, `ko${B.lv}`, secs);
         showToast(`KNOCKOUT! You beat the ${LV().name} in ${secs.toFixed(1)} s${isBest ? ' (your best!)' : ''}. ${B.landed} punches landed, ${B.dodges} dodged`);
         sfx('fanfare', 1); setTimeout(() => sfx('cheer', 1), 300);
       } else { showToast(`Down you go! The ${LV().name} wins this one. Try again`); sfx('buzzer', 0.8); }
@@ -316,6 +317,7 @@
       L.board.tex.needsUpdate = true;
     };
     makeKiosk(L, 9.5, 3.2, -Math.PI / 2);
+    RECORDS.def(L, LEVELS.map((v, i) => ({ k: `ko${i}`, label: `Fastest knockout: the ${v.name}`, low: true, fmt: 'time' })));
     L.hudActions = [
       { label: () => (B.st === 'idle' || B.st === 'down' || B.st === 'win' ? 'Start bout' : 'Restart'), run: () => startBout() },
       { label: () => `Opponent: ${LV().name} ▸`, run: () => { if (B.st !== 'idle' && B.st !== 'down' && B.st !== 'win') { showToast('Change opponent between bouts'); return; } B.lv = (B.lv + 1) % LEVELS.length; state.hudDirty = true; state.dirtyBoard = true; } },

@@ -117,7 +117,7 @@
     function newServe() {
       const t = V.serveTeam;
       V.server = t * 2 + (V.serveIdx[t] % 2);
-      V.ph = 'serve'; V.t = 0; V.touches = 0; V.lastTeam = -1; V.lastSlot = -1;
+      V.ph = 'serve'; V.t = 0; V.touches = 0; V.lastTeam = -1; V.lastSlot = -1; V.rallyN = 0;
       P[V.server].x = sgn(t) * (HX + 0.7); P[V.server].z = V.server % 2 ? 1.2 : -1.2;
       // my serve: step back behind the line
       if (V.people[V.server] === state.myPeer) { const c = new V3(); camera.getWorldPosition(c); dolly.position.x += P[V.server].x - c.x; dolly.position.z += P[V.server].z - c.z; if (state.mode !== 'vr') { state.yaw = t === 0 ? -Math.PI / 2 : Math.PI / 2; state.pitch = 0.1; } showToast(state.mode === 'vr' ? 'Your serve: hit the ball in front of you' : 'Your serve: look where you want it and press Space'); }
@@ -185,6 +185,7 @@
         if (V.touches > 3) { point(1 - t, `Four touches by ${teamName(t).toLowerCase()}`); return; }
         V.lastSlot = slot;
       }
+      V.rallyN = (V.rallyN || 0) + 1;
       V.p.copy(p); V.v.copy(v); V.cool[slot] = 0.45; V.hitN = (V.hitN || 0) + 1; V.sinceHit = 0;
       V.spin = (rand() - 0.5) * 20; V.lastKind = kind;
       if (kind === 5) { sfx('slam', 0.9); spawnFloat('BLOCKED!', p.clone().add(new V3(0, 0.5, 0)), '#4fc3f7'); forcePresence(); return; }
@@ -196,6 +197,7 @@
     function point(team, why) {
       if (V.ph !== 'rally' && V.ph !== 'serve') return;
       V.score[team] += 1;
+      if (myTeam() >= 0 && V.rallyN >= 6) RECORDS.add(L, 'rally', V.rallyN);
       const s = V.score;
       V.ph = 'dead'; V.t = 0;
       if (team !== V.serveTeam) { V.serveTeam = team; V.serveIdx[team] += 1; }
@@ -204,6 +206,7 @@
         V.ph = 'over'; V.winner = team;
         say(myTeam() < 0 ? `${teamName(team)} wins ${s[team]}-${s[1 - team]}` : mine ? `You win the match ${s[team]}-${s[1 - team]}!` : `They win ${s[team]}-${s[1 - team]}. Rematch?`);
         sfx(mine ? 'fanfare' : 'buzzer', 0.9); if (mine) sfx('cheer', 0.8);
+        if (mine) RECORDS.add(L, 'margin', s[team] - s[1 - team]);
         if (mine) { V.wins = (V.wins || 0) + 1; prefs.vbWins = V.wins; savePrefs(); state.dirtyBoard = true; }
       } else {
         say(`${why}. ${myTeam() < 0 ? `${teamName(team)} scores` : mine ? 'Point to you' : 'Point to them'}: ${s[myTeam() === 1 ? 1 : 0]}-${s[myTeam() === 1 ? 0 : 1]}`);
@@ -556,6 +559,7 @@
       L.board.tex.needsUpdate = true;
     };
     makeKiosk(L, 10.5, 4.5, -Math.PI / 2);
+    RECORDS.def(L, [{ k: 'rally', label: 'Longest rally (touches)' }, { k: 'margin', label: 'Biggest win (points)' }]);
     L.hudActions = [
       { label: () => (V.ph === 'idle' || V.ph === 'over' ? 'Start match' : 'Restart'), run: () => { if (isHost()) startMatch(); else requestStart(); } },
       { label: () => `Bots: ${LEVELS[V.lv].name} ▸`, run: () => { if (!isHost()) { showToast('The first player in the room picks the bots'); return; } V.lv = (V.lv + 1) % LEVELS.length; forcePresence(); state.hudDirty = true; } },

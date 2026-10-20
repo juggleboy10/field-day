@@ -64,6 +64,7 @@
     function endGame() {
       T.ph = 'over';
       if (T.ringers > T.best) { T.best = T.ringers; prefs.ringBest = T.best; savePrefs(); }
+      RECORDS.add(L, 'ringers', T.ringers); RECORDS.add(L, 'tickets', T.tickets);
       showToast(`${T.ringers} ringer${T.ringers === 1 ? '' : 's'} from ${RINGS} rings: ${T.tickets} tickets in all`);
       sfx(T.ringers >= 3 ? 'fanfare' : 'chime', 0.8);
       forcePresence(); state.dirtyBoard = true;
@@ -203,6 +204,7 @@
       L.board.tex.needsUpdate = true;
     };
     makeKiosk(L, 6.2, 4.8, -Math.PI * 0.75);
+    RECORDS.def(L, [{ k: 'ringers', label: 'Most ringers from ten rings' }, { k: 'tickets', label: 'Most tickets in one game' }]);
     const prizes = CARNIVAL.prizeStand(L, 6.2, 1.6, -Math.PI / 2);   // spend your tickets here
     L.hudActions = [{ label: () => (T.ph === 'play' ? 'New game' : 'Start game'), run: () => newGame() }];
     L.hints = [['Grip', 'a ring appears in your hand'], ['Toss', 'underhand, a gentle lob'], ['Gold bottle', '15 tickets'], ['Prize stand', 'on the right: spend your tickets']];

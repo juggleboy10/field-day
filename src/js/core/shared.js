@@ -569,6 +569,7 @@
     void rx; void rz;
     makeButton(L, new V3(x, 1.02, z), KIOSK_COLORS[HUB], 'Go back', () => switchLevel(HUB), { faceYaw: yaw });
     L.kioskAt = { x, z, yaw };
+    if (L.recPending) RECORDS.build(L);
   }
 
   // ---------------------------------------------------------------- sitting out (games that put you on a spot)

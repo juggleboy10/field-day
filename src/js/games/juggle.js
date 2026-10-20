@@ -244,6 +244,7 @@
           // missed: it falls, and everything starts again in a moment
           fb.state = 'drop'; b.vel.set(0, -0.5, 0.6);
           if (J.streak > 0) showToast(J.streak >= 5 ? `Dropped! That was a streak of ${J.streak}` : 'Dropped one');
+          if (J.count >= 3 && J.sp === 2 && J.streak >= 3) RECORDS.add(L, `b${J.count}`, J.streak);
           J.streak = 0; J.cascadeShown = false; state.dirtyBoard = true;
           sfx('thump', 0.4);
           FL.run = false; FL.restartAt = now + 1300;
@@ -285,6 +286,7 @@
       }
     }
     makeKiosk(L, -3.4, 2.2, Math.PI / 2);
+    RECORDS.def(L, [3, 4, 5].map((n) => ({ k: `b${n}`, label: `Longest ${n}-ball streak (real speed)` })));
     L.hudActions = [
       { label: () => `Balls: ${J.count} ▸`, run: () => setCount(J.count >= MAXN ? 1 : J.count + 1) },
       { label: () => `Speed: ${SPEEDS[J.sp].name} ▸`, run: nextSpeed },

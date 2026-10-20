@@ -214,6 +214,7 @@
       SAVE.tickets += tickets; save();
       const isBest = me.score > me.best;
       if (isBest) { me.best = me.score; prefs.skeeBest = me.best; savePrefs(); }
+      RECORDS.add(L, 'score', me.score);
       showToast(`Game over: ${me.score} points${isBest && me.score ? ' (a new best!)' : ''}. ${tickets} tickets!`);
       sfx(me.score >= 300 ? 'fanfare' : 'chime', 0.9);
       for (let i = 0; i < Math.min(tickets, 30); i++) setTimeout(() => tone(1500 + (i % 3) * 120, 0, 0.03, 'square', 0.04), i * 45);
@@ -377,6 +378,7 @@
       L.board.tex.needsUpdate = true;
     };
     makeKiosk(L, -5.4, 2.6, Math.PI / 2);
+    RECORDS.def(L, [{ k: 'score', label: 'High score (nine balls)' }]);
     L.hudActions = [{ label: () => (me.phase === 'play' ? 'New game' : 'Start game'), run: () => newGame() }];
     L.hints = [['Grip', 'take a ball from your tray'], ['Roll it', 'underhand, up the lane'], ['Prize counter', 'on the right wall']];
     L.hintsFor = () => (state.mode === 'flat' ? [['Mouse', 'aim'], ['Hold Space', 'power, then let go to roll'], ['E', 'press a prize button']] : L.hints);

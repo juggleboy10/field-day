@@ -74,6 +74,7 @@
       for (const m of moles[W.k].list) m.want = 0;
       const isBest = W.score > W.best;
       if (isBest) { W.best = W.score; prefs.whackBest = W.best; savePrefs(); }
+      RECORDS.add(L, 'score', W.score);
       const n = Math.ceil(W.score / 3);
       showToast(`Time! ${W.score} points${isBest && W.score ? ' (your best!)' : ''}. ${n} tickets`);
       sfx(W.score >= 30 ? 'fanfare' : 'chime', 0.8);
@@ -213,6 +214,7 @@
       L.board.tex.needsUpdate = true;
     };
     makeKiosk(L, 5.8, 4.4, -Math.PI * 0.75);
+    RECORDS.def(L, [{ k: 'score', label: 'Best score in 45 seconds' }]);
     const prizes = CARNIVAL.prizeStand(L, 5.0, 0.6, -Math.PI / 2);   // spend your tickets here
     L.hudActions = [{ label: () => (W.ph === 'play' ? 'Restart' : 'Start round'), run: () => startRound() }];
     L.hints = [['A / X', 'start a round'], ['Mallets', 'one in each hand: bop the moles'], ['Golden moles', '3 points'], ['Prize stand', 'on the right: spend your tickets']];

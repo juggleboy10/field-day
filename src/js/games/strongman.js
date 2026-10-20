@@ -86,8 +86,8 @@
       const h = t.hit >= 1 ? 1 : t.hit;
       const r = rating(h), n = payout(h);
       t.rating.visible = true; t.rating.userData.draw(r); t.showT = 2.4;
-      if (h >= 1) { S.rings += 1; sfx('fanfare', 0.8); sfx('cheer', 0.7); }
-      else sfx(h >= 0.68 ? 'chime' : 'click', 0.6);
+      if (h >= 1) { S.rings += 1; S.streak = (S.streak || 0) + 1; sfx('fanfare', 0.8); sfx('cheer', 0.7); }
+      else { if (S.streak) RECORDS.add(L, 'streak', S.streak); S.streak = 0; sfx(h >= 0.68 ? 'chime' : 'click', 0.6); }
       if (h > S.best) S.best = Math.round(h * 100) / 100;
       save();
       showToast(h >= 1 ? 'DING! You rang the bell!' : `${r}! ${Math.round(h * 100)}% of the way`);
@@ -205,12 +205,13 @@
       L.board.tex.needsUpdate = true;
     };
     makeKiosk(L, 6.0, 4.2, -Math.PI * 0.75);
+    RECORDS.def(L, [{ k: 'streak', label: 'Most bells in a row' }]);
     const prizes = CARNIVAL.prizeStand(L, 6.0, 0.6, -Math.PI / 2);   // spend your tickets here
     L.hints = [['Grip', 'pick up the mallet from its stand'], ['Swing down', 'hard, onto the red pad'], ['Tickets', 'spend them at the prize stand on the right']];
     L.hintsFor = () => (state.mode === 'flat' ? [['Space or click', 'swing when the needle is at the top'], ['Tickets', 'spend them at the prize stand on the right']] : L.hints);
     L.spawn = () => { dolly.position.set(0, 0, 1.75); standAtTower(); };
     L.onEnter = () => { S.cool = 0; };
-    L.onExit = () => { if (ui.status) ui.status.hidden = true; if (ui.power) ui.power.hidden = true; meterOn = false; S.hand = null; mallet.visible = false; };
+    L.onExit = () => { if (S.streak) { RECORDS.add(L, 'streak', S.streak); S.streak = 0; } if (ui.status) ui.status.hidden = true; if (ui.power) ui.power.hidden = true; meterOn = false; S.hand = null; mallet.visible = false; };
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 3, 2.4, 6); camera.lookAt(0, 2.6, 0); };
     L.strongInternals = { S, towers, strike, puckStep, needle, rating, payout };
     MUSIC_THEMES.strongman = { gain: 0.7, bpm: 116, swing: 0.2, chords: ['C', 'G', 'C', 'F'], comp: { inst: 'brass', at: [0, 4, 8, 12], dur: 0.2 }, bass: { at: [0, 8] }, drums: { k: 'x.......x.......', s: '....x.......x...' }, lead: { inst: 'musicbox', p: 0.3, up: 12 }, cut: 4200 };

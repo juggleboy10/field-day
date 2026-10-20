@@ -107,6 +107,7 @@
       }
     }
     makeKiosk(L, -7.6, 3.6, Math.atan2(7.6, -2.6));
+    RECORDS.def(L, [{ k: 'score', label: 'Most points in a game' }]);
     makeButton(L, new V3(-6.5, 1.0, 4.1), 0x8bd450, 'New game', () => newGame(), { faceYaw: Math.atan2(7.6, -2.6) });
     makePlayerPicker(L, { min: 1, max: SEATS, def: FILL_TO, note: 'from the next game' });
     // the side scoreboard
@@ -676,6 +677,7 @@
       } else if (RS.ph === 'final' && me.finalSeen !== RS.game) {
         me.finalSeen = RS.game;
         const top = standings()[0];
+        { const mine = standings().find((r) => r.id === state.myPeer); if (mine) RECORDS.add(L, 'score', mine.score); }
         if (top && top.id === state.myPeer) { me.wins += 1; sfx('fanfare', 0.9); sfx('cheer', 0.7); showToast('You win Trivia Night!'); forcePresence(); }
         else if (top) { sfx('cheer', 0.5); showToast(`${top.name} wins Trivia Night!`); }
       }

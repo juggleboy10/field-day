@@ -100,6 +100,7 @@
     const myTeam = () => (myIdx() >= 0 ? S.tm[myIdx()] : -1);
     makeKiosk(L, 6.5, 6.5, -Math.PI * 0.75);
     makePlayerPicker(L, { min: 2, max: 8, def: 6, label: 'Players', note: 'bots make up the numbers' });
+    RECORDS.def(L, [{ k: 'bonks', label: 'Most bonks in a round' }]);
     function say(m) { S.msg = m; S.msgSeq += 1; showToast(m); }
     function startRound() {
       const people = humansHere().filter((id) => { if (id === state.myPeer) return !(L.sitOut && L.sitOut.on); const st = remotes.get(id).lvState[L.id]; return !(st && st.sitOut); });
@@ -108,6 +109,7 @@
       people.forEach((id, k) => { ids.push(id); tm.push(k % 2); });
       // the bots even the teams up
       for (let i = 0; i < nBots; i++) { const n0 = tm.filter((t) => t === 0).length, n1 = tm.length - n0; ids.push(bots[i].id); tm.push(n0 <= n1 ? 0 : 1); }
+      S.myBonks = 0;
       Object.assign(S, { g: (S.g + 1) % 100000, ph: 'fight', ids, tm, hp: ids.map(() => HP), inv: ids.map(() => 0), wt: -1, t: 0 });
       ids.forEach((id, k) => { const b = botOf(id); if (b) { b.x = (tm[k] ? 1 : -1) * (2.2 + rand() * 1.5); b.z = (rand() - 0.5) * 6; b.cool = 1 + rand(); b.swing = 0; b.pend = null; b.mat.color.set(TEAM_COL[tm[k]]); } });
       // me: to my end of the castle
@@ -127,6 +129,7 @@
     function bonk(a, t) {
       if (S.ph !== 'fight' || S.hp[a] <= 0 || S.hp[t] <= 0 || S.tm[a] === S.tm[t] || S.inv[t] > 0) return false;
       S.hp[t] -= 1; S.inv[t] = 0.6;
+      if (S.ids[a] === state.myPeer) S.myBonks = (S.myBonks || 0) + 1;
       const at = posOf(S.ids[t], new V3()) || new V3();
       poof(at);
       const b = botOf(S.ids[t]);
@@ -135,7 +138,7 @@
         say(`${nameOf(S.ids[t])} ${S.ids[t] === state.myPeer ? 'are' : 'is'} out! (bonked by ${nameOf(S.ids[a]).replace(/^You$/, 'you')})`);
         const left = [0, 1].map((tt) => S.ids.filter((_, k) => S.tm[k] === tt && S.hp[k] > 0).length);
         if (!left[0] || !left[1]) {
-          S.wt = left[0] ? 0 : 1; S.wins[S.wt] += 1; S.ph = 'done'; S.t = 0;
+          S.wt = left[0] ? 0 : 1; S.wins[S.wt] += 1; S.ph = 'done'; S.t = 0; if (myIdx() >= 0) RECORDS.add(L, 'bonks', S.myBonks || 0);
           say(`${TEAM_N[S.wt]} wins the round!${myTeam() === S.wt ? ' That’s your team!' : ''}`);
           sfx(myTeam() === S.wt ? 'fanfare' : 'cheer', 0.8);
           if (myTeam() === S.wt) { S.myWins = (S.myWins || 0) + 1; prefs.pillowWins = S.myWins; savePrefs(); state.dirtyBoard = true; }
@@ -155,7 +158,7 @@
       const here = humansHere();
       S.ids.forEach((id, k) => { if (!botOf(id) && !here.includes(id) && S.hp[k] > 0) { S.hp[k] = 0; } });
       const left = [0, 1].map((tt) => S.ids.filter((_, k) => S.tm[k] === tt && S.hp[k] > 0).length);
-      if (!left[0] || !left[1]) { S.wt = left[0] ? 0 : 1; S.wins[S.wt] += 1; S.ph = 'done'; S.t = 0; say(`${TEAM_N[S.wt]} wins the round!`); forcePresence(); return; }
+      if (!left[0] || !left[1]) { S.wt = left[0] ? 0 : 1; S.wins[S.wt] += 1; S.ph = 'done'; S.t = 0; if (myIdx() >= 0) RECORDS.add(L, 'bonks', S.myBonks || 0); say(`${TEAM_N[S.wt]} wins the round!`); forcePresence(); return; }
       S.ids.forEach((id, k) => {
         const b = botOf(id); if (!b) return;
         if (S.hp[k] <= 0) { const p = BENCH(b.i); b.x += (p.x - b.x) * Math.min(1, dt * 2); b.z += (p.z - b.z) * Math.min(1, dt * 2); return; }
@@ -189,7 +192,7 @@
     const ME = { seq: 0, claim: [0, -1], prev: { left: new V3(), right: new V3() }, cool: { left: 0, right: 0 }, flatSwing: 0, flatSide: 'right', lastHp: HP, push: new V3() };
     function myBonk(t) {
       if (isHost()) { bonk(myIdx(), t); return; }
-      ME.seq += 1; ME.claim = [ME.seq, t]; forcePresence();
+      ME.seq += 1; ME.claim = [ME.seq, t]; forcePresence(); S.myBonks = (S.myBonks || 0) + 1;
       const at = posOf(S.ids[t], new V3()); if (at) poof(at);
     }
     const _p = new V3(), _hq = new V3();
@@ -259,7 +262,8 @@
     }
     let seenMsg = -1;
     function applySnap(q) {
-      const prevHp = S.hp.slice(), prevIds = S.ids.slice();
+      const prevHp = S.hp.slice(), prevIds = S.ids.slice(), prevPh = S.ph, prevG = S.g;
+      if (q.g !== prevG) S.myBonks = 0;
       Object.assign(S, { g: q.g, ph: PH[q.ph], ids: q.ids.slice(), tm: q.tm.slice(), hp: q.hp.slice(), wins: q.w.slice(), wt: q.wt });
       S.ids.forEach((id, k) => {
         const b = botOf(id); if (b) { b.tx = q.b[k * 4]; b.tz = q.b[k * 4 + 1]; b.yaw = q.b[k * 4 + 2]; if (q.b[k * 4 + 3] && b.swing <= 0) b.swing = 0.35; b.mat.color.set(TEAM_COL[S.tm[k]]); }
@@ -269,6 +273,7 @@
       });
       if (seenMsg >= 0 && q.m[0] !== seenMsg && q.m[1]) showToast(q.m[1]);
       seenMsg = q.m[0];
+      if (prevPh === 'fight' && S.ph === 'done') RECORDS.add(L, 'bonks', S.myBonks || 0);
     }
     L.presence = () => {
       const p = { pw: [S.myWins || 0, ME.startReq || 0], pb: ME.claim };

@@ -486,6 +486,7 @@
     }
     function finishRace() {
       RACE.myFinish = Math.round(raceNow()); RACE.state = 'over';
+      RECORDS.add(L, 'time', RACE.myFinish / 1000);
       const rank = standings().findIndex((r) => r.me) + 1;
       showToast(`Finished in ${(RACE.myFinish / 1000).toFixed(1)} s! ${rank === 1 ? '1st place!' : `Place ${rank}`} \u00B7 Race again or head home just ahead`);
       sfx('fanfare', 1); setTimeout(() => sfx('cheer', 0.8), 250);
@@ -494,6 +495,7 @@
     makeButton(L, new V3(2.2, 1.0, 1.4), 0x8bd450, 'START race', () => startRace(), { faceYaw: 0 });
     makeButton(L, new V3(2.2, 1.0, 3.0), 0xff7a3a, 'Back to start', () => { toStart(); showToast('Back at the start'); }, { faceYaw: 0 });
     makeKiosk(L, -LANE + 0.6, 4.2, Math.atan2(LANE - 0.6, -2.2));
+    RECORDS.def(L, [{ k: 'time', label: 'Fastest time round the course', low: true, fmt: 'time' }]);
     makePlayerPicker(L, { min: 1, max: 1 + BOT_DEF.length, def: 4, label: 'Racers', note: 'from the next race', x: -2.2, z: 0.9, yaw: 0 });
     // past the finish: race again, the results, the way back to the clubhouse, and a wall at the end of the lane
     {

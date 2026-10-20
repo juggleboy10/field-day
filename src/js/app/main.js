@@ -39,6 +39,7 @@
       updateBodies(L, dt, t);
       for (const Lv of LEVELS) if (Lv && Lv.overlay) Lv.overlay.visible = Lv === L && state.mode !== 'menu';
       L.update(dt, t);
+      if (L.recBoard) RECORDS.draw(L);
       if (si < steps - 1) updateMyPose(t);
     }
     if (L.picker) L.picker.tick();
@@ -54,5 +55,5 @@
   initNet();
   updateNetUI();
   // the tests in tests/ reach inside through this, only when the page is opened with ?test
-  try { if (new URLSearchParams(location.search).has('test')) window.__fd = { LEVELS, state, dolly, camera, myHead, myHands, switchLevel, startGame, voice: { VOICE, voiceWatch, voiceResend, remotes, buildPresence }, audio: { snd, tone, sfx, ensureAudio, MUSIC } }; } catch (e) { /* ignore */ }
+  try { if (new URLSearchParams(location.search).has('test')) window.__fd = { LEVELS, state, dolly, camera, myHead, myHands, RECORDS, switchLevel, startGame, voice: { VOICE, voiceWatch, voiceResend, remotes, buildPresence }, audio: { snd, tone, sfx, ensureAudio, MUSIC } }; } catch (e) { /* ignore */ }
 })();

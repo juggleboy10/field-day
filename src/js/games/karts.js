@@ -104,6 +104,7 @@
     // grandstand beside the start straight, and the scoreboard on it
     for (let row = 0; row < 5; row++) addBox(G, 30, 0.6 + row * 0.6, 1.2, lam([0x3b4f9a, 0xc23b4a, 0xe8e4d8][row % 3]), -20, (0.6 + row * 0.6) / 2, 40 + row * 1.2);
     L.board = makeBoard(G, 720, 460, 8, 5.1, -20, 7.2, 46.5, Math.PI, false);
+    RECORDS.def(L, [{ k: 'lap', label: 'Fastest lap', low: true, fmt: 'time' }, { k: 'race', label: 'Fastest three-lap race', low: true, fmt: 'time' }], { x: -13.6, z: 46.4, yaw: Math.PI });
     addBox(G, 8.4, 5.4, 0.3, lam(0x2b2d42), -20, 7.2, 46.8);
     // arch back to the clubhouse, on the grass beside the straight
     const ARCH = { x: 12, z: 40.5, w: 2.4 };
@@ -338,11 +339,13 @@
           K.lastLap = t; K.lap += 1;
           const isBest = !K.best || t < K.best;
           if (isBest) K.best = t;
+          RECORDS.add(L, 'lap', t / 1000);
           if (race.phase === 'run') {
             race.lap += 1;
             if (race.lap >= RACE_LAPS) {
               race.finish = now - race.start;
               race.phase = 'done';
+              RECORDS.add(L, 'race', race.finish / 1000);
               const place = standings().findIndex((r) => r.me) + 1;
               showToast(`Finished ${ordinal(place)} in ${fmt(race.finish)}`);
               sfx(place === 1 ? 'fanfare' : 'chime', 1);

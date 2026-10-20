@@ -194,6 +194,7 @@
       const t = K.done, place = standings().findIndex((r) => r.me) + 1;
       const isBest = !RACE.best || t < RACE.best;
       if (isBest) { RACE.best = Math.round(t * 10) / 10; prefs.sledBest = RACE.best; savePrefs(); }
+      RECORDS.add(L, 'run', t);
       showToast(`Finished ${['1st', '2nd', '3rd', '4th', '5th', '6th'][place - 1] || ''} in ${t.toFixed(1)} s${isBest ? ' (your best!)' : ''}`);
       sfx(place === 1 ? 'fanfare' : 'chime', 1); setTimeout(() => sfx('cheer', 0.7), 250);
       forcePresence(); state.dirtyBoard = true;
@@ -347,6 +348,7 @@
       L.board = makeBoard(G, 720, 460, 3, 1.92, p0.x + 7, p0.y + 2.2, p0.z + 4, -Math.PI / 2 + 0.3);
       makeKiosk(L, p0.x - 6, p0.z + 3, Math.PI / 2);
     }
+    RECORDS.def(L, [{ k: 'run', label: 'Fastest run, top to bottom', low: true, fmt: 'time' }]);
     L.drawBoard = (rows) => {
       const g = L.board.g, W = 720;
       g.fillStyle = '#16142e'; g.fillRect(0, 0, W, 460);

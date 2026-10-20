@@ -80,6 +80,7 @@
       sign.tex.needsUpdate = true;
     })();
     makeKiosk(L, R.maxX - 1.2, R.maxZ - 1.2, -Math.PI * 0.75);
+    RECORDS.def(L, [{ k: 'rally', label: 'Longest rally (hits)' }]);
 
     // ---------------------------------------------------------------- paddles and ball
     TOOL_MESH.pbpaddle = () => {
@@ -156,6 +157,7 @@
     function point(winner, why) {
       if (PB.ph !== 'rally' && PB.ph !== 'serve') return;
       PB.score[winner] += 1; PB.pointSeq += 1;
+      if (PB.mySide >= 0 && PB.hits >= 4) RECORDS.add(L, 'rally', PB.hits);
       PB.ph = 'dead'; PB.deadT = performance.now();
       const [a, b] = PB.score;
       if ((a >= WIN || b >= WIN) && Math.abs(a - b) >= 2) { PB.winner = a > b ? 0 : 1; PB.overT = performance.now(); }

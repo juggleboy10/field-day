@@ -349,6 +349,7 @@
         const rank = why === 'failed' ? 'Failed' : acc >= 0.9 ? 'SS' : acc >= 0.8 ? 'S' : acc >= 0.65 ? 'A' : acc >= 0.5 ? 'B' : acc >= 0.35 ? 'C' : 'D';
         const key = `${BB.si}:${BB.di}`, newBest = why === 'done' && BB.score > (BB.best[key] || 0);
         if (newBest) { BB.best[key] = BB.score; prefs.bbBest = BB.best; savePrefs(); }
+        if (why === 'done') RECORDS.add(L, `s${BB.si}`, BB.score);
         BB.result = { rank, score: BB.score, acc, maxCombo: BB.maxCombo, hits: BB.hits, misses: BB.misses, newBest };
         if (why === 'done') { sfx('fanfare', 0.9); showToast(`${rank}! ${BB.score.toLocaleString()} points${newBest ? ' · new best' : ''}`); }
         else { sfx('buzzer', 0.8); showToast('Out of energy. Try again, or pick an easier level'); }
@@ -525,6 +526,7 @@
       if (t - (BB.stopAsk || 0) < 2500) stop('quit'); else { BB.stopAsk = t; showToast('Press Stop again to end the song'); }
     });
     makeKiosk(L, -2.6, 1.4, Math.PI / 2);
+    RECORDS.def(L, SONGS.map((s2, i) => ({ k: `s${i}`, label: `Best score: ${s2.title}` })));
     function drawConsole() {
       const g = conBoard.g, W = 640, H = 400, sg = SONGS[BB.si];
       g.fillStyle = '#12081f'; g.fillRect(0, 0, W, H);

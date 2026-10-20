@@ -144,6 +144,7 @@
     }
     function newLeg() {
       const v = isClock() ? 1 : 301;
+      S.myDarts = 0;
       Object.assign(S, { phase: 'play', turn: 'me', thrown: 0, sc: [v, v], start: [v, v], wait: 0, last: '' });
       for (const d of ALL) d.visible = false;
       F.on = false;
@@ -163,6 +164,7 @@
     }
     function endLeg(winner) {
       S.phase = 'over'; S.legs += 1;
+      if (winner === 'me') RECORDS.add(L, isClock() ? 'clock' : 'd301', S.myDarts);
       if (winner === 'me') { S.wins += 1; prefs.dartWins = S.wins; savePrefs(); showToast(isClock() ? 'Round the clock and the bull: you win!' : 'Checked out! You win the leg'); sfx('fanfare', 1); sfx('cheer', 0.7); }
       else { showToast('Dart Dave wins this leg. Go again?'); sfx('buzzer', 0.5); }
       forcePresence(); state.dirtyBoard = true;
@@ -195,6 +197,7 @@
     function launch(p, from, vel) {
       if (S.phase !== 'play') newLeg();
       F.on = true; F.who = p; F.i = S.thrown; F.pos.copy(from); F.vel.copy(vel);
+      if (p === 0) S.myDarts = (S.myDarts || 0) + 1;
       S.thrown += 1;
       const d = (p === 0 ? myDarts : daveDarts)[F.i]; d.visible = true; d.position.copy(from);
       sfx('whoosh', 0.25);
@@ -380,6 +383,7 @@
       L.board.tex.needsUpdate = true;
     };
     // game buttons by the oche of each... one pair, by the middle board's left
+    RECORDS.def(L, [{ k: 'd301', label: 'Fewest darts: 301', low: true }, { k: 'clock', label: 'Fewest darts: Around the Clock', low: true }]);
     MODES.forEach((m, i) => makeButton(L, new V3(-4.4, 1.0, 0.2 + i * 0.6), i ? 0x4fc3f7 : 0xffd23f, m.name, () => setMode(i), { faceYaw: Math.PI / 2 }));
     makeKiosk(L, -4.4, 3.4, Math.PI / 2);
     L.hudActions = [

@@ -21,7 +21,7 @@
     if (i === state.level || !LEVELS[i]) return;
     const old = curLevel();
     dropMine();
-    old.onExit();
+    old.onExit(); RECORDS.hidePanel();
     old.group.visible = false;
     for (const b of old.buttons) b.near = false;
     state.level = i;

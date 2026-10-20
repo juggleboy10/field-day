@@ -130,6 +130,7 @@
       const rank = acc >= 0.9 ? 'S' : acc >= 0.75 ? 'A' : acc >= 0.55 ? 'B' : acc >= 0.35 ? 'C' : 'D';
       const isBest = D.score > D.best[D.si];
       if (isBest) { D.best[D.si] = D.score; prefs.danceBest = D.best.slice(); savePrefs(); }
+      RECORDS.add(L, `song${D.si}`, D.score);
       showToast(`${rank}! ${D.score} points, best combo ${D.maxCombo}${isBest ? ' (a new best!)' : ''}`);
       sfx(acc >= 0.55 ? 'fanfare' : 'chime', 1); if (acc >= 0.55) sfx('cheer', 0.8);
       moveSign.userData.draw(`${rank}  ·  ${D.score} points`);
@@ -311,6 +312,7 @@
       L.board.tex.needsUpdate = true;
     };
     makeKiosk(L, 6.5, 4.5, -Math.PI * 0.75);
+    RECORDS.def(L, SONGS.map((s2, i) => ({ k: `song${i}`, label: `Best score: ${s2.name}` })));
     SONGS.forEach((s, i) => makeButton(L, new V3(-6.2, 1.0, -1.2 + i * 0.75), [0x8bd450, 0xffd23f, 0xff4dc8][i], s.name, () => start(i), { faceYaw: Math.PI / 2 }));
     L.hudActions = [
       { label: () => (D.st === 'play' ? 'Stop' : 'Dance!'), run: () => { if (D.st === 'play') { D.st = 'idle'; quiet(false); state.hudDirty = true; } else start(); } },

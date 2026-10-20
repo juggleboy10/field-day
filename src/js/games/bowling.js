@@ -440,12 +440,14 @@
       const after = bowlAnalyze(me.rolls);
       const freshBefore = before.fresh;
       let label = String(knocked);
+      if (knocked === 10 && freshBefore) { me.strikes = (me.strikes || 0) + 1; if (me.strikes >= 2) RECORDS.add(L, 'strikes', me.strikes); } else me.strikes = 0;
       if (knocked === 10 && freshBefore) { label = 'Strike!'; sfx('cheer', 0.8); sfx('fanfare', 0.6); }
       else if (!freshBefore && knocked === me.standingBefore && knocked > 0) { label = 'Spare!'; sfx('chime', 1); }
       else if (knocked === 0 && ball.gutter) label = 'Gutter';
       spawnFloat(label, new V3(LX(), 1.6, -6), label.endsWith('!') ? '#ffd23f' : '#ffffff');
       if (after.done) {
         me.best = Math.max(me.best, after.total);
+        RECORDS.add(L, 'game', after.total);
         me.games += 1;
         showToast(`Game over: ${after.total}${after.total >= me.best && me.games > 1 ? ', your best yet!' : ''}`);
         me.phase = 'over';
@@ -592,6 +594,7 @@
     };
     L.board = makeBoard(G, 720, 460, 2.4, 1.533, HALF + 0.68, 2.0, 5.0, -Math.PI / 2, false);
     makeKiosk(L, -HALF - 0.1, 6.0, Math.PI / 2);
+    RECORDS.def(L, [{ k: 'game', label: 'Highest game' }, { k: 'strikes', label: 'Most strikes in a row' }]);
     const how = makeBoard(G, 720, 500, 2.0, 1.39, -HALF - 0.68, 1.9, 2.6, Math.PI / 2, false);
     function drawHow() {
       const g = how.g;

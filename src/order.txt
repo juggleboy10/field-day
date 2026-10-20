@@ -6,6 +6,7 @@ html/body.html
 js/core/setup.js
 js/core/sound.js
 js/core/shared.js
+js/core/records.js
 js/core/music.js
 js/core/voice.js
 js/core/watch.js

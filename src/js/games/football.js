@@ -13,7 +13,7 @@
     const G = L.group;
     const rand = mulberry32(2929);
     L.chargeKick = true;
-    Object.defineProperty(L, 'walkSpeed', { get: () => (S && (S.phase === 'live' || S.phase === 'run' || S.phase === 'air' || S.phase === 'yac') ? (state.mode === 'vr' ? 6.2 : 4.6) : 3) });
+    Object.defineProperty(L, 'walkSpeed', { get: () => (S && (S.phase === 'live' || S.phase === 'run' || S.phase === 'air' || S.phase === 'yac') ? (S.phase === 'run' ? (state.mode === 'vr' ? 5.0 : 3.9) : (state.mode === 'vr' ? 6.2 : 4.6)) : 3) });
     L.bounds = { minX: -26, maxX: 26, minZ: -60, maxZ: 22 };
     L.env = {
       sky: skyTexture([[0, '#0b1230'], [0.35, '#1d2a5a'], [0.48, '#3a4a7a'], [0.5, '#2a3a2a'], [1, '#101810']]),
@@ -395,6 +395,7 @@
       if (S.phase === 'dead' || S.phase === 'over') return;
       S.phase = 'dead'; S.resultT = 0; S.pending = null;
       let gain = 0, msg = '', col = '#ffffff', keepRunning = true, newDown = true;
+      S.recYds = S.ballOn;
       if (kind === 'inc') { msg = o.msg || 'Incomplete'; keepRunning = false; sfx('whistle', 0.7); }
       else if (kind === 'sack') { gain = -Math.max(1, Math.round(o.z / YD)); msg = `Sacked! ${gain} yards`; col = '#ff6a5a'; sfx('thump', 1); sfx('hurt', 0.6); }
       else if (kind === 'int') { msg = 'Intercepted!'; col = '#ff6a5a'; S.ints += 1; sfx('buzzer', 0.8); S.pending = 'turnover'; keepRunning = false; }
@@ -420,6 +421,12 @@
         else { S.toGo -= gain; S.down += 1; if (S.down > 4) { msg += '. Turnover on downs'; S.pending = 'turnover'; keepRunning = false; newDown = false; } }
       }
       void newDown;
+      // records: the longest pass and the longest QB run
+      if (!following()) {
+        const yds = kind === 'td' ? S.recYds || 0 : gain;
+        if (kind === 'tackle' || kind === 'oob' || (kind === 'td' && !o.run)) RECORDS.add(L, 'pass', yds);
+        if (kind === 'run' || kind === 'runoob' || (kind === 'td' && o.run)) RECORDS.add(L, 'run', yds);
+      }
       S.running = keepRunning && S.running;
       S.msg = msg; MP.msgSeq += 1;
       showToast(msg);
@@ -439,6 +446,7 @@
       S.phase = 'over'; S.running = false;
       const isBest = S.score > S.best[S.diff];
       if (isBest) { S.best[S.diff] = S.score; prefs.fbBest = S.best.slice(); savePrefs(); }
+      RECORDS.add(L, `score${S.diff}`, S.score);
       showToast(`Time! Final: ${S.score} points${isBest && S.score ? ', a new best!' : ''} (${S.completions}/${S.attempts}, ${S.passYds} passing, ${S.rushYds || 0} rushing, ${S.tds} TD)`);
       sfx(S.score ? 'cheer' : 'buzzer', 1);
       forcePresence(); state.hudDirty = true; state.dirtyBoard = true;
@@ -485,19 +493,24 @@
           else if (S.phase === 'live') moveTo(p, p.x, Math.min(3.2, p.z + 0.4), 1.2, dt);
         });
         // over the line with the ball: it's a run now
-        if (S.phase === 'live' && !S.thrown && qz < -0.3) { S.phase = 'run'; S.runT = 0; showToast('Scramble! Run for it'); sfx('whoosh', 0.7); for (const d of DEFS) d.react = 0.35 + D().lag; for (const d of RUSH) d.shed = 0; state.hudDirty = true; }
+        if (S.phase === 'live' && !S.thrown && qz < -0.3) { S.phase = 'run'; S.runT = 0; S.qv = null; showToast(PLAYS[S.play].draw ? 'QB Draw: up the middle!' : 'Scramble! Run for it'); sfx('whoosh', 0.7); for (const d of DEFS) d.react = (PLAYS[S.play].draw ? 0.8 : 0.35) + D().lag;   // (on a draw the coverage has dropped back and is a beat late)
+ for (const d of RUSH) d.shed = 0; state.hudDirty = true; }
         if (S.phase === 'run') {
           S.runT += dt;
-          // everyone on defense comes after you (the coverage once they notice); your blockers get in the way of the rushers
-          for (const d of DEFS) { d.react -= dt; if (d.react <= 0 && !d.human) moveTo(d, qx, qz, D().vDef * 0.95, dt); }
+          // which way you're heading (smoothed), so the defense can take an angle and cut you off
+          const qv = S.qv || (S.qv = { x: 0, z: 0, px: qx, pz: qz });
+          const k = Math.min(1, dt * 6); qv.x += ((qx - qv.px) / Math.max(dt, 1e-3) - qv.x) * k; qv.z += ((qz - qv.pz) / Math.max(dt, 1e-3) - qv.z) * k; qv.px = qx; qv.pz = qz;
+          const lead = (d, v) => { const t = clamp(Math.hypot(d.x - qx, d.z - qz) / v, 0, 1.4); return [qx + qv.x * t, qz + qv.z * t]; };
+          // everyone on defense comes after you (the coverage once they notice), taking a pursuit angle; the safety too
+          for (const d of DEFS) { d.react -= dt; if (d.react <= 0 && !d.human) { const [tx, tz] = lead(d, D().vDef); moveTo(d, tx, tz, D().vDef, dt); } }
           // rushers still blocked take a moment to shed the block (on a draw the line opens a hole up the middle)
           RUSH.forEach((d, i) => {
-            if (d.free) { moveTo(d, qx, qz, D().vRush, dt); return; }
+            if (d.free) { const [tx, tz] = lead(d, D().vRush); moveTo(d, tx, tz, D().vRush, dt); return; }
             d.shed = (d.shed || 0) + dt;
-            if (d.shed > 1.1 + D().lag) { d.free = true; return; }
+            if (d.shed > (PLAYS[S.play].draw ? 1.3 : 0.75) + D().lag) { d.free = true; return; }
             if (PLAYS[S.play].draw) { d.x += (d.hx * 1.9 - d.x) * Math.min(1, dt * 2); LINE[clamp(i + (i > 1 ? 1 : 0), 0, 4)].x += (d.hx * 1.9 - LINE[clamp(i + (i > 1 ? 1 : 0), 0, 4)].x) * Math.min(1, dt * 2); }
           });
-          for (const d of [...DEFS, ...RUSH]) if (Math.hypot(d.x - qx, d.z - qz) < (d.free || !RUSH.includes(d) ? 0.85 : 0.45)) { endPlay('run', { z: qz }); if (state.mode === 'vr') for (const sd of SIDES) haptic(vrHands[sd], 1, 160); return; }
+          for (const d of [...DEFS, ...RUSH]) if (Math.hypot(d.x - qx, d.z - qz) < (d.free || !RUSH.includes(d) ? 1.0 : 0.55)) { endPlay('run', { z: qz }); if (state.mode === 'vr') for (const sd of SIDES) haptic(vrHands[sd], 1, 160); return; }
           if (qz <= goalZ()) { endPlay('td', { run: true }); return; }
           if (Math.abs(qx) > HALF_W) { endPlay('runoob', { z: qz }); return; }
         }
@@ -693,6 +706,7 @@
       makeButton(L, new V3(x, 1.0, z0 + 3.35), 0xe5453a, 'New game', () => startGame(), { faceYaw: Math.PI / 2, pedestal: false });
     }
     makeKiosk(L, 3.6, 7.5, -Math.PI / 2);
+    RECORDS.def(L, [...DIFFS.map((d, i) => ({ k: `score${i}`, label: `Most points: ${d.name}` })), { k: 'pass', label: 'Longest pass play', fmt: 'yd' }, { k: 'run', label: 'Longest QB run', fmt: 'yd' }]);
     L.board = makeBoard(G, 720, 460, 3, 1.92, 4.2, 2.2, 3.4, -Math.PI / 2);
     const hudPlate = makePlate(camera, 'Ready', 0.6, 0.09, new V3(0, -0.22, -0.6), 0, { bg: '#0c0f1a', fg: '#ffffff', size: 0.55 });
     hudPlate.material.depthTest = false; hudPlate.renderOrder = 999; hudPlate.visible = false;

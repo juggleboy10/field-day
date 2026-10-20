@@ -213,6 +213,7 @@
       const t = K.done, place = standings().findIndex((r) => r.me) + 1;
       const isBest = !RACE.best || t < RACE.best;
       if (isBest) { RACE.best = Math.round(t * 10) / 10; prefs.llamaBest = RACE.best; savePrefs(); }
+      RECORDS.add(L, 'race', t);
       showToast(`Finished ${['1st', '2nd', '3rd', '4th', '5th', '6th'][place - 1] || ''} in ${t.toFixed(1)} s${isBest ? ' (your best!)' : ''}`);
       sfx(place === 1 ? 'fanfare' : 'chime', 1); setTimeout(() => sfx('cheer', 0.7), 250);
       forcePresence(); state.dirtyBoard = true;
@@ -402,6 +403,7 @@
       const pk = posAt(-14, -(HW + 3), new V3());
       makeKiosk(L, pk.x, pk.z, yawAt(0) + Math.PI / 2);
     }
+    RECORDS.def(L, [{ k: 'race', label: 'Fastest two laps', low: true, fmt: 'time' }]);
     L.drawBoard = (rows) => {
       const g = L.board.g, W = 720;
       g.fillStyle = '#2a1a0e'; g.fillRect(0, 0, W, 460);

@@ -53,6 +53,7 @@
       for (let j = 1; j < 14; j++) { const t = j / 14, s = new THREE.Sprite(bulb); s.position.set(-3.2 + 6.4 * t, 3.1 - Math.sin(t * Math.PI) * 0.5, 0); s.scale.set(0.28, 0.28, 1); G.add(s); }
     }
     makeKiosk(L, 4.5, -3.5, Math.atan2(-4.5, 3.5));
+    RECORDS.def(L, [{ k: 'rounds', label: 'Quickest win (fewest rounds to 21)', low: true }]);
     L.board = makeBoard(G, 720, 460, 2.6, 1.66, -4.2, 2.1, 0, Math.PI / 2);
 
     // ---------------------------------------------------------------- the boards: d = -1 at the north end, +1 at the south
@@ -378,6 +379,7 @@
         }
         if (RS.ph === 'over' && RS.winner >= 0) {
           const w = RS.players[RS.winner];
+          if (w === state.myPeer) RECORDS.add(L, 'rounds', RS.round);
           if (w === state.myPeer) { me.wins += 1; showToast(`You win ${RS.score[RS.winner]} to ${RS.score[1 - RS.winner]}!`); sfx('fanfare', 0.9); }
           else showToast(`${nameOf(w)} wins ${RS.score[RS.winner]} to ${RS.score[1 - RS.winner]}`);
         }

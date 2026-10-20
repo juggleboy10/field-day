@@ -477,6 +477,7 @@
     L.board = makeBoard(G, 720, 460, 3.4, 2.17, 0, 2.6, -24.4, 0);
     const boardBack = makeBoard(G, 720, 460, 3.4, 2.17, 0, 2.6, -24.5, Math.PI, false);      // (the same card, for the last row)
     makeKiosk(L, -13.4, 6.4, Math.PI / 2);
+    RECORDS.def(L, [{ k: 'round', label: 'Best round (fewest strokes)', low: true }, { k: 'aces', label: 'Most holes in one in a round' }]);
     const sign = makeBoard(G, 720, 500, 2.0, 1.39, -13.6, 1.9, 2.2, Math.PI / 2);
     function drawSign() {
       const g = sign.g;
@@ -1063,6 +1064,7 @@
         if (me.hole + 1 < HOLES.length) goToHole(me.hole + 1);
         else {
           const t = total(me.scores);
+          if (me.scores.filter((x) => x).length === HOLES.length) { RECORDS.add(L, 'round', t); RECORDS.add(L, 'aces', me.scores.filter((x) => x === 1).length); }
           showToast(`Round complete: ${t} (${toPar(t - PAR_TOTAL)})`);
           sfx('fanfare', 0.8);
           me.phase = 'between';

@@ -1200,6 +1200,7 @@
       onPress: () => { if (L.q.pg >= ROOMS.length - 1 && !L.q.done) request(2); } };
     L.buttons.push(sunBtn);
     makeKiosk(L, -3.6, 4.3, Math.PI);
+    RECORDS.def(L, [{ k: 'time', label: 'Fastest quest (gate to prize)', low: true, fmt: 'time' }]);
     L.board = makeBoard(G, 720, 460, 2.2, 1.405, 0.7, 2.15, 4.85, Math.PI);
     const sign = makeBoard(G, 720, 500, 1.9, 1.32, 3.75, 1.95, 4.85, Math.PI);
     function drawSign() {
@@ -1310,9 +1311,10 @@
     }
     function applyQ(q) {
       const prev = L.q;
-      if (q.r !== prev.r) { L.q = q; onNewRun(); return; }
+      if (q.r !== prev.r) { L.q = q; L.qStart = q.pg >= 1 ? 0 : -1; onNewRun(); return; }
+      if (q.pg >= 1 && prev.pg === 0) L.qStart = performance.now();
       if (q.pg > prev.pg) { sfx('gate', 0.9); showToast(q.pg >= ROOMS.length - 1 ? TX.vaultOpen || 'The way to the prize is open!' : 'A gate rumbles open'); state.dirtyBoard = true; }
-      if (q.done && !prev.done) { L.q = q; celebrate(); state.dirtyBoard = true; return; }
+      if (q.done && !prev.done) { L.q = q; if (L.qStart > 0) RECORDS.add(L, 'time', (performance.now() - L.qStart) / 1000); celebrate(); state.dirtyBoard = true; return; }
       if (q.wave !== prev.wave || q.spawned !== prev.spawned) state.hudDirty = true;
       L.q = q;
     }
