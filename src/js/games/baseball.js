@@ -225,8 +225,8 @@
     setMachine(true);
     makeButton(L, new V3(-4.1, 1.0, 4.3), 0xf5821f, 'Reset balls', () => resetBodies(L), { faceYaw: Math.PI });
     makeKiosk(L, -4.9, 3.3, Math.PI * 0.75);
-    RECORDS.def(L, [{ k: 'hr', label: 'Longest home run', fmt: 'm' }]);
-    L.board = makeBoard(G, 720, 460, 2.4, 1.533, -6.4, 2.0, -0.6, Math.PI / 2 - 0.3);
+    RECORDS.def(L, [{ k: 'hr', label: 'Longest home run', fmt: 'm' }], { x: 6.9, z: 5.6, yaw: Math.PI });   // (behind the backstop, facing the field)
+    L.board = makeBoard(G, 720, 460, 2.4, 1.533, 4.4, 2.0, 5.6, Math.PI);   // behind the backstop, facing the field
     {
       const big = new THREE.Mesh(new THREE.PlaneGeometry(14, 8.94), new THREE.MeshBasicMaterial({ map: L.board.tex, fog: false }));
       big.position.set(0, 10, -(FENCE_R + 18));

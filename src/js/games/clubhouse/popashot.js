@@ -17,7 +17,7 @@
     const ballGeo = new THREE.SphereGeometry(BALL_R, 16, 12);
     const netMat = new THREE.MeshBasicMaterial({ color: 0xf4f2ec, transparent: true, opacity: 0.55, side: THREE.DoubleSide, wireframe: true });
     const ledMat = (c) => new THREE.MeshBasicMaterial({ color: c });
-    RECORDS.def(L, [{ k: 'pop', label: 'Pop-a-Shot: most points in 45 seconds' }], { x: -11.0, z: 17.2, yaw: Math.PI });
+    RECORDS.def(L, [{ k: 'pop', label: 'Pop-a-Shot: most points in 45 seconds' }], { x: -3.3, z: 17.4, yaw: Math.PI });
 
     for (const cab of CABS) {
       const cx = cab.x;
