@@ -323,7 +323,7 @@ def main():
         hubw = page.evaluate("() => ({ doors: window.__fd.LEVELS[8].doors.length, wings: window.__fd.LEVELS[8].wings.length })")
         page.evaluate(HUB_STEP, ["door", 6, 0]); page.wait_for_timeout(700)
         hubw["inWing"] = page.evaluate(HUB_AREA)
-        hubw["clamped"] = page.evaluate("() => { const fd = window.__fd, L = fd.LEVELS[8], h = new THREE.Vector3(); fd.camera.getWorldPosition(h); return L.clampPlayer({ x: h.x + 20, z: h.z })[0] < -10; }")
+        hubw["clamped"] = page.evaluate("() => { const fd = window.__fd, L = fd.LEVELS[8], h = new THREE.Vector3(); fd.camera.getWorldPosition(h); return L.clampPlayer({ x: h.x + 8, z: h.z })[0] < -2; }")
         page.wait_for_timeout(1200)
         page.evaluate(HUB_STEP, ["back", 6, 0]); page.wait_for_timeout(700)
         hubw["backIn"] = page.evaluate(HUB_AREA)
@@ -332,7 +332,7 @@ def main():
         page.evaluate(HUB_STEP, ["game", 0, 26]); page.wait_for_timeout(900)
         hubw["level"] = page.evaluate("() => window.__fd.state.level")
         print("clubhouse doors and wings:", hubw)
-        checks += [("clubhouse: one door per kind of game, each with its own wing", hubw["doors"] == 7 and hubw["wings"] == 7),
+        checks += [("clubhouse: one door per kind of game, each with its own wing", hubw["doors"] == 8 and hubw["wings"] == 8),
                    ("clubhouse: walking through a door takes you into its wing (and its walls keep you in)", hubw["inWing"] == 6 and hubw["clamped"]),
                    ("clubhouse: the door at the back of a wing brings you back to the clubhouse", hubw["backIn"] == -1),
                    ("clubhouse: a portal in a wing takes you to its game", hubw["level"] == 26)]

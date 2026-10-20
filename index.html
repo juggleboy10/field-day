@@ -250,7 +250,7 @@ kbd {
 
 <section id="panel" class="panel" aria-labelledby="title">
   <h1 id="title">Field Day</h1>
-  <p class="lede">A clubhouse and forty-two games to play with friends, in VR or right here in the browser. Everyone who has this page open can join you.</p>
+  <p class="lede">A clubhouse and forty-six games to play with friends, in VR or right here in the browser. Everyone who has this page open can join you.</p>
   <p id="net" class="net" data-state="connecting"><span class="dot" aria-hidden="true"></span><span id="net-text">Looking for other players…</span></p>
   <fieldset class="levels">
     <legend class="field-label">Pick a game</legend>
@@ -1205,18 +1205,23 @@ kbd {
     { id: 'llama', name: 'Llama Derby', short: 'Llamas', glyph: '\u{1F999}', blurb: 'Two laps round a ranch on a llama: shake the reins to go faster, jump the hay bales, grab the carrots.' },
     { id: 'rps', name: 'Rock-Paper-Scissors Tournament', short: 'RPS', glyph: '\u270A', blurb: 'An eight-player knockout, best of three: throw on the count. Friends take places in the bracket, bots fill the rest.' },
     { id: 'dance', name: 'Dance-Off', short: 'Dance', glyph: '\u{1FAA9}', blurb: 'Copy Disco Dot\u2019s moves like a mirror, on the beat, in a disco. Three songs, slow to fast.' },
+    { id: 'strongman', name: 'Strongman Bell', short: 'Strongman', glyph: '\u{1F514}', blurb: 'Swing the big mallet and send the puck up the tower. Hit hard enough and DING! Tickets for every swing.' },
+    { id: 'duckshoot', name: 'Duck Shooting Gallery', short: 'Duck Shoot', glyph: '\u{1F986}', blurb: 'Pop the tin ducks with a cork gun in 40 seconds: golden ducks are worth 5, but leave the bunnies alone.' },
+    { id: 'ringtoss', name: 'Ring Toss', short: 'Ring Toss', glyph: '\u{1F37E}', blurb: 'Ten rings, a table of bottles: drop a ring over a neck for tickets. Red bottles pay double, the gold one big.' },
+    { id: 'whack', name: 'Whack-a-Mole', short: 'Whack', glyph: '\u{1F528}', blurb: 'Nine holes, 45 seconds, moles popping up faster and faster. Golden moles are worth 3. A mallet in each hand.' },
   ];
-  const KIOSK_COLORS = [0xf5821f, 0xe8e4d8, 0x8bd450, 0xb388ff, 0xff4d6a, 0x2ec4b6, 0x3fbf7f, 0xff9ad0, 0xffd27a, 0x4fc3f7, 0x4a8aff, 0xb06aff, 0xffb36b, 0xff9ad0, 0x8bd450, 0xd8f43a, 0xff7a3a, 0xe5453a, 0xe8a040, 0x2ec4d8, 0xf2c14e, 0xd84a3a, 0x2a8ab8, 0x9a6aff, 0x6ad04a, 0xff3aa8, 0xffd23f, 0xff9a5c, 0x4fc3f7, 0x8a5a2a, 0x9af0ff, 0xff4d8a, 0xff9ad0, 0xe5453a, 0xb8e0ff, 0x7ad8ff, 0xd8b060, 0xffd23f, 0xff5a8a, 0x9a7ad8, 0xe8c860, 0xff4d8a, 0xff4dc8];
+  const KIOSK_COLORS = [0xf5821f, 0xe8e4d8, 0x8bd450, 0xb388ff, 0xff4d6a, 0x2ec4b6, 0x3fbf7f, 0xff9ad0, 0xffd27a, 0x4fc3f7, 0x4a8aff, 0xb06aff, 0xffb36b, 0xff9ad0, 0x8bd450, 0xd8f43a, 0xff7a3a, 0xe5453a, 0xe8a040, 0x2ec4d8, 0xf2c14e, 0xd84a3a, 0x2a8ab8, 0x9a6aff, 0x6ad04a, 0xff3aa8, 0xffd23f, 0xff9a5c, 0x4fc3f7, 0x8a5a2a, 0x9af0ff, 0xff4d8a, 0xff9ad0, 0xe5453a, 0xb8e0ff, 0x7ad8ff, 0xd8b060, 0xffd23f, 0xff5a8a, 0x9a7ad8, 0xe8c860, 0xff4d8a, 0xff4dc8, 0xe5453a, 0xffd23f, 0x4a7ad8, 0x8bd450];
   const LEVEL_CATS = [
     { id: 'ball', name: 'Ball sports', glyph: '\u26BD', games: [0, 1, 5, 15, 29, 37] },
     { id: 'battle', name: 'Team battles', glyph: '\u{1F3AF}', games: [14, 4, 17, 21, 34, 38] },
-    { id: 'lanes', name: 'Golf and lanes', glyph: '\u26F3', games: [2, 6, 7, 20, 31, 36] },
+    { id: 'lanes', name: 'Golf and lanes', glyph: '\u26F3', games: [2, 6, 7, 20, 36] },
     { id: 'adv', name: 'Adventures', glyph: '\u{1F5E1}\uFE0F', games: [3, 10, 11, 22, 30, 39] },
     { id: 'race', name: 'Racing and parkour', glyph: '\u{1F3C1}', games: [9, 16, 19, 24, 35, 40] },
     { id: 'party', name: 'Party games', glyph: '\u{1F389}', games: [13, 12, 18, 23, 32, 41] },
-    { id: 'active', name: 'Get active', glyph: '\u{1F4AA}', games: [25, 26, 27, 28, 33, 42] },
+    { id: 'active', name: 'Get active', glyph: '\u{1F4AA}', games: [25, 27, 28, 33, 42] },
+    { id: 'carnival', name: 'Carnival', glyph: '\u{1F3A1}', games: [31, 26, 43, 44, 45, 46] },
   ];
-  const PICKER_ORDER = [8, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 3, 10, 11, 0, 1, 2, 4, 5, 6, 7, 9];
+  const PICKER_ORDER = [8, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 3, 10, 11, 0, 1, 2, 4, 5, 6, 7, 9];
   function makeKiosk(L, x, z, yaw) {
     const fx = Math.sin(yaw), fz = Math.cos(yaw);   // direction the kiosk faces
     const rx = Math.cos(yaw), rz = -Math.sin(yaw);  // its right-hand side
@@ -12274,7 +12279,7 @@ kbd {
     G.add(jbGlow);
 
     // ---------------------------------------------------------------- portals, organised
-    // Seven doors in an arc, one for each kind of game (the same groups as the menu). Each door leads into a little
+    // Eight doors in an arc, one for each kind of game (the same groups as the menu). Each door leads into a little
     // wing of its own with that group's game portals, full size, and a door back to the clubhouse.
     const swirl = canvasTexture(128, 128, (g) => {
       const gr = g.createRadialGradient(64, 64, 4, 64, 64, 64);
@@ -12284,7 +12289,7 @@ kbd {
       for (let k = 0; k < 3; k++) { g.beginPath(); for (let t = 0; t < 6.28; t += 0.1) { const r = 6 + t * 8.5, a = t + k * 2.09; g.lineTo(64 + Math.cos(a) * r, 64 + Math.sin(a) * r); } g.stroke(); }
     }).tex;
     swirl.center.set(0.5, 0.5);
-    const CAT_COLS = { ball: 0xff9a3a, battle: 0xff4d6a, lanes: 0x3fbf7f, adv: 0x9a6aff, race: 0x4fc3f7, party: 0xffd23f, active: 0xff3aa8 };
+    const CAT_COLS = { ball: 0xff9a3a, battle: 0xff4d6a, lanes: 0x3fbf7f, adv: 0x9a6aff, race: 0x4fc3f7, party: 0xffd23f, active: 0xff3aa8, carnival: 0xe5453a };
     const hexOf = (c) => `#${c.toString(16).padStart(6, '0')}`;
     const portals = [];
     // one doorway: a coloured frame, a swirling surface and a label overhead
@@ -27055,6 +27060,14 @@ kbd {
       forcePresence(); state.dirtyBoard = true;
     }
     L.skeeSave = SAVE;
+    // every carnival game pays out in these same tickets, spent at this prize counter
+    L.addTickets = (n, at) => {
+      if (!(n > 0)) return;
+      SAVE.tickets += n; save(); ticketKey = '';
+      if (at) spawnFloat(`+${n} \u{1F39F}\uFE0F`, at, '#ffd23f');
+      for (let i = 0; i < Math.min(n, 20); i++) setTimeout(() => tone(1500 + (i % 3) * 120, 0, 0.03, 'square', 0.04), i * 45);
+      forcePresence();
+    };
 
     // ---------------------------------------------------------------- my game
     const me = { k: 0, score: 0, left: BALLS, best: 0, phase: 'idle', last: 0 };
@@ -31579,6 +31592,968 @@ kbd {
     L.danceInternals = { D, MOVES, SONGS, start, step, judge, flatPress, makeChart, get chart() { return chart; }, targetPos, songT, beatLen };
     // the level's own groove does the music while you dance; this is the quiet background otherwise
     MUSIC_THEMES.dance = { gain: 0.35, bpm: 110, swing: 0.1, chords: ['Am', 'Dm', 'G', 'C'], comp: { inst: 'synth', at: [3, 7, 11, 15], dur: 0.1 }, bass: { at: [0, 4, 8, 12] }, drums: { k: 'x...x...x...x...', h: '..o...o...o...o.' }, cut: 3200 };
+    return L;
+  })();
+  // ================================================================ CARNIVAL: shared scenery for the fairground games
+  // A summer evening at the fair: string lights, striped booths, a Ferris wheel turning in the distance.
+  // Every carnival game pays out tickets (skeeball.addTickets), spent at the Skee-Ball prize counter.
+  const CARNIVAL = (() => {
+    const env = () => ({
+      sky: skyTexture([[0, '#141038'], [0.45, '#3a2a6a'], [0.5, '#ff9a6a'], [0.53, '#4a2a4a'], [1, '#1a1020']]),
+      bg: 0x2a1a48, fog: [0x2a1a48, 40, 140], hemi: [0xffe0d0, 0x403050, 0.8],
+      sun: [0xffd8b0, 0.55], sunDir: new V3(-0.3, 0.6, -0.8), ambient: [0x5a4060, 0.45], sprite: null,
+    });
+    const bulbM = [0xffd23f, 0xff4d8a, 0x4fc3f7, 0x8bd450, 0xffffff].map((c) => new THREE.MeshBasicMaterial({ color: c }));
+    const glowM = new THREE.SpriteMaterial({ map: warmGlowTex, color: 0xffd8a0, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true });
+    // a sagging string of coloured bulbs from a to b
+    function lights(G, a, b, n) {
+      for (let i = 0; i <= n; i++) {
+        const u = i / n, p = new V3().lerpVectors(a, b, u); p.y -= Math.sin(u * Math.PI) * 0.5;
+        const m = new THREE.Mesh(new THREE.SphereGeometry(0.05, 6, 5), bulbM[i % bulbM.length]); m.position.copy(p); G.add(m);
+        if (i % 3 === 0) { const s = new THREE.Sprite(glowM); s.position.copy(p); s.scale.set(0.5, 0.5, 1); G.add(s); }
+      }
+    }
+    function backdrop(G, rand, o) {
+      const opt = o || {};
+      const grass = new THREE.Mesh(new THREE.PlaneGeometry(160, 160), lam(0x3a5a2a)); grass.rotation.x = -Math.PI / 2; grass.position.y = -0.01; G.add(grass);
+      const path = new THREE.Mesh(new THREE.PlaneGeometry(opt.pathW || 16, opt.pathD || 12), lam(0x8a7058)); path.rotation.x = -Math.PI / 2; path.position.set(0, 0, opt.pathZ || 1); G.add(path);
+      // the Ferris wheel
+      const wheel = new THREE.Group(); wheel.position.set(opt.wheelX || -22, 13, opt.wheelZ || -38); G.add(wheel);
+      const rim = new THREE.Mesh(new THREE.TorusGeometry(10, 0.18, 6, 48), lam(0xf4f2ec)); wheel.add(rim);
+      for (let k = 0; k < 12; k++) {
+        const a = (k / 12) * Math.PI * 2;
+        const sp = new THREE.Mesh(new THREE.BoxGeometry(0.12, 10, 0.12), lam(0xd8d0c8)); sp.position.set(Math.cos(a) * 5, Math.sin(a) * 5, 0); sp.rotation.z = a - Math.PI / 2; wheel.add(sp);
+        const b = new THREE.Mesh(new THREE.SphereGeometry(0.22, 6, 5), bulbM[k % bulbM.length]); b.position.set(Math.cos(a) * 10, Math.sin(a) * 10, 0.2); wheel.add(b);
+        const gond = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.0, 1.0), lam([0xe5453a, 0x4fc3f7, 0xffd23f, 0x8bd450][k % 4])); gond.userData.a = a; wheel.add(gond);
+      }
+      for (const sx of [-1, 1]) { const leg = new THREE.Mesh(new THREE.BoxGeometry(0.4, 15, 0.4), lam(0xd8d0c8)); leg.position.set(wheel.position.x + sx * 3.5, 6.5, wheel.position.z); leg.rotation.z = sx * 0.24; G.add(leg); }
+      // tents in the distance
+      for (let k = 0; k < 7; k++) {
+        const x = -40 + k * 13 + rand() * 4, z = -26 - rand() * 10, r = 2.5 + rand() * 1.5;
+        if (Math.abs(x - wheel.position.x) < 8) continue;
+        const cols = [[0xe5453a, 0xf4f2ec], [0x4a7ad8, 0xffd23f], [0x8bd450, 0xf4f2ec]][k % 3];
+        const body = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 3, 12), lam(cols[0])); body.position.set(x, 1.5, z); G.add(body);
+        const top = new THREE.Mesh(new THREE.ConeGeometry(r * 1.15, 2.6, 12), lam(cols[1])); top.position.set(x, 4.3, z); G.add(top);
+        const fl = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.35), new THREE.MeshLambertMaterial({ color: cols[0], side: THREE.DoubleSide })); fl.position.set(x + 0.3, 6, z); G.add(fl);
+      }
+      // poles with strings of lights over the walkway
+      const PW = (opt.pathW || 16) / 2 + 0.4, z0 = (opt.pathZ || 1) - (opt.pathD || 12) / 2, z1 = (opt.pathZ || 1) + (opt.pathD || 12) / 2;
+      for (const [x, z] of [[-PW, z0], [PW, z0], [-PW, z1], [PW, z1]]) addCyl(G, 0.06, 0.08, 4.2, 6, lam(0x3a2a2a), x, 2.1, z);
+      lights(G, new V3(-PW, 4.1, z0), new V3(PW, 4.1, z1), 26);
+      lights(G, new V3(PW, 4.1, z0), new V3(-PW, 4.1, z1), 26);
+      lights(G, new V3(-PW, 4.1, z0), new V3(-PW, 4.1, z1), 14);
+      lights(G, new V3(PW, 4.1, z0), new V3(PW, 4.1, z1), 14);
+      // a popcorn cart
+      const px = opt.cartX !== undefined ? opt.cartX : PW - 1.2, pz = z1 - 1.2;
+      addBox(G, 1.0, 0.8, 0.6, lam(0xe5453a), px, 0.6, pz); addBox(G, 0.9, 0.6, 0.5, new THREE.MeshLambertMaterial({ color: 0xfff0b0, transparent: true, opacity: 0.6 }), px, 1.3, pz); addBox(G, 1.1, 0.08, 0.7, lam(0xf4f2ec), px, 1.64, pz);
+      for (const sx of [-1, 1]) { const w = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.03, 6, 14), lam(0x2a2a2a)); w.position.set(px + sx * 0.4, 0.22, pz + 0.32); G.add(w); }
+      return {
+        tick(dt) {
+          wheel.rotation.z += dt * 0.08;
+          for (const c of wheel.children) if (c.userData.a !== undefined) { const a = c.userData.a; c.position.set(Math.cos(a) * 10, Math.sin(a) * 10 - 0.9, 0); c.rotation.z = -wheel.rotation.z; }
+        },
+      };
+    }
+    // a striped booth: counter at the front (z + d/2 side), awning, back wall and sign. (x, z) is the centre.
+    function booth(G, x, z, w, d, title, colA, colB) {
+      const stripe = canvasTexture(128, 32, (g) => { for (let i = 0; i < 8; i++) { g.fillStyle = i % 2 ? colB : colA; g.fillRect(i * 16, 0, 16, 32); } g.fillStyle = colA; for (let i = 0; i < 8; i++) { g.beginPath(); g.arc(i * 16 + 8, 32, 8, 0, Math.PI); g.fill(); } });
+      stripe.tex.wrapS = THREE.RepeatWrapping; stripe.tex.repeat.set(Math.max(1, Math.round(w / 1.6)), 1);
+      const H = 2.9;
+      const awn = new THREE.Mesh(new THREE.PlaneGeometry(w + 0.3, 1.2), new THREE.MeshLambertMaterial({ map: stripe.tex, side: THREE.DoubleSide })); awn.position.set(x, H + 0.3, z + d / 2 - 0.3); awn.rotation.x = -1.05; G.add(awn);
+      const val = new THREE.Mesh(new THREE.PlaneGeometry(w + 0.3, 0.3), new THREE.MeshLambertMaterial({ map: stripe.tex, side: THREE.DoubleSide })); val.position.set(x, H - 0.1, z + d / 2 + 0.21); G.add(val);
+      const wallM = lam(new THREE.Color(colB).getHex());
+      addBox(G, w, H, 0.08, wallM, x, H / 2, z - d / 2);
+      for (const sx of [-1, 1]) { addBox(G, 0.08, H, d, wallM, x + sx * w / 2, H / 2, z); addCyl(G, 0.06, 0.06, H + 0.4, 6, lam(0xf4f2ec), x + sx * (w / 2 + 0.05), (H + 0.4) / 2, z + d / 2); }
+      addBox(G, w, 1.0, 0.4, lam(0x6a3a1a), x, 0.5, z + d / 2 - 0.2);
+      addBox(G, w + 0.1, 0.06, 0.5, lam(0xd8a050), x, 1.03, z + d / 2 - 0.2);
+      makePlate(G, title, Math.min(w, 3.2), 0.45, new V3(x, H + 0.5, z + d / 2 - 0.05), 0, { bg: colA, fg: '#ffffff', size: 0.62 });
+      const fl = new THREE.Mesh(new THREE.PlaneGeometry(w, d), lam(0x5a3a2a)); fl.rotation.x = -Math.PI / 2; fl.position.set(x, 0.005, z); G.add(fl);
+      lights(G, new V3(x - w / 2, H + 0.05, z + d / 2 + 0.2), new V3(x + w / 2, H + 0.05, z + d / 2 + 0.2), Math.round(w * 3));
+    }
+    const tickets = (n, at) => { if (typeof skeeball !== 'undefined' && skeeball.addTickets) skeeball.addTickets(n, at); };
+    return { env, backdrop, booth, lights, tickets };
+  })();
+  // ================================================================ LEVEL: STRONGMAN BELL (carnival)
+  // Swing the big mallet down on the pad and the puck shoots up the tower: Wimp, Weakling, Not bad, Strong,
+  // Mighty… and DING! the bell, if you hit hard enough. Tickets for every swing, more the higher it goes.
+  // VR: squeeze to pick up the mallet from its stand and really swing it down onto the pad (speed is height).
+  // Browser: the power needle swings up and down; press Space (or click) when it's at the top.
+  const strongman = (() => {
+    const L = newLevel(43);
+    const G = L.group;
+    const rand = mulberry32(4343);
+    L.grabless = true;
+    L.bounds = { minX: -7, maxX: 7, minZ: -4, maxZ: 6 };
+    L.env = CARNIVAL.env();
+    const fair = CARNIVAL.backdrop(G, rand, { pathW: 13, pathD: 9, pathZ: 1.5 });
+    const N = 3, PITCH = 3.4, TH = 5.2, PAD_Z = 0.75, PAD_Y = 0.3;
+    const towerX = (k) => (k - (N - 1) / 2) * PITCH;
+    const MARKS = [[0.15, 'Wimp'], [0.32, 'Weakling'], [0.5, 'Not bad'], [0.68, 'Strong'], [0.84, 'Mighty']];
+    const rating = (h) => (h >= 1 ? 'HERCULES!' : MARKS.reduce((r, [f, n]) => (h >= f ? n : r), 'Feather'));
+    const payout = (h) => (h >= 1 ? 12 : h >= 0.84 ? 6 : h >= 0.68 ? 4 : h >= 0.5 ? 2 : 1);
+
+    // ---------------------------------------------------------------- the towers
+    const towers = [];
+    for (let k = 0; k < N; k++) {
+      const x = towerX(k);
+      addBox(G, 1.6, 0.25, 1.4, lam(0x6a3a1a), x, 0.125, 0.3);
+      // the tower: a tall board with the scale painted on, a rail for the puck, the bell on top
+      const sc = canvasTexture(128, 1024, (g) => {
+        const grd = g.createLinearGradient(0, 1024, 0, 0); grd.addColorStop(0, '#2a8a3a'); grd.addColorStop(0.5, '#ffd23f'); grd.addColorStop(1, '#e5453a');
+        g.fillStyle = grd; g.fillRect(0, 0, 128, 1024);
+        g.fillStyle = '#1a1020'; g.fillRect(56, 0, 16, 1024);
+        g.font = `800 22px ${DISPLAY}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+        for (const [f, n] of MARKS) { const y = 1024 - f * 1024; g.fillStyle = '#ffffff'; g.fillRect(0, y - 2, 128, 4); g.save(); g.translate(28, y - 40); g.rotate(-Math.PI / 2); g.fillStyle = '#1a1020'; g.fillText(n, 0, 0); g.restore(); }
+      });
+      const board = new THREE.Mesh(new THREE.PlaneGeometry(0.55, TH), new THREE.MeshLambertMaterial({ map: sc.tex })); board.position.set(x, 0.25 + TH / 2, -0.05); G.add(board);
+      addBox(G, 0.7, TH + 0.2, 0.08, lam(0x3a2a2a), x, 0.25 + TH / 2, -0.11);
+      addCyl(G, 0.015, 0.015, TH, 6, lam(0xd8d8e0), x, 0.25 + TH / 2, 0.03);
+      const bell = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshLambertMaterial({ color: 0xffc83a, emissive: 0x302000, side: THREE.DoubleSide }));
+      bell.position.set(x, 0.25 + TH + 0.2, 0.05); G.add(bell);
+      makePlate(G, 'STRONGMAN', 1.4, 0.3, new V3(x, 0.25 + TH + 0.65, 0), 0, { bg: '#e5453a', fg: '#ffd23f', size: 0.62 });
+      const puck = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.1, 12), new THREE.MeshLambertMaterial({ color: 0xe5453a, emissive: 0x200000 })); puck.position.set(x, 0.35, 0.05); G.add(puck);
+      // the pad (a lever) in front, and the mallet's stand
+      const pad = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.32, 0.12, 16), lam(0x2a2a2a)); pad.position.set(x, PAD_Y - 0.06, PAD_Z); G.add(pad);
+      const padTop = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.26, 0.02, 16), lam(0xe5453a)); padTop.position.set(x, PAD_Y + 0.01, PAD_Z); G.add(padTop);
+      addBox(G, 0.3, 0.9, 0.3, lam(0x8a5a2a), x + 0.75, 0.45, PAD_Z + 0.2);
+      const rating3d = makePlate(G, '', 1.3, 0.3, new V3(x, 3.2, 0.9), 0, { bg: '#1a1020', fg: '#ffd23f', size: 0.6 }); rating3d.visible = false;
+      towers.push({ k, x, bell, puck, padTop, rating: rating3d, py: 0.35, vy: 0, top: 0, rang: 0, showT: 0 });
+    }
+    // the mallet (mine): on its stand, in my hand (VR), or swinging in front of me (browser)
+    function makeMallet() {
+      const g = new THREE.Group();
+      const handle = new THREE.Mesh(cyl(0.02, 0.025, 0.95, 8), lam(0xc8945a)); handle.rotation.x = Math.PI / 2; handle.position.z = -0.42; g.add(handle);
+      const head = new THREE.Mesh(cyl(0.11, 0.11, 0.3, 14), lam(0x8a2a2a)); head.rotation.z = Math.PI / 2; head.position.z = -0.88; g.add(head);
+      for (const sx of [-1, 1]) { const band = new THREE.Mesh(cyl(0.115, 0.115, 0.03, 14), lam(0x2a2a2a)); band.rotation.z = Math.PI / 2; band.position.set(sx * 0.13, 0, -0.88); g.add(band); }
+      return g;
+    }
+    const mallet = makeMallet(); L.overlay.add(mallet);
+    const others = new Map();
+    const HEAD_OFF = new V3(0, 0, -0.88);
+
+    // ---------------------------------------------------------------- my swings
+    const S = { k: 0, hand: null, prevHead: new V3(), cool: 0, rings: 0, best: 0, swings: 0, last: 0, flatSwing: 0, flatPow: 0 };
+    try { if (prefs.strong && typeof prefs.strong === 'object') { S.rings = Number.isInteger(prefs.strong.rings) ? prefs.strong.rings : 0; S.best = Number.isFinite(prefs.strong.best) ? prefs.strong.best : 0; } } catch (e) { /* none */ }
+    L.strong = S;
+    const save = () => { prefs.strong = { rings: S.rings, best: S.best }; savePrefs(); };
+    function mySlot() { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); ids.sort(); return Math.max(0, ids.indexOf(state.myPeer)) % N; }
+    function standAtTower() {
+      S.k = mySlot();
+      const c = new V3(); camera.getWorldPosition(c);
+      dolly.position.x += towerX(S.k) - c.x; dolly.position.z += (state.mode === 'vr' ? 1.75 : 4.4) - c.z;
+      if (state.mode !== 'vr') { state.yaw = 0; state.pitch = 0.24; }
+    }
+    const standPos = (k, out) => out.set(towerX(k) + 0.75, 0.95, PAD_Z + 0.2);
+    // a strike: h is how high the puck should go (1 rings the bell)
+    function strike(h) {
+      const t = towers[S.k];
+      if (S.cool > 0) return;
+      h = clamp(h, 0.05, 1.08);
+      t.top = Math.min(1, h); t.vy = Math.sqrt(2 * 14 * (Math.min(h, 1.02) * TH)); t.py = 0.35; t.rang = 0; t.hit = h;
+      S.cool = 2.4; S.swings += 1; S.last = Math.min(1, h);
+      sfx('slam', 0.9); tone(120, 60, 0.15, 'square', 0.2);
+      t.padTop.position.y = PAD_Y - 0.03;
+      if (state.mode === 'vr' && S.hand) haptic(vrHands[S.hand], 1, 120);
+      forcePresence();
+    }
+    L.strike = strike;
+    function landed(t) {
+      const h = t.hit >= 1 ? 1 : t.hit;
+      const r = rating(h), n = payout(h);
+      t.rating.visible = true; t.rating.userData.draw(r); t.showT = 2.4;
+      if (h >= 1) { S.rings += 1; sfx('fanfare', 0.8); sfx('cheer', 0.7); }
+      else sfx(h >= 0.68 ? 'chime' : 'click', 0.6);
+      if (h > S.best) S.best = Math.round(h * 100) / 100;
+      save();
+      showToast(h >= 1 ? 'DING! You rang the bell!' : `${r}! ${Math.round(h * 100)}% of the way`);
+      CARNIVAL.tickets(n, new V3(t.x, 2.2, 0.9));
+      state.dirtyBoard = true; forcePresence();
+    }
+    function puckStep(t, dt) {
+      if (t.vy === 0 && t.py <= 0.35) return;
+      t.vy -= 14 * dt; t.py += t.vy * dt;
+      const topY = 0.25 + TH;
+      if (t.py >= topY && !t.rang) { t.rang = 1; t.hit = Math.max(t.hit || 0, 1); t.py = topY; t.vy = -1; tone(1760, 1760, 1.2, 'sine', 0.25); tone(2640, 2640, 0.8, 'sine', 0.1); if (t.k === S.k) landed(t); }
+      if (t.vy < 0 && !t.rang && !t.peaked) { t.peaked = true; if (t.k === S.k) landed(t); }
+      if (t.py <= 0.35) { t.py = 0.35; t.vy = 0; t.peaked = false; sfx('wood', 0.3); }
+      t.puck.position.y = t.py;
+    }
+    L.puckStep = puckStep;
+    // VR: grab the mallet from its stand; swing it down onto the pad
+    const _h = new V3(), _sp = new V3();
+    L.onVRGrab = (h) => {
+      if (S.hand) return false;
+      if (myHands[h.side].pos.distanceTo(standPos(S.k, _sp)) > 0.45) return false;
+      S.hand = h.side; sfx('grab', 0.5);
+      headPos(_h); S.prevHead.copy(_h);
+      return true;
+    };
+    L.onVRRelease = (h) => { if (S.hand === h.side) S.hand = null; };
+    function headPos(out) {
+      const mh = myHands[S.hand];
+      return out.copy(HEAD_OFF).applyQuaternion(mh.quat).add(mh.pos);
+    }
+    function vrSwing(dt) {
+      if (!S.hand) return;
+      headPos(_h);
+      const v = _h.distanceTo(S.prevHead) / Math.max(dt, 1e-3), down = S.prevHead.y - _h.y;
+      const t = towers[S.k];
+      if (S.cool <= 0 && down > 0 && _h.y < PAD_Y + 0.15 && S.prevHead.y >= PAD_Y + 0.12 && Math.hypot(_h.x - t.x, _h.z - PAD_Z) < 0.42) {
+        strike((v - 2) / 8 + (rand() - 0.5) * 0.06);
+      }
+      S.prevHead.copy(_h);
+    }
+    // browser: the power needle, and a press to swing
+    const needle = (now) => (1 - Math.cos(now / 1000 * 2.7)) / 2;
+    L.deskFire = (now) => {
+      if (S.cool > 0 || now < S.flatSwing + 400) return;
+      S.flatSwing = now; S.flatPow = needle(now);
+      sfx('whoosh', 0.5);
+      setTimeout(() => { const p = S.flatPow; strike(p > 0.975 ? 1.05 : p * 0.98); }, 220);
+    };
+    L.throwLabel = () => 'Swing';
+
+    // ---------------------------------------------------------------- per frame
+    let meterOn = false;
+    L.update = (dt, now) => {
+      const here = state.level === L.idx && state.mode !== 'menu';
+      fair.tick(dt);
+      if (!here) { mallet.visible = false; return; }
+      if (mySlot() !== S.k) standAtTower();
+      S.cool = Math.max(0, S.cool - dt);
+      for (const t of towers) {
+        puckStep(t, dt);
+        t.padTop.position.y += (PAD_Y + 0.01 - t.padTop.position.y) * Math.min(1, dt * 6);
+        if (t.showT > 0) { t.showT -= dt; if (t.showT <= 0) t.rating.visible = false; }
+        t.bell.rotation.z = t.rang && t.py > TH - 0.5 ? Math.sin(now * 0.05) * 0.2 : 0;
+      }
+      if (state.mode === 'vr') vrSwing(dt);
+      // the mallet
+      mallet.visible = true;
+      if (state.mode === 'vr' && S.hand) { const mh = myHands[S.hand]; mallet.position.copy(mh.pos); mallet.quaternion.copy(mh.quat); }
+      else if (state.mode === 'flat') {
+        // raised over the shoulder, then down onto the pad
+        const u = clamp((now - S.flatSwing) / 220, 0, 1), back = now - S.flatSwing < 700 ? Math.sin(u * Math.PI / 2) : 0;
+        const t = towers[S.k], pivot = new V3(t.x + 0.12, 1.3, 1.45);
+        mallet.position.copy(pivot);
+        mallet.rotation.set(1.2 - back * 2.35, 0, 0, 'YXZ');
+        if (now - S.flatSwing > 700) mallet.rotation.x = 1.15 + Math.sin(now * 0.003) * 0.03;
+      } else { standPos(S.k, mallet.position); mallet.position.y += 0.05; mallet.rotation.set(-Math.PI / 2, 0, 0); mallet.position.z -= 0.0; }
+      if (state.mode === 'vr' && !S.hand) { standPos(S.k, mallet.position); mallet.position.y += 0.45; mallet.rotation.set(-Math.PI / 2, 0, 0); }
+      // the power needle (browser)
+      const showMeter = state.mode === 'flat' && S.cool <= 0;
+      if (showMeter && ui.power) { ui.power.hidden = false; ui.powerFill.style.width = `${Math.round(needle(now) * 100)}%`; meterOn = true; }
+      else if (meterOn && ui.power) { ui.power.hidden = true; meterOn = false; }
+      // the others' pucks
+      for (const rec of remotes.values()) {
+        const st = rec.lvState[L.id];
+        if (rec.lv !== L.idx || !rec.inGame || !st || !st.sm) continue;
+        const t = towers[st.sm[0]]; if (!t || t.k === S.k) continue;
+        const key = `${rec.peer}`;
+        if (others.get(key) !== st.sm[3]) { others.set(key, st.sm[3]); if (st.sm[3] > 0) { t.hit = st.sm[4] / 100; t.top = Math.min(1, t.hit); t.vy = Math.sqrt(2 * 14 * (Math.min(t.hit, 1.02) * TH)); t.py = 0.35; t.rang = 0; } }
+      }
+      if (ui.status && state.mode === 'flat') {
+        ui.status.hidden = false;
+        const txt = `Strongman  ·  press Space when the needle's at the top  ·  bells rung ${S.rings}  ·  best ${Math.round(S.best * 100)}%`;
+        if (ui.status.textContent !== txt) ui.status.textContent = txt;
+      }
+    };
+    L.presence = () => ({ sm: [S.k, S.rings, Math.round(S.best * 100), S.swings, Math.round((towers[S.k].hit || 0) * 100)] });
+    L.readPresence = (rec, pres, st) => {
+      const a = pres.sm;
+      if (!Array.isArray(a) || a.length !== 5 || !a.every((x) => Number.isInteger(x) && x >= 0 && x < 1e6) || a[0] >= N) { st.sm = null; return; }
+      if (!st.sm || st.sm[1] !== a[1] || st.sm[2] !== a[2]) state.dirtyBoard = true;
+      st.sm = a;
+    };
+    L.rowFor = (st, isMe) => { const r = isMe ? S.rings : st.sm ? st.sm[1] : 0, b = isMe ? Math.round(S.best * 100) : st.sm ? st.sm[2] : 0; return { best: r * 1000 + b, text: `${r} bell${r === 1 ? '' : 's'} · best ${b}%` }; };
+    L.sortRows = (a, b) => (b.best || 0) - (a.best || 0);
+    L.board = makeBoard(G, 720, 460, 2.2, 1.4, -6.2, 1.9, 2.2, Math.PI / 2);
+    L.drawBoard = (rows) => {
+      const g = L.board.g, W = 720;
+      g.fillStyle = '#1a1020'; g.fillRect(0, 0, W, 460); g.strokeStyle = '#ffd23f'; g.lineWidth = 8; g.strokeRect(4, 4, W - 8, 452);
+      g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+      g.fillStyle = '#ffd23f'; g.font = `800 56px ${DISPLAY}`; g.fillText('Bell ringers', 36, 80);
+      g.fillStyle = '#e8d8f0'; g.font = `400 24px ${BODY}`; g.fillText('Ring the bell for 12 tickets', 36, 118);
+      drawRows(g, rows, 176, 46, W);
+      L.board.tex.needsUpdate = true;
+    };
+    makeKiosk(L, 6.0, 4.2, -Math.PI * 0.75);
+    L.hints = [['Grip', 'pick up the mallet from its stand'], ['Swing down', 'hard, onto the red pad'], ['Tickets', 'spend them at the Skee-Ball prize counter']];
+    L.hintsFor = () => (state.mode === 'flat' ? [['Space or click', 'swing when the needle is at the top'], ['Tickets', 'spend them at the Skee-Ball prize counter']] : L.hints);
+    L.spawn = () => { dolly.position.set(0, 0, 1.75); standAtTower(); };
+    L.onEnter = () => { S.cool = 0; };
+    L.onExit = () => { if (ui.status) ui.status.hidden = true; if (ui.power) ui.power.hidden = true; meterOn = false; S.hand = null; mallet.visible = false; };
+    L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 3, 2.4, 6); camera.lookAt(0, 2.6, 0); };
+    L.strongInternals = { S, towers, strike, puckStep, needle, rating, payout };
+    MUSIC_THEMES.strongman = { gain: 0.7, bpm: 116, swing: 0.2, chords: ['C', 'G', 'C', 'F'], comp: { inst: 'brass', at: [0, 4, 8, 12], dur: 0.2 }, bass: { at: [0, 8] }, drums: { k: 'x.......x.......', s: '....x.......x...' }, lead: { inst: 'musicbox', p: 0.3, up: 12 }, cut: 4200 };
+    return L;
+  })();
+  // ================================================================ LEVEL: DUCK SHOOTING GALLERY (carnival)
+  // Three rows of tin ducks glide past at the back of the booth. Pop as many as you can with the cork gun in 40
+  // seconds: a duck is 1 point, a golden duck 5, and leave the bunnies alone (they cost you 3).
+  // Points pay out tickets for the Skee-Ball prize counter.
+  // VR: the cork gun's in your hand; pull the trigger. Browser: aim with the crosshair and click or press Space.
+  const duckshoot = (() => {
+    const L = newLevel(44);
+    const G = L.group;
+    const rand = mulberry32(4444);
+    L.grabless = true;
+    L.bounds = { minX: -7, maxX: 7, minZ: -3, maxZ: 6 };
+    L.env = CARNIVAL.env();
+    const fair = CARNIVAL.backdrop(G, rand, { pathW: 13, pathD: 8, pathZ: 1.8, wheelX: 20 });
+    const N = 3, PITCH = 3.6, BW = 3.0, BD = 2.6, BZ = -1.6, ROUND = 40;
+    const boothX = (k) => (k - (N - 1) / 2) * PITCH;
+    const ROWS = [{ y: 1.3, sp: 0.55, dir: 1 }, { y: 1.72, sp: 0.85, dir: -1 }, { y: 2.14, sp: 1.2, dir: 1 }];
+    const DZ = BZ - BD / 2 + 0.45, SPACING = 0.55, SPAN = BW - 0.4;
+
+    // ---------------------------------------------------------------- the booths
+    for (let k = 0; k < N; k++) CARNIVAL.booth(G, boothX(k), BZ, BW, BD, 'DUCK SHOOT', ['#e5453a', '#4a7ad8', '#2a9a5a'][k], '#f4f2ec');
+    // the rails the ducks ride on, with blue "water" waves in front
+    const waveTex = canvasTexture(128, 32, (g) => { g.fillStyle = '#2a6ad8'; g.fillRect(0, 0, 128, 32); g.fillStyle = '#5a9af8'; for (let i = 0; i < 4; i++) { g.beginPath(); g.arc(i * 32 + 16, 32, 16, Math.PI, 0); g.fill(); } });
+    waveTex.tex.wrapS = THREE.RepeatWrapping; waveTex.tex.repeat.set(5, 1);
+    for (let k = 0; k < N; k++) for (const r of ROWS) {
+      addBox(G, BW - 0.1, 0.04, 0.12, lam(0x5a5a6a), boothX(k), r.y - 0.17, DZ - 0.02);
+      const w = new THREE.Mesh(new THREE.PlaneGeometry(BW - 0.1, 0.16), new THREE.MeshLambertMaterial({ map: waveTex.tex })); w.position.set(boothX(k), r.y - 0.1, DZ + 0.08); G.add(w);
+    }
+    // ---------------------------------------------------------------- ducks (each booth has its own)
+    const duckMat = { 0: lam(0xffd23f), 1: new THREE.MeshLambertMaterial({ color: 0xffc83a, emissive: 0xb88a00 }), 2: lam(0xf4f2ec) };
+    function makeDuck(type) {
+      const g = new THREE.Group(), m = duckMat[type];
+      if (type === 2) {
+        // a bunny: don't shoot!
+        g.add(at(new THREE.Mesh(sph(0.1, 12, 10), m), 0, 0.02, 0), at(new THREE.Mesh(sph(0.07, 10, 8), m), 0, 0.15, 0));
+        for (const sx of [-1, 1]) { const e = new THREE.Mesh(cyl(0.02, 0.025, 0.14, 6), m); e.position.set(sx * 0.035, 0.27, 0); g.add(e); const ei = new THREE.Mesh(cyl(0.01, 0.012, 0.1, 6), lam(0xff9ad0)); ei.position.set(sx * 0.035, 0.27, 0.015); g.add(ei); }
+        g.add(at(new THREE.Mesh(sph(0.015, 6, 5), lam(0xff4d8a)), 0, 0.14, 0.07));
+      } else {
+        const body = new THREE.Mesh(sph(0.11, 12, 10), m); body.scale.set(1.3, 0.8, 0.5); g.add(body);
+        g.add(at(new THREE.Mesh(sph(0.07, 10, 8), m), 0.08, 0.12, 0));
+        const beak = new THREE.Mesh(new THREE.ConeGeometry(0.025, 0.08, 6), lam(0xf5821f)); beak.rotation.z = -Math.PI / 2; beak.position.set(0.17, 0.11, 0); g.add(beak);
+        g.add(at(new THREE.Mesh(sph(0.015, 6, 5), lam(0x111111)), 0.11, 0.14, 0.05));
+        // the target ring painted on its side
+        const ring = new THREE.Mesh(new THREE.RingGeometry(0.03, 0.05, 16), new THREE.MeshBasicMaterial({ color: 0xe5453a })); ring.position.set(-0.02, 0, 0.056); g.add(ring);
+      }
+      G.add(g); return g;
+    }
+    const booths = [];
+    for (let k = 0; k < N; k++) {
+      const ducks = [];
+      ROWS.forEach((r, ri) => {
+        const n = Math.round(SPAN / SPACING) + 1;
+        for (let i = 0; i < n; i++) {
+          const types = [0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 0, 2, 0, 1, 0, 0];
+          const type = types[(i * 5 + ri * 7 + k * 3) % types.length];
+          const meshes = [0, 1, 2].map((t) => { const m = makeDuck(t); m.visible = false; return m; });
+          ducks.push({ ri, i, off: i * SPACING, type, down: 0, meshes, lap: 0 });
+        }
+      });
+      booths.push({ k, ducks });
+    }
+    // ---------------------------------------------------------------- the cork gun
+    function makeGun() {
+      const g = new THREE.Group();
+      const barrel = new THREE.Mesh(cyl(0.018, 0.022, 0.42, 10), lam(0x6a4a2a)); barrel.rotation.x = Math.PI / 2; barrel.position.z = -0.18; g.add(barrel);
+      const tip = new THREE.Mesh(cyl(0.022, 0.022, 0.04, 10), lam(0xc8c8d0)); tip.rotation.x = Math.PI / 2; tip.position.z = -0.4; g.add(tip);
+      const stock = new THREE.Mesh(boxg(0.05, 0.1, 0.22), lam(0x8a5a2a)); stock.position.set(0, -0.05, 0.12); stock.rotation.x = -0.25; g.add(stock);
+      return g;
+    }
+    const gun = makeGun(); L.overlay.add(gun);
+    const corkM = lam(0xd8b080);
+    const corks = [];
+    for (let i = 0; i < 6; i++) { const c = new THREE.Mesh(cyl(0.015, 0.012, 0.03, 8), corkM); c.visible = false; G.add(c); corks.push({ m: c, p: new V3(), v: new V3(), t: 0, on: false }); }
+
+    // ---------------------------------------------------------------- the round
+    const R = { k: 0, ph: 'idle', t0: 0, score: 0, hits: 0, shots: 0, best: 0, cool: 0, hand: 'right', base: 0 };
+    try { if (Number.isInteger(prefs.duckBest)) R.best = prefs.duckBest; } catch (e) { /* none */ }
+    L.duck = R;
+    function mySlot() { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); ids.sort(); return Math.max(0, ids.indexOf(state.myPeer)) % N; }
+    function standAtBooth() {
+      R.k = mySlot();
+      const c = new V3(); camera.getWorldPosition(c);
+      dolly.position.x += boothX(R.k) - c.x; dolly.position.z += 0.45 - c.z;
+      if (state.mode !== 'vr') { state.yaw = 0; state.pitch = 0.05; }
+    }
+    function startRound() {
+      Object.assign(R, { ph: 'play', t0: performance.now(), score: 0, hits: 0, shots: 0, base: performance.now() / 1000 });
+      for (const d of booths[R.k].ducks) d.down = 0;
+      sfx('whistle', 0.7); showToast(`${ROUND} seconds! Ducks 1, golden ducks 5, and don't hit the bunnies`);
+      forcePresence(); state.dirtyBoard = true;
+    }
+    L.startRound = startRound;
+    function endRound() {
+      R.ph = 'over';
+      const isBest = R.score > R.best;
+      if (isBest) { R.best = R.score; prefs.duckBest = R.best; savePrefs(); }
+      const n = Math.max(0, Math.ceil(R.score / 3));
+      showToast(`Time! ${R.score} points from ${R.shots} corks${isBest && R.score ? ' (your best!)' : ''}. ${n} tickets`);
+      sfx(R.score >= 20 ? 'fanfare' : 'chime', 0.8);
+      CARNIVAL.tickets(n, new V3(boothX(R.k), 2.4, -0.4));
+      forcePresence(); state.dirtyBoard = true;
+    }
+    const timeLeft = () => Math.max(0, ROUND - (performance.now() - R.t0) / 1000);
+    // where a duck is right now (they glide along their row and wrap round)
+    function duckPos(k, d, tsec, out) {
+      const r = ROWS[d.ri], wrap = SPAN + SPACING;
+      let u = ((d.off + tsec * r.sp) % wrap + wrap) % wrap;
+      if (r.dir < 0) u = wrap - u;
+      return out.set(boothX(k) - SPAN / 2 + u - SPACING / 2, r.y, DZ);
+    }
+    L.duckPos = duckPos;
+    const clock = () => performance.now() / 1000 - R.base;
+    function fire(from, dir) {
+      if (R.cool > 0) return;
+      if (R.ph !== 'play') startRound();
+      R.cool = 0.32; R.shots += 1;
+      const c = corks.find((x) => !x.on) || corks[0];
+      c.on = true; c.t = 0; c.p.copy(from); c.v.copy(dir).normalize().multiplyScalar(18); c.m.visible = true;
+      tone(500, 900, 0.06, 'square', 0.12); sfx('shoot', 0.3);
+      if (state.mode === 'vr') haptic(vrHands[R.hand], 0.5, 30);
+    }
+    L.fire = fire;
+    const _p = new V3(), _q = new Q4();
+    function corkStep(c, dt) {
+      if (!c.on) return;
+      const prev = _p.copy(c.p);
+      c.v.y -= 3 * dt; c.p.addScaledVector(c.v, dt); c.t += dt;
+      // past the duck rails?
+      if (prev.z >= DZ && c.p.z < DZ || c.t > 1) {
+        const u = (prev.z - DZ) / Math.max(1e-6, prev.z - c.p.z), hx = prev.x + (c.p.x - prev.x) * u, hy = prev.y + (c.p.y - prev.y) * u;
+        c.on = false; c.m.visible = false;
+        if (c.t > 1) return;
+        const tsec = clock(), dp = new V3();
+        let best = null, bd = 0.13;
+        for (const d of booths[R.k].ducks) { if (d.down > 0) continue; duckPos(R.k, d, tsec, dp); const dd = Math.hypot(dp.x - hx, dp.y + 0.05 - hy); if (dd < bd) { bd = dd; best = d; } }
+        if (best) hitDuck(best, duckPos(R.k, best, tsec, new V3()));
+        else sfx('wood', 0.25);
+        return;
+      }
+      c.m.position.copy(c.p);
+    }
+    function hitDuck(d, at) {
+      d.down = 1;
+      const pts = d.type === 1 ? 5 : d.type === 2 ? -3 : 1;
+      R.score = Math.max(0, R.score + pts); R.hits += 1;
+      spawnFloat(pts > 0 ? `+${pts}` : `${pts} (a bunny!)`, at.clone().add(new V3(0, 0.3, 0.3)), pts >= 5 ? '#ffd23f' : pts > 0 ? '#ffffff' : '#ff6a6a');
+      if (pts > 0) tone(pts >= 5 ? 1320 : 880, pts >= 5 ? 1760 : 660, 0.1, 'triangle', 0.15); else sfx('buzzer', 0.4);
+      sfx('clang', 0.4);
+      forcePresence(); state.dirtyBoard = true;
+    }
+    L.hitDuck = hitDuck;
+    // aiming: the cork leaves the gun's muzzle (VR) or your eye line (browser)
+    L.onVRTrigger = (h) => {
+      R.hand = h.side;
+      const mh = myHands[h.side];
+      fire(new V3(0, 0, -0.42).applyQuaternion(mh.quat).add(mh.pos), new V3(0, 0, -1).applyQuaternion(mh.quat));
+    };
+    L.deskFire = () => {
+      camera.getWorldPosition(_p); camera.getWorldQuaternion(_q);
+      fire(_p.clone().add(new V3(0, -0.05, -0.3).applyQuaternion(_q)), new V3(0, 0, -1).applyQuaternion(_q));
+    };
+    L.throwLabel = () => 'Shoot';
+
+    // ---------------------------------------------------------------- per frame
+    const _d = new V3();
+    L.update = (dt, now) => {
+      const here = state.level === L.idx && state.mode !== 'menu';
+      fair.tick(dt);
+      if (!here) { gun.visible = false; return; }
+      if (mySlot() !== R.k) standAtBooth();
+      R.cool = Math.max(0, R.cool - dt);
+      if (R.ph === 'play' && timeLeft() <= 0) endRound();
+      for (const c of corks) { const n = Math.max(1, Math.ceil(dt / 0.005)); for (let i = 0; i < n && c.on; i++) corkStep(c, dt / n); }
+      // ducks: mine move with the round's clock; the other booths' just glide
+      const tsec = clock();
+      booths.forEach((b) => {
+        for (const d of b.ducks) {
+          duckPos(b.k, d, b.k === R.k ? tsec : now / 1000, _d);
+          // a knocked-down duck comes back up when it goes round the end
+          const wrap = SPAN + SPACING, lap = Math.floor((d.off + (b.k === R.k ? tsec : now / 1000) * ROWS[d.ri].sp) / wrap);
+          if (lap !== d.lap) { d.lap = lap; d.down = 0; }
+          d.meshes.forEach((m, t) => { m.visible = t === d.type; });
+          const m = d.meshes[d.type];
+          m.position.copy(_d); m.rotation.set(d.down ? -1.5 : 0, ROWS[d.ri].dir < 0 ? Math.PI : 0, 0);
+          if (d.down) m.position.y -= 0.12;
+          // hide them at the ends of the row (behind the booth's side walls)
+          m.visible = Math.abs(_d.x - boothX(b.k)) < SPAN / 2;
+        }
+      });
+      // the gun
+      gun.visible = true;
+      if (state.mode === 'vr') { const mh = myHands[R.hand]; gun.position.copy(mh.pos); gun.quaternion.copy(mh.quat); gun.visible = mh.ok; gun.scale.setScalar(1); }
+      else { camera.getWorldPosition(_p); camera.getWorldQuaternion(_q); const kick = R.cool > 0.2 ? (R.cool - 0.2) * 0.4 : 0; gun.position.copy(new V3(0.17, -0.2, -0.42 + kick).applyQuaternion(_q).add(_p)); gun.quaternion.copy(_q); gun.scale.setScalar(0.7); }
+      if (ui.status && state.mode === 'flat') {
+        ui.status.hidden = false;
+        const txt = R.ph === 'play' ? `${Math.ceil(timeLeft())} s  ·  ${R.score} points  ·  ${R.hits} hits from ${R.shots} corks` : `Duck Shoot  ·  click or Space to start shooting  ·  best ${R.best}`;
+        if (ui.status.textContent !== txt) ui.status.textContent = txt;
+      }
+    };
+    L.presence = () => ({ du: [R.k, R.score, R.best, R.ph === 'play' ? 1 : 0] });
+    L.readPresence = (rec, pres, st) => {
+      const a = pres.du;
+      if (!Array.isArray(a) || a.length !== 4 || !a.every((x) => Number.isInteger(x) && x >= 0 && x < 1e6) || a[0] >= N) { st.du = null; return; }
+      if (!st.du || st.du[1] !== a[1] || st.du[2] !== a[2]) state.dirtyBoard = true;
+      st.du = a;
+    };
+    L.rowFor = (st, isMe) => { const b = isMe ? R.best : st.du ? st.du[2] : 0, now = isMe ? (R.ph === 'play' ? R.score : 0) : st.du && st.du[3] ? st.du[1] : 0; return { best: b, text: `${now ? `${now} now · ` : ''}best ${b}` }; };
+    L.sortRows = (a, b) => (b.best || 0) - (a.best || 0);
+    L.board = makeBoard(G, 720, 460, 2.2, 1.4, -6.3, 1.9, 2.4, Math.PI / 2);
+    L.drawBoard = (rows) => {
+      const g = L.board.g, W = 720;
+      g.fillStyle = '#1a1020'; g.fillRect(0, 0, W, 460); g.strokeStyle = '#4fc3f7'; g.lineWidth = 8; g.strokeRect(4, 4, W - 8, 452);
+      g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+      g.fillStyle = '#ffd23f'; g.font = `800 56px ${DISPLAY}`; g.fillText('Sharpshooters', 36, 80);
+      g.fillStyle = '#e8d8f0'; g.font = `400 24px ${BODY}`; g.fillText('Best score in 40 seconds', 36, 118);
+      drawRows(g, rows, 176, 46, W);
+      L.board.tex.needsUpdate = true;
+    };
+    makeKiosk(L, 6.2, 4.6, -Math.PI * 0.75);
+    L.hudActions = [{ label: () => (R.ph === 'play' ? 'Restart' : 'Start round'), run: () => startRound() }];
+    L.hints = [['Trigger', 'fire a cork (the first shot starts the round)'], ['Golden ducks', '5 points'], ['Bunnies', 'cost you 3']];
+    L.hintsFor = () => (state.mode === 'flat' ? [['Aim', 'with the crosshair'], ['Click or Space', 'fire a cork'], ['Golden ducks', '5 points; bunnies cost 3']] : L.hints);
+    L.spawn = () => { dolly.position.set(0, 0, 0.45); standAtBooth(); };
+    L.onEnter = () => { R.ph = 'idle'; };
+    L.onExit = () => { if (ui.status) ui.status.hidden = true; gun.visible = false; R.ph = 'idle'; for (const c of corks) { c.on = false; c.m.visible = false; } };
+    L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 3, 2.0, 4.5); camera.lookAt(0, 1.6, -2); };
+    L.duckInternals = { R, booths, fire, corkStep, duckPos, hitDuck, startRound, endRound, clock, corks, DZ };
+    MUSIC_THEMES.duckshoot = { gain: 0.7, bpm: 126, swing: 0.15, chords: ['F', 'C', 'G', 'C'], comp: { inst: 'musicbox', at: [0, 2, 4, 6, 8, 10, 12, 14], dur: 0.1 }, bass: { at: [0, 4, 8, 12] }, drums: { k: 'x...x...x...x...', h: '..o...o...o...o.' }, cut: 4600 };
+    return L;
+  })();
+  // ================================================================ LEVEL: RING TOSS (carnival)
+  // A table packed with bottles. Toss ten rings: one that drops over a bottle's neck is a ringer. Green bottles
+  // pay 3 tickets, red ones 6, and the gold bottle in the middle 15. Close isn't good enough: rings that clip a
+  // neck clatter off.
+  // VR: squeeze to take a ring and toss it underhand. Browser: aim with the mouse (fine aim; your hand wobbles),
+  // hold Space to steady it and let go to toss.
+  const ringtoss = (() => {
+    const L = newLevel(45);
+    const G = L.group;
+    const rand = mulberry32(4545);
+    L.grabless = true;
+    L.chargeKick = true;
+    L.bounds = { minX: -7, maxX: 7, minZ: -0.2, maxZ: 6 };
+    L.env = CARNIVAL.env();
+    const fair = CARNIVAL.backdrop(G, rand, { pathW: 13, pathD: 7, pathZ: 2.2, wheelX: -14 });
+    const N = 3, PITCH = 3.6, BW = 3.0, BD = 2.8, BZ = -1.7, RINGS = 10;
+    const boothX = (k) => (k - (N - 1) / 2) * PITCH;
+    const TY = 0.9, NECK_Y = TY + 0.3, COLS = 5, ROWS_N = 4, GAP = 0.21, TZ = BZ - 0.2;
+    const CATCH = 0.045, CLIP = 0.085, RR = 0.08;
+    for (let k = 0; k < N; k++) CARNIVAL.booth(G, boothX(k), BZ, BW, BD, 'RING TOSS', ['#4a7ad8', '#e5453a', '#9a5ad8'][k], '#f4f2ec');
+    // ---------------------------------------------------------------- tables and bottles
+    const glass = [new THREE.MeshLambertMaterial({ color: 0x3a9a5a, transparent: true, opacity: 0.85 }), new THREE.MeshLambertMaterial({ color: 0xd83a3a, transparent: true, opacity: 0.85 }), new THREE.MeshLambertMaterial({ color: 0xffc83a, emissive: 0x5a3a00 })];
+    const PAY = [3, 6, 15];
+    const bottles = [];
+    for (let k = 0; k < N; k++) {
+      const x0 = boothX(k);
+      addBox(G, COLS * GAP + 0.3, TY, ROWS_N * GAP + 0.3, lam(0x8a2a5a), x0, TY / 2, TZ);
+      addBox(G, COLS * GAP + 0.34, 0.03, ROWS_N * GAP + 0.34, lam(0xf4f2ec), x0, TY + 0.015, TZ);
+      const list = [];
+      for (let r = 0; r < ROWS_N; r++) for (let c = 0; c < COLS; c++) {
+        const x = x0 + (c - (COLS - 1) / 2) * GAP, z = TZ + (r - (ROWS_N - 1) / 2) * GAP;
+        const type = r === 1 && c === 2 ? 2 : (r * COLS + c) % 4 === 1 ? 1 : 0;
+        const g = new THREE.Group(); g.position.set(x, TY + 0.03, z); G.add(g);
+        g.add(at(new THREE.Mesh(cyl(0.035, 0.035, 0.17, 10), glass[type]), 0, 0.085, 0), at(new THREE.Mesh(cyl(0.012, 0.035, 0.05, 10), glass[type]), 0, 0.195, 0), at(new THREE.Mesh(cyl(0.012, 0.012, 0.06, 8), glass[type]), 0, 0.25, 0));
+        list.push({ x, z, type, g });
+      }
+      bottles.push(list);
+    }
+    // ---------------------------------------------------------------- rings
+    const RING_COLS = [0xff4d8a, 0x4fc3f7, 0xffd23f, 0x8bd450, 0xff9a3a];
+    function makeRing(i) { const m = new THREE.Mesh(new THREE.TorusGeometry(RR, 0.009, 8, 24), lam(RING_COLS[i % RING_COLS.length])); m.rotation.x = Math.PI / 2; m.visible = false; G.add(m); return m; }
+    const rings = [];
+    for (let i = 0; i < RINGS; i++) rings.push({ m: makeRing(i), st: 'none', p: new V3(), v: new V3(), spin: 0, bottle: null });
+    const bucket = (k) => new V3(boothX(k) + BW / 2 - 0.35, 1.06, BZ + BD / 2 - 0.2);
+    for (let k = 0; k < N; k++) { const b = bucket(k); addCyl(G, 0.13, 0.11, 0.18, 12, lam(0x6a6a7a), b.x, b.y + 0.06, b.z); }
+    // ---------------------------------------------------------------- the game
+    const T = { k: 0, ph: 'idle', thrown: 0, ringers: 0, tickets: 0, best: 0, held: null, flying: null };
+    try { if (Number.isInteger(prefs.ringBest)) T.best = prefs.ringBest; } catch (e) { /* none */ }
+    L.ring = T;
+    function mySlot() { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); ids.sort(); return Math.max(0, ids.indexOf(state.myPeer)) % N; }
+    function standAtBooth() {
+      T.k = mySlot();
+      const c = new V3(); camera.getWorldPosition(c);
+      dolly.position.x += boothX(T.k) - c.x; dolly.position.z += 0.35 - c.z;
+      if (state.mode !== 'vr') { state.yaw = 0; state.pitch = -0.35; aim.last = null; aim.yaw = 0; aim.pitch = -0.35; }
+    }
+    function newGame() {
+      Object.assign(T, { ph: 'play', thrown: 0, ringers: 0, tickets: 0, held: null, flying: null });
+      for (const r of rings) { r.st = 'none'; r.m.visible = false; r.bottle = null; }
+      sfx('coin', 0.7); showToast('Ten rings. Green 3 tickets, red 6, gold 15');
+      forcePresence(); state.dirtyBoard = true;
+    }
+    L.newGame = newGame;
+    function endGame() {
+      T.ph = 'over';
+      if (T.ringers > T.best) { T.best = T.ringers; prefs.ringBest = T.best; savePrefs(); }
+      showToast(`${T.ringers} ringer${T.ringers === 1 ? '' : 's'} from ${RINGS} rings: ${T.tickets} tickets in all`);
+      sfx(T.ringers >= 3 ? 'fanfare' : 'chime', 0.8);
+      forcePresence(); state.dirtyBoard = true;
+    }
+    function launch(from, vel) {
+      if (T.ph !== 'play') newGame();
+      const r = rings[T.thrown]; T.thrown += 1;
+      r.st = 'fly'; r.p.copy(from); r.v.copy(vel); r.spin = 8 + rand() * 6; r.m.visible = true; r.m.rotation.set(Math.PI / 2, 0, 0);
+      T.flying = r; sfx('whoosh', 0.3);
+      forcePresence();
+    }
+    L.launch = launch;
+    const nearest = (p) => { let best = null, bd = 1e9; for (const b of bottles[T.k]) { const d = Math.hypot(b.x - p.x, b.z - p.z); if (d < bd) { bd = d; best = b; } } return [best, bd]; };
+    function ringStep(r, dt) {
+      if (r.st !== 'fly') return;
+      const py = r.p.y;
+      r.v.y -= 9.8 * dt; r.p.addScaledVector(r.v, dt);
+      r.m.rotation.z += r.spin * dt;
+      // coming down past the necks
+      if (py >= NECK_Y && r.p.y < NECK_Y && r.v.y < 0) {
+        const [b, d] = nearest(r.p);
+        if (b && d < CATCH) { r.st = 'on'; r.bottle = b; r.p.set(b.x, NECK_Y - 0.12, b.z); ringer(b); return; }
+        if (b && d < CLIP) { sfx('clang', 0.5); tone(1800, 1200, 0.08, 'triangle', 0.08); const dx = r.p.x - b.x, dz = r.p.z - b.z; r.v.x = dx / d * 0.6 + (rand() - 0.5) * 0.4; r.v.z = dz / d * 0.6 + (rand() - 0.5) * 0.4; r.v.y = 0.3; r.p.y = NECK_Y + 0.01; }
+      }
+      // the table, or the floor
+      const onTable = Math.abs(r.p.x - boothX(T.k)) < COLS * GAP / 2 + 0.15 && Math.abs(r.p.z - TZ) < ROWS_N * GAP / 2 + 0.15;
+      const floorY = onTable ? TY + 0.04 : 0.02;
+      if (r.p.y <= floorY) { r.p.y = floorY; r.st = 'down'; sfx('wood', 0.3); missed(); }
+      if (r.p.z < BZ - BD / 2 + 0.1) { r.p.z = BZ - BD / 2 + 0.1; r.v.z = 0.3; }
+    }
+    L.ringStep = ringStep;
+    function ringer(b) {
+      T.ringers += 1; const n = PAY[b.type]; T.tickets += n;
+      spawnFloat(b.type === 2 ? 'GOLD RINGER!' : 'Ringer!', new V3(b.x, NECK_Y + 0.4, b.z + 0.2), b.type === 2 ? '#ffd23f' : '#8bd450');
+      sfx(b.type === 2 ? 'fanfare' : 'chime', 0.8); tone(1320, 1760, 0.15, 'triangle', 0.15);
+      CARNIVAL.tickets(n, new V3(b.x, NECK_Y + 0.7, b.z + 0.2));
+      after();
+    }
+    function missed() { after(); }
+    function after() { T.flying = null; forcePresence(); state.dirtyBoard = true; if (T.thrown >= RINGS) setTimeout(() => { if (T.ph === 'play' && T.thrown >= RINGS && !T.flying) endGame(); }, 600); }
+    // ---------------------------------------------------------------- browser aiming: fine aim, a wobble, Space steadies
+    const aim = { yaw: 0, pitch: -0.35, last: null, lastP: null };
+    L.flatCamera = () => {
+      if (aim.last === null) { aim.last = state.yaw; aim.lastP = state.pitch; }
+      aim.yaw += (state.yaw - aim.last) * 0.3; aim.pitch += (state.pitch - aim.lastP) * 0.3;
+      aim.last = state.yaw; aim.lastP = state.pitch;
+      aim.yaw = clamp(aim.yaw, -0.7, 0.7); aim.pitch = clamp(aim.pitch, -0.9, 0.3);
+      camera.position.set(0, 1.65, -0.55);
+      camera.rotation.set(aim.pitch, aim.yaw, 0, 'YXZ');
+      return true;
+    };
+    function wobble(now) {
+      const held = state.charge !== null ? (now - state.charge) / 1000 : 0;
+      const k = state.charge === null ? 1 : held < 1 ? 1 - 0.7 * held : Math.min(1.6, 0.3 + (held - 1) * 1.2);
+      const t = now / 1000;
+      return [k * (Math.sin(t * 1.6) * 0.035 + Math.sin(t * 2.9 + 1) * 0.02), k * (Math.sin(t * 1.2 + 2) * 0.03 + Math.sin(t * 2.5) * 0.02)];
+    }
+    const _cp = new V3(), _q = new Q4(), _f = new V3();
+    function aimPoint(now) {
+      camera.getWorldPosition(_cp); camera.getWorldQuaternion(_q); _f.set(0, 0, -1).applyQuaternion(_q);
+      if (_f.y > -0.05) return null;
+      const t = (NECK_Y - _cp.y) / _f.y, w = wobble(now);
+      return new V3(_cp.x + _f.x * t + w[0], NECK_Y, _cp.z + _f.z * t + w[1]);
+    }
+    L.aimPoint = aimPoint;
+    // a lob that comes down through the neck height at the spot
+    function lobTo(from, to, apex) {
+      const vy = Math.sqrt(2 * 9.8 * (apex - from.y)), T2 = vy / 9.8 + Math.sqrt(2 * (apex - to.y) / 9.8);
+      return new V3((to.x - from.x) / T2, vy, (to.z - from.z) / T2);
+    }
+    L.lobTo = lobTo;
+    const reticle = new THREE.Mesh(new THREE.RingGeometry(RR - 0.012, RR, 24), new THREE.MeshBasicMaterial({ color: 0x8bff6a, transparent: true, opacity: 0.8, depthTest: false })); reticle.rotation.x = -Math.PI / 2; reticle.renderOrder = 998; G.add(reticle);
+    const canThrow = () => T.ph !== 'play' || (!T.flying && T.thrown < RINGS);
+    L.kick = () => {
+      if (!canThrow()) return;
+      if (T.ph !== 'play') { newGame(); return; }
+      const p = aimPoint(performance.now()); if (!p) return;
+      camera.getWorldPosition(_cp);
+      const from = _cp.clone().add(new V3(0.15, -0.35, -0.3));
+      launch(from, lobTo(from, p, Math.max(NECK_Y, from.y) + 0.45));
+    };
+    L.throwLabel = () => (T.ph !== 'play' ? 'Start' : 'Toss');
+    // VR: squeeze anywhere for a ring, toss it
+    L.onVRGrab = (h) => {
+      if (T.ph !== 'play') newGame();
+      if (!canThrow() || T.held) return false;
+      T.held = h.side; sfx('grab', 0.3);
+      return true;
+    };
+    L.onVRRelease = (h, vel) => {
+      if (T.held !== h.side) return;
+      T.held = null;
+      if (vel.length() < 0.8) return;
+      launch(myHands[h.side].pos.clone(), vel.clone());
+    };
+    // ---------------------------------------------------------------- per frame
+    L.update = (dt, now) => {
+      const here = state.level === L.idx && state.mode !== 'menu';
+      fair.tick(dt);
+      if (!here) { reticle.visible = false; return; }
+      if (mySlot() !== T.k) standAtBooth();
+      const n = Math.max(1, Math.ceil(dt / 0.004));
+      for (const r of rings) for (let i = 0; i < n; i++) ringStep(r, dt / n);
+      for (const r of rings) {
+        if (r.st === 'none') continue;
+        if (r.st === 'on') { r.p.y = Math.max(TY + 0.12, r.p.y - dt * 0.6); }
+        r.m.position.copy(r.p);
+      }
+      // the ring in my hand (VR), and the stack still to throw in the bucket
+      if (T.held) { const r = rings[T.thrown]; if (r) { r.m.visible = true; r.m.position.copy(myHands[T.held].pos).add(new V3(0, 0, -0.1).applyQuaternion(myHands[T.held].quat)); r.m.rotation.set(Math.PI / 2, 0, 0); } }
+      const p = state.mode === 'flat' && T.ph === 'play' && canThrow() ? aimPoint(now) : null;
+      reticle.visible = !!p; if (p) reticle.position.set(p.x, NECK_Y + 0.002, p.z);
+      if (ui.status && state.mode === 'flat') {
+        ui.status.hidden = false;
+        const txt = T.ph === 'play' ? `Ring ${Math.min(RINGS, T.thrown + 1)} of ${RINGS}  ·  ${T.ringers} ringers  ·  ${T.tickets} tickets  ·  hold Space to steady` : `Ring Toss  ·  press Space to start  ·  best ${T.best} ringers`;
+        if (ui.status.textContent !== txt) ui.status.textContent = txt;
+      }
+    };
+    L.presence = () => ({ rt: [T.k, T.ringers, T.best, T.ph === 'play' ? 1 : 0] });
+    L.readPresence = (rec, pres, st) => {
+      const a = pres.rt;
+      if (!Array.isArray(a) || a.length !== 4 || !a.every((x) => Number.isInteger(x) && x >= 0 && x < 1e6) || a[0] >= N) { st.rt = null; return; }
+      if (!st.rt || st.rt[1] !== a[1] || st.rt[2] !== a[2]) state.dirtyBoard = true;
+      st.rt = a;
+    };
+    L.rowFor = (st, isMe) => { const b = isMe ? T.best : st.rt ? st.rt[2] : 0; return { best: b, text: `best ${b} ringer${b === 1 ? '' : 's'} of 10` }; };
+    L.sortRows = (a, b) => (b.best || 0) - (a.best || 0);
+    L.board = makeBoard(G, 720, 460, 2.2, 1.4, -6.3, 1.9, 2.6, Math.PI / 2);
+    L.drawBoard = (rows) => {
+      const g = L.board.g, W = 720;
+      g.fillStyle = '#1a1020'; g.fillRect(0, 0, W, 460); g.strokeStyle = '#8bd450'; g.lineWidth = 8; g.strokeRect(4, 4, W - 8, 452);
+      g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+      g.fillStyle = '#ffd23f'; g.font = `800 56px ${DISPLAY}`; g.fillText('Ringers', 36, 80);
+      g.fillStyle = '#e8d8f0'; g.font = `400 24px ${BODY}`; g.fillText('Most ringers from ten rings', 36, 118);
+      drawRows(g, rows, 176, 46, W);
+      L.board.tex.needsUpdate = true;
+    };
+    makeKiosk(L, 6.2, 4.8, -Math.PI * 0.75);
+    L.hudActions = [{ label: () => (T.ph === 'play' ? 'New game' : 'Start game'), run: () => newGame() }];
+    L.hints = [['Grip', 'a ring appears in your hand'], ['Toss', 'underhand, a gentle lob'], ['Gold bottle', '15 tickets']];
+    L.hintsFor = () => (state.mode === 'flat' ? [['Mouse', 'aim (your hand wobbles)'], ['Hold Space', 'steady it, let go to toss'], ['Gold bottle', '15 tickets']] : L.hints);
+    L.spawn = () => { dolly.position.set(0, 0, 0.35); standAtBooth(); };
+    L.onEnter = () => { aim.last = null; };
+    L.onExit = () => { if (ui.status) ui.status.hidden = true; reticle.visible = false; T.held = null; };
+    L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 3, 2.2, 4); camera.lookAt(0, 1.2, -2); };
+    L.ringInternals = { T, rings, bottles, launch, ringStep, lobTo, aimPoint, newGame, NECK_Y, CATCH };
+    MUSIC_THEMES.ringtoss = { gain: 0.7, bpm: 104, swing: 0.25, chords: ['G', 'Em', 'C', 'D'], comp: { inst: 'vibes', at: [0, 4, 8, 12], dur: 0.2 }, bass: { at: [0, 6, 8, 14] }, drums: { k: 'x.......x.......', h: '..o...o...o...o.' }, lead: { inst: 'musicbox', p: 0.3, up: 12 }, cut: 4000 };
+    return L;
+  })();
+  // ================================================================ LEVEL: WHACK-A-MOLE (carnival)
+  // Nine holes, 45 seconds, and moles that pop up faster and faster. Bop one while it's up: 1 point, a golden mole
+  // 3. Points pay out tickets for the Skee-Ball prize counter.
+  // VR: a mallet in each hand; bop them. Browser: the keys Q W E / A S D / Z X C are the holes (in the same layout),
+  // or aim at a mole and click.
+  const whack = (() => {
+    const L = newLevel(46);
+    const G = L.group;
+    const rand = mulberry32(4646);
+    L.grabless = true;
+    L.bounds = { minX: -7, maxX: 7, minZ: -3, maxZ: 6 };
+    L.env = CARNIVAL.env();
+    const fair = CARNIVAL.backdrop(G, rand, { pathW: 13, pathD: 7, pathZ: 2, wheelX: 16 });
+    const N = 3, PITCH = 2.6, TOPY = 0.86, CZ = -0.35, HOLE = 0.24, ROUND = 45;
+    const cabX = (k) => (k - (N - 1) / 2) * PITCH;
+    const KEYS = ['KeyQ', 'KeyW', 'KeyE', 'KeyA', 'KeyS', 'KeyD', 'KeyZ', 'KeyX', 'KeyC'];
+    // hole i: row 0 is the far row
+    const holePos = (k, i, out) => out.set(cabX(k) + ((i % 3) - 1) * HOLE, TOPY, CZ + (Math.floor(i / 3) - 1) * HOLE);
+
+    // ---------------------------------------------------------------- the cabinets
+    const moles = [];
+    for (let k = 0; k < N; k++) {
+      const x = cabX(k);
+      addBox(G, 0.95, TOPY, 0.95, lam(0x3a7a3a), x, TOPY / 2, CZ);
+      const topTex = canvasTexture(256, 256, (g) => { g.fillStyle = '#5aa84a'; g.fillRect(0, 0, 256, 256); for (let i = 0; i < 9; i++) { const cx = 256 / 2 + ((i % 3) - 1) * 66, cy = 256 / 2 + (Math.floor(i / 3) - 1) * 66; g.fillStyle = '#3a2414'; g.beginPath(); g.arc(cx, cy, 26, 0, Math.PI * 2); g.fill(); g.fillStyle = '#ffffff'; g.font = `700 16px ${BODY}`; g.textAlign = 'center'; g.fillText(KEYS[i].slice(3), cx + 26, cy + 30); } });
+      const top = new THREE.Mesh(new THREE.PlaneGeometry(0.95, 0.95), new THREE.MeshLambertMaterial({ map: topTex.tex })); top.rotation.x = -Math.PI / 2; top.position.set(x, TOPY + 0.002, CZ); G.add(top);
+      addBox(G, 0.95, 0.9, 0.08, lam(0xe5453a), x, TOPY + 0.45, CZ - 0.5);
+      makePlate(G, 'WHACK-A-MOLE', 0.95, 0.24, new V3(x, TOPY + 0.75, CZ - 0.45), 0, { bg: '#ffd23f', fg: '#3a2414', size: 0.6 });
+      const sc = canvasTexture(256, 96);
+      const score = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.22), new THREE.MeshBasicMaterial({ map: sc.tex })); score.position.set(x, TOPY + 0.42, CZ - 0.45); G.add(score);
+      const list = [];
+      for (let i = 0; i < 9; i++) {
+        const g = new THREE.Group(), fur = new THREE.MeshLambertMaterial({ color: 0x8a5a3a, emissive: 0x000000 });
+        g.add(at(new THREE.Mesh(cyl(0.07, 0.075, 0.16, 12), fur), 0, -0.08, 0), at(new THREE.Mesh(sph(0.07, 12, 10), fur), 0, 0.0, 0));
+        g.add(at(new THREE.Mesh(sph(0.025, 8, 6), lam(0xff9ad0)), 0, -0.01, 0.065));
+        for (const sx of [-1, 1]) g.add(at(new THREE.Mesh(sph(0.012, 6, 5), lam(0x111111)), sx * 0.025, 0.025, 0.06));
+        const p = holePos(k, i, new V3()); g.position.set(p.x, TOPY - 0.12, p.z); G.add(g);
+        list.push({ g, fur, up: 0, want: 0, until: 0, gold: false, hit: 0 });
+      }
+      moles.push({ list, sc, key: '' });
+    }
+    // ---------------------------------------------------------------- mallets (VR: one in each hand; browser: one that bops)
+    function makeMallet() {
+      const g = new THREE.Group();
+      const h = new THREE.Mesh(cyl(0.015, 0.018, 0.3, 8), lam(0xc8945a)); h.rotation.x = Math.PI / 2; h.position.z = -0.1; g.add(h);
+      const head = new THREE.Mesh(cyl(0.05, 0.05, 0.14, 12), lam(0xe5453a)); head.rotation.z = Math.PI / 2; head.position.z = -0.25; g.add(head);
+      return g;
+    }
+    const mallets = { left: makeMallet(), right: makeMallet() };
+    for (const s of SIDES) L.overlay.add(mallets[s]);
+    const flatMallet = makeMallet(); L.overlay.add(flatMallet);
+    const HEAD_OFF = new V3(0, 0, -0.25);
+
+    // ---------------------------------------------------------------- the round
+    const W = { k: 0, ph: 'idle', t0: 0, score: 0, hits: 0, best: 0, next: 0, prev: { left: new V3(), right: new V3() }, cool: { left: 0, right: 0 }, bop: null };
+    try { if (Number.isInteger(prefs.whackBest)) W.best = prefs.whackBest; } catch (e) { /* none */ }
+    L.whack = W;
+    function mySlot() { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); ids.sort(); return Math.max(0, ids.indexOf(state.myPeer)) % N; }
+    function standAtCabinet() {
+      W.k = mySlot();
+      const c = new V3(); camera.getWorldPosition(c);
+      dolly.position.x += cabX(W.k) - c.x; dolly.position.z += 0.3 - c.z;
+      if (state.mode !== 'vr') { state.yaw = 0; state.pitch = -0.95; }
+    }
+    function startRound() {
+      Object.assign(W, { ph: 'play', t0: performance.now(), score: 0, hits: 0, next: 0.8 });
+      for (const m of moles[W.k].list) { m.want = 0; m.until = 0; m.up = 0; m.hit = 0; }
+      sfx('whistle', 0.7); showToast(`${ROUND} seconds! Bop the moles while they're up`);
+      forcePresence(); state.dirtyBoard = true;
+    }
+    L.startRound = startRound;
+    function endRound() {
+      W.ph = 'over';
+      for (const m of moles[W.k].list) m.want = 0;
+      const isBest = W.score > W.best;
+      if (isBest) { W.best = W.score; prefs.whackBest = W.best; savePrefs(); }
+      const n = Math.ceil(W.score / 3);
+      showToast(`Time! ${W.score} points${isBest && W.score ? ' (your best!)' : ''}. ${n} tickets`);
+      sfx(W.score >= 30 ? 'fanfare' : 'chime', 0.8);
+      CARNIVAL.tickets(n, new V3(cabX(W.k), 1.8, CZ));
+      forcePresence(); state.dirtyBoard = true;
+    }
+    const elapsed = () => (performance.now() - W.t0) / 1000;
+    function roundStep(dt) {
+      const t = elapsed(), f = clamp(t / ROUND, 0, 1);
+      if (t >= ROUND) { endRound(); return; }
+      W.next -= dt;
+      if (W.next <= 0) {
+        W.next = 0.95 - 0.55 * f + rand() * 0.2;
+        const free = moles[W.k].list.filter((m) => m.want === 0 && m.up < 0.05);
+        if (free.length) { const m = free[Math.floor(rand() * free.length)]; m.want = 1; m.until = t + 1.4 - 0.75 * f; m.gold = rand() < 0.1; m.hit = 0; }
+      }
+      for (const m of moles[W.k].list) if (m.want && t > m.until) m.want = 0;
+    }
+    L.roundStep = roundStep;
+    // a bop at hole i: did it get a mole?
+    function bop(i) {
+      if (W.ph !== 'play') { startRound(); return false; }
+      const m = moles[W.k].list[i];
+      if (m.want && m.up > 0.4 && !m.hit) {
+        const pts = m.gold ? 3 : 1;
+        m.hit = 1; m.want = 0; W.score += pts; W.hits += 1;
+        const p = holePos(W.k, i, new V3()); p.y += 0.25;
+        spawnFloat(pts > 1 ? '+3 GOLD!' : '+1', p, pts > 1 ? '#ffd23f' : '#ffffff');
+        tone(pts > 1 ? 1200 : 700, 300, 0.08, 'square', 0.15); sfx('thump', 0.6);
+        forcePresence(); state.dirtyBoard = true;
+        return true;
+      }
+      sfx('wood', 0.3);
+      return false;
+    }
+    L.bop = bop;
+    // VR: a mallet head coming down on a mole
+    const _h = new V3(), _p = new V3();
+    function vrBops(dt, now) {
+      for (const s of SIDES) {
+        const mh = myHands[s]; if (!mh.ok) continue;
+        _h.copy(HEAD_OFF).applyQuaternion(mh.quat).add(mh.pos);
+        const vy = (_h.y - W.prev[s].y) / Math.max(dt, 1e-3); W.prev[s].copy(_h);
+        if (now < W.cool[s] || vy > -0.8 || _h.y > TOPY + 0.14 || _h.y < TOPY - 0.1) continue;
+        for (let i = 0; i < 9; i++) {
+          holePos(W.k, i, _p);
+          if (Math.hypot(_h.x - _p.x, _h.z - _p.z) < 0.1) { W.cool[s] = now + 180; if (bop(i)) haptic(vrHands[s], 0.8, 40); else haptic(vrHands[s], 0.2, 20); break; }
+        }
+      }
+    }
+    // browser: keys for the holes, or aim and click
+    function flatBop(i) { W.bop = { i, t: performance.now() }; return bop(i); }
+    L.onKey = (code) => { const i = KEYS.indexOf(code); if (i < 0 || W.ph !== 'play') return false; flatBop(i); return true; };
+    const _cp = new V3(), _q = new Q4(), _f = new V3();
+    L.deskFire = () => {
+      camera.getWorldPosition(_cp); camera.getWorldQuaternion(_q); _f.set(0, 0, -1).applyQuaternion(_q);
+      if (_f.y > -0.05) { if (W.ph !== 'play') startRound(); return; }
+      const t = (TOPY - _cp.y) / _f.y, x = _cp.x + _f.x * t, z = _cp.z + _f.z * t;
+      let best = -1, bd = 0.13;
+      for (let i = 0; i < 9; i++) { holePos(W.k, i, _p); const d = Math.hypot(_p.x - x, _p.z - z); if (d < bd) { bd = d; best = i; } }
+      if (best >= 0) flatBop(best); else if (W.ph !== 'play') startRound();
+    };
+    L.throwLabel = () => (W.ph === 'play' ? 'Bop' : 'Start');
+    // no wandering off mid-round (and the keys are the holes)
+    Object.defineProperty(L, 'walkSpeed', { get: () => (W.ph === 'play' ? 0.0001 : 3) });
+
+    // ---------------------------------------------------------------- per frame
+    function drawScore(m, score, t, name) {
+      const key = `${score}|${t}|${name}`;
+      if (key === m.key) return; m.key = key;
+      const g = m.sc.g;
+      g.fillStyle = '#1a1020'; g.fillRect(0, 0, 256, 96);
+      g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillStyle = '#ffd23f'; g.font = `900 48px ${DISPLAY}`; g.fillText(String(score), 80, 50);
+      g.fillStyle = '#ffffff'; g.font = `700 30px ${BODY}`; g.fillText(t ? `${t}s` : name ? 'done' : '', 190, 50);
+      m.sc.tex.needsUpdate = true;
+    }
+    L.update = (dt, now) => {
+      const here = state.level === L.idx && state.mode !== 'menu';
+      fair.tick(dt);
+      if (!here) { for (const s of SIDES) mallets[s].visible = false; flatMallet.visible = false; return; }
+      if (mySlot() !== W.k) standAtCabinet();
+      if (W.ph === 'play') roundStep(dt);
+      if (state.mode === 'vr') vrBops(dt, performance.now());
+      // VR: A or X starts
+      if (state.mode === 'vr') {
+        let a = false; for (const s of SIDES) { const gp = vrHands[s].source && vrHands[s].source.gamepad; if (gp && gp.buttons && gp.buttons[4] && gp.buttons[4].pressed) a = true; }
+        if (a && !W.aPrev && W.ph !== 'play') startRound();
+        W.aPrev = a;
+      }
+      // moles rise and drop; a bopped one squashes
+      moles.forEach((c, k) => {
+        c.list.forEach((m, i) => {
+          if (k !== W.k) { m.up = 0; }
+          m.up += ((m.want ? 1 : 0) - m.up) * Math.min(1, dt * (m.want ? 14 : 10));
+          const p = holePos(k, i, _p);
+          m.g.position.set(p.x, TOPY - 0.12 + m.up * 0.17, p.z);
+          m.g.scale.set(1, m.hit && m.up > 0.05 ? 0.5 : 1, 1);
+          m.fur.color.setHex(m.gold ? 0xffc83a : 0x8a5a3a); m.fur.emissive.setHex(m.gold ? 0x4a3000 : 0x000000);
+          if (!m.want && m.up < 0.05) m.hit = 0;
+        });
+        if (k === W.k) drawScore(c, W.score, W.ph === 'play' ? Math.ceil(ROUND - elapsed()) : 0, W.ph === 'over' ? 'x' : '');
+      });
+      // mallets
+      for (const s of SIDES) { const m = mallets[s], mh = myHands[s]; m.visible = state.mode === 'vr' && mh.ok; if (m.visible) { m.position.copy(mh.pos); m.quaternion.copy(mh.quat); } }
+      flatMallet.visible = state.mode === 'flat';
+      if (flatMallet.visible) {
+        const b = W.bop && now - W.bop.t < 220 ? W.bop : null;
+        if (b) { const p = holePos(W.k, b.i, _p), u = (now - b.t) / 220, lift = Math.sin(u * Math.PI); flatMallet.position.set(p.x + 0.25, TOPY + 0.12 + (1 - lift) * 0.15, p.z); flatMallet.rotation.set(0, Math.PI / 2, -0.4 + lift * 0.9, 'YXZ'); }
+        else { flatMallet.position.set(cabX(W.k) + 0.55, TOPY + 0.3, CZ + 0.25); flatMallet.rotation.set(0.6, Math.PI / 2, 0, 'YXZ'); }
+      }
+      if (ui.status && state.mode === 'flat') {
+        ui.status.hidden = false;
+        const txt = W.ph === 'play' ? `${Math.ceil(ROUND - elapsed())} s  ·  ${W.score} points  ·  keys Q W E / A S D / Z X C, or click a mole` : `Whack-a-Mole  ·  press Space or any hole key to start  ·  best ${W.best}`;
+        if (ui.status.textContent !== txt) ui.status.textContent = txt;
+      }
+    };
+    L.presence = () => ({ wm: [W.k, W.score, W.best, W.ph === 'play' ? 1 : 0] });
+    L.readPresence = (rec, pres, st) => {
+      const a = pres.wm;
+      if (!Array.isArray(a) || a.length !== 4 || !a.every((x) => Number.isInteger(x) && x >= 0 && x < 1e6) || a[0] >= N) { st.wm = null; return; }
+      if (!st.wm || st.wm[1] !== a[1] || st.wm[2] !== a[2]) state.dirtyBoard = true;
+      st.wm = a;
+    };
+    L.rowFor = (st, isMe) => { const b = isMe ? W.best : st.wm ? st.wm[2] : 0, now = isMe ? (W.ph === 'play' ? W.score : 0) : st.wm && st.wm[3] ? st.wm[1] : 0; return { best: b, text: `${now ? `${now} now · ` : ''}best ${b}` }; };
+    L.sortRows = (a, b) => (b.best || 0) - (a.best || 0);
+    L.board = makeBoard(G, 720, 460, 2.2, 1.4, -5.6, 1.9, 1.6, Math.PI / 2);
+    L.drawBoard = (rows) => {
+      const g = L.board.g, Wd = 720;
+      g.fillStyle = '#1a1020'; g.fillRect(0, 0, Wd, 460); g.strokeStyle = '#e5453a'; g.lineWidth = 8; g.strokeRect(4, 4, Wd - 8, 452);
+      g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+      g.fillStyle = '#ffd23f'; g.font = `800 56px ${DISPLAY}`; g.fillText('Top whackers', 36, 80);
+      g.fillStyle = '#e8d8f0'; g.font = `400 24px ${BODY}`; g.fillText('Best score in 45 seconds', 36, 118);
+      drawRows(g, rows, 176, 46, Wd);
+      L.board.tex.needsUpdate = true;
+    };
+    makeKiosk(L, 5.8, 4.4, -Math.PI * 0.75);
+    L.hudActions = [{ label: () => (W.ph === 'play' ? 'Restart' : 'Start round'), run: () => startRound() }];
+    L.hints = [['A / X', 'start a round'], ['Mallets', 'one in each hand: bop the moles'], ['Golden moles', '3 points']];
+    L.hintsFor = () => (state.mode === 'flat' ? [['Q W E / A S D / Z X C', 'the nine holes'], ['Or click', 'a mole'], ['Golden moles', '3 points']] : L.hints);
+    L.spawn = () => { dolly.position.set(0, 0, 0.3); standAtCabinet(); };
+    L.onEnter = () => { W.ph = 'idle'; for (const c of moles) c.key = ''; };
+    L.onExit = () => { if (ui.status) ui.status.hidden = true; W.ph = 'idle'; for (const c of moles) for (const m of c.list) m.want = 0; };
+    L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 2, 2.0, 2.5); camera.lookAt(0, 0.9, -0.4); };
+    L.whackInternals = { W, moles, bop, roundStep, startRound, endRound, holePos, KEYS };
+    MUSIC_THEMES.whack = { gain: 0.7, bpm: 138, swing: 0.1, chords: ['C', 'F', 'G', 'C'], comp: { inst: 'synth', at: [0, 2, 4, 6, 8, 10, 12, 14], dur: 0.08 }, bass: { at: [0, 4, 8, 12] }, drums: { k: 'x...x...x...x...', s: '....x.......x...', h: 'o.o.o.o.o.o.o.o.' }, cut: 5000 };
     return L;
   })();
   // ---------------------------------------------------------------- VR controllers

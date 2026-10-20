@@ -137,6 +137,14 @@
       forcePresence(); state.dirtyBoard = true;
     }
     L.skeeSave = SAVE;
+    // every carnival game pays out in these same tickets, spent at this prize counter
+    L.addTickets = (n, at) => {
+      if (!(n > 0)) return;
+      SAVE.tickets += n; save(); ticketKey = '';
+      if (at) spawnFloat(`+${n} \u{1F39F}\uFE0F`, at, '#ffd23f');
+      for (let i = 0; i < Math.min(n, 20); i++) setTimeout(() => tone(1500 + (i % 3) * 120, 0, 0.03, 'square', 0.04), i * 45);
+      forcePresence();
+    };
 
     // ---------------------------------------------------------------- my game
     const me = { k: 0, score: 0, left: BALLS, best: 0, phase: 'idle', last: 0 };

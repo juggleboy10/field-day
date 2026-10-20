@@ -18,8 +18,8 @@ ROOT = Path(__file__).resolve().parent.parent
 PAGE = ROOT / "index.html"
 THREE_JS = os.environ.get("THREE_JS")
 SECONDS_PER_PLACE = float(os.environ.get("SECONDS", "3"))
-EXPECTED_PLACES = 43
-EXPECTED_CATEGORIES = 7
+EXPECTED_PLACES = 47
+EXPECTED_CATEGORIES = 8
 
 # messages from requests this test blocks on purpose (fonts, the peer-to-peer library)
 IGNORED = ("Failed to load resource", "net::ERR_FAILED", "ERR_BLOCKED")
