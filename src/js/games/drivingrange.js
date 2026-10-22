@@ -1,8 +1,8 @@
   // ================================================================ MINI GOLF: THE DRIVING RANGE
   // A deck off the side of the pier with a tee mat, hitting out to sea: floating greens at 50 to 250 yards, a yardage
   // buoy every 50. A bucket is ten balls; land on a green for points (more for the far ones, double near the pin).
-  // VR: the driver's in your putter hand; hold the trigger and swing through the ball (how hard and which way you swing
-  // decides the shot). Browser: hold Space and let go; the best shots come from letting go in the green part of the bar
+  // VR: the driver's in your putter hand; just swing through the ball (how hard and which way you swing decides the
+  // shot). Browser: hold Space and let go; the best shots come from letting go in the green part of the bar
   // (too long and you hook it). The button by the pier's east rail takes you there; the one on the deck takes you back.
   const drivingrange = ((L) => {
     const G = L.group;
@@ -79,7 +79,7 @@
       else { dolly.position.x += TEE.x - 2.4 - c.x; dolly.position.z += TEE.z - c.z; state.yaw = -Math.PI / 2; state.pitch = -0.12; }
       if (R.st !== 'tee' && R.st !== 'fly') teeUp();
       sbKey = '';
-      showToast(state.mode === 'vr' ? 'Driving range: hold the trigger and swing through the ball' : 'Driving range: hold Space, let go in the green');
+      showToast(state.mode === 'vr' ? 'Driving range: swing through the ball' : 'Driving range: hold Space, let go in the green');
     }
     L.goRange = goRange;
     // hit it: speed in m/s, launch angle (radians), and direction (radians off the target line, + is left)
@@ -136,8 +136,8 @@
       club.position.copy(mh.pos); club.quaternion.copy(mh.quat);
       headNow.set(0.03, 0, -1.06).applyQuaternion(mh.quat).add(mh.pos);
       if (!headInit) { headPrev.copy(headNow); headInit = true; }
-      const gp = vrHands[side].source && vrHands[side].source.gamepad, armed = !!(gp && gp.buttons && gp.buttons[0] && gp.buttons[0].pressed);
-      club.traverse((o) => { if (o.material) { o.material.transparent = !armed; o.material.opacity = armed ? 1 : 0.35; } });
+      const armed = true;   // (no button to hold: just swing)
+      club.traverse((o) => { if (o.material) { o.material.transparent = false; o.material.opacity = 1; } });
       if (armed && R.st === 'tee' && dt > 0) {
         _hv.subVectors(headNow, headPrev).divideScalar(dt);
         for (let k = 1; k <= 6; k++) {
@@ -229,7 +229,7 @@
       return [clamp(p.x, B.minX + m, B.maxX - m) - p.x, clamp(p.z, B.minZ + m, B.maxZ - m) - p.z];
     };
     const baseHints = L.hintsFor;
-    L.hintsFor = () => (L.onRange() ? (state.mode === 'flat' ? [['Space', 'hold, let go in the green to drive'], ['Drag', 'aim left or right']] : [['Trigger', 'hold it and swing through the ball'], ['Targets', 'land on a green for points']]) : baseHints ? baseHints() : L.hints);
+    L.hintsFor = () => (L.onRange() ? (state.mode === 'flat' ? [['Space', 'hold, let go in the green to drive'], ['Drag', 'aim left or right']] : [['Swing', 'through the ball, no button needed'], ['Targets', 'land on a green for points']]) : baseHints ? baseHints() : L.hints);
     L.hudActions.push({ label: () => (L.onRange() ? 'New bucket' : 'Driving range'), run: () => (L.onRange() ? newBucket() : goRange()) });
     L.rangeInternals = { R, launch, flyStep, land, teeUp, newBucket, goRange, greens, TEE, TARGETS, YD };
     return R;

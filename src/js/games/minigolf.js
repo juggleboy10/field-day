@@ -1047,7 +1047,7 @@
       for (const f of volcanos) {
         const er = erupting(now), p = ((now / 1000) % 7 - 6) / 0.8;
         f.lava.material.color.setHex(er ? 0xffd23f : 0xff6a2a);
-        if (er && !f.last) { tone(70, 45, 0.9, 'sawtooth', 0.15); if (HOLES[me.hole] === f.H) showToast('The volcano rumbles!'); }
+        if (er && !f.last && Math.hypot(myHead.pos.x - f.H.x, myHead.pos.z - f.H.z) < 8) { tone(70, 45, 0.9, 'sawtooth', 0.15); if (HOLES[me.hole] === f.H) showToast('The volcano rumbles!'); }
         f.last = er ? 1 : 0;
         for (const q of f.puffs) {
           q.m.material.opacity = er ? 0.7 * (1 - p) : 0;
@@ -1277,7 +1277,9 @@
           },
           rest: () => { if (BEA.strokes >= MAXS) { BEA.phase = 'holed'; BEA.scores[BEA.hole] = MAXS; state.dirtyBoard = true; } else { BEA.phase = 'wait'; BEA.t0 = now; } forcePresence(); },
         };
-        for (let k = 0; k < steps && BEA.phase === 'moving'; k++) ballStep(h, now, beaBall, H, cb);
+        // (Bea's ball only makes its noises when you're near it: a beam-up or a moo from across the pier is just noise)
+        simQuiet = Math.hypot(beaBall.x - myHead.pos.x, beaBall.z - myHead.pos.z) > 6;
+        try { for (let k = 0; k < steps && BEA.phase === 'moving'; k++) ballStep(h, now, beaBall, H, cb); } finally { simQuiet = false; }
       }
     }
 

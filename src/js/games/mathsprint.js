@@ -75,9 +75,11 @@
     const timeLeft = () => Math.max(0, ROUND - (performance.now() - S.t0) / 1000);
     function showMenu() { S.ph = 'menu'; MODES.forEach((m, i) => deck.set(i, m.name, 'mode', { sub: m.sub, big: 48 })); }
     function startRound(mode) {
-      Object.assign(S, { ph: 'play', mode, t0: performance.now(), score: 0, wrong: 0, lock: 0, streak: 0 });
-      sfx('whistle', 0.6);
+      // three seconds to get ready (the first problem's already up); the clock starts after
+      Object.assign(S, { ph: 'ready', readyT: 3, mode, t0: performance.now(), score: 0, wrong: 0, lock: 0, streak: 0 });
       next();
+      for (let i = 0; i < 4; i++) deck.show(i, false);
+      tone(660, 0, 0.12, 'sine', 0.15);
       forcePresence(); state.dirtyBoard = true;
     }
     L.startRound = startRound;
@@ -124,8 +126,8 @@
     // ---------------------------------------------------------------- the chalkboard
     let boardKey = '';
     function drawBoard() {
-      const t = S.ph === 'play' ? Math.ceil(timeLeft()) : 0;
-      const key = `${S.ph}|${S.p ? S.p.q : ''}|${t}|${S.score}|${S.lock > 0}|${S.summary ? S.summary.score : ''}`;
+      const t = S.ph === 'play' ? Math.ceil(timeLeft()) : S.ph === 'ready' ? Math.ceil(S.readyT) : 0;
+      const key = `${S.ph}|${t}|${S.p ? S.p.q : ''}|${t}|${S.score}|${S.lock > 0}|${S.summary ? S.summary.score : ''}`;
       if (key === boardKey) return; boardKey = key;
       const g = board.g, W = 1024, H = 470;
       g.fillStyle = '#2a4a3a'; g.fillRect(0, 0, W, H);
@@ -142,7 +144,7 @@
       }
       g.textAlign = 'left'; g.fillStyle = '#d8e8d8'; g.font = `700 40px ${BODY}`; g.fillText(MODES.find((m) => m.id === S.mode).name, 40, 60);
       g.textAlign = 'right'; g.fillStyle = t <= 10 ? '#ff9a8a' : '#f4f2e8'; g.font = `900 72px ${DISPLAY}`; g.fillText(`${t}`, W - 40, 80);
-      g.fillStyle = '#ffe08a'; g.font = `800 48px ${DISPLAY}`; g.fillText(`${S.score} right`, W - 40, 140);
+      g.fillStyle = '#ffe08a'; g.font = `800 48px ${DISPLAY}`; g.fillText(S.ph === 'ready' ? 'Get ready!' : `${S.score} right`, W - 40, 140);
       g.textAlign = 'center'; g.fillStyle = S.lock > 0 ? '#ff9a8a' : '#ffffff';
       const q = `${S.p.q}${/in |of /.test(S.p.q) ? '' : ' = ?'}`;
       g.font = `900 ${q.length > 14 ? 120 : 170}px ${DISPLAY}`; g.fillText(q, W / 2, 330, W - 80);
@@ -159,7 +161,11 @@
       if (STUDY.slotOf(L) !== S.slot) stand();
       const ox = STUDY.SLOT_X[S.slot || 0] * 0.6;
       AT.forEach(([x, y], i) => deck.place(i, ox + x, y, SPOT_Z - 0.5, 0, -0.25));
-      if (S.ph === 'play') {
+      if (S.ph === 'ready') {
+        const was = Math.ceil(S.readyT); S.readyT -= dt; boardKey = Math.ceil(S.readyT) !== was ? '' : boardKey;
+        if (Math.ceil(S.readyT) !== was && S.readyT > 0) tone(660, 0, 0.12, 'sine', 0.15);
+        if (S.readyT <= 0) { S.ph = 'play'; S.t0 = performance.now(); for (let i = 0; i < 4; i++) deck.show(i, true); sfx('whistle', 0.6); boardKey = ''; }
+      } else if (S.ph === 'play') {
         if (timeLeft() <= 0) endRound();
         else if (S.lock > 0) { S.lock -= dt; if (S.lock <= 0) { S.lock = 0; next(); } }
       }
@@ -167,7 +173,7 @@
       drawBoard();
       if (ui.status && state.mode === 'flat') {
         ui.status.hidden = false;
-        const txt = S.ph === 'menu' ? 'Math Sprint  ·  aim at a mode and click (or press 1-4)' : `${Math.ceil(timeLeft())} s  ·  ${S.score} right  ·  click the answer or press 1-4`;
+        const txt = S.ph === 'menu' ? 'Math Sprint  ·  aim at a mode and click (or press 1-4)' : S.ph === 'ready' ? `Get ready: ${Math.ceil(S.readyT)}` : `${Math.ceil(timeLeft())} s  ·  ${S.score} right  ·  click the answer or press 1-4`;
         if (ui.status.textContent !== txt) ui.status.textContent = txt;
       }
     };

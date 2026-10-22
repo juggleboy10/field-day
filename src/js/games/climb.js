@@ -79,7 +79,7 @@
     for (let m = 4; m <= 24; m += 4) makePlate(G, `${m} m`, 0.6, 0.24, new V3(-W - 0.2, m, faceAtY(m - 0.1) + 0.02), 0, { bg: '#ffffff', fg: '#3a2a1a', size: 0.7 });
 
     // ---------------------------------------------------------------- your climb
-    const P = { hand: { left: { hold: null, anchor: new V3(), stam: 1, wait: 0 }, right: { hold: null, anchor: new V3(), stam: 1, wait: 0 } }, vy: 0, ph: 'ground', t0: 0, time: 0, best: 0, top: 0, flat: { left: null, right: null, next: 'right', body: new V3() } };
+    const P = { mantle: null, hand: { left: { hold: null, anchor: new V3(), stam: 1, wait: 0 }, right: { hold: null, anchor: new V3(), stam: 1, wait: 0 } }, vy: 0, ph: 'ground', t0: 0, time: 0, best: 0, top: 0, flat: { left: null, right: null, next: 'right', body: new V3() } };
     try { if (Number.isFinite(prefs.climbBest)) P.best = prefs.climbBest; } catch (e) { /* none */ }
     L.climbP = P;
     const _h = new V3(), _d = new V3(), _a = new V3(), _q = new Q4();
@@ -93,7 +93,8 @@
       RECORDS.add(L, 'top', P.time);
       for (let i = 0; i < 4; i++) tone(1320, 1320, 1.2, 'sine', 0.2, i * 0.35);
       sfx('fanfare', 0.8);
-      showToast(`DING! The top in ${fmt(P.time)}${isBest ? ' (your best!)' : ''}`);
+      showToast(`DING! The top in ${fmt(P.time)}${isBest ? ' (your best!)' : ''}. Press Climb again to go back down`);
+      state.hudDirty = true;
       bell.userData.ring = 1;
       forcePresence(); state.dirtyBoard = true;
     }
@@ -104,18 +105,27 @@
       dolly.position.set(0, 0, state.mode === 'vr' ? 0.6 : 1.3); P.vy = 0; P.ph = 'ground';
       if (state.mode !== 'vr') { state.yaw = 0; state.pitch = 0.35; }
       for (const h of HOLDS) if (h.gone) { h.gone = false; h.m.visible = true; h.held = 0; }
-      forcePresence();
+      P.mantle = null;
+      forcePresence(); state.hudDirty = true;
     }
     L.backToStart = backToStart;
     // climb onto the tier above a lip hold: you end up standing on it
     function mantle(k) {
       const lipY = BASE[k + 1], z = (FACE[k] + (FACE[k + 1] !== undefined ? FACE[k + 1] : TOP_Z)) / 2;
       camera.getWorldPosition(_h);
-      dolly.position.x += 0; dolly.position.z += z - _h.z; dolly.position.y = lipY;
-      for (const s of SIDES) { P.hand[s].hold = null; P.hand[s].wait = 0.4; P.flat[s] = null; }
-      P.vy = 0; sfx('whoosh', 0.5);
-      showToast(k < 2 ? `Tier ${k + 2}: ${BASE[k + 1]} m up` : 'The top! Ring the bell');
-      if (state.mode === 'vr') for (const s of SIDES) haptic(vrHands[s], 0.5, 60);
+      for (const s of SIDES) { P.hand[s].hold = null; P.hand[s].wait = 0.9; P.flat[s] = null; }
+      // a smooth haul up over the lip (no jump cut): up first, then forward onto the ledge
+      P.mantle = { t: 0, T: 0.75, fy: dolly.position.y, fz: dolly.position.z, ty: lipY, tz: dolly.position.z + (z - _h.z), k };
+      P.vy = 0; sfx('whoosh', 0.4);
+      if (state.mode === 'vr') for (const s of SIDES) haptic(vrHands[s], 0.4, 80);
+    }
+    function mantleStep(dt) {
+      const m = P.mantle; m.t += dt;
+      const u = Math.min(1, m.t / m.T), up = Math.min(1, u / 0.6), fw = clamp((u - 0.35) / 0.65, 0, 1);
+      const e = (x) => x * x * (3 - 2 * x);
+      dolly.position.y = m.fy + (m.ty - m.fy) * e(up);
+      dolly.position.z = m.fz + (m.tz - m.fz) * e(fw);
+      if (u >= 1) { P.mantle = null; showToast(m.k < 2 ? `Tier ${m.k + 2}: ${BASE[m.k + 1]} m up` : 'The top! Ring the bell'); }
     }
     // the hold nearest a point (within reach)
     function holdNear(p, reach) {
@@ -231,7 +241,8 @@
       if (!here) { hiM.visible = false; for (const s of SIDES) meters[s].visible = false; return; }
       camera.getWorldDirection(camF);
       let hanging = false;
-      if (state.mode === 'vr') hanging = vrClimb(dt);
+      if (P.mantle) { mantleStep(dt); hanging = true; }
+      else if (state.mode === 'vr') hanging = vrClimb(dt);
       else if (P.flat.left || P.flat.right) {
         // crumbly holds go in the browser too
         for (const s of SIDES) { const h = P.flat[s]; if (!h) continue; h.held += dt; if (h.crumbly && h.held > 1.6) { crumble(h); P.flat[s] = null; } }
@@ -303,7 +314,9 @@
     };
     makeKiosk(L, 3.4, 3.8, -Math.PI * 0.8);
     RECORDS.def(L, [{ k: 'top', label: 'Fastest to the bell', low: true, fmt: 'time' }]);
-    L.hudActions = [{ label: () => 'Back to the bottom', run: () => backToStart() }];
+    L.hudActions = [{ label: () => (P.ph === 'done' ? 'Climb again' : 'Back to the bottom'), run: () => backToStart() }];
+    // up top: a button to go again (it takes you back down to the beach)
+    makeButton(L, new V3(1.4, BASE[3] + 1.0, TOP_Z + 0.2), 0x3ac84a, 'Climb again', () => backToStart(), { faceYaw: 0 });
     L.hints = [['Grip', 'grab a hold and pull'], ['Hand to hip', 'chalk up when your grip tires'], ['Let go', 'the belay lowers you']];
     L.hintsFor = () => (state.mode === 'flat' ? [['Click a hold', 'reach for it (green ring = in reach)'], ['E', 'ring the bell at the top'], ['R', 'back to the bottom']] : L.hints);
     L.spawn = () => { backToStart(); };

@@ -91,6 +91,9 @@
     L.arch = S;
     function newRound() { Object.assign(S, { ph: 'play', left: ROUND, score: 0, last: null, bulls: 0 }); for (const a of ARROWS) { a.st = 'off'; a.m.visible = false; } sbKey = ''; forcePresence(); state.dirtyBoard = true; }
     L.newRound = newRound;
+    // lefties hold the bow in the right hand and draw with the left
+    function swapHands() { S.bowHand = S.bowHand === 'left' ? 'right' : 'left'; prefs.bowHand = S.bowHand; savePrefs(); S.drawing = false; showToast(S.bowHand === 'left' ? 'Right-handed: bow in your left hand' : 'Left-handed: bow in your right hand'); state.hudDirty = true; }
+    L.swapHands = swapHands;
     const _up = new V3(0, 0, -1), _q = new Q4();
     function loose(from, dir, speed) {
       if (S.ph !== 'play') newRound();
@@ -196,8 +199,9 @@
     function flatBow(now) {
       const c = state.charge !== null ? Math.min(1, (now - state.charge) / 1000) : 0;
       camera.getWorldPosition(_bp); camera.getWorldQuaternion(_q);
-      bow.visible = true; bow.scale.setScalar(0.5); nocked.scale.setScalar(0.5); bow.position.copy(_bp).add(_sp.set(-0.2, -0.13, -0.7).applyQuaternion(_q)); bow.quaternion.copy(_q);
-      bow.rotateZ(0.3);
+      bow.visible = true; bow.scale.setScalar(0.5); nocked.scale.setScalar(0.5); const lr = S.bowHand === 'left' ? -1 : 1;
+      bow.position.copy(_bp).add(_sp.set(0.2 * lr, -0.13, -0.7).applyQuaternion(_q)); bow.quaternion.copy(_q);
+      bow.rotateZ(-0.3 * lr);
       const str = bow.userData.string.geometry.attributes.position;
       str.setXYZ(1, 0, 0, 0.14 + c * 0.32); str.needsUpdate = true;
       nocked.visible = c > 0.02; if (nocked.visible) { nocked.position.copy(bow.position).add(_sp.set(0, 0, (0.14 + c * 0.32 - 0.36) * 0.5).applyQuaternion(bow.quaternion)); nocked.quaternion.copy(bow.quaternion); }
@@ -269,10 +273,11 @@
       L.board.tex.needsUpdate = true;
     };
     makeKiosk(L, -3.0, 3.2, Math.PI * 0.8);
+    makeButton(L, new V3(3.2, 1.0, 1.0), 0x2e8a4c, 'Lefty / righty', () => swapHands(), { faceYaw: -0.4 });
     RECORDS.def(L, [{ k: 'round', label: 'Best round (12 arrows)' }, { k: 'bulls', label: 'Most bullseyes in a round' }, { k: 'long', label: 'Longest hit', fmt: 'm' }]);
     L.hudActions = [
       { label: () => (S.ph === 'play' ? 'New round' : 'Start a round'), run: () => newRound() },
-      { label: () => `Bow hand: ${S.bowHand}`, show: () => state.mode === 'vr', run: () => { S.bowHand = S.bowHand === 'left' ? 'right' : 'left'; prefs.bowHand = S.bowHand; savePrefs(); } },
+      { label: () => (S.bowHand === 'left' ? 'Right-handed ▸' : 'Left-handed ▸'), run: () => swapHands() },
     ];
     L.hints = [['Bow hand', 'points where you shoot'], ['Other hand', 'grip at the string, draw back, let go'], ['Far targets', 'aim a little high']];
     L.hintsFor = () => (state.mode === 'flat' ? [['Space', 'hold to draw, let go to shoot'], ['Drag', 'aim'], ['Far targets', 'aim a little high']] : L.hints);

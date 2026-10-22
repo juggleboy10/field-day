@@ -17,6 +17,10 @@
       sun: [0xfff4c8, 0.6], sunDir: new V3(0.3, 0.9, 0.2), ambient: [0x4a6a3a, 0.4], sprite: null,
     };
     const ARENA = 14, ROUND_T = 150, TAG_R = 0.85;
+    // in VR you're gorilla-sized: your eyes are about a metre up, so the ground is in easy reach of your hands
+    // (your real floor sits below the jungle floor by SHIFT). A hand is a ball of radius HR.
+    const SHIFT = 0.75, HR = 0.06, ARM = 1.3, VMAX = 8.5;
+    const shift = () => (state.mode === 'vr' ? SHIFT : 0);
     L.bounds = { minX: -ARENA, maxX: ARENA, minZ: -ARENA, maxZ: ARENA };
     // ---------------------------------------------------------------- the jungle: everything you can touch is a box
     const BOXES = [];
@@ -68,8 +72,8 @@
     }
     // is a hand touching a surface? returns where it touches and the surface's normal
     function contact(p) {
-      if (p.y < 0.03) return { at: new V3(p.x, 0.03, p.z), n: new V3(0, 1, 0) };
-      const r = 0.035;
+      if (p.y < HR) return { at: new V3(p.x, HR, p.z), n: new V3(0, 1, 0) };
+      const r = HR;
       for (const b of BOXES) {
         if (p.x < b.min.x - r || p.x > b.max.x + r || p.y < b.min.y - r || p.y > b.max.y + r || p.z < b.min.z - r || p.z > b.max.z + r) continue;
         const d = [[p.x - (b.min.x - r), -1, 0, 0], [b.max.x + r - p.x, 1, 0, 0], [p.y - (b.min.y - r), 0, -1, 0], [b.max.y + r - p.y, 0, 1, 0], [p.z - (b.min.z - r), 0, 0, -1], [b.max.z + r - p.z, 0, 0, 1]];
@@ -219,8 +223,8 @@
         dolly.position.add(_c);
         // how fast your arms are moving you: carried on when you let go (a little extra, gorillas are bouncy)
         M.hist.push(_c.clone().divideScalar(Math.max(dt, 1e-3))); while (M.hist.length > 4) M.hist.shift();
-        const v = M.hist.reduce((a, x) => a.add(x), new V3()).divideScalar(M.hist.length).multiplyScalar(1.15);
-        if (v.length() > 7.5) v.setLength(7.5);
+        const v = M.hist.reduce((a, x) => a.add(x), new V3()).divideScalar(M.hist.length).multiplyScalar(ARM);
+        if (v.length() > VMAX) v.setLength(VMAX);
         M.vel.copy(v);
       } else {
         M.hist.length = 0;
@@ -232,7 +236,7 @@
     // feet on whatever's below, head out of the trees, inside the arena
     function settle(dt, holding) {
       camera.getWorldPosition(_a);
-      const fl = support(_a.x, _a.z, dolly.position.y);
+      const fl = support(_a.x, _a.z, dolly.position.y + shift()) - shift();
       if (dolly.position.y <= fl) { dolly.position.y = fl; if (M.vel.y < 0) M.vel.y = 0; if (!holding) M.vel.x *= Math.exp(-dt * 7), M.vel.z *= Math.exp(-dt * 7); M.ground = true; } else M.ground = false;
       camera.getWorldPosition(_a);
       const push = pushOut(_a, 0.22); push.y = Math.min(0, push.y);
@@ -385,7 +389,7 @@
     L.hudActions = [{ label: () => (S.ph === 'play' ? 'New round' : 'Start a round'), run: () => requestStart() }];
     L.hints = [['Arms', 'push off the ground and trees to move'], ['Push down + back', 'to leap forward'], ['A / X', 'start a round']];
     L.hintsFor = () => (state.mode === 'flat' ? [['WASD', 'run'], ['Space', 'leap'], ['Lava?', 'run into people to tag them']] : L.hints);
-    L.spawn = () => { const a = rand() * Math.PI * 2; dolly.position.set(Math.cos(a) * 6, 0, Math.sin(a) * 6); M.vel.set(0, 0, 0); if (state.mode !== 'vr') { state.yaw = Math.atan2(Math.cos(a), Math.sin(a)) + Math.PI / 2; state.pitch = 0; } };
+    L.spawn = () => { const a = rand() * Math.PI * 2; dolly.position.set(Math.cos(a) * 6, -shift(), Math.sin(a) * 6); M.vel.set(0, 0, 0); if (state.mode !== 'vr') { state.yaw = Math.atan2(Math.cos(a), Math.sin(a)) + Math.PI / 2; state.pitch = 0; } };
     L.onEnter = () => { M.vel.set(0, 0, 0); clkKey = ''; };
     L.onExit = () => { if (ui.status) ui.status.hidden = true; dolly.position.y = 0; for (const s of SIDES) { M.hand[s].on = false; myLava[s].visible = false; } if (isHost() && S.ph === 'play') S.ph = 'lobby'; };
     L.attract = (now) => { const a = reduceMotion ? 0 : now * 0.00006; camera.position.set(Math.sin(a) * 12, 5, Math.cos(a) * 12); camera.lookAt(0, 2, 0); };

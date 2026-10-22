@@ -419,6 +419,7 @@
     const ct = canvasTexture(cw, ch);
     const draw = () => {
       const g = ct.g;
+      g.clearRect(0, 0, cw, ch);   // (a see-through plate would otherwise pile each new label on the old ones)
       g.fillStyle = o.bg || '#16142e'; g.fillRect(0, 0, cw, ch);
       g.fillStyle = o.fg || '#f4f2ff';
       g.font = `800 ${Math.round(ch * (o.size || 0.62))}px ${DISPLAY}`;
@@ -544,7 +545,7 @@
     { id: 'duckshoot', name: 'Duck Shooting Gallery', short: 'Duck Shoot', glyph: '\u{1F986}', blurb: 'Pop the tin ducks with a cork gun in 40 seconds: golden ducks are worth 5, but leave the bunnies alone.' },
     { id: 'ringtoss', name: 'Ring Toss', short: 'Ring Toss', glyph: '\u{1F37E}', blurb: 'Ten rings, a table of bottles: drop a ring over a neck for tickets. Red bottles pay double, the gold one big.' },
     { id: 'whack', name: 'Whack-a-Mole', short: 'Whack', glyph: '\u{1F528}', blurb: 'Nine holes, 45 seconds, moles popping up faster and faster. Golden moles are worth 3. A mallet in each hand.' },
-    { id: 'lightspeed', name: 'Speed of Light', short: 'Lightspeed', glyph: '\u{1F4A1}', blurb: 'Thirty buttons on a wall: hit each one the moment it lights up. How many in 30 seconds?' },
+    { id: 'lightspeed', name: 'Speed of Light', short: 'Lightspeed', glyph: '\u{1F4A1}', blurb: 'Twenty buttons on a wall, three lit at a time: hit them before they go out and plan your route. How many in 30 seconds?' },
     { id: 'quizblaster', name: 'Quiz Blaster', short: 'Quiz Blaster', glyph: '\u{1F52B}', blurb: 'CompTIA A+ practice: shoot the right answer card. Core 1, Core 2, the full exam mix or your weak spots, with a report card.' },
     { id: 'portsorter', name: 'Port & Cable Sorter', short: 'Port Sorter', glyph: '\u{1F50C}', blurb: 'Crates of ports, protocols, cables and Wi-Fi standards roll down a belt: toss each into the right bin. Sixty seconds.' },
     { id: 'pcbuild', name: 'PC Build Bench', short: 'PC Build', glyph: '\u{1F5A5}\uFE0F', blurb: 'Build a PC on a test bench: wrist strap, CPU, paste, cooler, the right RAM, SSD, graphics card, power. Then see if it POSTs.' },

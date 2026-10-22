@@ -123,14 +123,16 @@ def main():
             got = 0
             for _ in range(5):
                 page.evaluate("""() => { const fd = window.__fd, L = fd.LEVELS[47], I = L.lightInternals, S = I.S;
-                  const p = I.panels[S.k].btns[S.lit].p, h = new window.THREE.Vector3(); fd.camera.getWorldPosition(h);
+                  const p = I.panels[S.k].btns[S.lits[0].i].p, h = new window.THREE.Vector3(); fd.camera.getWorldPosition(h);
                   const d = new window.THREE.Vector3().subVectors(p, h); fd.state.yaw = Math.atan2(-d.x, -d.z); fd.state.pitch = Math.atan2(d.y, Math.hypot(d.x, d.z)); }""")
                 page.wait_for_timeout(250)
                 page.evaluate("() => window.__fd.LEVELS[47].deskFire()")
             ls = page.evaluate("""() => { const L = window.__fd.LEVELS[47], I = L.lightInternals, S = I.S, sk = window.__fd.LEVELS[31].skeeSave; const out = { hits: S.hits };
-              const t0 = sk.tickets; I.endRound(); out.tickets = sk.tickets - t0; out.wrong = I.press(S.lit === 0 ? 1 : 0); return out; }""")
+              const t0 = sk.tickets; I.endRound(); out.tickets = sk.tickets - t0; out.lits = S.lits.length; return out; }""")
             print("Speed of Light:", ls)
-            check(ls["hits"] >= 4, f"light: aimed clicks didn't hit {ls}")
+            check(ls["hits"] >= 4 and ls["lits"] == 0, f"light: aimed clicks didn't hit {ls}")
+            nl = page.evaluate("() => { const I = window.__fd.LEVELS[47].lightInternals; I.startRound(); return [I.S.lits.length, new Set(I.S.lits.map((l) => l.i)).size]; }")
+            check(nl == [3, 3], f"light: three lit at once {nl}")
             check(ls["tickets"] == -(-ls["hits"] // 3), f"light: tickets {ls}")
         if errors:
             fails.append("page errors: " + "; ".join(errors[:5]))

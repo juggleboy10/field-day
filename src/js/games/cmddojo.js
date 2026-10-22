@@ -105,10 +105,12 @@
       S.task = task; S.c = opts.indexOf(task); S.opts = opts;
       opts.forEach((o, i) => {
         deck.set(i, S.mode === 'mix' ? `${o[2]}` : o[2], 'idle', { mono: true, big: 60, sub: S.mode === 'mix' ? (o[0] === 'win' ? 'Windows' : 'Linux') : undefined });
-        deck.show(i, true);
-        Object.assign(blk[i], { st: 'in', z: Z0 - i * 0.25, x: LANES[i], y: BY + (i === 1 ? 0.06 : 0), t: 0, vx: 0, vy: 0, spin: 0 });
+        deck.show(i, false);
+        Object.assign(blk[i], { st: 'wait', z: Z0 - i * 0.25, x: LANES[i], y: BY + (i === 1 ? 0.06 : 0), t: 0, vx: 0, vy: 0, spin: 0 });
       });
-      S.ph = 'play'; S.hover = 0;
+      // a moment to read the task before the blocks come
+      S.ph = 'play'; S.hover = 0; S.readT = Math.max(1.3, 2.2 - S.score * 0.04);
+      termKey = '';
     }
     function typeLine(text) { for (const l of String(text).split('\n')) S.lines.push(l); while (S.lines.length > 7) S.lines.shift(); termKey = ''; }
     function strike(i, how) {
@@ -216,7 +218,10 @@
           deck.cards[i].grp.rotation.x = b.st === 'menu' || b.st === 'in' ? Math.sin(now / 300 + i) * 0.05 : b.t * b.spin * 0.3;
         }
       });
-      if (S.ph === 'play') {
+      if (S.ph === 'play' && S.readT > 0) {
+        S.readT -= dt;
+        if (S.readT <= 0) blk.forEach((b, i) => { if (b.st === 'wait') { b.st = 'in'; deck.show(i, true); } });
+      } else if (S.ph === 'play') {
         if (waiting) { S.hover += dt; if (S.hover > Math.max(2.2, 5 - S.score * 0.12)) missed(); }
       } else if (S.ph === 'gap') {
         S.gap -= dt;

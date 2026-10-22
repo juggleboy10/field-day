@@ -1,6 +1,7 @@
   // ================================================================ LEVEL: SPEED OF LIGHT (carnival)
-  // A wall of thirty buttons, six across and five high. One lights up at a time: hit it as fast as you can and the
-  // next one lights somewhere else. Thirty seconds: how many can you get? A light you're too slow for moves on.
+  // A wall of twenty buttons, five across and four high. Three are lit at once, each for a couple of seconds: hit them
+  // and new ones light up elsewhere, so plan your route. Thirty seconds: how many can you get? A light you're too slow
+  // for goes out (and another comes on).
   // Points pay out tickets (spend them at the prize stand).
   // VR: slap the lit button with either hand. Browser: aim at it and click (or press Space).
   const lightspeed = (() => {
@@ -11,7 +12,7 @@
     L.bounds = { minX: -7, maxX: 7, minZ: -2, maxZ: 6 };
     L.env = CARNIVAL.env();
     const fair = CARNIVAL.backdrop(G, rand, { pathW: 13, pathD: 7, pathZ: 2, wheelX: -18 });
-    const N = 3, PITCH = 2.6, COLS = 6, ROWS = 5, GX = 0.27, GY = 0.22, PZ = -0.6, Y0 = 0.95, ROUND = 30, BR = 0.075;
+    const N = 3, PITCH = 2.6, COLS = 5, ROWS = 4, GX = 0.23, GY = 0.21, PZ = -0.6, Y0 = 1.0, ROUND = 30, BR = 0.07, LIVE = 3, LIFE = 2.6;
     const panelX = (k) => (k - (N - 1) / 2) * PITCH;
     const btnPos = (k, i, out) => out.set(panelX(k) + ((i % COLS) - (COLS - 1) / 2) * GX, Y0 + Math.floor(i / COLS) * GY, PZ + 0.05);
 
@@ -39,7 +40,7 @@
     }
 
     // ---------------------------------------------------------------- the round
-    const S = { k: 0, ph: 'idle', t0: 0, lit: -1, litT: 0, hits: 0, misses: 0, best: 0, react: 0, flash: -1, flashT: 0 };
+    const S = { k: 0, ph: 'idle', t0: 0, lits: [], hits: 0, misses: 0, best: 0, react: 0, flash: -1, flashT: 0 };
     try { if (Number.isInteger(prefs.lightBest)) S.best = prefs.lightBest; } catch (e) { /* none */ }
     L.light = S;
     function mySlot() { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); ids.sort(); return Math.max(0, ids.indexOf(state.myPeer)) % N; }
@@ -50,19 +51,21 @@
       if (state.mode !== 'vr') { state.yaw = 0; state.pitch = -0.12; }
     }
     const elapsed = () => (performance.now() - S.t0) / 1000;
-    function lightNext() {
-      let i; do { i = Math.floor(rand() * COLS * ROWS); } while (i === S.lit);
-      S.lit = i; S.litT = performance.now();
+    // light one more (somewhere that isn't lit, or just went out)
+    function lightNext(not) {
+      let i, n = 0; do { i = Math.floor(rand() * COLS * ROWS); } while ((S.lits.some((l) => l.i === i) || i === not) && n++ < 50);
+      S.lits.push({ i, t: performance.now(), c: (S.hits + S.lits.length) % 4 });
     }
+    const isLit = (i) => S.lits.some((l) => l.i === i);
     function startRound() {
-      Object.assign(S, { ph: 'play', t0: performance.now(), hits: 0, misses: 0, react: 0 });
-      lightNext();
+      Object.assign(S, { ph: 'play', t0: performance.now(), hits: 0, misses: 0, react: 0, lits: [] });
+      for (let k = 0; k < LIVE; k++) lightNext();
       sfx('whistle', 0.7); showToast(`${ROUND} seconds! Hit each light as fast as you can`);
       forcePresence(); state.dirtyBoard = true;
     }
     L.startRound = startRound;
     function endRound() {
-      S.ph = 'over'; S.lit = -1;
+      S.ph = 'over'; S.lits = [];
       const isBest = S.hits > S.best;
       if (isBest) { S.best = S.hits; prefs.lightBest = S.best; savePrefs(); }
       RECORDS.add(L, 'hits', S.hits);
@@ -76,11 +79,13 @@
     // a hit on button i
     function press(i) {
       if (S.ph !== 'play') { startRound(); return false; }
-      if (i !== S.lit) return false;
-      const rt = (performance.now() - S.litT) / 1000;
+      const k = S.lits.findIndex((l) => l.i === i);
+      if (k < 0) return false;
+      const rt = (performance.now() - S.lits[k].t) / 1000;
+      S.lits.splice(k, 1);
       S.hits += 1; S.react += rt; S.flash = i; S.flashT = 0.25;
       tone(880 + Math.min(12, S.hits) * 40, 0, 0.06, 'square', 0.12);
-      lightNext();
+      lightNext(i);
       forcePresence(); state.dirtyBoard = true;
       return true;
     }
@@ -88,12 +93,13 @@
     // VR: a hand on the lit button
     const _p = new V3(), prevH = { left: new V3(), right: new V3() };
     function vrHits() {
-      if (S.lit < 0) return;
-      const p = panels[S.k].btns[S.lit].p;
       for (const s of SIDES) {
         const h = myHands[s]; if (!h.ok) continue;
-        const close = Math.hypot(h.pos.x - p.x, h.pos.y - p.y) < BR + 0.05 && h.pos.z < p.z + 0.08;
-        if (close && press(S.lit)) haptic(vrHands[s], 0.7, 30);
+        for (const l of S.lits.slice()) {
+          const p = panels[S.k].btns[l.i].p;
+          const close = Math.hypot(h.pos.x - p.x, h.pos.y - p.y) < BR + 0.05 && h.pos.z < p.z + 0.08;
+          if (close && press(l.i)) haptic(vrHands[s], 0.7, 30);
+        }
         prevH[s].copy(h.pos);
       }
     }
@@ -131,8 +137,8 @@
       if (S.ph === 'play') {
         if (elapsed() >= ROUND) endRound();
         else {
-          // too slow: the light moves on
-          if ((performance.now() - S.litT) / 1000 > 1.6) { S.misses += 1; tone(220, 160, 0.08, 'square', 0.06); lightNext(); }
+          // too slow: that light goes out, another comes on
+          for (const l of S.lits.slice()) if ((performance.now() - l.t) / 1000 > LIFE) { S.lits.splice(S.lits.indexOf(l), 1); S.misses += 1; tone(220, 160, 0.08, 'square', 0.06); lightNext(l.i); }
           if (state.mode === 'vr') vrHits();
         }
       }
@@ -146,9 +152,10 @@
       panels.forEach((pn) => {
         const mine = pn.k === S.k;
         pn.btns.forEach((b, i) => {
-          const lit = mine && S.ph === 'play' && i === S.lit, flash = mine && i === S.flash && S.flashT > 0;
-          const idleShow = S.ph !== 'play' && Math.floor(now / 140 + i * 7) % 29 === 0;   // a twinkle while nobody's playing
-          const col = lit ? COLS_LIT[S.hits % COLS_LIT.length] : flash ? 0xffffff : idleShow ? 0x4fc3f7 : 0x3a4a5a;
+          const L1 = mine && S.ph === 'play' ? S.lits.find((l) => l.i === i) : null, lit = !!L1, flash = mine && i === S.flash && S.flashT > 0;
+          const idleShow = S.ph !== 'play' && Math.floor(now / 140 + i * 7) % 19 === 0;   // a twinkle while nobody's playing
+          const fade = lit ? 1 - (performance.now() - L1.t) / 1000 / LIFE : 0;
+          const col = lit ? (fade < 0.3 && Math.floor(now / 90) % 2 ? 0xffffff : COLS_LIT[L1.c]) : flash ? 0xffffff : idleShow ? 0x4fc3f7 : 0x3a4a5a;
           b.mat.color.setHex(col); b.mat.emissive.setHex(lit || flash ? col : idleShow ? 0x1a3a4a : 0x000000);
           b.glow.visible = lit || flash; if (b.glow.visible) b.glow.material.color.setHex(col);
           b.b.position.z = b.p.z - (flash ? 0.015 : 0);
@@ -187,10 +194,10 @@
     L.hints = [['A / X', 'start a round'], ['Slap', 'the lit button with either hand'], ['Prize stand', 'on the right: spend your tickets']];
     L.hintsFor = () => (state.mode === 'flat' ? [['Aim', 'at the lit button'], ['Click or Space', 'hit it'], ['Prize stand', 'on the right: spend your tickets']] : L.hints);
     L.spawn = () => { dolly.position.set(0, 0, 0); standAtPanel(); };
-    L.onEnter = () => { S.ph = 'idle'; S.lit = -1; for (const pn of panels) pn.key = ''; };
-    L.onExit = () => { if (ui.status) ui.status.hidden = true; S.ph = 'idle'; S.lit = -1; };
+    L.onEnter = () => { S.ph = 'idle'; S.lits = []; for (const pn of panels) pn.key = ''; };
+    L.onExit = () => { if (ui.status) ui.status.hidden = true; S.ph = 'idle'; S.lits = []; };
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 2, 1.8, 2.8); camera.lookAt(0, 1.4, -0.6); };
-    L.lightInternals = { S, panels, press, startRound, endRound, lightNext, btnPos };
+    L.lightInternals = { S, panels, press, startRound, endRound, lightNext, btnPos, isLit };
     MUSIC_THEMES.lightspeed = { gain: 0.7, bpm: 140, swing: 0, chords: ['Em', 'C', 'G', 'D'], comp: { inst: 'synth', at: [0, 2, 4, 6, 8, 10, 12, 14], dur: 0.08 }, bass: { at: [0, 4, 8, 12] }, drums: { k: 'x...x...x...x...', h: 'o.o.o.o.o.o.o.o.' }, cut: 5200 };
     return L;
   })();

@@ -269,7 +269,7 @@ def main():
             print("Math problems bad:", mp["bad"][:5])
             check(not mp["bad"], f"math: bad problems {mp['bad'][:5]}")
             page.keyboard.press("Digit2")
-            page.wait_for_timeout(400)
+            page.wait_for_timeout(3600)   # (three seconds to get ready)
             shot("math_play")
             got = 0
             for _ in range(4):

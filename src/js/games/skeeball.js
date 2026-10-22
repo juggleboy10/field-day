@@ -20,6 +20,13 @@
     const BZ0 = -3.0, BZ1 = -3.85, BY0 = 1.081, BOARD_TILT = 0.6;   // the target board: from (BZ0, BY0) rising toward the back
     const C_T = 0.58, RINGS = [[0.07, 50], [0.14, 40], [0.21, 30], [0.28, 20]], HUNDREDS = [[-0.19, 0.98], [0.19, 0.98]];
     const machX = (k) => (k - (N - 1) / 2) * PITCH;
+    // where each score's hole is on the board (x across, t up): the bottom of its ring, the middle for 50, the corners for 100
+    function holeAt(pts) {
+      if (pts === 50) return [0, C_T];
+      if (pts === 100) return HUNDREDS[0]; if (pts === 101) return HUNDREDS[1];
+      if (pts === 10) return [0, 0.06];
+      const i = RINGS.findIndex((r) => r[1] === pts); return [0, C_T - (RINGS[i][0] + RINGS[i - 1][0]) / 2];
+    }
     const laneY = (z) => LANE_Y0 + (LANE_Z0 - z) * SLOPE;
     const boardY = (z) => BY0 + (BZ0 - z) * BOARD_TILT;
     const boardLen = Math.hypot(BZ1 - BZ0, (BZ0 - BZ1) * BOARD_TILT);
@@ -79,6 +86,20 @@
       });
       const board = new THREE.Mesh(new THREE.PlaneGeometry(LANE_W, boardLen), new THREE.MeshLambertMaterial({ map: bt.tex }));
       board.position.set(mx, (BY0 + boardY(BZ1)) / 2, (BZ0 + BZ1) / 2); board.rotation.x = -Math.PI / 2 + Math.atan(BOARD_TILT); G.add(board);
+      // raised ring walls on the board, and the dark hole at the bottom of each ring, so you can see where it goes in
+      const tiltQ = new Q4().setFromAxisAngle(new V3(1, 0, 0), -Math.PI / 2 + Math.atan(BOARD_TILT));
+      const nrm = new V3(0, 1, BOARD_TILT).normalize();
+      const rimM = new THREE.MeshLambertMaterial({ color: 0xe8e8f8, emissive: 0x2a2a3a }), holeM = new THREE.MeshBasicMaterial({ color: 0x050508 });
+      for (const [r] of RINGS) { const rim = new THREE.Mesh(new THREE.TorusGeometry(r, 0.008, 6, 40), rimM); rim.position.copy(boardPt(k, 0, C_T)).addScaledVector(nrm, 0.008); rim.quaternion.copy(tiltQ); G.add(rim); }
+      for (const pts of [50, 40, 30, 20, 10, 100, 101]) {
+        const [hx, ht] = holeAt(pts), hole = new THREE.Mesh(new THREE.CircleGeometry(pts === 10 ? 0.06 : BR + 0.012, 18), holeM);
+        hole.position.copy(boardPt(k, hx, ht)).addScaledVector(nrm, 0.004); hole.quaternion.copy(tiltQ); if (pts === 10) hole.scale.x = 4; G.add(hole);
+      }
+      for (const [hx, ht] of HUNDREDS) { const rim = new THREE.Mesh(new THREE.TorusGeometry(0.055, 0.008, 6, 24), rimM); rim.position.copy(boardPt(k, hx, ht)).addScaledVector(nrm, 0.008); rim.quaternion.copy(tiltQ); G.add(rim); }
+      // the return chute: a clear tube down the side of the lane to your tray, so you see the ball come back
+      { const a = new V3(mx + LANE_W / 2 + 0.16, 0.95, BZ0 + 0.05), b2 = new V3(mx + LANE_W / 2 + 0.16, 0.86, 0.0), d = b2.clone().sub(a);
+        const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, d.length(), 12, 1, true), new THREE.MeshLambertMaterial({ color: 0x8be0ff, transparent: true, opacity: 0.22, depthWrite: false, side: THREE.DoubleSide }));
+        tube.position.copy(a).add(b2).multiplyScalar(0.5); tube.quaternion.setFromUnitVectors(new V3(0, 1, 0), d.normalize()); G.add(tube); }
       addBox(G, LANE_W + 0.2, boardY(BZ1) + 0.2, 0.1, cabMat, mx, (boardY(BZ1) + 0.2) / 2, BZ1 - 0.1);
       addBox(G, LANE_W + 0.2, BY0, BZ0 - BZ1 + 0.1, cabMat, mx, BY0 / 2, (BZ0 + BZ1) / 2);
       // the marquee with this machine's score
@@ -177,7 +198,7 @@
     const me = { k: 0, score: 0, left: BALLS, best: 0, phase: 'idle', last: 0 };
     try { if (Number.isInteger(prefs.skeeBest)) me.best = prefs.skeeBest; } catch (e) { /* none */ }
     L.skee = me;
-    // the ball in play (one at a time): 'tray', 'held', 'roll' (on the lane), 'fly', 'drop' (into a ring), 'back'
+    // the ball in play (one at a time): 'tray', 'held', 'roll' (on the lane), 'fly', 'board' (rolling to its hole), 'sink', 'ret' (the return chute), 'back'
     const B = { st: 'tray', pos: new V3(), vel: new V3(), t: 0, pts: 0, hand: null, hole: null };
     L.skeeBall = B;
     const ballMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
@@ -227,8 +248,21 @@
       sfx('ball', 0.4);
     }
     L.launch = launch;
+    const NRM = new V3(0, 1, BOARD_TILT).normalize();
+    // the ball's landed on the board at (x, t): it rolls to the hole for pts
+    function toHole(pts, x, t) {
+      // landed above the rings: it rolls down into the big outer ring (or the side gutter, out wide)
+      if (pts === 10 && t > C_T && Math.abs(x) < RINGS[3][0] - 0.02) { pts = 20; t = Math.min(t, C_T + RINGS[3][0] - 0.035); }
+      const key = pts === 100 && x > 0 ? 101 : pts, [hx, ht] = holeAt(key);
+      const ring = pts >= 20 && pts <= 40;
+      const R = { t: 0, x, tt: t, hx, ht, ring };
+      if (ring) { R.ang = Math.atan2(t - C_T, x); R.rad = Math.hypot(x, t - C_T); R.rm = C_T - ht; }
+      B.rb = R; B.st = 'board'; B.pts = pts; B.t = 0;
+      tone(220, 200, 0.05, 'sine', 0.12);
+    }
+    L.toHole = toHole;
     function score(pts, at) {
-      B.st = 'drop'; B.t = 0; B.pts = pts; B.hole = at;
+      B.pts = pts; B.hole = at;
       me.score += pts; me.left -= 1;
       tone(pts >= 100 ? 1200 : 500 + pts * 8, 0, 0.12, 'triangle', 0.25);
       if (pts >= 50) { sfx('chime', 0.6); if (pts === 100) sfx('fanfare', 0.6); }
@@ -270,23 +304,39 @@
           if (Math.hypot(B.vel.x, B.vel.z) < 0.05 && B.st === 'roll' && B.t > 0.5) { B.st = 'back'; B.t = 0; return; }
         } else if (B.pos.z < LANE_Z1 && B.st !== 'fly') B.st = 'fly';
         // off the end of the lane: the jump throws it up
-        if (B.st === 'roll' && B.pos.z <= LANE_Z1 + 0.02) { B.vel.y = Math.abs(B.vel.z) * 0.7 + 0.3; B.st = 'fly'; B.pos.z = LANE_Z1 - 0.001; B.pos.y += 0.03; }
+        if (B.st === 'roll' && B.pos.z <= LANE_Z1 + 0.02) { B.vel.y = Math.abs(B.vel.z) * 0.85 + 0.45; B.st = 'fly'; B.pos.z = LANE_Z1 - 0.001; B.pos.y += 0.03; }
         // the board
         if (B.pos.z < BZ0 && B.pos.z > BZ1 && B.pos.y - BR <= boardY(B.pos.z)) {
           const t = (BZ0 - B.pos.z) / (BZ0 - BZ1) * boardLen, x = clamp(B.pos.x - mx, -LANE_W / 2 + BR, LANE_W / 2 - BR);
-          const pts = ringAt(x, t);
-          score(pts, boardPt(me.k, pts === 10 ? x * 0.4 : x, pts === 10 ? 0.06 : t));
+          toHole(ringAt(x, t), x, t);
           return;
         }
-        if (B.pos.z <= BZ1 + BR) { score(10, boardPt(me.k, 0, 0.05)); showToast('Too hard: off the back and down to the 10'); return; }   // the back of the cabinet
+        if (B.pos.z <= BZ1 + BR) { toHole(10, clamp(B.pos.x - mx, -0.2, 0.2), boardLen - 0.05); showToast('Too hard: off the back and down to the 10'); return; }   // the back of the cabinet
         // short: between the jump and the board it falls in the bottom gutter
-        if (B.pos.z < LANE_Z1 && B.pos.z > BZ0 && B.pos.y < laneY(LANE_Z1) - 0.05) { score(10, boardPt(me.k, 0, 0.05)); return; }
+        if (B.pos.z < LANE_Z1 && B.pos.z > BZ0 && B.pos.y < laneY(LANE_Z1) - 0.05) { toHole(10, clamp(B.pos.x - mx, -0.2, 0.2), 0.08); return; }
         // off the machine entirely (in VR you can throw it anywhere): it comes back without counting
         if (B.pos.y < 0.05 || Math.abs(lx) > 1.5 || B.pos.z > 2) { B.st = 'back'; B.t = 0; showToast('Off the lane! Roll it up the ramp'); }
-      } else if (B.st === 'drop') {
+      } else if (B.st === 'board') {
+        // rolling down the board inside its ring to the hole at the bottom (round the ring, for the rings)
+        const R = B.rb; R.t += dt;
+        if (R.ring) {
+          const da = ((-Math.PI / 2 - R.ang + Math.PI * 3) % (Math.PI * 2)) - Math.PI;   // (the short way round, down the near side)
+          R.ang += clamp(da, -3.2 * dt * (1 + R.t * 2), 3.2 * dt * (1 + R.t * 2));
+          R.rad += (R.rm - R.rad) * Math.min(1, dt * 8);
+          R.x = Math.cos(R.ang) * R.rad; R.tt = C_T + Math.sin(R.ang) * R.rad;
+        } else { const dx = R.hx - R.x, dtt = R.ht - R.tt, d = Math.hypot(dx, dtt), st = Math.min(d, (0.4 + R.t * 2.5) * dt); if (d > 1e-4) { R.x += dx / d * st; R.tt += dtt / d * st; } }
+        B.pos.copy(boardPt(me.k, R.x, R.tt)).addScaledVector(NRM, BR);
+        if (Math.hypot(R.x - R.hx, R.tt - R.ht) < 0.006 || R.t > 1.6) { score(B.pts, boardPt(me.k, R.hx, R.ht)); B.st = 'sink'; B.t = 0; tone(180, 120, 0.06, 'sine', 0.15); }
+      } else if (B.st === 'sink') {
         B.t += dt;
-        B.pos.copy(B.hole).add(new V3(0, -B.t * 0.4, -B.t * 0.15));
-        if (B.t > 0.6) { B.st = 'back'; B.t = 0; }
+        B.pos.copy(B.hole).addScaledVector(NRM, BR - B.t * 0.35);
+        if (B.t > 0.35) { B.st = 'ret'; B.t = 0; sfx('ball', 0.2); }
+      } else if (B.st === 'ret') {
+        // down the return chute to the tray
+        B.t += dt;
+        const u = Math.min(1, B.t / 1.3), a = new V3(mx + LANE_W / 2 + 0.16, 0.95, BZ0 + 0.05), b2 = trayPos(0);
+        B.pos.lerpVectors(a, b2, u);
+        if (u >= 1) { B.st = 'back'; B.t = 0.5; tone(300, 280, 0.05, 'sine', 0.12); }
       } else if (B.st === 'back') {
         B.t += dt;
         if (B.t > 0.5) { B.st = 'tray'; if (me.phase === 'play' && me.left <= 0) endGame(); }
@@ -299,7 +349,7 @@
       if (B.st !== 'tray') return;
       if (me.phase !== 'play') newGame();
       camera.getWorldQuaternion(_q); _f.set(0, 0, -1).applyQuaternion(_q);
-      const yaw = Math.atan2(-_f.x, -_f.z), sp = 2.6 + c * 3.8;
+      const yaw = Math.atan2(-_f.x, -_f.z), sp = 2.4 + c * 3.0;
       const vx = clamp(-Math.sin(yaw) * sp, -0.6, 0.6);
       launch(new V3(machX(me.k) + clamp(-Math.sin(yaw) * 0.3, -0.15, 0.15), laneY(LANE_Z0 - 0.05) + BR, LANE_Z0 - 0.05), new V3(vx, 0, -sp));
     };
@@ -313,7 +363,7 @@
     };
     L.onVRRelease = (h, vel) => {
       if (B.st !== 'held' || B.hand !== h.side) return;
-      const v = vel.clone().multiplyScalar(1.15);
+      const v = vel.clone().multiplyScalar(1.3);
       if (v.length() < 0.6) { B.st = 'tray'; return; }   // put it down
       launch(myHands[h.side].pos.clone(), v);
     };
@@ -341,7 +391,7 @@
       }
       // my ball, in the tray, in my hand, or rolling
       if (B.st === 'held') { const mh = myHands[B.hand]; B.pos.copy(mh.pos); }
-      ballMesh.visible = here && B.st !== 'tray' && B.st !== 'back';
+      ballMesh.visible = here && B.st !== 'tray' && B.st !== 'back' && !(B.st === 'sink' && B.t > 0.3);
       ballMesh.position.copy(B.pos);
       if (B.st === 'roll') ballMesh.rotation.x -= (B.vel.z / BR) * dt;
       const inTray = me.phase === 'play' ? me.left - (B.st === 'tray' || B.st === 'back' ? 0 : 1) : BALLS;

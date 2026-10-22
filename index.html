@@ -1085,6 +1085,7 @@ kbd {
     const ct = canvasTexture(cw, ch);
     const draw = () => {
       const g = ct.g;
+      g.clearRect(0, 0, cw, ch);   // (a see-through plate would otherwise pile each new label on the old ones)
       g.fillStyle = o.bg || '#16142e'; g.fillRect(0, 0, cw, ch);
       g.fillStyle = o.fg || '#f4f2ff';
       g.font = `800 ${Math.round(ch * (o.size || 0.62))}px ${DISPLAY}`;
@@ -1210,7 +1211,7 @@ kbd {
     { id: 'duckshoot', name: 'Duck Shooting Gallery', short: 'Duck Shoot', glyph: '\u{1F986}', blurb: 'Pop the tin ducks with a cork gun in 40 seconds: golden ducks are worth 5, but leave the bunnies alone.' },
     { id: 'ringtoss', name: 'Ring Toss', short: 'Ring Toss', glyph: '\u{1F37E}', blurb: 'Ten rings, a table of bottles: drop a ring over a neck for tickets. Red bottles pay double, the gold one big.' },
     { id: 'whack', name: 'Whack-a-Mole', short: 'Whack', glyph: '\u{1F528}', blurb: 'Nine holes, 45 seconds, moles popping up faster and faster. Golden moles are worth 3. A mallet in each hand.' },
-    { id: 'lightspeed', name: 'Speed of Light', short: 'Lightspeed', glyph: '\u{1F4A1}', blurb: 'Thirty buttons on a wall: hit each one the moment it lights up. How many in 30 seconds?' },
+    { id: 'lightspeed', name: 'Speed of Light', short: 'Lightspeed', glyph: '\u{1F4A1}', blurb: 'Twenty buttons on a wall, three lit at a time: hit them before they go out and plan your route. How many in 30 seconds?' },
     { id: 'quizblaster', name: 'Quiz Blaster', short: 'Quiz Blaster', glyph: '\u{1F52B}', blurb: 'CompTIA A+ practice: shoot the right answer card. Core 1, Core 2, the full exam mix or your weak spots, with a report card.' },
     { id: 'portsorter', name: 'Port & Cable Sorter', short: 'Port Sorter', glyph: '\u{1F50C}', blurb: 'Crates of ports, protocols, cables and Wi-Fi standards roll down a belt: toss each into the right bin. Sixty seconds.' },
     { id: 'pcbuild', name: 'PC Build Bench', short: 'PC Build', glyph: '\u{1F5A5}\uFE0F', blurb: 'Build a PC on a test bench: wrist strap, CPU, paste, cooler, the right RAM, SSD, graphics card, power. Then see if it POSTs.' },
@@ -11280,7 +11281,7 @@ kbd {
       for (const f of volcanos) {
         const er = erupting(now), p = ((now / 1000) % 7 - 6) / 0.8;
         f.lava.material.color.setHex(er ? 0xffd23f : 0xff6a2a);
-        if (er && !f.last) { tone(70, 45, 0.9, 'sawtooth', 0.15); if (HOLES[me.hole] === f.H) showToast('The volcano rumbles!'); }
+        if (er && !f.last && Math.hypot(myHead.pos.x - f.H.x, myHead.pos.z - f.H.z) < 8) { tone(70, 45, 0.9, 'sawtooth', 0.15); if (HOLES[me.hole] === f.H) showToast('The volcano rumbles!'); }
         f.last = er ? 1 : 0;
         for (const q of f.puffs) {
           q.m.material.opacity = er ? 0.7 * (1 - p) : 0;
@@ -11510,7 +11511,9 @@ kbd {
           },
           rest: () => { if (BEA.strokes >= MAXS) { BEA.phase = 'holed'; BEA.scores[BEA.hole] = MAXS; state.dirtyBoard = true; } else { BEA.phase = 'wait'; BEA.t0 = now; } forcePresence(); },
         };
-        for (let k = 0; k < steps && BEA.phase === 'moving'; k++) ballStep(h, now, beaBall, H, cb);
+        // (Bea's ball only makes its noises when you're near it: a beam-up or a moo from across the pier is just noise)
+        simQuiet = Math.hypot(beaBall.x - myHead.pos.x, beaBall.z - myHead.pos.z) > 6;
+        try { for (let k = 0; k < steps && BEA.phase === 'moving'; k++) ballStep(h, now, beaBall, H, cb); } finally { simQuiet = false; }
       }
     }
 
@@ -11587,8 +11590,8 @@ kbd {
   // ================================================================ MINI GOLF: THE DRIVING RANGE
   // A deck off the side of the pier with a tee mat, hitting out to sea: floating greens at 50 to 250 yards, a yardage
   // buoy every 50. A bucket is ten balls; land on a green for points (more for the far ones, double near the pin).
-  // VR: the driver's in your putter hand; hold the trigger and swing through the ball (how hard and which way you swing
-  // decides the shot). Browser: hold Space and let go; the best shots come from letting go in the green part of the bar
+  // VR: the driver's in your putter hand; just swing through the ball (how hard and which way you swing decides the
+  // shot). Browser: hold Space and let go; the best shots come from letting go in the green part of the bar
   // (too long and you hook it). The button by the pier's east rail takes you there; the one on the deck takes you back.
   const drivingrange = ((L) => {
     const G = L.group;
@@ -11665,7 +11668,7 @@ kbd {
       else { dolly.position.x += TEE.x - 2.4 - c.x; dolly.position.z += TEE.z - c.z; state.yaw = -Math.PI / 2; state.pitch = -0.12; }
       if (R.st !== 'tee' && R.st !== 'fly') teeUp();
       sbKey = '';
-      showToast(state.mode === 'vr' ? 'Driving range: hold the trigger and swing through the ball' : 'Driving range: hold Space, let go in the green');
+      showToast(state.mode === 'vr' ? 'Driving range: swing through the ball' : 'Driving range: hold Space, let go in the green');
     }
     L.goRange = goRange;
     // hit it: speed in m/s, launch angle (radians), and direction (radians off the target line, + is left)
@@ -11722,8 +11725,8 @@ kbd {
       club.position.copy(mh.pos); club.quaternion.copy(mh.quat);
       headNow.set(0.03, 0, -1.06).applyQuaternion(mh.quat).add(mh.pos);
       if (!headInit) { headPrev.copy(headNow); headInit = true; }
-      const gp = vrHands[side].source && vrHands[side].source.gamepad, armed = !!(gp && gp.buttons && gp.buttons[0] && gp.buttons[0].pressed);
-      club.traverse((o) => { if (o.material) { o.material.transparent = !armed; o.material.opacity = armed ? 1 : 0.35; } });
+      const armed = true;   // (no button to hold: just swing)
+      club.traverse((o) => { if (o.material) { o.material.transparent = false; o.material.opacity = 1; } });
       if (armed && R.st === 'tee' && dt > 0) {
         _hv.subVectors(headNow, headPrev).divideScalar(dt);
         for (let k = 1; k <= 6; k++) {
@@ -11815,7 +11818,7 @@ kbd {
       return [clamp(p.x, B.minX + m, B.maxX - m) - p.x, clamp(p.z, B.minZ + m, B.maxZ - m) - p.z];
     };
     const baseHints = L.hintsFor;
-    L.hintsFor = () => (L.onRange() ? (state.mode === 'flat' ? [['Space', 'hold, let go in the green to drive'], ['Drag', 'aim left or right']] : [['Trigger', 'hold it and swing through the ball'], ['Targets', 'land on a green for points']]) : baseHints ? baseHints() : L.hints);
+    L.hintsFor = () => (L.onRange() ? (state.mode === 'flat' ? [['Space', 'hold, let go in the green to drive'], ['Drag', 'aim left or right']] : [['Swing', 'through the ball, no button needed'], ['Targets', 'land on a green for points']]) : baseHints ? baseHints() : L.hints);
     L.hudActions.push({ label: () => (L.onRange() ? 'New bucket' : 'Driving range'), run: () => (L.onRange() ? newBucket() : goRange()) });
     L.rangeInternals = { R, launch, flyStep, land, teeUp, newBucket, goRange, greens, TEE, TARGETS, YD };
     return R;
@@ -27535,6 +27538,13 @@ kbd {
     const BZ0 = -3.0, BZ1 = -3.85, BY0 = 1.081, BOARD_TILT = 0.6;   // the target board: from (BZ0, BY0) rising toward the back
     const C_T = 0.58, RINGS = [[0.07, 50], [0.14, 40], [0.21, 30], [0.28, 20]], HUNDREDS = [[-0.19, 0.98], [0.19, 0.98]];
     const machX = (k) => (k - (N - 1) / 2) * PITCH;
+    // where each score's hole is on the board (x across, t up): the bottom of its ring, the middle for 50, the corners for 100
+    function holeAt(pts) {
+      if (pts === 50) return [0, C_T];
+      if (pts === 100) return HUNDREDS[0]; if (pts === 101) return HUNDREDS[1];
+      if (pts === 10) return [0, 0.06];
+      const i = RINGS.findIndex((r) => r[1] === pts); return [0, C_T - (RINGS[i][0] + RINGS[i - 1][0]) / 2];
+    }
     const laneY = (z) => LANE_Y0 + (LANE_Z0 - z) * SLOPE;
     const boardY = (z) => BY0 + (BZ0 - z) * BOARD_TILT;
     const boardLen = Math.hypot(BZ1 - BZ0, (BZ0 - BZ1) * BOARD_TILT);
@@ -27594,6 +27604,20 @@ kbd {
       });
       const board = new THREE.Mesh(new THREE.PlaneGeometry(LANE_W, boardLen), new THREE.MeshLambertMaterial({ map: bt.tex }));
       board.position.set(mx, (BY0 + boardY(BZ1)) / 2, (BZ0 + BZ1) / 2); board.rotation.x = -Math.PI / 2 + Math.atan(BOARD_TILT); G.add(board);
+      // raised ring walls on the board, and the dark hole at the bottom of each ring, so you can see where it goes in
+      const tiltQ = new Q4().setFromAxisAngle(new V3(1, 0, 0), -Math.PI / 2 + Math.atan(BOARD_TILT));
+      const nrm = new V3(0, 1, BOARD_TILT).normalize();
+      const rimM = new THREE.MeshLambertMaterial({ color: 0xe8e8f8, emissive: 0x2a2a3a }), holeM = new THREE.MeshBasicMaterial({ color: 0x050508 });
+      for (const [r] of RINGS) { const rim = new THREE.Mesh(new THREE.TorusGeometry(r, 0.008, 6, 40), rimM); rim.position.copy(boardPt(k, 0, C_T)).addScaledVector(nrm, 0.008); rim.quaternion.copy(tiltQ); G.add(rim); }
+      for (const pts of [50, 40, 30, 20, 10, 100, 101]) {
+        const [hx, ht] = holeAt(pts), hole = new THREE.Mesh(new THREE.CircleGeometry(pts === 10 ? 0.06 : BR + 0.012, 18), holeM);
+        hole.position.copy(boardPt(k, hx, ht)).addScaledVector(nrm, 0.004); hole.quaternion.copy(tiltQ); if (pts === 10) hole.scale.x = 4; G.add(hole);
+      }
+      for (const [hx, ht] of HUNDREDS) { const rim = new THREE.Mesh(new THREE.TorusGeometry(0.055, 0.008, 6, 24), rimM); rim.position.copy(boardPt(k, hx, ht)).addScaledVector(nrm, 0.008); rim.quaternion.copy(tiltQ); G.add(rim); }
+      // the return chute: a clear tube down the side of the lane to your tray, so you see the ball come back
+      { const a = new V3(mx + LANE_W / 2 + 0.16, 0.95, BZ0 + 0.05), b2 = new V3(mx + LANE_W / 2 + 0.16, 0.86, 0.0), d = b2.clone().sub(a);
+        const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, d.length(), 12, 1, true), new THREE.MeshLambertMaterial({ color: 0x8be0ff, transparent: true, opacity: 0.22, depthWrite: false, side: THREE.DoubleSide }));
+        tube.position.copy(a).add(b2).multiplyScalar(0.5); tube.quaternion.setFromUnitVectors(new V3(0, 1, 0), d.normalize()); G.add(tube); }
       addBox(G, LANE_W + 0.2, boardY(BZ1) + 0.2, 0.1, cabMat, mx, (boardY(BZ1) + 0.2) / 2, BZ1 - 0.1);
       addBox(G, LANE_W + 0.2, BY0, BZ0 - BZ1 + 0.1, cabMat, mx, BY0 / 2, (BZ0 + BZ1) / 2);
       // the marquee with this machine's score
@@ -27692,7 +27716,7 @@ kbd {
     const me = { k: 0, score: 0, left: BALLS, best: 0, phase: 'idle', last: 0 };
     try { if (Number.isInteger(prefs.skeeBest)) me.best = prefs.skeeBest; } catch (e) { /* none */ }
     L.skee = me;
-    // the ball in play (one at a time): 'tray', 'held', 'roll' (on the lane), 'fly', 'drop' (into a ring), 'back'
+    // the ball in play (one at a time): 'tray', 'held', 'roll' (on the lane), 'fly', 'board' (rolling to its hole), 'sink', 'ret' (the return chute), 'back'
     const B = { st: 'tray', pos: new V3(), vel: new V3(), t: 0, pts: 0, hand: null, hole: null };
     L.skeeBall = B;
     const ballMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
@@ -27742,8 +27766,21 @@ kbd {
       sfx('ball', 0.4);
     }
     L.launch = launch;
+    const NRM = new V3(0, 1, BOARD_TILT).normalize();
+    // the ball's landed on the board at (x, t): it rolls to the hole for pts
+    function toHole(pts, x, t) {
+      // landed above the rings: it rolls down into the big outer ring (or the side gutter, out wide)
+      if (pts === 10 && t > C_T && Math.abs(x) < RINGS[3][0] - 0.02) { pts = 20; t = Math.min(t, C_T + RINGS[3][0] - 0.035); }
+      const key = pts === 100 && x > 0 ? 101 : pts, [hx, ht] = holeAt(key);
+      const ring = pts >= 20 && pts <= 40;
+      const R = { t: 0, x, tt: t, hx, ht, ring };
+      if (ring) { R.ang = Math.atan2(t - C_T, x); R.rad = Math.hypot(x, t - C_T); R.rm = C_T - ht; }
+      B.rb = R; B.st = 'board'; B.pts = pts; B.t = 0;
+      tone(220, 200, 0.05, 'sine', 0.12);
+    }
+    L.toHole = toHole;
     function score(pts, at) {
-      B.st = 'drop'; B.t = 0; B.pts = pts; B.hole = at;
+      B.pts = pts; B.hole = at;
       me.score += pts; me.left -= 1;
       tone(pts >= 100 ? 1200 : 500 + pts * 8, 0, 0.12, 'triangle', 0.25);
       if (pts >= 50) { sfx('chime', 0.6); if (pts === 100) sfx('fanfare', 0.6); }
@@ -27785,23 +27822,39 @@ kbd {
           if (Math.hypot(B.vel.x, B.vel.z) < 0.05 && B.st === 'roll' && B.t > 0.5) { B.st = 'back'; B.t = 0; return; }
         } else if (B.pos.z < LANE_Z1 && B.st !== 'fly') B.st = 'fly';
         // off the end of the lane: the jump throws it up
-        if (B.st === 'roll' && B.pos.z <= LANE_Z1 + 0.02) { B.vel.y = Math.abs(B.vel.z) * 0.7 + 0.3; B.st = 'fly'; B.pos.z = LANE_Z1 - 0.001; B.pos.y += 0.03; }
+        if (B.st === 'roll' && B.pos.z <= LANE_Z1 + 0.02) { B.vel.y = Math.abs(B.vel.z) * 0.85 + 0.45; B.st = 'fly'; B.pos.z = LANE_Z1 - 0.001; B.pos.y += 0.03; }
         // the board
         if (B.pos.z < BZ0 && B.pos.z > BZ1 && B.pos.y - BR <= boardY(B.pos.z)) {
           const t = (BZ0 - B.pos.z) / (BZ0 - BZ1) * boardLen, x = clamp(B.pos.x - mx, -LANE_W / 2 + BR, LANE_W / 2 - BR);
-          const pts = ringAt(x, t);
-          score(pts, boardPt(me.k, pts === 10 ? x * 0.4 : x, pts === 10 ? 0.06 : t));
+          toHole(ringAt(x, t), x, t);
           return;
         }
-        if (B.pos.z <= BZ1 + BR) { score(10, boardPt(me.k, 0, 0.05)); showToast('Too hard: off the back and down to the 10'); return; }   // the back of the cabinet
+        if (B.pos.z <= BZ1 + BR) { toHole(10, clamp(B.pos.x - mx, -0.2, 0.2), boardLen - 0.05); showToast('Too hard: off the back and down to the 10'); return; }   // the back of the cabinet
         // short: between the jump and the board it falls in the bottom gutter
-        if (B.pos.z < LANE_Z1 && B.pos.z > BZ0 && B.pos.y < laneY(LANE_Z1) - 0.05) { score(10, boardPt(me.k, 0, 0.05)); return; }
+        if (B.pos.z < LANE_Z1 && B.pos.z > BZ0 && B.pos.y < laneY(LANE_Z1) - 0.05) { toHole(10, clamp(B.pos.x - mx, -0.2, 0.2), 0.08); return; }
         // off the machine entirely (in VR you can throw it anywhere): it comes back without counting
         if (B.pos.y < 0.05 || Math.abs(lx) > 1.5 || B.pos.z > 2) { B.st = 'back'; B.t = 0; showToast('Off the lane! Roll it up the ramp'); }
-      } else if (B.st === 'drop') {
+      } else if (B.st === 'board') {
+        // rolling down the board inside its ring to the hole at the bottom (round the ring, for the rings)
+        const R = B.rb; R.t += dt;
+        if (R.ring) {
+          const da = ((-Math.PI / 2 - R.ang + Math.PI * 3) % (Math.PI * 2)) - Math.PI;   // (the short way round, down the near side)
+          R.ang += clamp(da, -3.2 * dt * (1 + R.t * 2), 3.2 * dt * (1 + R.t * 2));
+          R.rad += (R.rm - R.rad) * Math.min(1, dt * 8);
+          R.x = Math.cos(R.ang) * R.rad; R.tt = C_T + Math.sin(R.ang) * R.rad;
+        } else { const dx = R.hx - R.x, dtt = R.ht - R.tt, d = Math.hypot(dx, dtt), st = Math.min(d, (0.4 + R.t * 2.5) * dt); if (d > 1e-4) { R.x += dx / d * st; R.tt += dtt / d * st; } }
+        B.pos.copy(boardPt(me.k, R.x, R.tt)).addScaledVector(NRM, BR);
+        if (Math.hypot(R.x - R.hx, R.tt - R.ht) < 0.006 || R.t > 1.6) { score(B.pts, boardPt(me.k, R.hx, R.ht)); B.st = 'sink'; B.t = 0; tone(180, 120, 0.06, 'sine', 0.15); }
+      } else if (B.st === 'sink') {
         B.t += dt;
-        B.pos.copy(B.hole).add(new V3(0, -B.t * 0.4, -B.t * 0.15));
-        if (B.t > 0.6) { B.st = 'back'; B.t = 0; }
+        B.pos.copy(B.hole).addScaledVector(NRM, BR - B.t * 0.35);
+        if (B.t > 0.35) { B.st = 'ret'; B.t = 0; sfx('ball', 0.2); }
+      } else if (B.st === 'ret') {
+        // down the return chute to the tray
+        B.t += dt;
+        const u = Math.min(1, B.t / 1.3), a = new V3(mx + LANE_W / 2 + 0.16, 0.95, BZ0 + 0.05), b2 = trayPos(0);
+        B.pos.lerpVectors(a, b2, u);
+        if (u >= 1) { B.st = 'back'; B.t = 0.5; tone(300, 280, 0.05, 'sine', 0.12); }
       } else if (B.st === 'back') {
         B.t += dt;
         if (B.t > 0.5) { B.st = 'tray'; if (me.phase === 'play' && me.left <= 0) endGame(); }
@@ -27814,7 +27867,7 @@ kbd {
       if (B.st !== 'tray') return;
       if (me.phase !== 'play') newGame();
       camera.getWorldQuaternion(_q); _f.set(0, 0, -1).applyQuaternion(_q);
-      const yaw = Math.atan2(-_f.x, -_f.z), sp = 2.6 + c * 3.8;
+      const yaw = Math.atan2(-_f.x, -_f.z), sp = 2.4 + c * 3.0;
       const vx = clamp(-Math.sin(yaw) * sp, -0.6, 0.6);
       launch(new V3(machX(me.k) + clamp(-Math.sin(yaw) * 0.3, -0.15, 0.15), laneY(LANE_Z0 - 0.05) + BR, LANE_Z0 - 0.05), new V3(vx, 0, -sp));
     };
@@ -27828,7 +27881,7 @@ kbd {
     };
     L.onVRRelease = (h, vel) => {
       if (B.st !== 'held' || B.hand !== h.side) return;
-      const v = vel.clone().multiplyScalar(1.15);
+      const v = vel.clone().multiplyScalar(1.3);
       if (v.length() < 0.6) { B.st = 'tray'; return; }   // put it down
       launch(myHands[h.side].pos.clone(), v);
     };
@@ -27856,7 +27909,7 @@ kbd {
       }
       // my ball, in the tray, in my hand, or rolling
       if (B.st === 'held') { const mh = myHands[B.hand]; B.pos.copy(mh.pos); }
-      ballMesh.visible = here && B.st !== 'tray' && B.st !== 'back';
+      ballMesh.visible = here && B.st !== 'tray' && B.st !== 'back' && !(B.st === 'sink' && B.t > 0.3);
       ballMesh.position.copy(B.pos);
       if (B.st === 'roll') ballMesh.rotation.x -= (B.vel.z / BR) * dt;
       const inTray = me.phase === 'play' ? me.left - (B.st === 'tray' || B.st === 'back' ? 0 : 1) : BALLS;
@@ -33266,8 +33319,9 @@ kbd {
     return L;
   })();
   // ================================================================ LEVEL: SPEED OF LIGHT (carnival)
-  // A wall of thirty buttons, six across and five high. One lights up at a time: hit it as fast as you can and the
-  // next one lights somewhere else. Thirty seconds: how many can you get? A light you're too slow for moves on.
+  // A wall of twenty buttons, five across and four high. Three are lit at once, each for a couple of seconds: hit them
+  // and new ones light up elsewhere, so plan your route. Thirty seconds: how many can you get? A light you're too slow
+  // for goes out (and another comes on).
   // Points pay out tickets (spend them at the prize stand).
   // VR: slap the lit button with either hand. Browser: aim at it and click (or press Space).
   const lightspeed = (() => {
@@ -33278,7 +33332,7 @@ kbd {
     L.bounds = { minX: -7, maxX: 7, minZ: -2, maxZ: 6 };
     L.env = CARNIVAL.env();
     const fair = CARNIVAL.backdrop(G, rand, { pathW: 13, pathD: 7, pathZ: 2, wheelX: -18 });
-    const N = 3, PITCH = 2.6, COLS = 6, ROWS = 5, GX = 0.27, GY = 0.22, PZ = -0.6, Y0 = 0.95, ROUND = 30, BR = 0.075;
+    const N = 3, PITCH = 2.6, COLS = 5, ROWS = 4, GX = 0.23, GY = 0.21, PZ = -0.6, Y0 = 1.0, ROUND = 30, BR = 0.07, LIVE = 3, LIFE = 2.6;
     const panelX = (k) => (k - (N - 1) / 2) * PITCH;
     const btnPos = (k, i, out) => out.set(panelX(k) + ((i % COLS) - (COLS - 1) / 2) * GX, Y0 + Math.floor(i / COLS) * GY, PZ + 0.05);
 
@@ -33306,7 +33360,7 @@ kbd {
     }
 
     // ---------------------------------------------------------------- the round
-    const S = { k: 0, ph: 'idle', t0: 0, lit: -1, litT: 0, hits: 0, misses: 0, best: 0, react: 0, flash: -1, flashT: 0 };
+    const S = { k: 0, ph: 'idle', t0: 0, lits: [], hits: 0, misses: 0, best: 0, react: 0, flash: -1, flashT: 0 };
     try { if (Number.isInteger(prefs.lightBest)) S.best = prefs.lightBest; } catch (e) { /* none */ }
     L.light = S;
     function mySlot() { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); ids.sort(); return Math.max(0, ids.indexOf(state.myPeer)) % N; }
@@ -33317,19 +33371,21 @@ kbd {
       if (state.mode !== 'vr') { state.yaw = 0; state.pitch = -0.12; }
     }
     const elapsed = () => (performance.now() - S.t0) / 1000;
-    function lightNext() {
-      let i; do { i = Math.floor(rand() * COLS * ROWS); } while (i === S.lit);
-      S.lit = i; S.litT = performance.now();
+    // light one more (somewhere that isn't lit, or just went out)
+    function lightNext(not) {
+      let i, n = 0; do { i = Math.floor(rand() * COLS * ROWS); } while ((S.lits.some((l) => l.i === i) || i === not) && n++ < 50);
+      S.lits.push({ i, t: performance.now(), c: (S.hits + S.lits.length) % 4 });
     }
+    const isLit = (i) => S.lits.some((l) => l.i === i);
     function startRound() {
-      Object.assign(S, { ph: 'play', t0: performance.now(), hits: 0, misses: 0, react: 0 });
-      lightNext();
+      Object.assign(S, { ph: 'play', t0: performance.now(), hits: 0, misses: 0, react: 0, lits: [] });
+      for (let k = 0; k < LIVE; k++) lightNext();
       sfx('whistle', 0.7); showToast(`${ROUND} seconds! Hit each light as fast as you can`);
       forcePresence(); state.dirtyBoard = true;
     }
     L.startRound = startRound;
     function endRound() {
-      S.ph = 'over'; S.lit = -1;
+      S.ph = 'over'; S.lits = [];
       const isBest = S.hits > S.best;
       if (isBest) { S.best = S.hits; prefs.lightBest = S.best; savePrefs(); }
       RECORDS.add(L, 'hits', S.hits);
@@ -33343,11 +33399,13 @@ kbd {
     // a hit on button i
     function press(i) {
       if (S.ph !== 'play') { startRound(); return false; }
-      if (i !== S.lit) return false;
-      const rt = (performance.now() - S.litT) / 1000;
+      const k = S.lits.findIndex((l) => l.i === i);
+      if (k < 0) return false;
+      const rt = (performance.now() - S.lits[k].t) / 1000;
+      S.lits.splice(k, 1);
       S.hits += 1; S.react += rt; S.flash = i; S.flashT = 0.25;
       tone(880 + Math.min(12, S.hits) * 40, 0, 0.06, 'square', 0.12);
-      lightNext();
+      lightNext(i);
       forcePresence(); state.dirtyBoard = true;
       return true;
     }
@@ -33355,12 +33413,13 @@ kbd {
     // VR: a hand on the lit button
     const _p = new V3(), prevH = { left: new V3(), right: new V3() };
     function vrHits() {
-      if (S.lit < 0) return;
-      const p = panels[S.k].btns[S.lit].p;
       for (const s of SIDES) {
         const h = myHands[s]; if (!h.ok) continue;
-        const close = Math.hypot(h.pos.x - p.x, h.pos.y - p.y) < BR + 0.05 && h.pos.z < p.z + 0.08;
-        if (close && press(S.lit)) haptic(vrHands[s], 0.7, 30);
+        for (const l of S.lits.slice()) {
+          const p = panels[S.k].btns[l.i].p;
+          const close = Math.hypot(h.pos.x - p.x, h.pos.y - p.y) < BR + 0.05 && h.pos.z < p.z + 0.08;
+          if (close && press(l.i)) haptic(vrHands[s], 0.7, 30);
+        }
         prevH[s].copy(h.pos);
       }
     }
@@ -33398,8 +33457,8 @@ kbd {
       if (S.ph === 'play') {
         if (elapsed() >= ROUND) endRound();
         else {
-          // too slow: the light moves on
-          if ((performance.now() - S.litT) / 1000 > 1.6) { S.misses += 1; tone(220, 160, 0.08, 'square', 0.06); lightNext(); }
+          // too slow: that light goes out, another comes on
+          for (const l of S.lits.slice()) if ((performance.now() - l.t) / 1000 > LIFE) { S.lits.splice(S.lits.indexOf(l), 1); S.misses += 1; tone(220, 160, 0.08, 'square', 0.06); lightNext(l.i); }
           if (state.mode === 'vr') vrHits();
         }
       }
@@ -33413,9 +33472,10 @@ kbd {
       panels.forEach((pn) => {
         const mine = pn.k === S.k;
         pn.btns.forEach((b, i) => {
-          const lit = mine && S.ph === 'play' && i === S.lit, flash = mine && i === S.flash && S.flashT > 0;
-          const idleShow = S.ph !== 'play' && Math.floor(now / 140 + i * 7) % 29 === 0;   // a twinkle while nobody's playing
-          const col = lit ? COLS_LIT[S.hits % COLS_LIT.length] : flash ? 0xffffff : idleShow ? 0x4fc3f7 : 0x3a4a5a;
+          const L1 = mine && S.ph === 'play' ? S.lits.find((l) => l.i === i) : null, lit = !!L1, flash = mine && i === S.flash && S.flashT > 0;
+          const idleShow = S.ph !== 'play' && Math.floor(now / 140 + i * 7) % 19 === 0;   // a twinkle while nobody's playing
+          const fade = lit ? 1 - (performance.now() - L1.t) / 1000 / LIFE : 0;
+          const col = lit ? (fade < 0.3 && Math.floor(now / 90) % 2 ? 0xffffff : COLS_LIT[L1.c]) : flash ? 0xffffff : idleShow ? 0x4fc3f7 : 0x3a4a5a;
           b.mat.color.setHex(col); b.mat.emissive.setHex(lit || flash ? col : idleShow ? 0x1a3a4a : 0x000000);
           b.glow.visible = lit || flash; if (b.glow.visible) b.glow.material.color.setHex(col);
           b.b.position.z = b.p.z - (flash ? 0.015 : 0);
@@ -33454,10 +33514,10 @@ kbd {
     L.hints = [['A / X', 'start a round'], ['Slap', 'the lit button with either hand'], ['Prize stand', 'on the right: spend your tickets']];
     L.hintsFor = () => (state.mode === 'flat' ? [['Aim', 'at the lit button'], ['Click or Space', 'hit it'], ['Prize stand', 'on the right: spend your tickets']] : L.hints);
     L.spawn = () => { dolly.position.set(0, 0, 0); standAtPanel(); };
-    L.onEnter = () => { S.ph = 'idle'; S.lit = -1; for (const pn of panels) pn.key = ''; };
-    L.onExit = () => { if (ui.status) ui.status.hidden = true; S.ph = 'idle'; S.lit = -1; };
+    L.onEnter = () => { S.ph = 'idle'; S.lits = []; for (const pn of panels) pn.key = ''; };
+    L.onExit = () => { if (ui.status) ui.status.hidden = true; S.ph = 'idle'; S.lits = []; };
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 2, 1.8, 2.8); camera.lookAt(0, 1.4, -0.6); };
-    L.lightInternals = { S, panels, press, startRound, endRound, lightNext, btnPos };
+    L.lightInternals = { S, panels, press, startRound, endRound, lightNext, btnPos, isLit };
     MUSIC_THEMES.lightspeed = { gain: 0.7, bpm: 140, swing: 0, chords: ['Em', 'C', 'G', 'D'], comp: { inst: 'synth', at: [0, 2, 4, 6, 8, 10, 12, 14], dur: 0.08 }, bass: { at: [0, 4, 8, 12] }, drums: { k: 'x...x...x...x...', h: 'o.o.o.o.o.o.o.o.' }, cut: 5200 };
     return L;
   })();
@@ -34501,10 +34561,10 @@ kbd {
     const G = L.group;
     const rand = mulberry32(5050);
     L.grabless = true;
-    L.bounds = { minX: -5.6, maxX: 5.6, minZ: 1.1, maxZ: 3.6 };
+    L.bounds = { minX: -5.6, maxX: 5.6, minZ: 0.62, maxZ: 3.6 };   // (you can lean right over the bench)
     L.env = STUDY.env();
     const hall = STUDY.room(G, rand, { w: 12, d: 10, z: -1, h: 4.4 });
-    const K = 1.4, TOP = 0.9, BX = 0, BY = TOP + 0.006, BZ = 0.5, SPOT_Z = 1.45;
+    const K = 1.4, TOP = 0.9, BX = 0, BY = TOP + 0.006, BZ = 0.5, SPOT_Z = 1.25;
     // ---------------------------------------------------------------- the bench and the motherboard
     addBox(G, 2.3, 0.05, 0.85, lam(0x8a6a4a), 0, TOP - 0.025, 0.55);
     for (const [x, z] of [[-1.05, 0.2], [1.05, 0.2], [-1.05, 0.9], [1.05, 0.9]]) addBox(G, 0.06, TOP - 0.05, 0.06, lam(0x3a3a3a), x, (TOP - 0.05) / 2, z);
@@ -34752,7 +34812,7 @@ kbd {
     };
     L.onVRGrab = (h) => {
       const mh = myHands[h.side];
-      let best = null, bd = 0.14;
+      let best = null, bd = 0.2;
       for (const p of partList()) { if (p.st !== 'home') continue; const d = p.mesh.position.distanceTo(mh.pos); if (d < bd) { bd = d; best = p; } }
       if (!best) return false;
       const held = pickUp(best, h.side);
@@ -34761,7 +34821,7 @@ kbd {
     };
     L.onVRRelease = (h) => {
       const p = S.held; if (!p || p.side !== h.side) return;
-      let best = null, bd = 0.11;
+      let best = null, bd = 0.14;
       for (const s of SLOTS) { const sp = slotPos(s, _t); const d = Math.hypot(sp.x - p.mesh.position.x, sp.z - p.mesh.position.z); if (d < bd && p.mesh.position.y < BY + 0.3) { bd = d; best = s; } }
       if (best) { if (fit(p, best)) haptic(vrHands[h.side], 0.6, 40); }
       else { goHome(p); S.held = null; }
@@ -34818,7 +34878,7 @@ kbd {
     }
 
     // ---------------------------------------------------------------- per frame
-    function stand() { S.slot = STUDY.slotOf(L); STUDY.standAt(STUDY.SLOT_X[S.slot] * 0.4, state.mode === 'vr' ? SPOT_Z : 2.15, 0, -0.42); }
+    function stand() { S.slot = STUDY.slotOf(L); STUDY.standAt(STUDY.SLOT_X[S.slot] * 0.4, state.mode === 'vr' ? SPOT_Z : 1.7, 0, -0.62); }
     const strapP = P.strap;
     L.update = (dt, now) => {
       const here = state.level === L.idx && state.mode !== 'menu';
@@ -35304,10 +35364,12 @@ kbd {
       S.task = task; S.c = opts.indexOf(task); S.opts = opts;
       opts.forEach((o, i) => {
         deck.set(i, S.mode === 'mix' ? `${o[2]}` : o[2], 'idle', { mono: true, big: 60, sub: S.mode === 'mix' ? (o[0] === 'win' ? 'Windows' : 'Linux') : undefined });
-        deck.show(i, true);
-        Object.assign(blk[i], { st: 'in', z: Z0 - i * 0.25, x: LANES[i], y: BY + (i === 1 ? 0.06 : 0), t: 0, vx: 0, vy: 0, spin: 0 });
+        deck.show(i, false);
+        Object.assign(blk[i], { st: 'wait', z: Z0 - i * 0.25, x: LANES[i], y: BY + (i === 1 ? 0.06 : 0), t: 0, vx: 0, vy: 0, spin: 0 });
       });
-      S.ph = 'play'; S.hover = 0;
+      // a moment to read the task before the blocks come
+      S.ph = 'play'; S.hover = 0; S.readT = Math.max(1.3, 2.2 - S.score * 0.04);
+      termKey = '';
     }
     function typeLine(text) { for (const l of String(text).split('\n')) S.lines.push(l); while (S.lines.length > 7) S.lines.shift(); termKey = ''; }
     function strike(i, how) {
@@ -35415,7 +35477,10 @@ kbd {
           deck.cards[i].grp.rotation.x = b.st === 'menu' || b.st === 'in' ? Math.sin(now / 300 + i) * 0.05 : b.t * b.spin * 0.3;
         }
       });
-      if (S.ph === 'play') {
+      if (S.ph === 'play' && S.readT > 0) {
+        S.readT -= dt;
+        if (S.readT <= 0) blk.forEach((b, i) => { if (b.st === 'wait') { b.st = 'in'; deck.show(i, true); } });
+      } else if (S.ph === 'play') {
         if (waiting) { S.hover += dt; if (S.hover > Math.max(2.2, 5 - S.score * 0.12)) missed(); }
       } else if (S.ph === 'gap') {
         S.gap -= dt;
@@ -35543,9 +35608,11 @@ kbd {
     const timeLeft = () => Math.max(0, ROUND - (performance.now() - S.t0) / 1000);
     function showMenu() { S.ph = 'menu'; MODES.forEach((m, i) => deck.set(i, m.name, 'mode', { sub: m.sub, big: 48 })); }
     function startRound(mode) {
-      Object.assign(S, { ph: 'play', mode, t0: performance.now(), score: 0, wrong: 0, lock: 0, streak: 0 });
-      sfx('whistle', 0.6);
+      // three seconds to get ready (the first problem's already up); the clock starts after
+      Object.assign(S, { ph: 'ready', readyT: 3, mode, t0: performance.now(), score: 0, wrong: 0, lock: 0, streak: 0 });
       next();
+      for (let i = 0; i < 4; i++) deck.show(i, false);
+      tone(660, 0, 0.12, 'sine', 0.15);
       forcePresence(); state.dirtyBoard = true;
     }
     L.startRound = startRound;
@@ -35592,8 +35659,8 @@ kbd {
     // ---------------------------------------------------------------- the chalkboard
     let boardKey = '';
     function drawBoard() {
-      const t = S.ph === 'play' ? Math.ceil(timeLeft()) : 0;
-      const key = `${S.ph}|${S.p ? S.p.q : ''}|${t}|${S.score}|${S.lock > 0}|${S.summary ? S.summary.score : ''}`;
+      const t = S.ph === 'play' ? Math.ceil(timeLeft()) : S.ph === 'ready' ? Math.ceil(S.readyT) : 0;
+      const key = `${S.ph}|${t}|${S.p ? S.p.q : ''}|${t}|${S.score}|${S.lock > 0}|${S.summary ? S.summary.score : ''}`;
       if (key === boardKey) return; boardKey = key;
       const g = board.g, W = 1024, H = 470;
       g.fillStyle = '#2a4a3a'; g.fillRect(0, 0, W, H);
@@ -35610,7 +35677,7 @@ kbd {
       }
       g.textAlign = 'left'; g.fillStyle = '#d8e8d8'; g.font = `700 40px ${BODY}`; g.fillText(MODES.find((m) => m.id === S.mode).name, 40, 60);
       g.textAlign = 'right'; g.fillStyle = t <= 10 ? '#ff9a8a' : '#f4f2e8'; g.font = `900 72px ${DISPLAY}`; g.fillText(`${t}`, W - 40, 80);
-      g.fillStyle = '#ffe08a'; g.font = `800 48px ${DISPLAY}`; g.fillText(`${S.score} right`, W - 40, 140);
+      g.fillStyle = '#ffe08a'; g.font = `800 48px ${DISPLAY}`; g.fillText(S.ph === 'ready' ? 'Get ready!' : `${S.score} right`, W - 40, 140);
       g.textAlign = 'center'; g.fillStyle = S.lock > 0 ? '#ff9a8a' : '#ffffff';
       const q = `${S.p.q}${/in |of /.test(S.p.q) ? '' : ' = ?'}`;
       g.font = `900 ${q.length > 14 ? 120 : 170}px ${DISPLAY}`; g.fillText(q, W / 2, 330, W - 80);
@@ -35627,7 +35694,11 @@ kbd {
       if (STUDY.slotOf(L) !== S.slot) stand();
       const ox = STUDY.SLOT_X[S.slot || 0] * 0.6;
       AT.forEach(([x, y], i) => deck.place(i, ox + x, y, SPOT_Z - 0.5, 0, -0.25));
-      if (S.ph === 'play') {
+      if (S.ph === 'ready') {
+        const was = Math.ceil(S.readyT); S.readyT -= dt; boardKey = Math.ceil(S.readyT) !== was ? '' : boardKey;
+        if (Math.ceil(S.readyT) !== was && S.readyT > 0) tone(660, 0, 0.12, 'sine', 0.15);
+        if (S.readyT <= 0) { S.ph = 'play'; S.t0 = performance.now(); for (let i = 0; i < 4; i++) deck.show(i, true); sfx('whistle', 0.6); boardKey = ''; }
+      } else if (S.ph === 'play') {
         if (timeLeft() <= 0) endRound();
         else if (S.lock > 0) { S.lock -= dt; if (S.lock <= 0) { S.lock = 0; next(); } }
       }
@@ -35635,7 +35706,7 @@ kbd {
       drawBoard();
       if (ui.status && state.mode === 'flat') {
         ui.status.hidden = false;
-        const txt = S.ph === 'menu' ? 'Math Sprint  ·  aim at a mode and click (or press 1-4)' : `${Math.ceil(timeLeft())} s  ·  ${S.score} right  ·  click the answer or press 1-4`;
+        const txt = S.ph === 'menu' ? 'Math Sprint  ·  aim at a mode and click (or press 1-4)' : S.ph === 'ready' ? `Get ready: ${Math.ceil(S.readyT)}` : `${Math.ceil(timeLeft())} s  ·  ${S.score} right  ·  click the answer or press 1-4`;
         if (ui.status.textContent !== txt) ui.status.textContent = txt;
       }
     };
@@ -36587,7 +36658,7 @@ kbd {
     for (let m = 4; m <= 24; m += 4) makePlate(G, `${m} m`, 0.6, 0.24, new V3(-W - 0.2, m, faceAtY(m - 0.1) + 0.02), 0, { bg: '#ffffff', fg: '#3a2a1a', size: 0.7 });
 
     // ---------------------------------------------------------------- your climb
-    const P = { hand: { left: { hold: null, anchor: new V3(), stam: 1, wait: 0 }, right: { hold: null, anchor: new V3(), stam: 1, wait: 0 } }, vy: 0, ph: 'ground', t0: 0, time: 0, best: 0, top: 0, flat: { left: null, right: null, next: 'right', body: new V3() } };
+    const P = { mantle: null, hand: { left: { hold: null, anchor: new V3(), stam: 1, wait: 0 }, right: { hold: null, anchor: new V3(), stam: 1, wait: 0 } }, vy: 0, ph: 'ground', t0: 0, time: 0, best: 0, top: 0, flat: { left: null, right: null, next: 'right', body: new V3() } };
     try { if (Number.isFinite(prefs.climbBest)) P.best = prefs.climbBest; } catch (e) { /* none */ }
     L.climbP = P;
     const _h = new V3(), _d = new V3(), _a = new V3(), _q = new Q4();
@@ -36601,7 +36672,8 @@ kbd {
       RECORDS.add(L, 'top', P.time);
       for (let i = 0; i < 4; i++) tone(1320, 1320, 1.2, 'sine', 0.2, i * 0.35);
       sfx('fanfare', 0.8);
-      showToast(`DING! The top in ${fmt(P.time)}${isBest ? ' (your best!)' : ''}`);
+      showToast(`DING! The top in ${fmt(P.time)}${isBest ? ' (your best!)' : ''}. Press Climb again to go back down`);
+      state.hudDirty = true;
       bell.userData.ring = 1;
       forcePresence(); state.dirtyBoard = true;
     }
@@ -36612,18 +36684,27 @@ kbd {
       dolly.position.set(0, 0, state.mode === 'vr' ? 0.6 : 1.3); P.vy = 0; P.ph = 'ground';
       if (state.mode !== 'vr') { state.yaw = 0; state.pitch = 0.35; }
       for (const h of HOLDS) if (h.gone) { h.gone = false; h.m.visible = true; h.held = 0; }
-      forcePresence();
+      P.mantle = null;
+      forcePresence(); state.hudDirty = true;
     }
     L.backToStart = backToStart;
     // climb onto the tier above a lip hold: you end up standing on it
     function mantle(k) {
       const lipY = BASE[k + 1], z = (FACE[k] + (FACE[k + 1] !== undefined ? FACE[k + 1] : TOP_Z)) / 2;
       camera.getWorldPosition(_h);
-      dolly.position.x += 0; dolly.position.z += z - _h.z; dolly.position.y = lipY;
-      for (const s of SIDES) { P.hand[s].hold = null; P.hand[s].wait = 0.4; P.flat[s] = null; }
-      P.vy = 0; sfx('whoosh', 0.5);
-      showToast(k < 2 ? `Tier ${k + 2}: ${BASE[k + 1]} m up` : 'The top! Ring the bell');
-      if (state.mode === 'vr') for (const s of SIDES) haptic(vrHands[s], 0.5, 60);
+      for (const s of SIDES) { P.hand[s].hold = null; P.hand[s].wait = 0.9; P.flat[s] = null; }
+      // a smooth haul up over the lip (no jump cut): up first, then forward onto the ledge
+      P.mantle = { t: 0, T: 0.75, fy: dolly.position.y, fz: dolly.position.z, ty: lipY, tz: dolly.position.z + (z - _h.z), k };
+      P.vy = 0; sfx('whoosh', 0.4);
+      if (state.mode === 'vr') for (const s of SIDES) haptic(vrHands[s], 0.4, 80);
+    }
+    function mantleStep(dt) {
+      const m = P.mantle; m.t += dt;
+      const u = Math.min(1, m.t / m.T), up = Math.min(1, u / 0.6), fw = clamp((u - 0.35) / 0.65, 0, 1);
+      const e = (x) => x * x * (3 - 2 * x);
+      dolly.position.y = m.fy + (m.ty - m.fy) * e(up);
+      dolly.position.z = m.fz + (m.tz - m.fz) * e(fw);
+      if (u >= 1) { P.mantle = null; showToast(m.k < 2 ? `Tier ${m.k + 2}: ${BASE[m.k + 1]} m up` : 'The top! Ring the bell'); }
     }
     // the hold nearest a point (within reach)
     function holdNear(p, reach) {
@@ -36739,7 +36820,8 @@ kbd {
       if (!here) { hiM.visible = false; for (const s of SIDES) meters[s].visible = false; return; }
       camera.getWorldDirection(camF);
       let hanging = false;
-      if (state.mode === 'vr') hanging = vrClimb(dt);
+      if (P.mantle) { mantleStep(dt); hanging = true; }
+      else if (state.mode === 'vr') hanging = vrClimb(dt);
       else if (P.flat.left || P.flat.right) {
         // crumbly holds go in the browser too
         for (const s of SIDES) { const h = P.flat[s]; if (!h) continue; h.held += dt; if (h.crumbly && h.held > 1.6) { crumble(h); P.flat[s] = null; } }
@@ -36811,7 +36893,9 @@ kbd {
     };
     makeKiosk(L, 3.4, 3.8, -Math.PI * 0.8);
     RECORDS.def(L, [{ k: 'top', label: 'Fastest to the bell', low: true, fmt: 'time' }]);
-    L.hudActions = [{ label: () => 'Back to the bottom', run: () => backToStart() }];
+    L.hudActions = [{ label: () => (P.ph === 'done' ? 'Climb again' : 'Back to the bottom'), run: () => backToStart() }];
+    // up top: a button to go again (it takes you back down to the beach)
+    makeButton(L, new V3(1.4, BASE[3] + 1.0, TOP_Z + 0.2), 0x3ac84a, 'Climb again', () => backToStart(), { faceYaw: 0 });
     L.hints = [['Grip', 'grab a hold and pull'], ['Hand to hip', 'chalk up when your grip tires'], ['Let go', 'the belay lowers you']];
     L.hintsFor = () => (state.mode === 'flat' ? [['Click a hold', 'reach for it (green ring = in reach)'], ['E', 'ring the bell at the top'], ['R', 'back to the bottom']] : L.hints);
     L.spawn = () => { backToStart(); };
@@ -36916,6 +37000,9 @@ kbd {
     L.arch = S;
     function newRound() { Object.assign(S, { ph: 'play', left: ROUND, score: 0, last: null, bulls: 0 }); for (const a of ARROWS) { a.st = 'off'; a.m.visible = false; } sbKey = ''; forcePresence(); state.dirtyBoard = true; }
     L.newRound = newRound;
+    // lefties hold the bow in the right hand and draw with the left
+    function swapHands() { S.bowHand = S.bowHand === 'left' ? 'right' : 'left'; prefs.bowHand = S.bowHand; savePrefs(); S.drawing = false; showToast(S.bowHand === 'left' ? 'Right-handed: bow in your left hand' : 'Left-handed: bow in your right hand'); state.hudDirty = true; }
+    L.swapHands = swapHands;
     const _up = new V3(0, 0, -1), _q = new Q4();
     function loose(from, dir, speed) {
       if (S.ph !== 'play') newRound();
@@ -37021,8 +37108,9 @@ kbd {
     function flatBow(now) {
       const c = state.charge !== null ? Math.min(1, (now - state.charge) / 1000) : 0;
       camera.getWorldPosition(_bp); camera.getWorldQuaternion(_q);
-      bow.visible = true; bow.scale.setScalar(0.5); nocked.scale.setScalar(0.5); bow.position.copy(_bp).add(_sp.set(-0.2, -0.13, -0.7).applyQuaternion(_q)); bow.quaternion.copy(_q);
-      bow.rotateZ(0.3);
+      bow.visible = true; bow.scale.setScalar(0.5); nocked.scale.setScalar(0.5); const lr = S.bowHand === 'left' ? -1 : 1;
+      bow.position.copy(_bp).add(_sp.set(0.2 * lr, -0.13, -0.7).applyQuaternion(_q)); bow.quaternion.copy(_q);
+      bow.rotateZ(-0.3 * lr);
       const str = bow.userData.string.geometry.attributes.position;
       str.setXYZ(1, 0, 0, 0.14 + c * 0.32); str.needsUpdate = true;
       nocked.visible = c > 0.02; if (nocked.visible) { nocked.position.copy(bow.position).add(_sp.set(0, 0, (0.14 + c * 0.32 - 0.36) * 0.5).applyQuaternion(bow.quaternion)); nocked.quaternion.copy(bow.quaternion); }
@@ -37094,10 +37182,11 @@ kbd {
       L.board.tex.needsUpdate = true;
     };
     makeKiosk(L, -3.0, 3.2, Math.PI * 0.8);
+    makeButton(L, new V3(3.2, 1.0, 1.0), 0x2e8a4c, 'Lefty / righty', () => swapHands(), { faceYaw: -0.4 });
     RECORDS.def(L, [{ k: 'round', label: 'Best round (12 arrows)' }, { k: 'bulls', label: 'Most bullseyes in a round' }, { k: 'long', label: 'Longest hit', fmt: 'm' }]);
     L.hudActions = [
       { label: () => (S.ph === 'play' ? 'New round' : 'Start a round'), run: () => newRound() },
-      { label: () => `Bow hand: ${S.bowHand}`, show: () => state.mode === 'vr', run: () => { S.bowHand = S.bowHand === 'left' ? 'right' : 'left'; prefs.bowHand = S.bowHand; savePrefs(); } },
+      { label: () => (S.bowHand === 'left' ? 'Right-handed ▸' : 'Left-handed ▸'), run: () => swapHands() },
     ];
     L.hints = [['Bow hand', 'points where you shoot'], ['Other hand', 'grip at the string, draw back, let go'], ['Far targets', 'aim a little high']];
     L.hintsFor = () => (state.mode === 'flat' ? [['Space', 'hold to draw, let go to shoot'], ['Drag', 'aim'], ['Far targets', 'aim a little high']] : L.hints);
@@ -37129,6 +37218,10 @@ kbd {
       sun: [0xfff4c8, 0.6], sunDir: new V3(0.3, 0.9, 0.2), ambient: [0x4a6a3a, 0.4], sprite: null,
     };
     const ARENA = 14, ROUND_T = 150, TAG_R = 0.85;
+    // in VR you're gorilla-sized: your eyes are about a metre up, so the ground is in easy reach of your hands
+    // (your real floor sits below the jungle floor by SHIFT). A hand is a ball of radius HR.
+    const SHIFT = 0.75, HR = 0.06, ARM = 1.3, VMAX = 8.5;
+    const shift = () => (state.mode === 'vr' ? SHIFT : 0);
     L.bounds = { minX: -ARENA, maxX: ARENA, minZ: -ARENA, maxZ: ARENA };
     // ---------------------------------------------------------------- the jungle: everything you can touch is a box
     const BOXES = [];
@@ -37180,8 +37273,8 @@ kbd {
     }
     // is a hand touching a surface? returns where it touches and the surface's normal
     function contact(p) {
-      if (p.y < 0.03) return { at: new V3(p.x, 0.03, p.z), n: new V3(0, 1, 0) };
-      const r = 0.035;
+      if (p.y < HR) return { at: new V3(p.x, HR, p.z), n: new V3(0, 1, 0) };
+      const r = HR;
       for (const b of BOXES) {
         if (p.x < b.min.x - r || p.x > b.max.x + r || p.y < b.min.y - r || p.y > b.max.y + r || p.z < b.min.z - r || p.z > b.max.z + r) continue;
         const d = [[p.x - (b.min.x - r), -1, 0, 0], [b.max.x + r - p.x, 1, 0, 0], [p.y - (b.min.y - r), 0, -1, 0], [b.max.y + r - p.y, 0, 1, 0], [p.z - (b.min.z - r), 0, 0, -1], [b.max.z + r - p.z, 0, 0, 1]];
@@ -37331,8 +37424,8 @@ kbd {
         dolly.position.add(_c);
         // how fast your arms are moving you: carried on when you let go (a little extra, gorillas are bouncy)
         M.hist.push(_c.clone().divideScalar(Math.max(dt, 1e-3))); while (M.hist.length > 4) M.hist.shift();
-        const v = M.hist.reduce((a, x) => a.add(x), new V3()).divideScalar(M.hist.length).multiplyScalar(1.15);
-        if (v.length() > 7.5) v.setLength(7.5);
+        const v = M.hist.reduce((a, x) => a.add(x), new V3()).divideScalar(M.hist.length).multiplyScalar(ARM);
+        if (v.length() > VMAX) v.setLength(VMAX);
         M.vel.copy(v);
       } else {
         M.hist.length = 0;
@@ -37344,7 +37437,7 @@ kbd {
     // feet on whatever's below, head out of the trees, inside the arena
     function settle(dt, holding) {
       camera.getWorldPosition(_a);
-      const fl = support(_a.x, _a.z, dolly.position.y);
+      const fl = support(_a.x, _a.z, dolly.position.y + shift()) - shift();
       if (dolly.position.y <= fl) { dolly.position.y = fl; if (M.vel.y < 0) M.vel.y = 0; if (!holding) M.vel.x *= Math.exp(-dt * 7), M.vel.z *= Math.exp(-dt * 7); M.ground = true; } else M.ground = false;
       camera.getWorldPosition(_a);
       const push = pushOut(_a, 0.22); push.y = Math.min(0, push.y);
@@ -37497,7 +37590,7 @@ kbd {
     L.hudActions = [{ label: () => (S.ph === 'play' ? 'New round' : 'Start a round'), run: () => requestStart() }];
     L.hints = [['Arms', 'push off the ground and trees to move'], ['Push down + back', 'to leap forward'], ['A / X', 'start a round']];
     L.hintsFor = () => (state.mode === 'flat' ? [['WASD', 'run'], ['Space', 'leap'], ['Lava?', 'run into people to tag them']] : L.hints);
-    L.spawn = () => { const a = rand() * Math.PI * 2; dolly.position.set(Math.cos(a) * 6, 0, Math.sin(a) * 6); M.vel.set(0, 0, 0); if (state.mode !== 'vr') { state.yaw = Math.atan2(Math.cos(a), Math.sin(a)) + Math.PI / 2; state.pitch = 0; } };
+    L.spawn = () => { const a = rand() * Math.PI * 2; dolly.position.set(Math.cos(a) * 6, -shift(), Math.sin(a) * 6); M.vel.set(0, 0, 0); if (state.mode !== 'vr') { state.yaw = Math.atan2(Math.cos(a), Math.sin(a)) + Math.PI / 2; state.pitch = 0; } };
     L.onEnter = () => { M.vel.set(0, 0, 0); clkKey = ''; };
     L.onExit = () => { if (ui.status) ui.status.hidden = true; dolly.position.y = 0; for (const s of SIDES) { M.hand[s].on = false; myLava[s].visible = false; } if (isHost() && S.ph === 'play') S.ph = 'lobby'; };
     L.attract = (now) => { const a = reduceMotion ? 0 : now * 0.00006; camera.position.set(Math.sin(a) * 12, 5, Math.cos(a) * 12); camera.lookAt(0, 2, 0); };

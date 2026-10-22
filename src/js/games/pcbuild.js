@@ -10,10 +10,10 @@
     const G = L.group;
     const rand = mulberry32(5050);
     L.grabless = true;
-    L.bounds = { minX: -5.6, maxX: 5.6, minZ: 1.1, maxZ: 3.6 };
+    L.bounds = { minX: -5.6, maxX: 5.6, minZ: 0.62, maxZ: 3.6 };   // (you can lean right over the bench)
     L.env = STUDY.env();
     const hall = STUDY.room(G, rand, { w: 12, d: 10, z: -1, h: 4.4 });
-    const K = 1.4, TOP = 0.9, BX = 0, BY = TOP + 0.006, BZ = 0.5, SPOT_Z = 1.45;
+    const K = 1.4, TOP = 0.9, BX = 0, BY = TOP + 0.006, BZ = 0.5, SPOT_Z = 1.25;
     // ---------------------------------------------------------------- the bench and the motherboard
     addBox(G, 2.3, 0.05, 0.85, lam(0x8a6a4a), 0, TOP - 0.025, 0.55);
     for (const [x, z] of [[-1.05, 0.2], [1.05, 0.2], [-1.05, 0.9], [1.05, 0.9]]) addBox(G, 0.06, TOP - 0.05, 0.06, lam(0x3a3a3a), x, (TOP - 0.05) / 2, z);
@@ -261,7 +261,7 @@
     };
     L.onVRGrab = (h) => {
       const mh = myHands[h.side];
-      let best = null, bd = 0.14;
+      let best = null, bd = 0.2;
       for (const p of partList()) { if (p.st !== 'home') continue; const d = p.mesh.position.distanceTo(mh.pos); if (d < bd) { bd = d; best = p; } }
       if (!best) return false;
       const held = pickUp(best, h.side);
@@ -270,7 +270,7 @@
     };
     L.onVRRelease = (h) => {
       const p = S.held; if (!p || p.side !== h.side) return;
-      let best = null, bd = 0.11;
+      let best = null, bd = 0.14;
       for (const s of SLOTS) { const sp = slotPos(s, _t); const d = Math.hypot(sp.x - p.mesh.position.x, sp.z - p.mesh.position.z); if (d < bd && p.mesh.position.y < BY + 0.3) { bd = d; best = s; } }
       if (best) { if (fit(p, best)) haptic(vrHands[h.side], 0.6, 40); }
       else { goHome(p); S.held = null; }
@@ -327,7 +327,7 @@
     }
 
     // ---------------------------------------------------------------- per frame
-    function stand() { S.slot = STUDY.slotOf(L); STUDY.standAt(STUDY.SLOT_X[S.slot] * 0.4, state.mode === 'vr' ? SPOT_Z : 2.15, 0, -0.42); }
+    function stand() { S.slot = STUDY.slotOf(L); STUDY.standAt(STUDY.SLOT_X[S.slot] * 0.4, state.mode === 'vr' ? SPOT_Z : 1.7, 0, -0.62); }
     const strapP = P.strap;
     L.update = (dt, now) => {
       const here = state.level === L.idx && state.mode !== 'menu';
