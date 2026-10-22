@@ -55,13 +55,14 @@ def main():
             print("Fruit:", fr)
             check(fr["hit"] and fr["score"] == 1 and fr["halves"] and fr["lives"] == 2 and fr["ph"] == "over" and fr["arcade"] == ["play", 5], f"fruit: {fr}")
             # the browser: a real mouse swipe through a fruit
-            page.evaluate("() => { const fd = window.__fd, I = fd.LEVELS[55].fruitInternals; I.start('arcade'); I.S.next = 99; const it = I.launch(false, false); it.v.set(0, 0, 0); it.p.set(fd.dolly.position.x, 1.45, fd.dolly.position.z - 1.35); window.__fr = it; }")
+            page.evaluate("() => { const fd = window.__fd, I = fd.LEVELS[55].fruitInternals; I.start('arcade'); I.S.next = 99; const it = I.launch(false, false); it.v.set(0, 0, 0); it.p.set(fd.dolly.position.x, 1.3, fd.dolly.position.z - 1.35); window.__fr = it; }")
             page.wait_for_timeout(300)
-            page.mouse.move(200, 330)
-            page.wait_for_timeout(200)
-            for x in range(200, 720, 40):
-                page.evaluate("() => { const fd = window.__fd, it = window.__fr; if (it.on) { it.v.set(0, 0, 0); it.p.set(fd.dolly.position.x, 1.45, fd.dolly.position.z - 1.35); } }")
-                page.mouse.move(x, 300)
+            sy = page.evaluate("() => { const fd = window.__fd; window.__fr.v.set(0, 0, 0); window.__fr.p.set(fd.dolly.position.x, 1.3, fd.dolly.position.z - 1.35); fd.camera.updateMatrixWorld(true); const v = window.__fr.p.clone().project(fd.camera), r = document.querySelector('#scene').getBoundingClientRect(); return Math.round(r.top + (1 - v.y) / 2 * r.height); }")
+            page.mouse.move(150, sy)
+            page.wait_for_timeout(250)
+            for x in range(150, 760, 40):
+                page.evaluate("() => { const fd = window.__fd, it = window.__fr; if (it.on) { it.v.set(0, 0, 0); it.p.set(fd.dolly.position.x, 1.3, fd.dolly.position.z - 1.35); } }")
+                page.mouse.move(x, sy)
                 page.wait_for_timeout(60)
             page.wait_for_timeout(150)
             shot("fruit")
