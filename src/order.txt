@@ -81,6 +81,8 @@ js/games/pcbuild.js
 js/games/helpdesk.js
 js/games/cmddojo.js
 js/games/mathsprint.js
+js/games/triggers-content.js
+js/games/triggers.js
 js/app/vr-controls.js
 js/app/flat-controls.js
 js/app/modes.js

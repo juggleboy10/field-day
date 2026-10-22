@@ -250,7 +250,7 @@ kbd {
 
 <section id="panel" class="panel" aria-labelledby="title">
   <h1 id="title">Field Day</h1>
-  <p class="lede">A clubhouse and fifty-three games to play with friends, in VR or right here in the browser. Everyone who has this page open can join you.</p>
+  <p class="lede">A clubhouse and fifty-four games to play with friends, in VR or right here in the browser. Everyone who has this page open can join you.</p>
   <p id="net" class="net" data-state="connecting"><span class="dot" aria-hidden="true"></span><span id="net-text">Looking for other players…</span></p>
   <fieldset class="levels">
     <legend class="field-label">Pick a game</legend>
@@ -1217,8 +1217,9 @@ kbd {
     { id: 'helpdesk', name: 'Help Desk Tickets', short: 'Help Desk', glyph: '\u{1F6E0}\uFE0F', blurb: 'Customers bring their computer problems to your counter: pick the likely cause, then the fix. Six customers a shift.' },
     { id: 'cmddojo', name: 'Command Line Dojo', short: 'CLI Dojo', glyph: '\u{1F94B}', blurb: 'The terminal gives you a task; three command blocks fly at you. Strike the right one. Windows and Linux, white belt to black.' },
     { id: 'mathsprint', name: 'Math Sprint', short: 'Math Sprint', glyph: '\u{1F9EE}', blurb: 'Mental maths against a 60-second clock: adding, times tables, percentages and squares, or binary and hex.' },
+    { id: 'triggers', name: 'Trigger Words', short: 'Triggers', glyph: '\u{1F6CE}\uFE0F', blurb: 'Quiz-show training: learn the phrases that give the answer away ("Norwegian playwright"? Ibsen). Spaced repetition and rapid fire.' },
   ];
-  const KIOSK_COLORS = [0xf5821f, 0xe8e4d8, 0x8bd450, 0xb388ff, 0xff4d6a, 0x2ec4b6, 0x3fbf7f, 0xff9ad0, 0xffd27a, 0x4fc3f7, 0x4a8aff, 0xb06aff, 0xffb36b, 0xff9ad0, 0x8bd450, 0xd8f43a, 0xff7a3a, 0xe5453a, 0xe8a040, 0x2ec4d8, 0xf2c14e, 0xd84a3a, 0x2a8ab8, 0x9a6aff, 0x6ad04a, 0xff3aa8, 0xffd23f, 0xff9a5c, 0x4fc3f7, 0x8a5a2a, 0x9af0ff, 0xff4d8a, 0xff9ad0, 0xe5453a, 0xb8e0ff, 0x7ad8ff, 0xd8b060, 0xffd23f, 0xff5a8a, 0x9a7ad8, 0xe8c860, 0xff4d8a, 0xff4dc8, 0xe5453a, 0xffd23f, 0x4a7ad8, 0x8bd450, 0x4fc3f7, 0xffd23f, 0x3aa86a, 0x4fc3f7, 0x2f6fd0, 0xb02a2a, 0x8bd450];
+  const KIOSK_COLORS = [0xf5821f, 0xe8e4d8, 0x8bd450, 0xb388ff, 0xff4d6a, 0x2ec4b6, 0x3fbf7f, 0xff9ad0, 0xffd27a, 0x4fc3f7, 0x4a8aff, 0xb06aff, 0xffb36b, 0xff9ad0, 0x8bd450, 0xd8f43a, 0xff7a3a, 0xe5453a, 0xe8a040, 0x2ec4d8, 0xf2c14e, 0xd84a3a, 0x2a8ab8, 0x9a6aff, 0x6ad04a, 0xff3aa8, 0xffd23f, 0xff9a5c, 0x4fc3f7, 0x8a5a2a, 0x9af0ff, 0xff4d8a, 0xff9ad0, 0xe5453a, 0xb8e0ff, 0x7ad8ff, 0xd8b060, 0xffd23f, 0xff5a8a, 0x9a7ad8, 0xe8c860, 0xff4d8a, 0xff4dc8, 0xe5453a, 0xffd23f, 0x4a7ad8, 0x8bd450, 0x4fc3f7, 0xffd23f, 0x3aa86a, 0x4fc3f7, 0x2f6fd0, 0xb02a2a, 0x8bd450, 0x0a1a9a];
   const LEVEL_CATS = [
     { id: 'ball', name: 'Ball sports', glyph: '\u26BD', games: [0, 1, 5, 15, 29, 37] },
     { id: 'battle', name: 'Team battles', glyph: '\u{1F3AF}', games: [14, 4, 17, 21, 34, 38] },
@@ -1228,9 +1229,9 @@ kbd {
     { id: 'party', name: 'Party games', glyph: '\u{1F389}', games: [13, 12, 18, 23, 32, 41] },
     { id: 'active', name: 'Get active', glyph: '\u{1F4AA}', games: [25, 27, 28, 33, 42] },
     { id: 'carnival', name: 'Carnival', glyph: '\u{1F3A1}', games: [31, 26, 43, 44, 45, 46, 47] },
-    { id: 'study', name: 'Study Hall', glyph: '\u{1F4DA}', games: [48, 49, 50, 51, 52, 53] },
+    { id: 'study', name: 'Study Hall', glyph: '\u{1F4DA}', games: [48, 49, 50, 51, 52, 53, 54] },
   ];
-  const PICKER_ORDER = [8, 53, 52, 51, 50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 3, 10, 11, 0, 1, 2, 4, 5, 6, 7, 9];
+  const PICKER_ORDER = [8, 54, 53, 52, 51, 50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 3, 10, 11, 0, 1, 2, 4, 5, 6, 7, 9];
   function makeKiosk(L, x, z, yaw) {
     const fx = Math.sin(yaw), fz = Math.cos(yaw);   // direction the kiosk faces
     const rx = Math.cos(yaw), rz = -Math.sin(yaw);  // its right-hand side
@@ -35397,6 +35398,493 @@ kbd {
     showMenu();
     L.mathInternals = { S, deck, answer, next, startRound, endRound, problem, MODES };
     MUSIC_THEMES.mathsprint = { gain: 0.6, bpm: 132, swing: 0, chords: ['C', 'G', 'Am', 'F'], arp: { inst: 'marimba', every: 1, order: [1, 2, 3, 4, 3, 2, 1, 2] }, bass: { at: [0, 4, 8, 12] }, drums: { k: 'x...x...x...x...', h: 'o.o.o.o.o.o.o.o.' }, cut: 4800 };
+    return L;
+  })();
+  // ================================================================ STUDY HALL: quiz-show trigger words
+  // The phrases that point straight at one answer on TV quiz shows: "Norwegian playwright" is almost always Ibsen.
+  // Each: [category, the trigger, the answer, 'who' | 'what' (how you'd phrase the response), a note (optional)]
+  const TRIGGERS = (() => {
+    const CATS = ['Composers', 'Painters', 'Writers', 'Thinkers & scientists', 'Mythology', 'Geography', 'History', 'Shakespeare', 'The Bible', 'Opera & ballet', 'Elements', 'Literature'];
+    const T = [
+      // ---------------- composers
+      ['Composers', 'Norwegian composer', 'Edvard Grieg', 'who', '"Peer Gynt," "In the Hall of the Mountain King"'],
+      ['Composers', 'Finnish composer', 'Jean Sibelius', 'who', '"Finlandia"'],
+      ['Composers', 'Czech composer of the "New World" Symphony', 'Antonín Dvořák', 'who', 'The other big Czech: Smetana ("The Moldau")'],
+      ['Composers', 'Polish composer of nocturnes and mazurkas', 'Frédéric Chopin', 'who'],
+      ['Composers', 'Hungarian piano virtuoso and composer', 'Franz Liszt', 'who', '"Hungarian Rhapsodies"; 20th-century Hungarian: Bartók'],
+      ['Composers', 'Dutch Renaissance composer and organist', 'Jan Pieterszoon Sweelinck', 'who', 'Amsterdam’s Oude Kerk'],
+      ['Composers', 'Danish composer', 'Carl Nielsen', 'who'],
+      ['Composers', 'Brazilian composer of "Bachianas Brasileiras"', 'Heitor Villa-Lobos', 'who'],
+      ['Composers', 'Armenian composer of the "Sabre Dance"', 'Aram Khachaturian', 'who'],
+      ['Composers', 'English composer of "Pomp and Circumstance"', 'Edward Elgar', 'who'],
+      ['Composers', 'English composer of "The Planets"', 'Gustav Holst', 'who'],
+      ['Composers', '"The Waltz King"', 'Johann Strauss II', 'who', '"The Blue Danube"'],
+      ['Composers', '"Father of the Symphony"', 'Joseph Haydn', 'who', 'Over 100 symphonies'],
+      ['Composers', '"The March King"', 'John Philip Sousa', 'who', '"The Stars and Stripes Forever"'],
+      ['Composers', 'French composer of "Boléro"', 'Maurice Ravel', 'who'],
+      ['Composers', 'French composer of "Clair de lune"', 'Claude Debussy', 'who'],
+      ['Composers', 'Russian composer of "Swan Lake" and "The Nutcracker"', 'Pyotr Ilyich Tchaikovsky', 'who'],
+      ['Composers', 'Russian composer of "The Rite of Spring"', 'Igor Stravinsky', 'who', 'Its 1913 premiere caused a riot'],
+      ['Composers', 'Composer of "Rhapsody in Blue"', 'George Gershwin', 'who'],
+      ['Composers', 'Deaf composer of the "Ode to Joy" symphony', 'Ludwig van Beethoven', 'who', 'The Ninth Symphony'],
+      ['Composers', 'Composer of "The Four Seasons"', 'Antonio Vivaldi', 'who', 'The "Red Priest" of Venice'],
+      // ---------------- painters
+      ['Painters', 'Dutch painter of "The Night Watch"', 'Rembrandt', 'who'],
+      ['Painters', 'Dutch painter of "Girl with a Pearl Earring"', 'Johannes Vermeer', 'who', 'Delft'],
+      ['Painters', 'Dutch post-impressionist who cut off part of his ear', 'Vincent van Gogh', 'who'],
+      ['Painters', 'Norwegian painter of "The Scream"', 'Edvard Munch', 'who'],
+      ['Painters', 'Belgian surrealist: bowler hats, "This is not a pipe"', 'René Magritte', 'who'],
+      ['Painters', 'Spanish surrealist with melting clocks', 'Salvador Dalí', 'who', '"The Persistence of Memory"'],
+      ['Painters', 'Austrian painter of "The Kiss"', 'Gustav Klimt', 'who', 'Lots of gold leaf'],
+      ['Painters', 'Mexican painter famous for self-portraits', 'Frida Kahlo', 'who', 'Married to Diego Rivera, the muralist'],
+      ['Painters', 'French impressionist of water lilies', 'Claude Monet', 'who', 'His garden at Giverny'],
+      ['Painters', 'French impressionist of ballet dancers', 'Edgar Degas', 'who'],
+      ['Painters', 'French painter who went to Tahiti', 'Paul Gauguin', 'who'],
+      ['Painters', 'Pointillism', 'Georges Seurat', 'who', '"A Sunday Afternoon on the Island of La Grande Jatte"'],
+      ['Painters', 'Posters of the Moulin Rouge', 'Henri de Toulouse-Lautrec', 'who'],
+      ['Painters', 'Flemish painter of fleshy figures', 'Peter Paul Rubens', 'who', 'Hence "Rubenesque"'],
+      ['Painters', 'Spanish court painter of "Las Meninas"', 'Diego Velázquez', 'who'],
+      ['Painters', 'Greek-born painter who worked in Toledo, Spain', 'El Greco', 'who'],
+      ['Painters', 'American painter of "Nighthawks"', 'Edward Hopper', 'who'],
+      ['Painters', 'American painter of "American Gothic"', 'Grant Wood', 'who'],
+      ['Painters', 'American painter of "Christina’s World"', 'Andrew Wyeth', 'who'],
+      ['Painters', '"Jack the Dripper"', 'Jackson Pollock', 'who'],
+      ['Painters', 'Pop artist of Campbell’s Soup cans', 'Andy Warhol', 'who'],
+      ['Painters', 'Russian pioneer of abstract art', 'Wassily Kandinsky', 'who'],
+      // ---------------- writers
+      ['Writers', 'Norwegian playwright', 'Henrik Ibsen', 'who', '"A Doll’s House," "Hedda Gabler"'],
+      ['Writers', 'Swedish playwright', 'August Strindberg', 'who', '"Miss Julie"'],
+      ['Writers', 'Russian playwright of "The Cherry Orchard"', 'Anton Chekhov', 'who', 'Also a doctor'],
+      ['Writers', 'Irish playwright of "Waiting for Godot"', 'Samuel Beckett', 'who'],
+      ['Writers', 'Irish playwright of "Pygmalion"', 'George Bernard Shaw', 'who'],
+      ['Writers', 'Italian poet of "The Divine Comedy"', 'Dante Alighieri', 'who', 'Guided by Virgil'],
+      ['Writers', 'Spanish author of "Don Quixote"', 'Miguel de Cervantes', 'who'],
+      ['Writers', 'Portuguese epic poet of "The Lusiads"', 'Luís de Camões', 'who'],
+      ['Writers', 'German author of "Faust"', 'Johann Wolfgang von Goethe', 'who'],
+      ['Writers', 'Prague-born author of "The Metamorphosis"', 'Franz Kafka', 'who', 'Gregor Samsa wakes up as an insect'],
+      ['Writers', 'Danish writer of fairy tales', 'Hans Christian Andersen', 'who', '"The Little Mermaid," "The Ugly Duckling"'],
+      ['Writers', 'Colombian Nobel laureate of magical realism', 'Gabriel García Márquez', 'who', '"One Hundred Years of Solitude"'],
+      ['Writers', 'Chilean Nobel-winning poet', 'Pablo Neruda', 'who', 'Also Chilean: Gabriela Mistral'],
+      ['Writers', 'Bengali poet, Asia’s first Nobel laureate (1913)', 'Rabindranath Tagore', 'who'],
+      ['Writers', 'Russian author of "War and Peace"', 'Leo Tolstoy', 'who', 'Also "Anna Karenina"'],
+      ['Writers', 'Russian author of "Crime and Punishment"', 'Fyodor Dostoevsky', 'who', 'Raskolnikov'],
+      ['Writers', 'Roman poet of "The Aeneid"', 'Virgil', 'who'],
+      ['Writers', 'Roman poet of "Metamorphoses"', 'Ovid', 'who'],
+      ['Writers', 'Greek "Father of History"', 'Herodotus', 'who'],
+      ['Writers', 'Blind Greek poet of "The Iliad"', 'Homer', 'who'],
+      // ---------------- thinkers and scientists
+      ['Thinkers & scientists', '"I think, therefore I am"', 'René Descartes', 'who', '"Cogito, ergo sum"'],
+      ['Thinkers & scientists', 'Dutch philosopher who ground lenses', 'Baruch Spinoza', 'who'],
+      ['Thinkers & scientists', 'Dutch humanist of "In Praise of Folly"', 'Erasmus', 'who'],
+      ['Thinkers & scientists', 'Scottish economist of "The Wealth of Nations"', 'Adam Smith', 'who', 'The "invisible hand"'],
+      ['Thinkers & scientists', 'English philosopher of "Leviathan"', 'Thomas Hobbes', 'who', 'Life is "nasty, brutish, and short"'],
+      ['Thinkers & scientists', 'Author of "The Prince"', 'Niccolò Machiavelli', 'who'],
+      ['Thinkers & scientists', '"Thus Spoke Zarathustra"', 'Friedrich Nietzsche', 'who', '"God is dead"'],
+      ['Thinkers & scientists', 'Danish existentialist philosopher', 'Søren Kierkegaard', 'who'],
+      ['Thinkers & scientists', 'Polish-born scientist with two Nobel Prizes', 'Marie Curie', 'who', 'Physics 1903, chemistry 1911'],
+      ['Thinkers & scientists', 'Danish astronomer with a metal nose', 'Tycho Brahe', 'who'],
+      ['Thinkers & scientists', 'Polish astronomer: the Sun at the center', 'Nicolaus Copernicus', 'who'],
+      ['Thinkers & scientists', 'Swedish botanist who named the species', 'Carl Linnaeus', 'who', 'Binomial nomenclature'],
+      ['Thinkers & scientists', 'Swedish inventor of dynamite', 'Alfred Nobel', 'who'],
+      ['Thinkers & scientists', 'Austrian monk who bred pea plants', 'Gregor Mendel', 'who', 'Father of genetics'],
+      ['Thinkers & scientists', 'Dutch microscopist of "animalcules"', 'Antonie van Leeuwenhoek', 'who'],
+      ['Thinkers & scientists', 'Italian radio pioneer', 'Guglielmo Marconi', 'who'],
+      ['Thinkers & scientists', 'Serbian-American inventor of AC systems', 'Nikola Tesla', 'who'],
+      // ---------------- mythology
+      ['Mythology', 'Norse god of thunder', 'Thor', 'who', 'Hammer: Mjölnir'],
+      ['Mythology', 'Norse trickster god', 'Loki', 'who'],
+      ['Mythology', 'One-eyed chief of the Norse gods', 'Odin', 'who', 'Also Woden, hence Wednesday'],
+      ['Mythology', 'Norse hall of slain warriors', 'Valhalla', 'what'],
+      ['Mythology', 'Greek messenger god with winged sandals', 'Hermes', 'who', 'Roman: Mercury'],
+      ['Mythology', 'Roman god of war', 'Mars', 'who', 'Greek: Ares'],
+      ['Mythology', 'Two-faced Roman god of doorways', 'Janus', 'who', 'Hence January'],
+      ['Mythology', 'Greek god of wine', 'Dionysus', 'who', 'Roman: Bacchus'],
+      ['Mythology', 'Greek goddess of wisdom, born from Zeus’s head', 'Athena', 'who', 'Roman: Minerva'],
+      ['Mythology', 'Egyptian sun god', 'Ra', 'who'],
+      ['Mythology', 'Jackal-headed Egyptian god of the dead', 'Anubis', 'who'],
+      ['Mythology', 'Greek hero with a vulnerable heel', 'Achilles', 'who'],
+      ['Mythology', 'She opened a jar of the world’s evils', 'Pandora', 'who', 'Hope stayed inside'],
+      ['Mythology', 'King whose touch turned things to gold', 'Midas', 'who'],
+      ['Mythology', 'Flew too close to the sun on wax wings', 'Icarus', 'who', 'Son of Daedalus'],
+      ['Mythology', 'Titan who holds up the sky', 'Atlas', 'who'],
+      ['Mythology', 'Ferryman across the River Styx', 'Charon', 'who'],
+      // ---------------- geography
+      ['Geography', 'Landlocked South American countries', 'Bolivia and Paraguay', 'what', 'The only two'],
+      ['Geography', 'Capital of Australia', 'Canberra', 'what', 'Not Sydney'],
+      ['Geography', 'Capital of Canada', 'Ottawa', 'what'],
+      ['Geography', 'Capital of Turkey', 'Ankara', 'what', 'Not Istanbul'],
+      ['Geography', 'Capital of Brazil', 'Brasília', 'what', 'Not Rio'],
+      ['Geography', 'Capital of New Zealand', 'Wellington', 'what'],
+      ['Geography', 'Capital of Switzerland', 'Bern', 'what'],
+      ['Geography', 'Capital of Morocco', 'Rabat', 'what', 'Not Casablanca'],
+      ['Geography', 'Capital of Nigeria', 'Abuja', 'what', 'Not Lagos'],
+      ['Geography', 'Capital of Pakistan', 'Islamabad', 'what', 'Not Karachi'],
+      ['Geography', '"The Windy City"', 'Chicago', 'what'],
+      ['Geography', '"The Mile High City"', 'Denver', 'what'],
+      ['Geography', '"The Eternal City"', 'Rome', 'what'],
+      ['Geography', '"The City of Light"', 'Paris', 'what'],
+      ['Geography', '"The Emerald Isle"', 'Ireland', 'what'],
+      ['Geography', 'World’s smallest country', 'Vatican City', 'what'],
+      ['Geography', 'Strait between Spain and Morocco', 'the Strait of Gibraltar', 'what'],
+      ['Geography', 'Lake on the Peru–Bolivia border', 'Lake Titicaca', 'what', 'Highest navigable lake'],
+      ['Geography', 'River through Baghdad', 'the Tigris', 'what', 'The Euphrates is its twin'],
+      ['Geography', 'Mountains between Europe and Asia in Russia', 'the Urals', 'what'],
+      // ---------------- history
+      ['History', '"Old Hickory"', 'Andrew Jackson', 'who'],
+      ['History', '"Silent Cal"', 'Calvin Coolidge', 'who'],
+      ['History', '"Old Rough and Ready"', 'Zachary Taylor', 'who'],
+      ['History', 'President who died a month into his term', 'William Henry Harrison', 'who', '"Tippecanoe"'],
+      ['History', 'The only U.S. president who never married', 'James Buchanan', 'who'],
+      ['History', 'The teddy bear is named for him', 'Theodore Roosevelt', 'who'],
+      ['History', 'President of the Louisiana Purchase', 'Thomas Jefferson', 'who', '1803'],
+      ['History', '"The Sun King"', 'Louis XIV', 'who', 'Versailles'],
+      ['History', '"The Virgin Queen"', 'Elizabeth I', 'who'],
+      ['History', '"Lionheart"', 'Richard I', 'who'],
+      ['History', '"The Conqueror"', 'William I', 'who', '1066'],
+      ['History', '"The Iron Duke"', 'the Duke of Wellington', 'who', 'Beat Napoleon at Waterloo'],
+      ['History', '"The Iron Lady"', 'Margaret Thatcher', 'who'],
+      ['History', '"The Little Corporal"', 'Napoleon Bonaparte', 'who'],
+      ['History', 'Tudor king with six wives', 'Henry VIII', 'who', 'Divorced, beheaded, died; divorced, beheaded, survived'],
+      ['History', '"The Maid of Orléans"', 'Joan of Arc', 'who'],
+      // ---------------- Shakespeare
+      ['Shakespeare', 'Prince of Denmark', 'Hamlet', 'who', 'Castle: Elsinore'],
+      ['Shakespeare', 'The Moor of Venice', 'Othello', 'who', 'Villain: Iago'],
+      ['Shakespeare', '"The Scottish Play"', 'Macbeth', 'what'],
+      ['Shakespeare', 'Moneylender who wants a pound of flesh', 'Shylock', 'who', '"The Merchant of Venice"'],
+      ['Shakespeare', 'King of the fairies', 'Oberon', 'who', 'Queen: Titania'],
+      ['Shakespeare', 'Airy spirit in "The Tempest"', 'Ariel', 'who', 'The magician: Prospero'],
+      ['Shakespeare', 'Fat, merry knight', 'Sir John Falstaff', 'who'],
+      ['Shakespeare', 'Lear’s loyal youngest daughter', 'Cordelia', 'who'],
+      ['Shakespeare', '"Star-crossed lovers"', 'Romeo and Juliet', 'who', 'Verona'],
+      // ---------------- the Bible
+      ['The Bible', 'The first murderer', 'Cain', 'who'],
+      ['The Bible', 'Swallowed by a great fish', 'Jonah', 'who'],
+      ['The Bible', 'Strongman whose power was in his hair', 'Samson', 'who', 'Betrayed by Delilah'],
+      ['The Bible', 'The oldest man (969 years)', 'Methuselah', 'who'],
+      ['The Bible', 'Sold his birthright for stew', 'Esau', 'who', 'To Jacob, his twin'],
+      ['The Bible', 'Coat of many colors', 'Joseph', 'who'],
+      ['The Bible', 'Giant slain with a sling', 'Goliath', 'who'],
+      ['The Bible', 'King famed for his wisdom', 'Solomon', 'who'],
+      ['The Bible', '"Doubting" apostle', 'Thomas', 'who'],
+      ['The Bible', 'Betrayed Jesus for 30 pieces of silver', 'Judas Iscariot', 'who'],
+      // ---------------- opera and ballet
+      ['Opera & ballet', 'Puccini opera about a geisha', '"Madama Butterfly"', 'what'],
+      ['Opera & ballet', 'Bizet opera: a cigarette factory girl in Seville', '"Carmen"', 'what'],
+      ['Opera & ballet', 'Verdi opera set in ancient Egypt', '"Aida"', 'what'],
+      ['Opera & ballet', 'Puccini opera about starving Paris bohemians', '"La Bohème"', 'what', 'Inspired "Rent"'],
+      ['Opera & ballet', 'Opera about a sad clown', '"Pagliacci"', 'what', 'Leoncavallo'],
+      ['Opera & ballet', 'Wagner’s four-opera cycle', '"The Ring of the Nibelung"', 'what'],
+      ['Opera & ballet', 'Rossini opera about Figaro', '"The Barber of Seville"', 'what', 'Mozart’s Figaro: "The Marriage of Figaro"'],
+      ['Opera & ballet', 'Ballet of Odette and Odile', '"Swan Lake"', 'what'],
+      // ---------------- elements
+      ['Elements', 'Element Au', 'gold', 'what', 'Latin aurum'],
+      ['Elements', 'Element Ag', 'silver', 'what', 'Latin argentum'],
+      ['Elements', 'Element Fe', 'iron', 'what', 'Latin ferrum'],
+      ['Elements', 'Element Pb', 'lead', 'what', 'Latin plumbum'],
+      ['Elements', 'Element Na', 'sodium', 'what', 'Latin natrium'],
+      ['Elements', 'Element K', 'potassium', 'what', 'Latin kalium'],
+      ['Elements', 'Element Hg', 'mercury', 'what', 'Quicksilver'],
+      ['Elements', 'Element Sn', 'tin', 'what', 'Latin stannum'],
+      ['Elements', 'Element W', 'tungsten', 'what', 'From wolfram'],
+      ['Elements', 'The lightest element', 'hydrogen', 'what'],
+      ['Elements', 'Most of the air we breathe', 'nitrogen', 'what', 'About 78%'],
+      // ---------------- literature
+      ['Literature', 'Captain of the Pequod', 'Captain Ahab', 'who', '"Call me Ishmael"'],
+      ['Literature', 'Dickens’s miser visited by ghosts', 'Ebenezer Scrooge', 'who'],
+      ['Literature', 'Hester Prynne’s letter', 'A', 'what', '"The Scarlet Letter," Hawthorne'],
+      ['Literature', 'Sherlock Holmes’s archenemy', 'Professor Moriarty', 'who'],
+      ['Literature', 'Mr. Darcy’s novel', '"Pride and Prejudice"', 'what', 'Jane Austen'],
+      ['Literature', 'Jay Gatsby’s narrator', 'Nick Carraway', 'who'],
+      ['Literature', 'Big Brother’s novel', '"1984"', 'what', 'George Orwell'],
+      ['Literature', 'Scout and Atticus Finch', '"To Kill a Mockingbird"', 'what', 'Harper Lee'],
+      ['Literature', 'Holden Caulfield', '"The Catcher in the Rye"', 'what', 'J.D. Salinger'],
+    ];
+    const respond = (t) => `${t[3] === 'who' ? 'Who is' : 'What is'} ${t[2]}?`.replace(/^Who is (.+ and .+)\?$/, 'Who are $1?').replace(/^What is (Bolivia and Paraguay)\?$/, 'What are $1?').replace(/^What is (the Urals)\?$/, 'What are $1?');
+    return { CATS, T, respond };
+  })();
+  // ================================================================ LEVEL: TRIGGER WORDS (study hall)
+  // Quiz-show training: learn the phrases that give the answer away ("Norwegian playwright" → Ibsen).
+  // Buzz & recall: the trigger goes up on the board; buzz when you know it, see the response, and say whether you had
+  // it. Spaced repetition: the ones you miss come back soon, the ones you know come back less and less (five boxes,
+  // and "mastered" is box 4 or 5). Rapid fire: 60 seconds of four-way picks. Pick a category, or all of them.
+  // VR: touch a card (or point and pull the trigger). Browser: aim and click, or press 1-4 (Space buzzes too).
+  const triggers = (() => {
+    const L = newLevel(54);
+    const G = L.group;
+    const rand = mulberry32(5454);
+    L.grabless = true;
+    L.bounds = { minX: -5.6, maxX: 5.6, minZ: -3.5, maxZ: 3.6 };
+    L.env = STUDY.env();
+    const hall = STUDY.room(G, rand, { w: 12, d: 10, z: -1, h: 4.8 });
+    const SPOT_Z = 1.6, ROUND = 60, BUZZ_T = 10, GAP = [0, 2, 6, 15, 35, 80];   // reviews until a box comes due again
+    const TT = TRIGGERS.T, keyOf = (t) => t[1];
+
+    // ---------------------------------------------------------------- the board, the cards
+    const board = STUDY.screen(G, 1024, 576, 4.6, 2.59, 0, 2.75, -5.85, 0, 0xc8a040);
+    const deck = STUDY.cards(G, { n: 4, w: 0.5, h: 0.28 });
+    const AT = [[-0.29, 1.4], [0.29, 1.4], [-0.29, 1.08], [0.29, 1.08]];
+    const prog = STUDY.screen(G, 640, 760, 2.0, 2.375, 5.88, 2.1, -1.4, -Math.PI / 2, 0x6a4a30);
+
+    // ---------------------------------------------------------------- what you know (saved)
+    const mem = () => { prefs.trig = prefs.trig && typeof prefs.trig === 'object' ? prefs.trig : {}; const m = prefs.trig; m.n = m.n | 0; m.c = m.c || {}; return m; };
+    // a trigger's record: [box 0-5, the review number it was last seen at, times seen, times right]
+    const rec = (t) => mem().c[keyOf(t)] || null;
+    const mastered = (t) => { const r = rec(t); return !!r && r[0] >= 4; };
+    function grade(t, ok) {
+      const m = mem(); m.n += 1;
+      const r = m.c[keyOf(t)] || [0, 0, 0, 0];
+      r[0] = ok ? Math.min(5, r[0] + 1) : 1; r[1] = m.n; r[2] += 1; r[3] += ok ? 1 : 0;
+      m.c[keyOf(t)] = r; savePrefs();
+    }
+    // the next trigger to review: the most overdue one; if nothing's due, a new one; failing that, the oldest
+    function nextDue(pool, weakOnly) {
+      const m = mem();
+      let best = null, bestScore = -Infinity;
+      for (const t of pool) {
+        const r = rec(t);
+        if (!r) continue;
+        if (weakOnly && r[0] > 1) continue;
+        const over = m.n - r[1] - GAP[r[0]];
+        if (keyOf(t) === S.lastKey) continue;
+        if (over >= 0 && over - r[0] * 2 + rand() > bestScore) { bestScore = over - r[0] * 2 + rand(); best = t; }
+      }
+      if (best) return best;
+      if (!weakOnly) { const fresh = pool.filter((t) => !rec(t)); if (fresh.length) return fresh[Math.floor(rand() * fresh.length)]; }
+      const seen = pool.filter((t) => rec(t) && keyOf(t) !== S.lastKey && (!weakOnly || rec(t)[0] <= 1));
+      if (!seen.length) return null;
+      seen.sort((a, b) => rec(a)[1] - rec(b)[1]);
+      return seen[0];
+    }
+
+    // ---------------------------------------------------------------- the session
+    const S = { ph: 'menu', mode: 'recall', cat: -1, t: null, t0: 0, buzzT: 0, score: 0, wrong: 0, lock: 0, c: -1, lastKey: '', best: 0, reviewed: 0, right: 0 };
+    try { if (Number.isInteger(prefs.trigBest)) S.best = prefs.trigBest; } catch (e) { /* none */ }
+    L.trig = S;
+    const pool = () => TT.filter((t) => S.cat < 0 || t[0] === TRIGGERS.CATS[S.cat]);
+    const catName = () => (S.cat < 0 ? 'All categories' : TRIGGERS.CATS[S.cat]);
+    function showMenu() {
+      S.ph = 'menu';
+      deck.set(0, 'Buzz & recall', 'mode', { sub: 'Spaced repetition', big: 46 });
+      deck.set(1, 'Rapid fire', 'mode', { sub: 'Four-way picks, 60 seconds', big: 46 });
+      deck.set(2, catName(), 'mode', { sub: 'Category: touch to change', big: 42 });
+      deck.set(3, 'Weak spots', 'mode', { sub: 'Only the ones you’ve missed', big: 46 });
+      for (let i = 0; i < 4; i++) deck.show(i, true);
+      boardKey = '';
+    }
+    function start(mode) {
+      if (mode === 'weak' && !pool().some((t) => rec(t) && rec(t)[0] <= 1)) { showToast('No weak spots here yet: play Buzz & recall first'); return; }
+      Object.assign(S, { mode, score: 0, wrong: 0, reviewed: 0, right: 0, lock: 0, t0: performance.now(), summary: null });
+      sfx('chime', 0.5);
+      if (mode === 'rapid') rapidNext(); else recallNext();
+      forcePresence(); state.dirtyBoard = true;
+    }
+    L.start = start;
+    // buzz & recall
+    function recallNext() {
+      const t = nextDue(pool(), S.mode === 'weak');
+      if (!t) { finish(); return; }
+      S.t = t; S.lastKey = keyOf(t); S.ph = 'clue'; S.buzzT = performance.now();
+      deck.set(0, 'Buzz!', 'mode', { sub: 'I know it', big: 70 }); deck.show(0, true);
+      deck.set(1, 'Show me', 'dim', { sub: 'No idea', big: 46 }); deck.show(1, true);
+      deck.set(2, 'Done', 'dim', { sub: 'End the session', big: 46 }); deck.show(2, true);
+      deck.show(3, false);
+      boardKey = '';
+    }
+    function reveal(buzzed) {
+      if (S.ph !== 'clue') return;
+      S.ph = 'reveal'; S.buzzed = buzzed; S.took = (performance.now() - S.buzzT) / 1000;
+      if (buzzed) tone(880, 0, 0.18, 'square', 0.08);
+      deck.set(0, 'Got it', 'right', { sub: 'I had it', big: 60 });
+      deck.set(1, 'Missed it', 'wrong', { sub: 'Bring it back soon', big: 52 });
+      deck.set(2, 'Done', 'dim', { sub: 'End the session', big: 46 });
+      boardKey = '';
+    }
+    function judge(ok) {
+      if (S.ph !== 'reveal') return;
+      grade(S.t, ok); S.reviewed += 1; if (ok) S.right += 1;
+      if (ok) STUDY.right(); else STUDY.wrong();
+      progKey = '';
+      recallNext();
+      forcePresence(); state.dirtyBoard = true;
+    }
+    L.judge = judge; L.reveal = reveal;
+    // rapid fire
+    function rapidNext() {
+      const p = pool();
+      let t; do { t = p[Math.floor(rand() * p.length)]; } while (keyOf(t) === S.lastKey && p.length > 1);
+      S.lastKey = keyOf(t);
+      // the wrong answers come from the same category, so they're the plausible ones
+      const same = TT.filter((x) => x[0] === t[0] && x[2] !== t[2] && x[3] === t[3]).sort(() => rand() - 0.5).slice(0, 3);
+      const opts = [t[2]].concat(same.map((x) => x[2])).sort(() => rand() - 0.5);
+      S.t = t; S.c = opts.indexOf(t[2]); S.ph = 'rapid';
+      opts.forEach((o, i) => { deck.set(i, o, 'idle', { big: 46 }); deck.show(i, true); });
+      boardKey = '';
+    }
+    function rapidPick(i) {
+      if (S.lock > 0) return;
+      if (i === S.c) { S.score += 1; tone(660 + Math.min(10, S.score) * 30, 0, 0.09, 'sine', 0.15); rapidNext(); }
+      else { S.wrong += 1; S.lock = 1.2; STUDY.wrong(); deck.look(i, 'wrong'); deck.look(S.c, 'right'); }
+      forcePresence(); state.dirtyBoard = true;
+    }
+    function finish() {
+      if (S.mode === 'rapid') {
+        const isBest = S.score > S.best;
+        if (isBest) { S.best = S.score; prefs.trigBest = S.best; savePrefs(); }
+        RECORDS.add(L, 'rapid', S.score);
+        showToast(`Time! ${S.score} right${isBest ? ' (your best!)' : ''}`);
+        S.summary = { rapid: true, score: S.score, wrong: S.wrong, best: isBest };
+      } else {
+        S.summary = { rapid: false, reviewed: S.reviewed, right: S.right };
+        if (S.reviewed) showToast(`${S.right} of ${S.reviewed} recalled`);
+      }
+      RECORDS.add(L, 'mastered', TT.filter(mastered).length);
+      sfx('chime', 0.7);
+      showMenu();
+      forcePresence(); state.dirtyBoard = true;
+    }
+    L.finish = finish;
+    function onPick(i) {
+      if (S.ph === 'menu') {
+        if (i === 2) { S.cat = S.cat + 1 >= TRIGGERS.CATS.length ? -1 : S.cat + 1; showMenu(); return; }
+        start(['recall', 'rapid', null, 'weak'][i]); return;
+      }
+      if (S.ph === 'clue') { if (i === 0) reveal(true); else if (i === 1) reveal(false); else if (i === 2) finish(); return; }
+      if (S.ph === 'reveal') { if (i === 0) judge(true); else if (i === 1) judge(false); else if (i === 2) finish(); return; }
+      if (S.ph === 'rapid') rapidPick(i);
+    }
+    L.onPick = onPick;
+    const input = STUDY.input(L, deck, { onPick, enabled: () => state.level === L.idx });
+    // a click (or Space) on a card picks it; anywhere else it buzzes in
+    L.deskFire = ((f) => () => { camera.getWorldPosition(_o); camera.getWorldQuaternion(_q); if (deck.pickRay(_o, _d.set(0, 0, -1).applyQuaternion(_q)) >= 0 || S.ph !== 'clue') f(); else reveal(true); })(L.deskFire);
+    const _o = new V3(), _q = new Q4(), _d = new V3();
+    L.throwLabel = () => (S.ph === 'clue' ? 'Buzz' : S.ph === 'reveal' ? 'Got it' : 'Pick');
+
+    // ---------------------------------------------------------------- the board (a game-show blue)
+    let boardKey = '';
+    const SERIF = 'Georgia, "Times New Roman", serif';
+    function drawBoard() {
+      const t = S.ph === 'rapid' ? Math.ceil(Math.max(0, ROUND - (performance.now() - S.t0) / 1000)) : S.ph === 'clue' ? Math.ceil(Math.max(0, BUZZ_T - (performance.now() - S.buzzT) / 1000)) : 0;
+      const key = `${S.ph}|${S.t ? keyOf(S.t) : ''}|${t}|${S.score}|${S.lock > 0}|${S.cat}|${S.summary ? JSON.stringify(S.summary) : ''}`;
+      if (key === boardKey) return; boardKey = key;
+      const g = board.g, W = 1024, H = 576;
+      const gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, '#0a1a9a'); gr.addColorStop(1, '#060c6a');
+      g.fillStyle = gr; g.fillRect(0, 0, W, H);
+      g.textAlign = 'center'; g.textBaseline = 'alphabetic';
+      const shadow = (txt, x, y, w) => { g.fillStyle = '#000000'; g.fillText(txt, x + 4, y + 4, w); g.fillStyle = g._col; g.fillText(txt, x, y, w); };
+      if (S.ph === 'menu') {
+        g._col = '#ffffff'; g.font = `900 100px ${DISPLAY}`; shadow('TRIGGER WORDS', W / 2, 130, W - 60);
+        g._col = '#ffcc4a'; g.font = `700 36px ${SERIF}`; shadow('The phrases that give the answer away', W / 2, 190, W - 80);
+        const all = pool(), known = all.filter(mastered).length, seen = all.filter((x) => rec(x)).length;
+        g._col = '#ffffff'; g.font = `700 44px ${SERIF}`; shadow(`${catName()}: ${known} mastered, ${seen} seen, of ${all.length}`, W / 2, 300, W - 80);
+        if (S.summary) {
+          const s = S.summary; g._col = '#ffcc4a'; g.font = `700 40px ${SERIF}`;
+          shadow(s.rapid ? `Rapid fire: ${s.score} right${s.best ? ' (your best!)' : ''}` : s.reviewed ? `Last session: ${s.right} of ${s.reviewed} recalled` : '', W / 2, 380, W - 80);
+        }
+        g._col = '#c8d0ff'; g.font = `400 30px ${BODY}`; shadow('Pick below: the third card changes the category', W / 2, 500, W - 80);
+        board.tex.needsUpdate = true; return;
+      }
+      const tr = S.t;
+      g._col = '#c8d0ff'; g.font = `700 34px ${BODY}`; shadow(tr[0].toUpperCase(), W / 2, 60, W - 80);
+      if (S.ph === 'rapid' || S.ph === 'clue') { g.textAlign = 'right'; g._col = t <= 3 ? '#ff8a7a' : '#ffffff'; g.font = `900 52px ${DISPLAY}`; shadow(String(t), W - 36, 64); g.textAlign = 'center'; }
+      if (S.ph === 'rapid') { g.textAlign = 'left'; g._col = '#ffcc4a'; g.font = `900 52px ${DISPLAY}`; shadow(String(S.score), 36, 64); g.textAlign = 'center'; }
+      // the trigger, big and in capitals, like a clue
+      const clue = tr[1].toUpperCase();
+      g._col = '#ffffff';
+      const sz = STUDY.fit(g, clue, W - 120, 3, 84, 40, 700, SERIF);
+      const nl = Math.min(3, STUDY.wrap(g, clue, 0, 0, W - 120, sz * 1.15, 0, false));
+      const y0 = (S.ph === 'reveal' ? 210 : 290) - (nl - 1) * sz * 0.58;
+      for (let pass = 0; pass < 2; pass++) { g.fillStyle = pass ? '#ffffff' : '#000000'; STUDY.wrap(g, clue, W / 2 + (pass ? 0 : 4), y0 + (pass ? 0 : 4), W - 120, sz * 1.15, 3); }
+      if (S.ph === 'reveal') {
+        g._col = '#ffcc4a'; g.font = `700 60px ${SERIF}`; shadow(TRIGGERS.respond(tr), W / 2, 400, W - 80);
+        if (tr[4]) { g._col = '#c8d0ff'; g.font = `400 32px ${BODY}`; shadow(tr[4], W / 2, 460, W - 80); }
+        g._col = '#8a9aff'; g.font = `400 26px ${BODY}`;
+        shadow(`${S.buzzed ? `Buzzed in ${S.took.toFixed(1)} s` : 'No buzz'}  ·  did you have it?`, W / 2, 540, W - 80);
+      } else if (S.ph === 'clue') {
+        g._col = '#8a9aff'; g.font = `400 28px ${BODY}`; shadow('Buzz when you know it (Space, or the first card)', W / 2, 540, W - 80);
+      } else if (S.ph === 'rapid' && S.lock > 0) {
+        g._col = '#ffcc4a'; g.font = `700 44px ${SERIF}`; shadow(TRIGGERS.respond(tr), W / 2, 480, W - 80);
+      }
+      board.tex.needsUpdate = true;
+    }
+    // the progress chart on the wall: mastered per category
+    let progKey = '';
+    function drawProg() {
+      const key = String(mem().n);
+      if (key === progKey) return; progKey = key;
+      const g = prog.g, W = 640;
+      g.fillStyle = '#fbf6ea'; g.fillRect(0, 0, W, 760);
+      g.textAlign = 'center'; g.textBaseline = 'alphabetic'; g.fillStyle = '#0a1a9a'; g.font = `900 52px ${DISPLAY}`; g.fillText('WHAT YOU KNOW', W / 2, 64);
+      g.fillStyle = '#6a6050'; g.font = `400 22px ${BODY}`; g.fillText('Mastered (box 4+) out of each category', W / 2, 98);
+      let y = 150;
+      for (const c of TRIGGERS.CATS) {
+        const all = TT.filter((t) => t[0] === c), m = all.filter(mastered).length, s = all.filter((t) => rec(t)).length;
+        g.textAlign = 'left'; g.fillStyle = '#2a2a2a'; g.font = `700 24px ${BODY}`; g.fillText(c, 30, y);
+        g.fillStyle = '#e4dccc'; g.fillRect(30, y + 10, 460, 14);
+        g.fillStyle = '#c8b8e8'; g.fillRect(30, y + 10, 460 * s / all.length, 14);
+        g.fillStyle = '#3a6ad8'; g.fillRect(30, y + 10, 460 * m / all.length, 14);
+        g.textAlign = 'right'; g.fillStyle = '#2a2a2a'; g.font = `800 26px ${DISPLAY}`; g.fillText(`${m}/${all.length}`, W - 30, y + 22);
+        y += 50;
+      }
+      g.textAlign = 'center'; g.fillStyle = '#6a6050'; g.font = `400 20px ${BODY}`; g.fillText('Dark blue: mastered · light: seen', W / 2, 748);
+      prog.tex.needsUpdate = true;
+    }
+
+    // ---------------------------------------------------------------- per frame
+    function stand() { S.slot = STUDY.slotOf(L); STUDY.standAt(STUDY.SLOT_X[S.slot] * 0.6, state.mode === 'vr' ? SPOT_Z : SPOT_Z + 1.0, 0, -0.04); }
+    L.update = (dt, now) => {
+      const here = state.level === L.idx && state.mode !== 'menu';
+      hall.tick();
+      if (!here) { input.hide(); return; }
+      if (STUDY.slotOf(L) !== S.slot) stand();
+      const ox = STUDY.SLOT_X[S.slot || 0] * 0.6;
+      AT.forEach(([x, y], i) => deck.place(i, ox + x, y, SPOT_Z - 0.5, 0, -0.25));
+      if (S.ph === 'rapid') {
+        if (performance.now() - S.t0 > ROUND * 1000) finish();
+        else if (S.lock > 0) { S.lock -= dt; if (S.lock <= 0) { S.lock = 0; rapidNext(); } }
+      } else if (S.ph === 'clue' && performance.now() - S.buzzT > BUZZ_T * 1000) reveal(false);
+      input.tick(dt);
+      drawBoard(); drawProg();
+      if (ui.status && state.mode === 'flat') {
+        ui.status.hidden = false;
+        const txt = S.ph === 'menu' ? 'Trigger Words  ·  aim at a card and click (or press 1-4)' : S.ph === 'clue' ? 'Space or 1: buzz in  ·  2: show me  ·  3: done' : S.ph === 'reveal' ? '1: got it  ·  2: missed it  ·  3: done' : `${S.score} right  ·  click the answer or press 1-4`;
+        if (ui.status.textContent !== txt) ui.status.textContent = txt;
+      }
+    };
+    L.presence = () => ({ tw: [S.ph === 'rapid' ? S.score : 0, S.best, TT.filter(mastered).length] });
+    L.readPresence = (r, pres, st) => {
+      const a = pres.tw;
+      if (!Array.isArray(a) || a.length !== 3 || !a.every((x) => Number.isInteger(x) && x >= 0 && x < 1e5)) { st.tw = null; return; }
+      if (!st.tw || st.tw.join() !== a.join()) state.dirtyBoard = true;
+      st.tw = a;
+    };
+    L.rowFor = (st, isMe) => {
+      const a = isMe ? L.presence().tw : st.tw;
+      if (!a) return { best: 0, text: '' };
+      return { best: a[2], text: `${a[2]} mastered · rapid ${a[1]}` };
+    };
+    L.sortRows = (a, b) => (b.best || 0) - (a.best || 0);
+    L.board = makeBoard(G, 720, 460, 2.2, 1.4, -5.85, 2.0, -0.8, Math.PI / 2, false);
+    L.drawBoard = (rows) => {
+      const g = L.board.g, W = 720;
+      g.fillStyle = '#0a1a9a'; g.fillRect(0, 0, W, 460); g.strokeStyle = '#ffcc4a'; g.lineWidth = 8; g.strokeRect(4, 4, W - 8, 452);
+      g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+      g.fillStyle = '#ffcc4a'; g.font = `800 56px ${DISPLAY}`; g.fillText('Champions', 36, 80);
+      g.fillStyle = '#c8d0ff'; g.font = `400 24px ${BODY}`; g.fillText(`Triggers mastered, out of ${TT.length}`, 36, 118);
+      drawRows(g, rows, 176, 46, W);
+      L.board.tex.needsUpdate = true;
+    };
+    makeKiosk(L, 3.6, 3.0, -Math.PI * 0.75);
+    RECORDS.def(L, [{ k: 'rapid', label: 'Rapid fire: most in a minute' }, { k: 'mastered', label: 'Triggers mastered' }], { x: 5.75, z: 1.4, yaw: -Math.PI / 2 });
+    L.hudActions = [{ label: () => (S.ph === 'menu' ? 'Buzz & recall' : 'Done'), run: () => { if (S.ph === 'menu') start('recall'); else finish(); } }];
+    L.hints = [['Touch a card', 'buzz, then say if you had it'], ['Point + trigger', 'works too']];
+    L.hintsFor = () => (state.mode === 'flat' ? [['Space', 'buzz in'], ['1-4', 'pick a card'], ['Aim + click', 'works too']] : L.hints);
+    L.spawn = () => { dolly.position.set(0, 0, 0); stand(); };
+    L.onEnter = () => { S.summary = null; showMenu(); progKey = ''; };
+    L.onExit = () => { if (ui.status) ui.status.hidden = true; showMenu(); input.hide(); };
+    L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 2, 1.7, 3.0); camera.lookAt(0, 2.2, -3); };
+    showMenu();
+    L.trigInternals = { S, deck, onPick, start, finish, reveal, judge, grade, nextDue, rec, mastered, mem, pool };
+    MUSIC_THEMES.triggers = { gain: 0.5, bpm: 104, swing: 0.15, chords: ['Bbmaj7', 'Gm7', 'Cm7', 'F7'], comp: { inst: 'ep', at: [0, 6, 10], dur: 0.5 }, bass: { walk: true }, drums: { k: 'x.......x.......', s: '....x.......x...', h: 'o-o-o-o-o-o-o-o-' }, cut: 3400 };
     return L;
   })();
   // ---------------------------------------------------------------- VR controllers

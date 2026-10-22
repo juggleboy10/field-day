@@ -46,7 +46,7 @@ def main():
             page.wait_for_timeout(1500)
             shot("hub_study")
             w = page.evaluate("() => { const L = window.__fd.LEVELS[8]; return { doors: L.doors.length, games: L.portals.filter((p) => p.kind === 'game' && p.ci === 8).map((p) => p.lv) }; }")
-            check(w["doors"] == 9 and sorted(w["games"]) == [48, 49, 50, 51, 52, 53], f"hub: study wing {w}")
+            check(w["doors"] == 9 and sorted(w["games"]) == [48, 49, 50, 51, 52, 53, 54], f"hub: study wing {w}")
         # ---- the A+ question bank
         if want("bank"):
             go(48)
@@ -284,6 +284,45 @@ def main():
             shot("math_wrong")
             en = page.evaluate("() => { const I = window.__fd.LEVELS[53].mathInternals; I.S.t0 -= 61000; window.__fd.LEVELS[53].update(0.016, performance.now()); return { ph: I.S.ph, sum: I.S.summary }; }")
             check(en["ph"] == "menu" and en["sum"]["score"] == 4, f"math: end {en}")
+        # ---- Trigger Words
+        if want("trig"):
+            go(54)
+            shot("trig_menu")
+            tw = page.evaluate("""() => { const T = window.TRIGGERS || null; const L = window.__fd.LEVELS[54], I = L.trigInternals; const out = {};
+              const all = I.pool(); out.n = all.length; const keys = new Set(all.map((t) => t[1])); out.dupes = all.length - keys.size;
+              out.bad = all.filter((t) => t.length < 4 || !t[2] || (t[3] !== 'who' && t[3] !== 'what')).map((t) => t[1]);
+              return out; }""")
+            print("Triggers:", tw)
+            check(tw["n"] >= 150 and tw["dupes"] == 0 and not tw["bad"], f"triggers: bank {tw}")
+            page.keyboard.press("Digit1")   # buzz & recall
+            page.wait_for_timeout(400)
+            shot("trig_clue")
+            page.keyboard.press("Space")   # buzz in
+            page.wait_for_timeout(400)
+            shot("trig_reveal")
+            r = page.evaluate("() => { const S = window.__fd.LEVELS[54].trigInternals.S; return { ph: S.ph, buzzed: S.buzzed, key: S.t[1] }; }")
+            check(r["ph"] == "reveal" and r["buzzed"], f"triggers: Space didn't buzz {r}")
+            page.keyboard.press("Digit2")   # missed it
+            page.wait_for_timeout(300)
+            sr = page.evaluate("""(k) => { const I = window.__fd.LEVELS[54].trigInternals, m = I.mem(); const out = { box: m.c[k][0], n: m.n };
+              // a missed one comes back within a few reviews; a known one goes quiet
+              const seenAt = []; for (let i = 0; i < 12; i++) { if (I.S.ph !== 'clue') break; seenAt.push(I.S.t[1]); I.reveal(true); I.judge(I.S.t[1] !== k); }
+              out.back = seenAt.indexOf(k, 1); out.seq = seenAt.length; out.boxAfter = m.c[k][0]; I.finish(); out.ph = I.S.ph; return out; }""", r["key"])
+            print("Spaced repetition:", sr)
+            check(sr["box"] == 1 and 0 < sr["back"] <= 6 and sr["ph"] == "menu", f"triggers: spaced repetition {sr}")
+            page.keyboard.press("Digit2")   # rapid fire
+            page.wait_for_timeout(300)
+            shot("trig_rapid")
+            rf = page.evaluate("() => { const I = window.__fd.LEVELS[54].trigInternals, S = I.S; for (let i = 0; i < 5; i++) I.onPick(S.c); const out = { score: S.score }; I.onPick((S.c + 1) % 4); out.lock = S.lock; S.t0 -= 61000; window.__fd.LEVELS[54].update(0.016, performance.now()); out.ph = S.ph; out.sum = S.summary; return out; }")
+            print("Rapid:", rf)
+            check(rf["score"] == 5 and rf["lock"] > 0 and rf["ph"] == "menu" and rf["sum"]["score"] == 5, f"triggers: rapid fire {rf}")
+            page.keyboard.press("Digit3")   # change category
+            page.wait_for_timeout(300)
+            cat = page.evaluate("() => window.__fd.LEVELS[54].trigInternals.S.cat")
+            check(cat == 0, f"triggers: category card {cat}")
+            page.evaluate("() => { const fd = window.__fd; fd.state.yaw = -Math.PI / 2; fd.state.pitch = 0; }")
+            page.wait_for_timeout(600)
+            shot("trig_progress")
         if errors:
             fails.append("page errors: " + "; ".join(errors[:5]))
         browser.close()
