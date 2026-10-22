@@ -369,7 +369,35 @@
     // portals: walk in to go
     let portalCool = 0;
     const _d = new V3();
+    // only draw the room you're in: the clubhouse, or one wing (the walls hide the rest anyway, and nine wings of
+    // portals is a lot of drawing for a headset; the clubhouse games, ping pong especially, need the frame rate)
+    let areaGroups = null, areaShown = -99;
+    const _ac = new V3();
+    function cullAreas() {
+      if (!areaGroups) {
+        areaGroups = CATS.map(() => new THREE.Group()); areaGroups.main = new THREE.Group();
+        const box = new THREE.Box3(), c = new V3();
+        for (const ch of G.children.slice()) {
+          if (ch.isLight) continue;
+          box.setFromObject(ch); if (box.isEmpty()) continue;
+          box.getCenter(c);
+          const k = areaOf(c.x, c.z);
+          // (only things that sit wholly in one wing move into it)
+          if (k >= 0 && areaOf(box.min.x, box.min.z) === k && areaOf(box.max.x, box.max.z) === k) areaGroups[k].add(ch);
+          else if (k < 0 && areaOf(box.min.x, box.min.z) < 0 && areaOf(box.max.x, box.max.z) < 0) areaGroups.main.add(ch);
+        }
+        for (const g of areaGroups) G.add(g);
+        G.add(areaGroups.main);
+      }
+      camera.getWorldPosition(_ac);
+      const k = state.mode === 'menu' ? -1 : areaOf(_ac.x, _ac.z);
+      if (k === areaShown) return;
+      areaShown = k;
+      areaGroups.forEach((g, i) => { g.visible = i === k; }); areaGroups.main.visible = k < 0;
+    }
+    L.cullAreas = cullAreas;
     L.update = (dt, now) => {
+      cullAreas();
       rebuildStatue();
       statue.rotation.y += dt * 0.5;
       fire.scale.set(1.2 + Math.sin(now * 0.013) * 0.1, 1.0 + Math.sin(now * 0.021) * 0.12, 1);

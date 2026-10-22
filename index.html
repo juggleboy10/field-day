@@ -12742,7 +12742,35 @@ kbd {
     // portals: walk in to go
     let portalCool = 0;
     const _d = new V3();
+    // only draw the room you're in: the clubhouse, or one wing (the walls hide the rest anyway, and nine wings of
+    // portals is a lot of drawing for a headset; the clubhouse games, ping pong especially, need the frame rate)
+    let areaGroups = null, areaShown = -99;
+    const _ac = new V3();
+    function cullAreas() {
+      if (!areaGroups) {
+        areaGroups = CATS.map(() => new THREE.Group()); areaGroups.main = new THREE.Group();
+        const box = new THREE.Box3(), c = new V3();
+        for (const ch of G.children.slice()) {
+          if (ch.isLight) continue;
+          box.setFromObject(ch); if (box.isEmpty()) continue;
+          box.getCenter(c);
+          const k = areaOf(c.x, c.z);
+          // (only things that sit wholly in one wing move into it)
+          if (k >= 0 && areaOf(box.min.x, box.min.z) === k && areaOf(box.max.x, box.max.z) === k) areaGroups[k].add(ch);
+          else if (k < 0 && areaOf(box.min.x, box.min.z) < 0 && areaOf(box.max.x, box.max.z) < 0) areaGroups.main.add(ch);
+        }
+        for (const g of areaGroups) G.add(g);
+        G.add(areaGroups.main);
+      }
+      camera.getWorldPosition(_ac);
+      const k = state.mode === 'menu' ? -1 : areaOf(_ac.x, _ac.z);
+      if (k === areaShown) return;
+      areaShown = k;
+      areaGroups.forEach((g, i) => { g.visible = i === k; }); areaGroups.main.visible = k < 0;
+    }
+    L.cullAreas = cullAreas;
     L.update = (dt, now) => {
+      cullAreas();
       rebuildStatue();
       statue.rotation.y += dt * 0.5;
       fire.scale.set(1.2 + Math.sin(now * 0.013) * 0.1, 1.0 + Math.sin(now * 0.021) * 0.12, 1);
@@ -13194,6 +13222,8 @@ kbd {
     const C = new V3(-4.0, 0, 10.6);                 // table center; its length runs along x
     const LEN = 2.74, WID = 1.525, Y = 0.76, NET_H = 0.1525, BR = 0.02;
     const WIN = 11, GRAV = 9.8, DRAG = 0.12;
+    // the ball plays at 80% of real speed: rallies you can follow (the arcs are the same, just a touch slower)
+    const TS = 0.8;
     const STAND = [new V3(C.x - LEN / 2 - 0.75, 0, C.z), new V3(C.x + LEN / 2 + 0.75, 0, C.z)];
     const SIDE_NAME = ['West', 'East'];
     const toWorld = (u, y, v, out) => out.set(C.x + u, y, C.z + v);
@@ -13238,6 +13268,9 @@ kbd {
     const ballMesh = new THREE.Mesh(new THREE.SphereGeometry(BR, 14, 10), new THREE.MeshLambertMaterial({ color: 0xff9a3c }));
     ballMesh.visible = false;
     G.add(ballMesh);
+    // a faint trail filling in where the ball went this frame, so a fast ball reads as moving rather than jumping
+    const trail = [0.1, 0.16, 0.24, 0.34].map((o) => { const m = new THREE.Mesh(new THREE.SphereGeometry(BR * 0.9, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffb36b, transparent: true, opacity: o, depthWrite: false })); m.visible = false; G.add(m); return m; });
+    const prevBall = new V3();
     const botPaddle = TOOL_MESH.paddle();
     botPaddle.visible = false; G.add(botPaddle);
     // the clubhouse bot has a body, standing at its end of the table
@@ -13380,7 +13413,7 @@ kbd {
       if (!t || state.mode !== 'vr' || !iAmAuth()) { prevPC = null; return; }
       bladeOf(t, _pc, _pn);
       if (!prevPC) { prevPC = _pc.clone(); return; }
-      const vp = _pc.clone().sub(prevPC).multiplyScalar(1 / Math.max(1e-3, dt));
+      const vp = _pc.clone().sub(prevPC).multiplyScalar(1 / Math.max(1e-3, dt * TS));   // (in the ball's slowed time)
       if (hittable(PP.mySide)) {
         toWorld(PP.b.u, PP.b.y, PP.b.v, _bw);
         for (let k = 1; k <= steps; k++) {
@@ -13572,7 +13605,7 @@ kbd {
       if (PP.mySide >= 0 && !myPaddle()) leaveTable();
       if (PP.mySide >= 0 && state.mode === 'vr' && Math.hypot(myHead.pos.x - C.x, myHead.pos.z - C.z) > 5) { putPaddleDown(); leaveTable(); }
       if (PP.ph === 'serve' && PP.serveVer !== PP.ver) { PP.serveVer = PP.ver; PP.serveT = now; }
-      const steps = Math.max(1, Math.ceil(dt * 360)), h = dt / steps;
+      const steps = Math.max(1, Math.ceil(dt * 360)), h = dt * TS / steps;
       // the serve belongs to the server's page; if whoever had the ball left the table, someone at it takes over
       if (iAmAuth() && PP.ph === 'serve') { const sv = players()[PP.server]; if (sv && sv !== state.myPeer) { PP.auth = sv; PP.ver += 1; forcePresence(); } }
       if (PP.mySide >= 0 && PP.ph !== 'idle' && !iAmAuth()) {
@@ -13592,8 +13625,11 @@ kbd {
         deskHit(now);
       } else if (PP.ph === 'rally') { simOnly = true; for (let k = 0; k < steps; k++) stepBall(h); simOnly = false; prevPC = null; }
       botStep(dt, now);
+      prevBall.copy(ballMesh.position);
       toWorld(PP.b.u, PP.b.y, PP.b.v, ballMesh.position);
       ballMesh.visible = PP.ph !== 'idle';
+      const jump = prevBall.distanceTo(ballMesh.position), showTrail = PP.ph === 'rally' && jump > 0.03 && jump < 0.6;
+      trail.forEach((m, i) => { m.visible = showTrail; if (showTrail) m.position.lerpVectors(prevBall, ballMesh.position, (i + 1) / (trail.length + 1)); });
       const key = `${PP.score}|${PP.server}|${PP.ph === 'idle'}|${players().join()}|${PP.botOn}`;
       if (key !== scoreKey) { scoreKey = key; drawScore(); }
     };

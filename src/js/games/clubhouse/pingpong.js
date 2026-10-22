@@ -7,6 +7,8 @@
     const C = new V3(-4.0, 0, 10.6);                 // table center; its length runs along x
     const LEN = 2.74, WID = 1.525, Y = 0.76, NET_H = 0.1525, BR = 0.02;
     const WIN = 11, GRAV = 9.8, DRAG = 0.12;
+    // the ball plays at 80% of real speed: rallies you can follow (the arcs are the same, just a touch slower)
+    const TS = 0.8;
     const STAND = [new V3(C.x - LEN / 2 - 0.75, 0, C.z), new V3(C.x + LEN / 2 + 0.75, 0, C.z)];
     const SIDE_NAME = ['West', 'East'];
     const toWorld = (u, y, v, out) => out.set(C.x + u, y, C.z + v);
@@ -51,6 +53,9 @@
     const ballMesh = new THREE.Mesh(new THREE.SphereGeometry(BR, 14, 10), new THREE.MeshLambertMaterial({ color: 0xff9a3c }));
     ballMesh.visible = false;
     G.add(ballMesh);
+    // a faint trail filling in where the ball went this frame, so a fast ball reads as moving rather than jumping
+    const trail = [0.1, 0.16, 0.24, 0.34].map((o) => { const m = new THREE.Mesh(new THREE.SphereGeometry(BR * 0.9, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffb36b, transparent: true, opacity: o, depthWrite: false })); m.visible = false; G.add(m); return m; });
+    const prevBall = new V3();
     const botPaddle = TOOL_MESH.paddle();
     botPaddle.visible = false; G.add(botPaddle);
     // the clubhouse bot has a body, standing at its end of the table
@@ -193,7 +198,7 @@
       if (!t || state.mode !== 'vr' || !iAmAuth()) { prevPC = null; return; }
       bladeOf(t, _pc, _pn);
       if (!prevPC) { prevPC = _pc.clone(); return; }
-      const vp = _pc.clone().sub(prevPC).multiplyScalar(1 / Math.max(1e-3, dt));
+      const vp = _pc.clone().sub(prevPC).multiplyScalar(1 / Math.max(1e-3, dt * TS));   // (in the ball's slowed time)
       if (hittable(PP.mySide)) {
         toWorld(PP.b.u, PP.b.y, PP.b.v, _bw);
         for (let k = 1; k <= steps; k++) {
@@ -385,7 +390,7 @@
       if (PP.mySide >= 0 && !myPaddle()) leaveTable();
       if (PP.mySide >= 0 && state.mode === 'vr' && Math.hypot(myHead.pos.x - C.x, myHead.pos.z - C.z) > 5) { putPaddleDown(); leaveTable(); }
       if (PP.ph === 'serve' && PP.serveVer !== PP.ver) { PP.serveVer = PP.ver; PP.serveT = now; }
-      const steps = Math.max(1, Math.ceil(dt * 360)), h = dt / steps;
+      const steps = Math.max(1, Math.ceil(dt * 360)), h = dt * TS / steps;
       // the serve belongs to the server's page; if whoever had the ball left the table, someone at it takes over
       if (iAmAuth() && PP.ph === 'serve') { const sv = players()[PP.server]; if (sv && sv !== state.myPeer) { PP.auth = sv; PP.ver += 1; forcePresence(); } }
       if (PP.mySide >= 0 && PP.ph !== 'idle' && !iAmAuth()) {
@@ -405,8 +410,11 @@
         deskHit(now);
       } else if (PP.ph === 'rally') { simOnly = true; for (let k = 0; k < steps; k++) stepBall(h); simOnly = false; prevPC = null; }
       botStep(dt, now);
+      prevBall.copy(ballMesh.position);
       toWorld(PP.b.u, PP.b.y, PP.b.v, ballMesh.position);
       ballMesh.visible = PP.ph !== 'idle';
+      const jump = prevBall.distanceTo(ballMesh.position), showTrail = PP.ph === 'rally' && jump > 0.03 && jump < 0.6;
+      trail.forEach((m, i) => { m.visible = showTrail; if (showTrail) m.position.lerpVectors(prevBall, ballMesh.position, (i + 1) / (trail.length + 1)); });
       const key = `${PP.score}|${PP.server}|${PP.ph === 'idle'}|${players().join()}|${PP.botOn}`;
       if (key !== scoreKey) { scoreKey = key; drawScore(); }
     };
