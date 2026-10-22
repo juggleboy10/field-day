@@ -250,7 +250,7 @@ kbd {
 
 <section id="panel" class="panel" aria-labelledby="title">
   <h1 id="title">Field Day</h1>
-  <p class="lede">A clubhouse and fifty-four games to play with friends, in VR or right here in the browser. Everyone who has this page open can join you.</p>
+  <p class="lede">A clubhouse and fifty-eight games to play with friends, in VR or right here in the browser. Everyone who has this page open can join you.</p>
   <p id="net" class="net" data-state="connecting"><span class="dot" aria-hidden="true"></span><span id="net-text">Looking for other players…</span></p>
   <fieldset class="levels">
     <legend class="field-label">Pick a game</legend>
@@ -1218,20 +1218,24 @@ kbd {
     { id: 'cmddojo', name: 'Command Line Dojo', short: 'CLI Dojo', glyph: '\u{1F94B}', blurb: 'The terminal gives you a task; three command blocks fly at you. Strike the right one. Windows and Linux, white belt to black.' },
     { id: 'mathsprint', name: 'Math Sprint', short: 'Math Sprint', glyph: '\u{1F9EE}', blurb: 'Mental maths against a 60-second clock: adding, times tables, percentages and squares, or binary and hex.' },
     { id: 'triggers', name: 'Trigger Words', short: 'Triggers', glyph: '\u{1F6CE}\uFE0F', blurb: 'Quiz-show training: learn the phrases that give the answer away ("Norwegian playwright"? Ibsen). Spaced repetition and rapid fire.' },
+    { id: 'fruit', name: 'Fruit Slash', short: 'Fruit', glyph: '\u{1F349}', blurb: 'Fruit flies up in front of you: slice it with a katana in each hand, and leave the bombs alone. Classic or 60-second arcade.' },
+    { id: 'climb', name: 'Cliffside Climb', short: 'Climbing', glyph: '\u{1F9D7}', blurb: 'A sea cliff in three tiers, 24 metres to the bell. Grip the holds and pull yourself up; chalk up when your grip tires. Beat the clock.' },
+    { id: 'archery', name: 'Archery Range', short: 'Archery', glyph: '\u{1F3F9}', blurb: 'Straw targets at 10 to 50 metres, a sliding target and balloons. Draw the bow back to your face and let go: twelve arrows a round.' },
+    { id: 'gorilla', name: 'Gorilla Tag', short: 'Gorilla Tag', glyph: '\u{1F98D}', blurb: 'Jungle infection tag with no legs: push off the ground and trees with your arms to run, leap and climb. Touch someone and they are lava too.' },
   ];
-  const KIOSK_COLORS = [0xf5821f, 0xe8e4d8, 0x8bd450, 0xb388ff, 0xff4d6a, 0x2ec4b6, 0x3fbf7f, 0xff9ad0, 0xffd27a, 0x4fc3f7, 0x4a8aff, 0xb06aff, 0xffb36b, 0xff9ad0, 0x8bd450, 0xd8f43a, 0xff7a3a, 0xe5453a, 0xe8a040, 0x2ec4d8, 0xf2c14e, 0xd84a3a, 0x2a8ab8, 0x9a6aff, 0x6ad04a, 0xff3aa8, 0xffd23f, 0xff9a5c, 0x4fc3f7, 0x8a5a2a, 0x9af0ff, 0xff4d8a, 0xff9ad0, 0xe5453a, 0xb8e0ff, 0x7ad8ff, 0xd8b060, 0xffd23f, 0xff5a8a, 0x9a7ad8, 0xe8c860, 0xff4d8a, 0xff4dc8, 0xe5453a, 0xffd23f, 0x4a7ad8, 0x8bd450, 0x4fc3f7, 0xffd23f, 0x3aa86a, 0x4fc3f7, 0x2f6fd0, 0xb02a2a, 0x8bd450, 0x0a1a9a];
+  const KIOSK_COLORS = [0xf5821f, 0xe8e4d8, 0x8bd450, 0xb388ff, 0xff4d6a, 0x2ec4b6, 0x3fbf7f, 0xff9ad0, 0xffd27a, 0x4fc3f7, 0x4a8aff, 0xb06aff, 0xffb36b, 0xff9ad0, 0x8bd450, 0xd8f43a, 0xff7a3a, 0xe5453a, 0xe8a040, 0x2ec4d8, 0xf2c14e, 0xd84a3a, 0x2a8ab8, 0x9a6aff, 0x6ad04a, 0xff3aa8, 0xffd23f, 0xff9a5c, 0x4fc3f7, 0x8a5a2a, 0x9af0ff, 0xff4d8a, 0xff9ad0, 0xe5453a, 0xb8e0ff, 0x7ad8ff, 0xd8b060, 0xffd23f, 0xff5a8a, 0x9a7ad8, 0xe8c860, 0xff4d8a, 0xff4dc8, 0xe5453a, 0xffd23f, 0x4a7ad8, 0x8bd450, 0x4fc3f7, 0xffd23f, 0x3aa86a, 0x4fc3f7, 0x2f6fd0, 0xb02a2a, 0x8bd450, 0x0a1a9a, 0xff4a5a, 0xc86a2a, 0x2e8a4c, 0xff6a1a];
   const LEVEL_CATS = [
     { id: 'ball', name: 'Ball sports', glyph: '\u26BD', games: [0, 1, 5, 15, 29, 37] },
     { id: 'battle', name: 'Team battles', glyph: '\u{1F3AF}', games: [14, 4, 17, 21, 34, 38] },
-    { id: 'lanes', name: 'Golf and lanes', glyph: '\u26F3', games: [2, 6, 7, 20, 36] },
+    { id: 'lanes', name: 'Golf and lanes', glyph: '\u26F3', games: [2, 6, 7, 20, 36, 57] },
     { id: 'adv', name: 'Adventures', glyph: '\u{1F5E1}\uFE0F', games: [3, 10, 11, 22, 30, 39] },
-    { id: 'race', name: 'Racing and parkour', glyph: '\u{1F3C1}', games: [9, 16, 19, 24, 35, 40] },
-    { id: 'party', name: 'Party games', glyph: '\u{1F389}', games: [13, 12, 18, 23, 32, 41] },
-    { id: 'active', name: 'Get active', glyph: '\u{1F4AA}', games: [25, 27, 28, 33, 42] },
+    { id: 'race', name: 'Racing and parkour', glyph: '\u{1F3C1}', games: [9, 16, 19, 24, 35, 40, 56] },
+    { id: 'party', name: 'Party games', glyph: '\u{1F389}', games: [13, 12, 18, 23, 32, 41, 58] },
+    { id: 'active', name: 'Get active', glyph: '\u{1F4AA}', games: [25, 27, 28, 33, 42, 55] },
     { id: 'carnival', name: 'Carnival', glyph: '\u{1F3A1}', games: [31, 26, 43, 44, 45, 46, 47] },
     { id: 'study', name: 'Study Hall', glyph: '\u{1F4DA}', games: [48, 49, 50, 51, 52, 53, 54] },
   ];
-  const PICKER_ORDER = [8, 54, 53, 52, 51, 50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 3, 10, 11, 0, 1, 2, 4, 5, 6, 7, 9];
+  const PICKER_ORDER = [8, 58, 57, 56, 55, 54, 53, 52, 51, 50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 3, 10, 11, 0, 1, 2, 4, 5, 6, 7, 9];
   function makeKiosk(L, x, z, yaw) {
     const fx = Math.sin(yaw), fz = Math.cos(yaw);   // direction the kiosk faces
     const rx = Math.cos(yaw), rz = -Math.sin(yaw);  // its right-hand side
@@ -10706,7 +10710,7 @@ kbd {
     L.board = makeBoard(G, 720, 460, 3.4, 2.17, 0, 2.6, -24.4, 0);
     const boardBack = makeBoard(G, 720, 460, 3.4, 2.17, 0, 2.6, -24.5, Math.PI, false);      // (the same card, for the last row)
     makeKiosk(L, -13.4, 6.4, Math.PI / 2);
-    RECORDS.def(L, [{ k: 'round', label: 'Best round (fewest strokes)', low: true }, { k: 'aces', label: 'Most holes in one in a round' }]);
+    RECORDS.def(L, [{ k: 'round', label: 'Best round (fewest strokes)', low: true }, { k: 'aces', label: 'Most holes in one in a round' }, { k: 'drive', label: 'Driving range: longest drive', fmt: 'yd' }, { k: 'bucket', label: 'Driving range: best bucket' }]);
     const sign = makeBoard(G, 720, 500, 2.0, 1.39, -13.6, 1.9, 2.2, Math.PI / 2);
     function drawSign() {
       const g = sign.g;
@@ -11300,7 +11304,8 @@ kbd {
           me.t0 = now;
         }
       } else if (me.phase === 'between' && now - me.t0 > 5500) restartRound();
-      if (state.mode === 'vr') vrPutter(dt, now);
+      if (L.onRange && L.onRange()) { putter.visible = false; aim.visible = false; }   // (at the driving range: the driver's in your hands instead)
+      else if (state.mode === 'vr') vrPutter(dt, now);
       else if (state.mode === 'flat') deskPutter(now);
       else { putter.visible = false; aim.visible = false; }
       if (state.mode !== 'flat') aim.visible = false;
@@ -11579,6 +11584,242 @@ kbd {
     return L;
   })();
 
+  // ================================================================ MINI GOLF: THE DRIVING RANGE
+  // A deck off the side of the pier with a tee mat, hitting out to sea: floating greens at 50 to 250 yards, a yardage
+  // buoy every 50. A bucket is ten balls; land on a green for points (more for the far ones, double near the pin).
+  // VR: the driver's in your putter hand; hold the trigger and swing through the ball (how hard and which way you swing
+  // decides the shot). Browser: hold Space and let go; the best shots come from letting go in the green part of the bar
+  // (too long and you hook it). The button by the pier's east rail takes you there; the one on the deck takes you back.
+  const drivingrange = ((L) => {
+    const G = L.group;
+    const rand = mulberry32(6161);
+    const YD = 0.9144, KD = 0.0035, KL = 0.0025, GRAV = 9.8, BR = 0.021;
+    const DECK = { x: 26, z: -3, w: 8, d: 10 };
+    const TEE = new V3(24.2, 0.03, -3);            // the ball sits here; you hit along +x
+    const RB = { minX: DECK.x - DECK.w / 2, maxX: DECK.x + DECK.w / 2, minZ: DECK.z - DECK.d / 2, maxZ: DECK.z + DECK.d / 2 };
+    const onRange = (x) => x > 16;
+    L.onRange = () => onRange(myHead.pos.x);
+    // ---------------------------------------------------------------- the deck, the mat, the targets
+    const plank = lam(0xb08a5a);
+    addBox(G, DECK.w, 0.4, DECK.d, plank, DECK.x, -0.2, DECK.z);
+    for (let i = 0; i < 20; i++) addBox(G, DECK.w, 0.004, 0.02, lam(0x8a6a40), DECK.x, 0.002, RB.minZ + i * 0.5);
+    for (const [x, z] of [[RB.minX, RB.minZ], [RB.maxX, RB.minZ], [RB.minX, RB.maxZ], [RB.maxX, RB.maxZ]]) addCyl(G, 0.25, 0.25, 1.7, 8, lam(0x6a4a2a), x, -1.15, z);
+    const railM = lam(0xffffff);
+    for (const z of [RB.minZ, RB.maxZ]) addBox(G, DECK.w, 0.08, 0.08, railM, DECK.x, 1.0, z);
+    addBox(G, 0.08, 0.08, DECK.d, railM, RB.minX, 1.0, DECK.z);
+    addBox(G, 2.2, 0.02, 1.6, lam(0x3a8a3a), TEE.x, 0.01, TEE.z);   // the mat
+    addCyl(G, 0.008, 0.008, 0.03, 6, lam(0xffffff), TEE.x, 0.015, TEE.z);   // the tee
+    makePlate(G, '⛳  DRIVING RANGE', 2.4, 0.4, new V3(RB.minX + 0.06, 2.2, DECK.z), Math.PI / 2, { bg: '#2e8a4c', fg: '#ffffff', size: 0.6 });
+    addBox(G, 0.1, 2.4, 0.1, lam(0x3a2a1a), RB.minX + 0.02, 1.2, DECK.z - 1.3); addBox(G, 0.1, 2.4, 0.1, lam(0x3a2a1a), RB.minX + 0.02, 1.2, DECK.z + 1.3);
+    // floating greens: [yards, radius in m, points, sideways offset]
+    const TARGETS = [[50, 7, 1, -6], [100, 9, 2, 8], [150, 11, 3, -10], [200, 13, 4, 6], [250, 15, 5, -4]];
+    const flagCol = [0xff4d4d, 0xffd23f, 0x4fc3f7, 0xb388ff, 0xff9a3c];
+    const greens = TARGETS.map(([yd, r, pts, off], i) => {
+      const x = TEE.x + yd * YD, z = TEE.z + off;
+      const g = new THREE.Mesh(new THREE.CylinderGeometry(r, r * 1.05, 0.4, 32), lam(0x4aa84a)); g.position.set(x, -1.45, z); G.add(g);
+      const ring = new THREE.Mesh(new THREE.RingGeometry(r * 0.3, r * 0.34, 32), new THREE.MeshBasicMaterial({ color: 0xffffff })); ring.rotation.x = -Math.PI / 2; ring.position.set(x, -1.24, z); G.add(ring);
+      addCyl(G, 0.08, 0.08, 4.5, 6, lam(0xffffff), x, 0.95, z);
+      const fl = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 1.5), new THREE.MeshLambertMaterial({ color: flagCol[i], side: THREE.DoubleSide })); fl.position.set(x, 2.5, z + 1.2); fl.rotation.y = Math.PI / 2; G.add(fl);
+      makePlate(G, `${yd}`, 2.2, 1.1, new V3(x - 0.02, 2.3, z + 1.2), -Math.PI / 2, { bg: '#ffffff', fg: '#1b1932', size: 0.8 });
+      return { x, z, r, pts, yd };
+    });
+    // yardage buoys down the middle
+    for (let yd = 50; yd <= 300; yd += 50) { const x = TEE.x + yd * YD; addCyl(G, 0.6, 0.7, 1.4, 10, lam(0xff6a2a), x, -1.1, TEE.z + 18); makePlate(G, `${yd} yd`, 1.8, 0.7, new V3(x - 0.75, -0.2, TEE.z + 18), -Math.PI / 2, { bg: '#ff6a2a', fg: '#ffffff', size: 0.6 }); }
+    // the buttons there and back
+    makeButton(L, new V3(14.2, 0.95, 7.5), 0x2e8a4c, 'Driving range', () => goRange(), { faceYaw: -Math.PI / 2 });
+    makeButton(L, new V3(RB.minX + 0.8, 0.95, RB.maxZ - 0.8), 0xd84a4a, 'Back to golf', () => { L.spawn(); }, { faceYaw: Math.PI / 2 });
+    // the scoreboard on the deck
+    const sb = canvasTexture(512, 300);
+    const sbM = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 1.05), new THREE.MeshBasicMaterial({ map: sb.tex })); sbM.position.set(TEE.x - 1.2, 1.7, RB.minZ + 0.1); G.add(sbM);
+    addBox(G, 1.9, 1.15, 0.05, lam(0x2a2a2a), TEE.x - 1.2, 1.7, RB.minZ + 0.06);
+    for (const dx of [-0.8, 0.8]) addCyl(G, 0.03, 0.03, 1.2, 6, lam(0x2a2a2a), TEE.x - 1.2 + dx, 0.6, RB.minZ + 0.08);
+
+    // ---------------------------------------------------------------- the club and the ball
+    function makeDriver() {
+      const g = new THREE.Group();
+      const grip = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.013, 0.25, 8), lam(0x1b1932)); grip.rotation.x = Math.PI / 2; grip.position.z = -0.08; g.add(grip);
+      const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.005, 0.85, 6), lam(0x2a2a30)); shaft.rotation.x = Math.PI / 2; shaft.position.z = -0.62; g.add(shaft);
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.055, 14, 10), lam(0x1a1a22)); head.scale.set(1.0, 0.55, 0.8); head.position.set(0.03, 0, -1.06); g.add(head);
+      const face = new THREE.Mesh(new THREE.BoxGeometry(0.004, 0.045, 0.07), lam(0xc8ccd6)); face.position.set(0.085, 0, -1.06); g.add(face);
+      g.visible = false; L.overlay.add(g);
+      return g;
+    }
+    const club = makeDriver();
+    const ball = new THREE.Mesh(new THREE.SphereGeometry(BR, 14, 10), lam(0xffffff)); G.add(ball);
+    const trailN = 60, trailPos = new Float32Array(trailN * 3);
+    const trailGeo = new THREE.BufferGeometry(); trailGeo.setAttribute('position', new THREE.BufferAttribute(trailPos, 3)); trailGeo.setDrawRange(0, 0);
+    const trail = new THREE.Line(trailGeo, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.8 })); trail.frustumCulled = false; G.add(trail);
+    const ring = new THREE.Mesh(new THREE.RingGeometry(0.8, 1.2, 24), new THREE.MeshBasicMaterial({ color: 0xffd23f, transparent: true, opacity: 0.9, side: THREE.DoubleSide })); ring.rotation.x = -Math.PI / 2; ring.visible = false; G.add(ring);
+
+    // ---------------------------------------------------------------- the bucket
+    const R = { st: 'tee', p: new V3(), v: new V3(), left: 10, score: 0, last: null, best: 0, longest: 0, n: 0, t: 0, side: 0 };
+    try { if (prefs.range && typeof prefs.range === 'object') { R.best = prefs.range.best | 0; R.longest = prefs.range.longest | 0; } } catch (e) { /* none */ }
+    L.range = R;
+    function teeUp() { R.st = 'tee'; R.p.copy(TEE).setY(TEE.y + BR + 0.03); R.v.set(0, 0, 0); ball.position.copy(R.p); trailGeo.setDrawRange(0, 0); R.n = 0; }
+    teeUp();
+    function newBucket() { R.left = 10; R.score = 0; R.last = null; teeUp(); sbKey = ''; showToast('A fresh bucket: ten balls'); }
+    L.newBucket = newBucket;
+    function goRange() {
+      const c = new V3(); camera.getWorldPosition(c);
+      if (state.mode === 'vr') { dolly.position.x += TEE.x - c.x; dolly.position.z += TEE.z - 0.7 - c.z; }
+      else { dolly.position.x += TEE.x - 2.4 - c.x; dolly.position.z += TEE.z - c.z; state.yaw = -Math.PI / 2; state.pitch = -0.12; }
+      if (R.st !== 'tee' && R.st !== 'fly') teeUp();
+      sbKey = '';
+      showToast(state.mode === 'vr' ? 'Driving range: hold the trigger and swing through the ball' : 'Driving range: hold Space, let go in the green');
+    }
+    L.goRange = goRange;
+    // hit it: speed in m/s, launch angle (radians), and direction (radians off the target line, + is left)
+    function launch(speed, loft, dir) {
+      if (R.st !== 'tee') return;
+      if (R.left <= 0) newBucket();
+      const s = clamp(speed, 3, 72);
+      R.v.set(Math.cos(loft) * Math.cos(dir) * s, Math.sin(loft) * s, -Math.cos(loft) * Math.sin(dir) * s);
+      R.side = clamp(-dir * 0.8, -0.3, 0.3);   // a little curve the way it started (a push fades, a pull draws)
+      R.st = 'fly'; R.t = 0; R.n = 0; R.left -= 1;
+      tone(1600, 600, 0.06, 'square', 0.25); sfx('whoosh', 0.5);
+      forcePresence(); sbKey = '';
+    }
+    L.driveBall = launch;
+    function flyStep(h) {
+      const v = R.v, s = v.length();
+      if (s > 1e-4) {
+        // drag against the motion, lift up and across it (backspin), and a gentle curve
+        const hx = Math.hypot(v.x, v.z) || 1e-6;
+        v.x += (-KD * s * v.x - KL * s * s * (v.y / s) * (v.x / hx)) * h;
+        v.z += (-KD * s * v.z - KL * s * s * (v.y / s) * (v.z / hx) + R.side * s * 0.12) * h;
+        v.y += (-GRAV - KD * s * v.y + KL * s * hx) * h;
+      }
+      R.p.addScaledVector(v, h);
+      R.t += h;
+    }
+    function land() {
+      const carry = Math.hypot(R.p.x - TEE.x, R.p.z - TEE.z) / YD, yd = Math.round(carry);
+      let pts = 0, hitG = null;
+      for (const gr of greens) { const d = Math.hypot(R.p.x - gr.x, R.p.z - gr.z); if (d < gr.r) { hitG = gr; pts = gr.pts * (d < gr.r * 0.32 ? 2 : 1); } }
+      R.score += pts; R.last = { yd, pts, green: hitG ? hitG.yd : 0 };
+      R.st = 'down'; R.t = 0;
+      ring.position.set(R.p.x, -1.2, R.p.z); ring.scale.setScalar(Math.max(1, carry / 60)); ring.visible = true;
+      spawnFloat(pts ? `${yd} yd  +${pts}` : `${yd} yd`, new V3(R.p.x, 1.5, R.p.z), pts ? '#ffd23f' : '#ffffff');
+      if (pts) sfx('cheer', 0.6); else tone(300, 120, 0.25, 'sine', 0.1);
+      if (yd > R.longest) { R.longest = yd; showToast(`Longest drive yet: ${yd} yards!`); }
+      RECORDS.add(L, 'drive', yd);
+      prefs.range = { best: R.best, longest: R.longest }; savePrefs();
+      if (R.left <= 0) {
+        if (R.score > R.best) { R.best = R.score; prefs.range.best = R.best; savePrefs(); showToast(`Bucket done: ${R.score} points (your best!)`); } else showToast(`Bucket done: ${R.score} points`);
+        RECORDS.add(L, 'bucket', R.score);
+      }
+      sbKey = '';
+      forcePresence();
+    }
+    // ---------------------------------------------------------------- swinging
+    // VR: the club head sweeps through the ball while you hold the trigger
+    const headPrev = new V3(), headNow = new V3(), _hp = new V3(), _hv = new V3();
+    let headInit = false;
+    function vrSwing(dt) {
+      const side = (L.me && L.me.hand) || 'right', mh = myHands[side];
+      club.visible = mh.ok;
+      if (!mh.ok) { headInit = false; return; }
+      club.position.copy(mh.pos); club.quaternion.copy(mh.quat);
+      headNow.set(0.03, 0, -1.06).applyQuaternion(mh.quat).add(mh.pos);
+      if (!headInit) { headPrev.copy(headNow); headInit = true; }
+      const gp = vrHands[side].source && vrHands[side].source.gamepad, armed = !!(gp && gp.buttons && gp.buttons[0] && gp.buttons[0].pressed);
+      club.traverse((o) => { if (o.material) { o.material.transparent = !armed; o.material.opacity = armed ? 1 : 0.35; } });
+      if (armed && R.st === 'tee' && dt > 0) {
+        _hv.subVectors(headNow, headPrev).divideScalar(dt);
+        for (let k = 1; k <= 6; k++) {
+          _hp.lerpVectors(headPrev, headNow, k / 6);
+          if (_hp.distanceTo(R.p) > BR + 0.07) continue;
+          const sp = _hv.length();
+          if (sp < 1.5) break;
+          // the ball goes where the head was heading, with the driver's loft added
+          const dir = clamp(Math.atan2(-_hv.z, Math.max(0.1, _hv.x)), -0.45, 0.45), loft = clamp(0.21 + Math.atan2(_hv.y, Math.hypot(_hv.x, _hv.z)) * 0.5, 0.05, 0.6);
+          launch(sp * 2.6, loft, dir);
+          haptic(vrHands[side], 0.9, 40);
+          break;
+        }
+      }
+      headPrev.copy(headNow);
+    }
+    // the browser: Space charges, and the sweet spot is near the top of the bar
+    const _cq = new Q4(), _d = new V3();
+    const baseKick = L.kick, baseCS = L.onChargeStart;
+    L.onChargeStart = () => { if (!L.onRange() && baseCS) baseCS(); };
+    L.kick = (c) => {
+      if (!L.onRange()) { if (baseKick) baseKick(c); return; }
+      if (R.st !== 'tee') { if (R.st === 'fly') showToast('Wait for it to land'); return; }
+      camera.getWorldQuaternion(_cq); _d.set(0, 0, -1).applyQuaternion(_cq);
+      const aimDir = clamp(Math.atan2(-_d.z, Math.max(0.1, _d.x)), -0.4, 0.4);
+      // 0.8-0.92 is the sweet spot; past it you swing too hard and hook it, short of it you lose distance
+      const pure = c >= 0.8 && c <= 0.92, over = c > 0.92;
+      const speed = (18 + Math.min(c, 0.92) * 58) * (over ? 0.93 : 1) * (pure ? 1 : 0.95);
+      const hook = over ? (c - 0.92) * 4 + (rand() - 0.5) * 0.04 : (rand() - 0.5) * (pure ? 0.03 : 0.1);
+      launch(speed, 0.22 + (rand() - 0.5) * 0.03, aimDir + hook);
+      if (pure) spawnFloat('Pure!', new V3(TEE.x + 1, 1.4, TEE.z), '#8bd450');
+    };
+    const baseLabel = L.throwLabel;
+    L.throwLabel = () => (L.onRange() ? 'Drive' : baseLabel ? baseLabel() : 'Putt');
+    // the browser: you see the club swing from just behind the ball (it pivots about your hands)
+    const PIV = new V3(TEE.x, 1.05, TEE.z + 0.35), _u = new V3(), _head = new V3(), _look = new V3();
+    function deskClub(now) {
+      const c = state.charge !== null ? Math.min(1, (now - state.charge) / 1000) : 0;
+      club.visible = true; club.traverse((o) => { if (o.material) { o.material.transparent = false; o.material.opacity = 1; } });
+      const th = R.st === 'tee' ? -c * 2.3 : R.st === 'fly' && R.t < 0.6 ? Math.min(1, R.t / 0.2) * 2.1 : 0;
+      _u.copy(TEE).setY(0.05).sub(PIV); const rr = _u.length(); _u.normalize();
+      _head.copy(PIV).addScaledVector(_u, Math.cos(th) * rr).add(_look.set(Math.sin(th) * rr, 0, 0));
+      club.position.copy(PIV);
+      club.lookAt(_look.copy(PIV).multiplyScalar(2).sub(_head));   // (its -z, the shaft, points at the head)
+    }
+    // ---------------------------------------------------------------- the scoreboard
+    let sbKey = '';
+    function drawSb() {
+      const key = `${R.left}|${R.score}|${R.last ? R.last.yd + '/' + R.last.pts : ''}|${R.best}|${R.longest}`;
+      if (key === sbKey) return; sbKey = key;
+      const g = sb.g;
+      g.fillStyle = '#1f4a2a'; g.fillRect(0, 0, 512, 300); g.strokeStyle = '#ffffff'; g.lineWidth = 6; g.strokeRect(3, 3, 506, 294);
+      g.textAlign = 'center'; g.textBaseline = 'alphabetic';
+      g.fillStyle = '#ffffff'; g.font = `800 40px ${DISPLAY}`; g.fillText('DRIVING RANGE', 256, 50);
+      g.fillStyle = '#ffd23f'; g.font = `900 80px ${DISPLAY}`; g.fillText(R.last ? `${R.last.yd} yd` : '–', 256, 140);
+      g.fillStyle = '#c8e8c8'; g.font = `400 26px ${BODY}`; g.fillText(R.last ? (R.last.pts ? `On the ${R.last.green}-yard green: +${R.last.pts}` : 'In the water') : 'Hit a ball!', 256, 180);
+      g.fillStyle = '#ffffff'; g.font = `700 28px ${BODY}`; g.fillText(`Balls left: ${R.left}   ·   Bucket: ${R.score} pts`, 256, 230);
+      g.fillStyle = '#c8e8c8'; g.font = `400 22px ${BODY}`; g.fillText(`Best bucket ${R.best}  ·  longest ${R.longest} yd`, 256, 270);
+      sb.tex.needsUpdate = true;
+    }
+    // ---------------------------------------------------------------- per frame
+    const baseUpdate = L.update;
+    L.update = (dt, now) => {
+      baseUpdate(dt, now);
+      const here = state.level === L.idx && state.mode !== 'menu' && L.onRange();
+      if (!here) { club.visible = false; headInit = false; }
+      else if (state.mode === 'vr') vrSwing(dt);
+      else if (state.mode === 'flat') deskClub(now);
+      if (R.st === 'fly') {
+        const n = Math.max(1, Math.ceil(dt / 0.004));
+        for (let i = 0; i < n && R.st === 'fly'; i++) { flyStep(dt / n); if (R.p.y < -1.25 && R.v.y < 0) land(); }
+        if (R.st === 'fly' && R.n < trailN && (R.n === 0 || R.t * 20 > R.n)) { trailPos.set([R.p.x, R.p.y, R.p.z], R.n * 3); R.n += 1; trailGeo.attributes.position.needsUpdate = true; trailGeo.setDrawRange(0, R.n); }
+      } else if (R.st === 'down') {
+        R.t += dt;
+        if (R.t > 2.2) { ring.visible = false; teeUp(); }
+      }
+      ball.position.copy(R.p);
+      ball.scale.setScalar(R.st === 'fly' ? 1 + Math.min(4, Math.hypot(R.p.x - myHead.pos.x, R.p.z - myHead.pos.z) / 30) : 1);   // (so you can follow it out there)
+      if (here) drawSb();
+      if (here && ui.status && state.mode === 'flat') {
+        ui.status.hidden = false;
+        const txt = R.st === 'fly' ? 'In the air…' : `Driving range  ·  ${R.left} balls left  ·  hold Space, let go in the green  ·  look left or right to aim`;
+        if (ui.status.textContent !== txt) ui.status.textContent = txt;
+      }
+    };
+    // walking about: the pier, or the deck (they're not joined, the buttons take you)
+    L.clampPlayer = (p) => {
+      const B = onRange(p.x) ? RB : L.bounds, m = 0.3;
+      return [clamp(p.x, B.minX + m, B.maxX - m) - p.x, clamp(p.z, B.minZ + m, B.maxZ - m) - p.z];
+    };
+    const baseHints = L.hintsFor;
+    L.hintsFor = () => (L.onRange() ? (state.mode === 'flat' ? [['Space', 'hold, let go in the green to drive'], ['Drag', 'aim left or right']] : [['Trigger', 'hold it and swing through the ball'], ['Targets', 'land on a green for points']]) : baseHints ? baseHints() : L.hints);
+    L.hudActions.push({ label: () => (L.onRange() ? 'New bucket' : 'Driving range'), run: () => (L.onRange() ? newBucket() : goRange()) });
+    L.rangeInternals = { R, launch, flyStep, land, teeUp, newBucket, goRange, greens, TEE, TARGETS, YD };
+    return R;
+  })(minigolf);
   // ================================================================ LEVEL: MOONLIGHT LANES (bowling)
   // Standard ten-pin scoring. Returns the frames so far, the running total,
   // and what the next ball needs: which frame, which ball, and whether the rack is fresh.
@@ -35922,6 +36163,1348 @@ kbd {
     MUSIC_THEMES.triggers = { gain: 0.5, bpm: 104, swing: 0.15, chords: ['Bbmaj7', 'Gm7', 'Cm7', 'F7'], comp: { inst: 'ep', at: [0, 6, 10], dur: 0.5 }, bass: { walk: true }, drums: { k: 'x.......x.......', s: '....x.......x...', h: 'o-o-o-o-o-o-o-o-' }, cut: 3400 };
     return L;
   })();
+  // ================================================================ LEVEL: FRUIT SLASH (get active)
+  // Fruit flies up in front of you; slice it with a katana in each hand before it falls. Don't touch the bombs.
+  // Classic: three dropped fruit and you're out, and a bomb ends it. Arcade: 60 seconds, bombs cost 10 points, and
+  // golden fruit are worth 5. Slice three or more in one swing for a combo.
+  // VR: swing the swords (a sword only cuts when it's moving). Browser: the mouse is the blade, swipe through the fruit.
+  const fruit = (() => {
+    const L = newLevel(55);
+    const G = L.group;
+    const rand = mulberry32(5555);
+    L.grabless = true;
+    L.bounds = { minX: -6, maxX: 6, minZ: -1, maxZ: 3 };
+    L.env = {
+      sky: skyTexture([[0, '#2a1a4a'], [0.42, '#c8507a'], [0.5, '#ffb070'], [0.53, '#5a3a3a'], [1, '#2a1a1a']]),
+      bg: 0x5a3050, fog: [0x7a4a5a, 30, 120], hemi: [0xffd8c0, 0x4a3040, 0.85],
+      sun: [0xffc890, 0.75], sunDir: new V3(-0.4, 0.5, -0.8), ambient: [0x6a4a5a, 0.45], sprite: null,
+    };
+    const N_SLOT = 4, SLOT_W = 3.2, FZ = -1.35, G_F = 6.5;   // where the fruit flies (in front of you), and its gravity
+    const slotX = (k) => [0, -SLOT_W, SLOT_W, -2 * SLOT_W][k];
+
+    // ---------------------------------------------------------------- the dojo garden
+    const deck = new THREE.Mesh(new THREE.PlaneGeometry(16, 8), lam(0x8a5a3a)); deck.rotation.x = -Math.PI / 2; deck.position.set(0, 0, 0.5); G.add(deck);
+    for (let i = 0; i < 16; i++) addBox(G, 16, 0.005, 0.02, lam(0x6a4028), 0, 0.003, -3.4 + i * 0.5);
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(120, 120), lam(0x3a4a2a)); ground.rotation.x = -Math.PI / 2; ground.position.y = -0.02; G.add(ground);
+    // a big wooden wall behind the fruit (the juice splats on it)
+    const WALL_Z = -3.6;
+    addBox(G, 16, 3.6, 0.2, lam(0x7a4a2a), 0, 1.8, WALL_Z - 0.1);
+    for (let i = -7; i <= 7; i++) addBox(G, 0.08, 3.6, 0.06, lam(0x5a3018), i, 1.8, WALL_Z + 0.02);
+    addBox(G, 16.4, 0.3, 0.4, lam(0x3a2010), 0, 3.7, WALL_Z);
+    makePlate(G, '\u{1F349}  FRUIT SLASH', 3.6, 0.5, new V3(0, 3.1, WALL_Z + 0.07), 0, { bg: '#c8302a', fg: '#fff4e0', size: 0.62 });
+    // bamboo and paper lanterns
+    for (let i = 0; i < 26; i++) { const x = (i < 13 ? -1 : 1) * (6.6 + rand() * 2.5), z = -3 + rand() * 6, h = 3 + rand() * 3; addCyl(G, 0.05, 0.06, h, 6, lam(0x6a9a3a), x, h / 2, z); }
+    const lanternM = new THREE.MeshLambertMaterial({ color: 0xff8a4a, emissive: 0xc84a1a });
+    for (const x of [-5, -2.5, 0, 2.5, 5]) { const l = new THREE.Mesh(new THREE.SphereGeometry(0.18, 12, 8), lanternM); l.scale.y = 1.3; l.position.set(x, 3.35, WALL_Z + 0.4); G.add(l); addCyl(G, 0.01, 0.01, 0.2, 4, lam(0x2a2a2a), x, 3.6, WALL_Z + 0.4); }
+
+    // ---------------------------------------------------------------- fruit
+    const stripeTex = canvasTexture(128, 64, (g) => { g.fillStyle = '#2a7a2a'; g.fillRect(0, 0, 128, 64); g.fillStyle = '#1a4a1a'; for (let i = 0; i < 8; i++) g.fillRect(i * 16 + 4, 0, 6, 64); }).tex;
+    const KINDS = [
+      { id: 'apple', r: 0.075, skin: 0xd8302a, flesh: 0xfff0c8, juice: 0xfff0a0 },
+      { id: 'orange', r: 0.08, skin: 0xff8a1a, flesh: 0xffb84a, juice: 0xffa020 },
+      { id: 'melon', r: 0.15, skin: 0x2a7a2a, flesh: 0xff4a5a, juice: 0xff3a4a, tex: stripeTex },
+      { id: 'lemon', r: 0.065, skin: 0xffe02a, flesh: 0xfff4a0, juice: 0xffee5a, sy: 1.25 },
+      { id: 'coconut', r: 0.1, skin: 0x6a4020, flesh: 0xffffff, juice: 0xf8f8f0 },
+      { id: 'plum', r: 0.065, skin: 0x7a2a8a, flesh: 0xd8e05a, juice: 0xb04ab0 },
+      { id: 'peach', r: 0.075, skin: 0xffa070, flesh: 0xffd060, juice: 0xffb050 },
+      { id: 'gold', r: 0.08, skin: 0xffd23f, flesh: 0xfff4b0, juice: 0xffe060, gold: true },
+    ];
+    for (const k of KINDS) {
+      k.whole = new THREE.SphereGeometry(k.r, 18, 12);
+      k.skinM = new THREE.MeshLambertMaterial(k.tex ? { map: k.tex } : { color: k.skin, emissive: k.gold ? 0x6a4a00 : 0x000000 });
+      k.half = new THREE.SphereGeometry(k.r, 18, 8, 0, Math.PI * 2, 0, Math.PI / 2);
+      k.cap = new THREE.CircleGeometry(k.r * 0.97, 18);
+      k.fleshM = new THREE.MeshLambertMaterial({ color: k.flesh, side: THREE.DoubleSide });
+    }
+    const bombGeo = new THREE.SphereGeometry(0.1, 16, 12), bombM = lam(0x1a1a22), fuseM = new THREE.MeshBasicMaterial({ color: 0xffd23f });
+    const POOL = 14, items = [];
+    for (let i = 0; i < POOL; i++) {
+      const g = new THREE.Group(); g.visible = false; G.add(g);
+      const halves = [0, 1].map(() => { const h = new THREE.Group(); h.visible = false; G.add(h); return h; });
+      items.push({ g, halves, on: false, p: new V3(), v: new V3(), spin: new V3(), kind: null, bomb: false, cut: false, t: 0, hp: [new V3(), new V3()], hv: [new V3(), new V3()] });
+    }
+    function dress(it) {
+      it.g.clear(); for (const h of it.halves) h.clear();
+      if (it.bomb) {
+        it.g.add(new THREE.Mesh(bombGeo, bombM));
+        const fuse = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.06, 5), lam(0x8a6a3a)); fuse.position.y = 0.12; it.g.add(fuse);
+        const spark = new THREE.Mesh(new THREE.SphereGeometry(0.02, 6, 4), fuseM); spark.position.y = 0.16; it.g.add(spark); it.spark = spark;
+        return;
+      }
+      const k = it.kind, whole = new THREE.Mesh(k.whole, k.skinM); whole.scale.y = k.sy || 1; it.g.add(whole);
+      if (k.id === 'apple' || k.id === 'peach') { const st = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.04, 4), lam(0x4a3018)); st.position.y = k.r; it.g.add(st); }
+      for (const h of it.halves) { const sk = new THREE.Mesh(k.half, k.skinM); sk.scale.y = k.sy || 1; h.add(sk); const c = new THREE.Mesh(k.cap, k.fleshM); c.rotation.x = Math.PI / 2; h.add(c); }
+    }
+
+    // ---------------------------------------------------------------- juice: a burst of drops and a splat on the wall
+    const DROPS = [];
+    for (let i = 0; i < 40; i++) { const m = new THREE.Mesh(new THREE.SphereGeometry(0.015, 5, 4), new THREE.MeshBasicMaterial({ color: 0xffffff })); m.visible = false; G.add(m); DROPS.push({ m, p: new V3(), v: new V3(), t: 0 }); }
+    const splatTex = canvasTexture(128, 128, (g) => { g.fillStyle = '#ffffff'; g.beginPath(); g.arc(64, 64, 34, 0, Math.PI * 2); g.fill(); for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2 + (i % 3), r = 38 + (i * 13) % 22; g.beginPath(); g.arc(64 + Math.cos(a) * r, 64 + Math.sin(a) * r, 5 + (i % 4) * 3, 0, Math.PI * 2); g.fill(); } }).tex;
+    const SPLATS = [];
+    for (let i = 0; i < 16; i++) { const m = new THREE.Mesh(new THREE.PlaneGeometry(0.7, 0.7), new THREE.MeshBasicMaterial({ map: splatTex, color: 0xffffff, transparent: true, opacity: 0, depthWrite: false })); m.position.z = WALL_Z + 0.06; G.add(m); SPLATS.push({ m, t: 99 }); }
+    let dropI = 0, splatI = 0;
+    function juice(p, col, dir) {
+      for (let i = 0; i < 8; i++) {
+        const d = DROPS[dropI++ % DROPS.length];
+        d.p.copy(p); d.v.set((rand() - 0.5) * 2.5 + dir.x * 0.5, rand() * 2.2, (rand() - 0.5) * 1.5 - 0.6); d.t = 0;
+        d.m.material.color.setHex(col); d.m.visible = true;
+      }
+      const s = SPLATS[splatI++ % SPLATS.length];
+      s.m.position.x = clamp(p.x + (rand() - 0.5) * 0.6, -7.5, 7.5); s.m.position.y = clamp(p.y + 0.4 + rand() * 0.6, 0.4, 3.2); s.m.rotation.z = rand() * 6;
+      s.m.material.color.setHex(col); s.t = 0; s.m.scale.setScalar(0.6 + rand() * 0.6);
+    }
+    const flash = new THREE.Sprite(new THREE.SpriteMaterial({ map: warmGlowTex, color: 0xffffff, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true })); flash.visible = false; G.add(flash);
+
+    // ---------------------------------------------------------------- the swords
+    function makeKatana() {
+      const g = new THREE.Group();
+      const grip = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.018, 0.22, 8), lam(0x2a1a2a)); grip.rotation.x = Math.PI / 2; grip.position.z = 0.02; g.add(grip);
+      const guard = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.012, 14), lam(0xc8a040)); guard.rotation.x = Math.PI / 2; guard.position.z = -0.1; g.add(guard);
+      const blade = new THREE.Mesh(new THREE.BoxGeometry(0.008, 0.032, 0.85), new THREE.MeshLambertMaterial({ color: 0xe8eef4, emissive: 0x404850 })); blade.position.z = -0.53; g.add(blade);
+      const trail = new THREE.Mesh(new THREE.BoxGeometry(0.003, 0.05, 0.85), new THREE.MeshBasicMaterial({ color: 0x9af0ff, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false })); trail.position.z = -0.53; g.add(trail);
+      g.userData.trail = trail; g.visible = false; L.overlay.add(g);
+      return g;
+    }
+    const swords = { left: makeKatana(), right: makeKatana(), flat: makeKatana() };
+    // each sword's edge now and a frame ago (from the guard to the tip)
+    const edge = {};
+    for (const s of ['left', 'right', 'flat']) edge[s] = { a: new V3(), b: new V3(), pa: new V3(), pb: new V3(), ok: false, speed: 0, combo: 0, comboT: 0 };
+    function poseSword(side, pos, quat, dt) {
+      const g = swords[side], E = edge[side];
+      g.position.copy(pos); g.quaternion.copy(quat); g.visible = true;
+      E.pa.copy(E.a); E.pb.copy(E.b);
+      E.a.set(0, 0, -0.12).applyQuaternion(quat).add(pos); E.b.set(0, 0, -0.96).applyQuaternion(quat).add(pos);
+      if (!E.ok) { E.pa.copy(E.a); E.pb.copy(E.b); }
+      E.ok = true; E.speed = E.b.distanceTo(E.pb) / Math.max(dt, 1e-3);
+      g.userData.trail.material.opacity = clamp((E.speed - 1.5) / 6, 0, 0.7);
+    }
+    // the browser sword: its tip follows the mouse on the plane where the fruit flies
+    const mouse = { x: 0, y: -0.1 };
+    renderer.domElement.addEventListener('pointermove', (e) => { const r = renderer.domElement.getBoundingClientRect(); mouse.x = ((e.clientX - r.left) / r.width) * 2 - 1; mouse.y = -((e.clientY - r.top) / r.height) * 2 + 1; });
+    const ray = new THREE.Raycaster(), _ndc = new THREE.Vector2(), _t = new V3(), _h = new V3(), _w = new V3(), _q = new Q4(), _m4 = new THREE.Matrix4(), _up = new V3(0, 1, 0);
+    function flatSword(dt) {
+      _ndc.set(mouse.x, mouse.y); camera.updateMatrixWorld(true); ray.setFromCamera(_ndc, camera);
+      const o = ray.ray.origin, d = ray.ray.direction, zp = dolly.position.z + FZ;
+      if (Math.abs(d.z) < 1e-4) return;
+      _t.copy(o).addScaledVector(d, (zp - o.z) / d.z);                     // the tip
+      camera.getWorldPosition(_h); _h.y -= 0.55; _h.z -= 0.25; _h.x += 0.2;    // the hand, low in front of you
+      _w.subVectors(_t, _h).normalize();
+      _m4.lookAt(_h, _t, _up); _q.setFromRotationMatrix(_m4);
+      const hand = _t.clone().addScaledVector(_w, -0.96);
+      poseSword('flat', hand, _q, dt);
+    }
+
+    // ---------------------------------------------------------------- the game
+    const S = { ph: 'idle', mode: 'classic', score: 0, lives: 3, t0: 0, next: 0, wave: 0, best: { classic: 0, arcade: 0 }, slot: 0, bigCombo: 0 };
+    try { if (prefs.fruitBest && typeof prefs.fruitBest === 'object') Object.assign(S.best, prefs.fruitBest); } catch (e) { /* none */ }
+    L.fruitS = S;
+    const ox = () => slotX(S.slot);
+    const timeLeft = () => Math.max(0, 60 - (performance.now() - S.t0) / 1000);
+    function start(mode) {
+      Object.assign(S, { ph: 'play', mode, score: 0, lives: 3, t0: performance.now(), next: 0.6, wave: 0, bigCombo: 0 });
+      for (const it of items) { it.on = false; it.g.visible = false; for (const h of it.halves) h.visible = false; }
+      sfx('whistle', 0.6);
+      forcePresence(); state.dirtyBoard = true; state.hudDirty = true; boardKey = '';
+    }
+    L.start = start;
+    function end(why) {
+      if (S.ph !== 'play') return;
+      S.ph = 'over'; S.why = why;
+      const isBest = S.score > (S.best[S.mode] || 0);
+      if (isBest) { S.best[S.mode] = S.score; prefs.fruitBest = Object.assign({}, S.best); savePrefs(); }
+      RECORDS.add(L, S.mode, S.score);
+      if (S.bigCombo >= 3) RECORDS.add(L, 'combo', S.bigCombo);
+      showToast(`${why} ${S.score} points${isBest ? ' (your best!)' : ''}`);
+      sfx(S.score >= 60 ? 'fanfare' : 'chime', 0.8);
+      forcePresence(); state.dirtyBoard = true; state.hudDirty = true; boardKey = '';
+    }
+    L.end = end;
+    // throw one item up into the air in front of you
+    function launch(bomb, gold) {
+      const it = items.find((x) => !x.on && !x.halves[0].visible) || items.find((x) => !x.on);
+      if (!it) return null;
+      it.bomb = bomb; it.kind = bomb ? null : gold ? KINDS[7] : KINDS[Math.floor(rand() * 7)];
+      dress(it);
+      const x0 = (rand() - 0.5) * 2.4, apex = 1.25 + rand() * 0.7, vy = Math.sqrt(2 * G_F * (apex + 0.3));
+      const T = 2 * vy / G_F, x1 = (rand() - 0.5) * 1.4;
+      it.p.set(ox() + x0, -0.3, dolly.position.z + FZ + (rand() - 0.5) * 0.4);
+      it.v.set((x1 - x0) / T, vy, 0); it.spin.set((rand() - 0.5) * 6, (rand() - 0.5) * 6, (rand() - 0.5) * 6);
+      it.on = true; it.cut = false; it.t = 0; it.g.visible = true; it.g.rotation.set(0, 0, 0);
+      tone(220 + rand() * 80, 400, 0.12, 'sine', 0.06);
+      return it;
+    }
+    L.launch = launch;
+    // a wave: a few fruit, sometimes a bomb, more as the game goes on
+    function spawnWave() {
+      S.wave += 1;
+      const el = (performance.now() - S.t0) / 1000;
+      const n = Math.min(5, 1 + Math.floor(rand() * (2 + el / 20)));
+      const bombP = S.mode === 'arcade' ? 0.22 : clamp(0.06 + el / 300, 0.06, 0.25);
+      for (let i = 0; i < n; i++) setTimeout(() => { if (S.ph === 'play' && state.level === L.idx) launch(false, S.mode === 'arcade' && rand() < 0.07); }, i * 140);
+      if (rand() < bombP) launch(true, false);
+      S.next = Math.max(0.9, 2.2 - el / 40) + rand() * 0.6;
+    }
+    // a cut: the fruit splits along the swing, the halves fly apart
+    function slice(it, side, dir) {
+      it.on = false; it.cut = true; it.g.visible = false;
+      if (it.bomb) {
+        flash.position.copy(it.p); flash.scale.setScalar(2.5); flash.material.color.setHex(0xffffff); flash.visible = true; flash.userData.t = 0;
+        sfx('slam', 1); tone(80, 30, 0.6, 'sawtooth', 0.3);
+        if (state.mode === 'vr') for (const s of SIDES) haptic(vrHands[s], 1, 250);
+        if (S.mode === 'classic') { end('Boom!'); return; }
+        S.score = Math.max(0, S.score - 10); spawnFloat('-10', it.p.clone().add(new V3(0, 0.3, 0)), '#ff6a5a');
+        forcePresence(); state.dirtyBoard = true;
+        return;
+      }
+      const k = it.kind, pts = k.gold ? 5 : 1;
+      S.score += pts;
+      const E = edge[side]; E.combo = performance.now() - E.comboT < 300 ? E.combo + 1 : 1; E.comboT = performance.now();
+      if (E.combo >= 3) { S.score += 1; S.bigCombo = Math.max(S.bigCombo, E.combo); spawnFloat(`${E.combo}x combo!`, it.p.clone().add(new V3(0, 0.45, 0)), '#ffd23f'); }
+      else if (pts > 1) spawnFloat(`+${pts}`, it.p.clone().add(new V3(0, 0.3, 0)), '#ffd23f');
+      // the cut plane: along the swing, facing you
+      const n = _w.set(dir.x, dir.y, 0); if (n.lengthSq() < 1e-6) n.set(1, 0, 0); n.normalize(); n.set(-n.y, n.x, 0);
+      it.halves.forEach((h, i) => {
+        const s = i ? -1 : 1;
+        h.quaternion.setFromUnitVectors(_up, _t.copy(n).multiplyScalar(s));
+        it.hp[i].copy(it.p); it.hv[i].copy(it.v).multiplyScalar(0.4).addScaledVector(n, s * 1.4).add(_h.set(dir.x * 0.15, 0.5, 0));
+        h.position.copy(it.p); h.visible = true;
+      });
+      it.t = 0;
+      juice(it.p, k.juice, dir);
+      tone(900 + rand() * 300, 300, 0.08, 'sawtooth', 0.06); sfx('swish', 0.4);
+      if (state.mode === 'vr' && side !== 'flat') haptic(vrHands[side], 0.6, 25);
+      forcePresence(); state.dirtyBoard = true;
+    }
+    L.slice = slice;
+    // does a sword's sweep since last frame cross a ball of radius r at p?
+    const _s0 = new V3(), _s1 = new V3(), _cl = new V3(), _sd = new V3();
+    function sweepHit(E, p, r) {
+      for (let k = 0; k <= 8; k++) {
+        const f = 0.1 + (k / 8) * 0.9;
+        _s0.lerpVectors(E.pa, E.pb, f); _s1.lerpVectors(E.a, E.b, f);
+        _sd.subVectors(_s1, _s0);
+        const len2 = _sd.lengthSq(), u = len2 > 1e-9 ? clamp(_cl.subVectors(p, _s0).dot(_sd) / len2, 0, 1) : 0;
+        _cl.copy(_s0).addScaledVector(_sd, u);
+        if (_cl.distanceTo(p) < r) return _sd.clone();
+      }
+      return null;
+    }
+
+    // ---------------------------------------------------------------- the scoreboard on the wall
+    const sc = canvasTexture(512, 160);
+    const scM = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 0.56), new THREE.MeshBasicMaterial({ map: sc.tex })); scM.position.set(0, 2.55, WALL_Z + 0.08); G.add(scM);
+    let boardKey = '';
+    function drawSc() {
+      const t = S.ph === 'play' && S.mode === 'arcade' ? Math.ceil(timeLeft()) : 0;
+      const key = `${S.ph}|${S.score}|${S.lives}|${t}|${S.mode}`;
+      if (key === boardKey) return; boardKey = key;
+      const g = sc.g;
+      g.fillStyle = '#2a140c'; g.fillRect(0, 0, 512, 160); g.strokeStyle = '#ffd23f'; g.lineWidth = 6; g.strokeRect(3, 3, 506, 154);
+      g.textAlign = 'center'; g.textBaseline = 'middle';
+      if (S.ph !== 'play') {
+        g.fillStyle = '#ffd23f'; g.font = `800 44px ${DISPLAY}`; g.fillText(S.ph === 'over' ? `${S.score} points` : 'Fruit Slash', 256, 52);
+        g.fillStyle = '#fff4e0'; g.font = `400 26px ${BODY}`; g.fillText(`Best: classic ${S.best.classic} · arcade ${S.best.arcade}`, 256, 112);
+      } else {
+        g.fillStyle = '#ffffff'; g.font = `900 84px ${DISPLAY}`; g.fillText(String(S.score), 150, 84);
+        g.font = `800 46px ${DISPLAY}`;
+        if (S.mode === 'classic') { g.fillStyle = '#ff6a5a'; g.fillText('✖'.repeat(3 - S.lives) + '○'.repeat(S.lives), 380, 84); }
+        else { g.fillStyle = t <= 10 ? '#ff6a5a' : '#ffd23f'; g.fillText(`${t}s`, 380, 84); }
+      }
+      sc.tex.needsUpdate = true;
+    }
+
+    // ---------------------------------------------------------------- per frame
+    function stand() {
+      const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer);
+      ids.sort(); S.slot = Math.max(0, ids.indexOf(state.myPeer)) % N_SLOT;
+      const c = new V3(); camera.getWorldPosition(c);
+      dolly.position.x += slotX(S.slot) - c.x; dolly.position.z += 0 - c.z;
+    }
+    L.update = (dt, now) => {
+      const here = state.level === L.idx && state.mode !== 'menu';
+      if (!here) { for (const s of ['left', 'right', 'flat']) { swords[s].visible = false; edge[s].ok = false; } return; }
+      // the swords
+      for (const s of SIDES) { const mh = myHands[s]; if (state.mode === 'vr' && mh.ok) poseSword(s, mh.pos, mh.quat, dt); else { swords[s].visible = false; edge[s].ok = false; } }
+      if (state.mode === 'flat') flatSword(dt); else { swords.flat.visible = false; edge.flat.ok = false; }
+      // VR: A or X starts a classic game, B or Y an arcade one
+      if (state.mode === 'vr' && S.ph !== 'play') {
+        for (const s of SIDES) { const gp = vrHands[s].source && vrHands[s].source.gamepad; const a = gp && gp.buttons && gp.buttons[4] && gp.buttons[4].pressed, b = gp && gp.buttons && gp.buttons[5] && gp.buttons[5].pressed; if (a && !S.aPrev) start('classic'); if (b && !S.aPrev) start('arcade'); S.aPrev = a || b; }
+      }
+      if (S.ph === 'play') {
+        S.next -= dt;
+        if (S.next <= 0) spawnWave();
+        if (S.mode === 'arcade' && timeLeft() <= 0) end('Time!');
+      }
+      // flight, cuts and drops
+      for (const it of items) {
+        if (it.on) {
+          it.v.y -= G_F * dt; it.p.addScaledVector(it.v, dt); it.t += dt;
+          it.g.position.copy(it.p); it.g.rotation.x += it.spin.x * dt; it.g.rotation.y += it.spin.y * dt; it.g.rotation.z += it.spin.z * dt;
+          if (it.spark) it.spark.scale.setScalar(0.7 + Math.random() * 0.8);
+          const r = it.bomb ? 0.1 : it.kind.r;
+          for (const s of ['left', 'right', 'flat']) {
+            const E = edge[s];
+            if (!E.ok || E.speed < (s === 'flat' ? 0.8 : 1.6)) continue;
+            const hit = sweepHit(E, it.p, r + 0.03);
+            if (hit) { slice(it, s, hit); break; }
+          }
+          if (it.on && it.p.y < -0.4 && it.v.y < 0) {
+            it.on = false; it.g.visible = false;
+            if (!it.bomb && S.ph === 'play' && S.mode === 'classic') { S.lives -= 1; sfx('buzzer', 0.3); spawnFloat('Dropped!', new V3(it.p.x, 0.6, it.p.z), '#ff6a5a'); if (S.lives <= 0) end('Three dropped!'); forcePresence(); }
+          }
+        }
+        if (it.halves[0].visible) {
+          it.t += dt;
+          it.halves.forEach((h, i) => { it.hv[i].y -= G_F * dt; it.hp[i].addScaledVector(it.hv[i], dt); h.position.copy(it.hp[i]); h.rotateOnAxis(_t.set(1, 0, 0), dt * 4 * (i ? 1 : -1)); });
+          if (it.t > 1.6) for (const h of it.halves) h.visible = false;
+        }
+      }
+      for (const d of DROPS) { if (!d.m.visible) continue; d.t += dt; d.v.y -= 9.8 * dt; d.p.addScaledVector(d.v, dt); d.m.position.copy(d.p); if (d.t > 0.8 || d.p.y < 0) d.m.visible = false; }
+      for (const s of SPLATS) { s.t += dt; s.m.material.opacity = s.t < 6 ? 0.85 * (1 - s.t / 6) : 0; }
+      if (flash.visible) { flash.userData.t += dt; flash.material.opacity = 1 - flash.userData.t / 0.4; if (flash.userData.t > 0.4) flash.visible = false; }
+      drawSc();
+      if (ui.status && state.mode === 'flat') {
+        ui.status.hidden = false;
+        const txt = S.ph === 'play' ? `${S.score} point${S.score === 1 ? "" : "s"}  ·  ${S.mode === 'classic' ? `${S.lives} lives` : `${Math.ceil(timeLeft())} s`}  ·  swipe the mouse through the fruit` : 'Fruit Slash  ·  pick Classic or Arcade (buttons at the top)';
+        if (ui.status.textContent !== txt) ui.status.textContent = txt;
+      }
+    };
+    // the browser view: fixed, looking at the fruit; the mouse moves the sword, not the view
+    L.flatCamera = () => { camera.position.set(0, 1.5, 1.4); camera.rotation.set(-0.03, 0, 0, 'YXZ'); state.yaw = 0; state.pitch = -0.03; return true; };
+    L.presence = () => ({ fs: [S.score, Math.max(S.best.classic, S.best.arcade), S.ph === 'play' ? 1 : 0] });
+    L.readPresence = (rec, pres, st) => {
+      const a = pres.fs;
+      if (!Array.isArray(a) || a.length !== 3 || !a.every((x) => Number.isInteger(x) && x >= 0 && x < 1e6)) { st.fs = null; return; }
+      if (!st.fs || st.fs.join() !== a.join()) state.dirtyBoard = true;
+      st.fs = a;
+    };
+    L.rowFor = (st, isMe) => { const a = isMe ? L.presence().fs : st.fs; if (!a) return { best: 0, text: '' }; return { best: a[1], text: `${a[2] ? `${a[0]} now · ` : ''}best ${a[1]}` }; };
+    L.sortRows = (a, b) => (b.best || 0) - (a.best || 0);
+    L.board = makeBoard(G, 720, 460, 2.2, 1.4, -5.6, 1.9, 0.6, Math.PI / 2);
+    L.drawBoard = (rows) => {
+      const g = L.board.g, W = 720;
+      g.fillStyle = '#2a140c'; g.fillRect(0, 0, W, 460); g.strokeStyle = '#ffd23f'; g.lineWidth = 8; g.strokeRect(4, 4, W - 8, 452);
+      g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+      g.fillStyle = '#ffd23f'; g.font = `800 56px ${DISPLAY}`; g.fillText('Fruit masters', 36, 80);
+      g.fillStyle = '#fff4e0'; g.font = `400 24px ${BODY}`; g.fillText('Best score, classic or arcade', 36, 118);
+      drawRows(g, rows, 176, 46, W);
+      L.board.tex.needsUpdate = true;
+    };
+    makeKiosk(L, 4.6, 1.8, -Math.PI * 0.6);
+    RECORDS.def(L, [{ k: 'classic', label: 'Classic: best score' }, { k: 'arcade', label: 'Arcade: best in 60 s' }, { k: 'combo', label: 'Biggest combo' }]);
+    L.hudActions = [
+      { label: () => (S.ph === 'play' && S.mode === 'classic' ? 'Restart classic' : 'Classic'), run: () => start('classic') },
+      { label: () => (S.ph === 'play' && S.mode === 'arcade' ? 'Restart arcade' : 'Arcade (60 s)'), run: () => start('arcade') },
+    ];
+    L.hints = [['A / X', 'classic game'], ['B / Y', 'arcade (60 s)'], ['Swing', 'slice the fruit, miss the bombs']];
+    L.hintsFor = () => (state.mode === 'flat' ? [['Mouse', 'swipe through the fruit'], ['Bombs', 'don’t touch!']] : L.hints);
+    L.spawn = () => { dolly.position.set(0, 0, 0); stand(); };
+    L.onEnter = () => { S.ph = 'idle'; boardKey = ''; };
+    L.onExit = () => { if (ui.status) ui.status.hidden = true; S.ph = 'idle'; for (const it of items) { it.on = false; it.g.visible = false; for (const h of it.halves) h.visible = false; } };
+    L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 2, 1.7, 2.4); camera.lookAt(0, 1.5, -2); };
+    L.fruitInternals = { S, items, launch, slice, start, end, edge, sweepHit, KINDS, spawnWave };
+    MUSIC_THEMES.fruit = { gain: 0.6, bpm: 120, swing: 0.05, chords: ['Am', 'Em', 'F', 'G'], arp: { inst: 'pluck', every: 1, order: [1, 3, 2, 4, 3, 2, 1, 2], up: 12 }, bass: { at: [0, 6, 10] }, drums: { k: 'x.....x...x.....', s: '....x.......x...', sh: '-o-o-o-o-o-o-o-o' }, cut: 4200 };
+    return L;
+  })();
+  // ================================================================ LEVEL: CLIFFSIDE CLIMB (racing and parkour)
+  // A sea cliff in three tiers, 24 metres to the bell at the top. Three lines of holds go up each tier (green close
+  // together, blue further apart, red far apart with crumbly holds that break away). You're on an auto-belay: let go and
+  // you're lowered gently to the tier below. Ring the bell to stop the clock.
+  // VR: grip a hold and pull yourself up. Your grip tires, faster on one hand: touch the chalk bag at your hip to
+  // freshen it. Pull your head over a tier's lip to climb onto it. Browser: click a hold in reach to move a hand to it;
+  // you climb onto a tier from its top holds. Click the bell (or press E) to ring it.
+  const climb = (() => {
+    const L = newLevel(56);
+    const G = L.group;
+    const rand = mulberry32(5656);
+    L.grabless = true;
+    L.env = {
+      sky: skyTexture([[0, '#3a6ab8'], [0.4, '#8ab8e8'], [0.5, '#ffd8a8'], [0.52, '#5a8ab0'], [1, '#2a5a80']]),
+      bg: 0x8ab8e0, fog: [0xc8d8e8, 60, 260], hemi: [0xfff0e0, 0x6a5a4a, 0.85],
+      sun: [0xffe0b0, 0.7], sunDir: new V3(0.6, 0.6, 0.6), ambient: [0x8a7a6a, 0.35], sprite: { tex: paleSunTex, pos: new V3(160, 120, 160), scale: 50 },
+    };
+    // the tiers: each face is a plane z = FACE[k], from y BASE[k] up to the lip at BASE[k + 1]
+    const FACE = [-0.6, -1.7, -2.8], BASE = [0, 8, 16, 24], W = 4.2, TOP_Z = -3.9;
+    const faceAtY = (y) => (y < BASE[1] ? FACE[0] : y < BASE[2] ? FACE[1] : FACE[2]);
+    // what's under you at (x, z): the beach, a tier, or the top
+    const support = (z) => (z > FACE[0] ? 0 : z > FACE[1] ? BASE[1] : z > FACE[2] ? BASE[2] : BASE[3]);
+    L.bounds = { minX: -W + 0.3, maxX: W - 0.3, minZ: TOP_Z - 0.6, maxZ: 6 };
+
+    // ---------------------------------------------------------------- the cliff
+    const rockTex = canvasTexture(256, 256, (g) => {
+      g.fillStyle = '#9a8070'; g.fillRect(0, 0, 256, 256);
+      for (let i = 0; i < 900; i++) { const v = 110 + Math.floor(rand() * 70); g.fillStyle = `rgba(${v + 20},${v},${v - 15},0.5)`; g.fillRect(rand() * 256, rand() * 256, 2 + rand() * 9, 2 + rand() * 6); }
+      g.strokeStyle = 'rgba(60,45,35,0.45)'; g.lineWidth = 2;
+      for (let i = 0; i < 14; i++) { g.beginPath(); let x = rand() * 256, y = rand() * 256; g.moveTo(x, y); for (let k = 0; k < 5; k++) { x += (rand() - 0.5) * 50; y += rand() * 40; g.lineTo(x, y); } g.stroke(); }
+    }).tex;
+    rockTex.wrapS = rockTex.wrapT = THREE.RepeatWrapping;
+    const rockM = new THREE.MeshLambertMaterial({ map: rockTex });
+    for (let k = 0; k < 3; k++) {
+      const h = BASE[k + 1] - BASE[k] + (k === 2 ? 0 : 0);
+      const m = addBox(G, 60, h, 1.1, rockM, 0, BASE[k] + h / 2, FACE[k] - 0.55);
+      m.material = rockM.clone(); m.material.map = rockTex.clone(); m.material.map.needsUpdate = true; m.material.map.repeat.set(30, h / 2);
+      // the tier's top (the ledge you climb onto)
+      addBox(G, 60, 0.3, Math.abs(FACE[k] - (FACE[k + 1] !== undefined ? FACE[k + 1] : TOP_Z - 6)) + 0.1, lam(0x8a7a5a), 0, BASE[k + 1] - 0.15, (FACE[k] + (FACE[k + 1] !== undefined ? FACE[k + 1] : TOP_Z - 6)) / 2);
+    }
+    // the cliff above the top and the ground
+    addBox(G, 60, 0.3, 30, lam(0x6a8a4a), 0, BASE[3] - 0.15, TOP_Z - 15);
+    const beach = new THREE.Mesh(new THREE.PlaneGeometry(80, 40), lam(0xe8d0a0)); beach.rotation.x = -Math.PI / 2; beach.position.set(0, 0, 18); G.add(beach);
+    const sea = new THREE.Mesh(new THREE.PlaneGeometry(400, 300), new THREE.MeshLambertMaterial({ color: 0x2a78b0 })); sea.rotation.x = -Math.PI / 2; sea.position.set(0, -0.3, 170); G.add(sea);
+    // trees on top, a crash pad and a sign at the bottom
+    for (let i = 0; i < 20; i++) { const x = (rand() - 0.5) * 50, z = TOP_Z - 3 - rand() * 20; addCyl(G, 0.15, 0.2, 2, 6, lam(0x5a3a1a), x, BASE[3] + 1, z); const c = new THREE.Mesh(new THREE.ConeGeometry(1.2, 3, 8), lam(0x3a6a3a)); c.position.set(x, BASE[3] + 3, z); G.add(c); }
+    addBox(G, 7, 0.25, 1.6, lam(0x3a6ad8), 0, 0.125, 0.4);
+    makePlate(G, '\u{1F9D7}  CLIFFSIDE CLIMB', 2.6, 0.4, new V3(-5.4, 1.9, 1.2), 0.5, { bg: '#c86a2a', fg: '#ffffff', size: 0.6 });
+    addBox(G, 0.1, 1.9, 0.1, lam(0x5a3a1a), -5.4, 0.95, 1.18);
+
+    // ---------------------------------------------------------------- holds
+    const LANES = [{ x: -1.9, col: 0x3ac84a, gap: 0.5, name: 'Green' }, { x: 0, col: 0x3a8ad8, gap: 0.68, name: 'Blue' }, { x: 1.9, col: 0xe8403a, gap: 0.86, name: 'Red', crumbly: 0.3 }];
+    const HOLDS = [];
+    const holdGeo = new THREE.SphereGeometry(1, 10, 8);
+    LANES.forEach((ln, li) => {
+      for (let k = 0; k < 3; k++) {
+        let y = BASE[k] + (k === 0 ? 1.1 : 0.9), side = 1;
+        const lip = BASE[k + 1];
+        while (y < lip - 0.35) {
+          const x = ln.x + side * (0.18 + rand() * 0.22); side = -side;
+          addHold(x, y, k, li, ln.crumbly && rand() < ln.crumbly && y > BASE[k] + 1.5);
+          y += ln.gap * (0.85 + rand() * 0.3);
+        }
+        addHold(ln.x - 0.25, lip - 0.22, k, li, false, true); addHold(ln.x + 0.25, lip - 0.22, k, li, false, true);   // the lip holds
+      }
+    });
+    function addHold(x, y, k, li, crumbly, top) {
+      const r = 0.055 + rand() * 0.03, col = crumbly ? 0x8a6a4a : LANES[li].col;
+      const m = new THREE.Mesh(holdGeo, new THREE.MeshLambertMaterial({ color: col, emissive: 0x000000 }));
+      m.scale.set(r * 1.4, r, r * 0.8); m.position.set(x, y, FACE[k] + r * 0.5); m.rotation.z = (rand() - 0.5) * 1.2; G.add(m);
+      if (crumbly) { const c = new THREE.Mesh(new THREE.BoxGeometry(r * 2.2, 0.006, 0.02), lam(0x2a1a0a)); c.position.set(x, y, FACE[k] + r * 1.25); c.rotation.z = 0.6; G.add(c); }
+      HOLDS.push({ m, p: m.position.clone(), r, k, li, crumbly: !!crumbly, top: !!top, gone: false, held: 0 });
+    }
+    // the bell at the top
+    const bell = new THREE.Group(); bell.position.set(0, BASE[3] + 1.8, TOP_Z + 0.4); G.add(bell);
+    { const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.26, 0.34, 16, 1, true), new THREE.MeshLambertMaterial({ color: 0xffd23f, emissive: 0x4a3a00, side: THREE.DoubleSide })); bell.add(cup);
+      addBox(G, 0.08, 1.8, 0.08, lam(0x5a3a1a), -0.6, BASE[3] + 0.9, TOP_Z + 0.4); addBox(G, 0.08, 1.8, 0.08, lam(0x5a3a1a), 0.6, BASE[3] + 0.9, TOP_Z + 0.4); addBox(G, 1.3, 0.08, 0.08, lam(0x5a3a1a), 0, BASE[3] + 2.0, TOP_Z + 0.4); }
+    // a big height marker on the side
+    for (let m = 4; m <= 24; m += 4) makePlate(G, `${m} m`, 0.6, 0.24, new V3(-W - 0.2, m, faceAtY(m - 0.1) + 0.02), 0, { bg: '#ffffff', fg: '#3a2a1a', size: 0.7 });
+
+    // ---------------------------------------------------------------- your climb
+    const P = { hand: { left: { hold: null, anchor: new V3(), stam: 1, wait: 0 }, right: { hold: null, anchor: new V3(), stam: 1, wait: 0 } }, vy: 0, ph: 'ground', t0: 0, time: 0, best: 0, top: 0, flat: { left: null, right: null, next: 'right', body: new V3() } };
+    try { if (Number.isFinite(prefs.climbBest)) P.best = prefs.climbBest; } catch (e) { /* none */ }
+    L.climbP = P;
+    const _h = new V3(), _d = new V3(), _a = new V3(), _q = new Q4();
+    const anyHold = () => !!(P.hand.left.hold || P.hand.right.hold || P.flat.left || P.flat.right);
+    function startClock() { if (P.ph === 'ground' && dolly.position.y < 0.5) { P.ph = 'climb'; P.t0 = performance.now(); forcePresence(); } }
+    function ringBell() {
+      if (P.ph !== 'climb') { sfx('chime', 0.6); return; }
+      P.ph = 'done'; P.time = (performance.now() - P.t0) / 1000;
+      const isBest = !P.best || P.time < P.best;
+      if (isBest) { P.best = P.time; prefs.climbBest = P.best; savePrefs(); }
+      RECORDS.add(L, 'top', P.time);
+      for (let i = 0; i < 4; i++) tone(1320, 1320, 1.2, 'sine', 0.2, i * 0.35);
+      sfx('fanfare', 0.8);
+      showToast(`DING! The top in ${fmt(P.time)}${isBest ? ' (your best!)' : ''}`);
+      bell.userData.ring = 1;
+      forcePresence(); state.dirtyBoard = true;
+    }
+    L.ringBell = ringBell;
+    const fmt = (t) => `${Math.floor(t / 60)}:${(t % 60).toFixed(1).padStart(4, '0')}`;
+    function backToStart() {
+      for (const s of SIDES) { P.hand[s].hold = null; P.flat[s] = null; }
+      dolly.position.set(0, 0, state.mode === 'vr' ? 0.6 : 1.3); P.vy = 0; P.ph = 'ground';
+      if (state.mode !== 'vr') { state.yaw = 0; state.pitch = 0.35; }
+      for (const h of HOLDS) if (h.gone) { h.gone = false; h.m.visible = true; h.held = 0; }
+      forcePresence();
+    }
+    L.backToStart = backToStart;
+    // climb onto the tier above a lip hold: you end up standing on it
+    function mantle(k) {
+      const lipY = BASE[k + 1], z = (FACE[k] + (FACE[k + 1] !== undefined ? FACE[k + 1] : TOP_Z)) / 2;
+      camera.getWorldPosition(_h);
+      dolly.position.x += 0; dolly.position.z += z - _h.z; dolly.position.y = lipY;
+      for (const s of SIDES) { P.hand[s].hold = null; P.hand[s].wait = 0.4; P.flat[s] = null; }
+      P.vy = 0; sfx('whoosh', 0.5);
+      showToast(k < 2 ? `Tier ${k + 2}: ${BASE[k + 1]} m up` : 'The top! Ring the bell');
+      if (state.mode === 'vr') for (const s of SIDES) haptic(vrHands[s], 0.5, 60);
+    }
+    // the hold nearest a point (within reach)
+    function holdNear(p, reach) {
+      let best = null, bd = reach;
+      for (const h of HOLDS) { if (h.gone) continue; const d = h.p.distanceTo(p) - h.r; if (d < bd) { bd = d; best = h; } }
+      return best;
+    }
+    // ---------------------------------------------------------------- VR
+    function vrClimb(dt) {
+      const deltas = [];
+      for (const side of SIDES) {
+        const mh = myHands[side], H = P.hand[side], gp = vrHands[side].source && vrHands[side].source.gamepad;
+        const grip = !!(gp && gp.buttons && gp.buttons[1] && gp.buttons[1].pressed);
+        H.wait = Math.max(0, H.wait - dt);
+        if (!mh.ok || !grip) { if (H.hold) H.hold.held = 0; H.hold = null; H.stam = Math.min(1, H.stam + dt * 0.25); continue; }
+        if (!H.hold && H.wait <= 0 && H.stam > 0.25) {
+          const h = holdNear(mh.pos, 0.09);
+          if (h) { H.hold = h; H.anchor.copy(mh.pos); haptic(vrHands[side], 0.5, 35); sfx('click', 0.5); startClock(); }
+        }
+        if (H.hold) {
+          if (H.hold.gone) { H.hold = null; continue; }
+          deltas.push(_d.copy(H.anchor).sub(mh.pos).clone());
+        }
+      }
+      // tiring: one hand tires fast, two slowly
+      const n = deltas.length;
+      for (const side of SIDES) {
+        const H = P.hand[side];
+        if (!H.hold) continue;
+        H.stam -= dt * (n === 1 ? 0.075 : 0.022);
+        H.hold.held += dt;
+        if (H.hold.crumbly && H.hold.held > 1.3) { crumble(H.hold); H.hold = null; continue; }
+        if (H.stam <= 0) { H.stam = 0; H.hold = null; H.wait = 0.6; haptic(vrHands[side], 1, 120); showToast('Your grip gave out: chalk up (hand to your hip)'); }
+      }
+      // chalk: a hand by your hip freshens up
+      for (const side of SIDES) {
+        const mh = myHands[side], H = P.hand[side];
+        if (!mh.ok || H.hold) continue;
+        const hip = _a.set(side === 'left' ? -0.18 : 0.18, -0.72, 0).applyQuaternion(_q.setFromAxisAngle(_d.set(0, 1, 0), Math.atan2(-camF.x, -camF.z))).add(myHead.pos);
+        if (mh.pos.distanceTo(hip) < 0.16 && H.stam < 0.98) { H.stam = 1; puff(mh.pos); haptic(vrHands[side], 0.3, 40); }
+      }
+      if (!n) return false;
+      const d = new V3(); for (const x of deltas) d.add(x); d.multiplyScalar(1 / n);
+      dolly.position.add(d);
+      // over a lip: climb onto the tier
+      camera.getWorldPosition(_h);
+      for (const side of SIDES) { const h = P.hand[side].hold; if (h && h.top && _h.y > BASE[h.k + 1] + 0.05) { mantle(h.k); return false; } }
+      return true;
+    }
+    const camF = new V3();
+    // chalk dust
+    const dust = new THREE.Sprite(new THREE.SpriteMaterial({ map: warmGlowTex, color: 0xffffff, transparent: true, depthWrite: false })); dust.visible = false; L.overlay.add(dust);
+    function puff(p) { dust.position.copy(p); dust.scale.setScalar(0.25); dust.visible = true; dust.userData.t = 0; noiseBurst(0.15, 0.12, 3000, 0.6); }
+    function crumble(h) {
+      h.gone = true; h.m.visible = false; h.held = 0;
+      sfx('slam', 0.4); noiseBurst(0.3, 0.3, 900, 0.8);
+      showToast('Crumbly hold! It broke away');
+    }
+    // grip meters: a little ring on each wrist, green to red
+    const meters = {};
+    for (const s of SIDES) { const m = new THREE.Mesh(new THREE.TorusGeometry(0.045, 0.008, 6, 20), new THREE.MeshBasicMaterial({ color: 0x8bd450 })); m.visible = false; L.overlay.add(m); meters[s] = m; }
+    // ---------------------------------------------------------------- the browser
+    const FLAT_REACH = 1.45;
+    const flatBodyFor = () => {
+      const f = P.flat, a = f.left ? f.left.p : null, b = f.right ? f.right.p : null;
+      const m = a && b ? _a.copy(a).add(b).multiplyScalar(0.5) : _a.copy(a || b);
+      const k = (f.left || f.right).k;
+      const top = Math.max(a ? a.y : -1e9, b ? b.y : -1e9);
+      return new V3(m.x, Math.max(top - 0.3, BASE[k] + 1.6), FACE[k] + 0.55);   // the eyes: a little below the hands, out from the wall (and never below standing height)
+    };
+    function flatAimHold() {
+      camera.getWorldPosition(_h); camera.getWorldQuaternion(_q); _d.set(0, 0, -1).applyQuaternion(_q);
+      let best = null, bd = 0.12;
+      for (const h of HOLDS) {
+        if (h.gone) continue;
+        _a.subVectors(h.p, _h); const along = _a.dot(_d); if (along < 0.2 || along > 4) continue;
+        const off = _a.addScaledVector(_d, -along).length() / along;
+        if (off < bd) { bd = off; best = h; }
+      }
+      return best;
+    }
+    function flatReach(h) {
+      camera.getWorldPosition(_h);
+      if (h.p.distanceTo(_h) > FLAT_REACH + (anyHold() ? 0 : 0.8)) { showToast('Too far: reach for one closer'); return false; }
+      const f = P.flat, side = !f.left ? 'left' : !f.right ? 'right' : f.next;
+      if (f[side]) f[side].held = 0;
+      f[side] = h; f.next = side === 'left' ? 'right' : 'left';
+      sfx('click', 0.5); startClock();
+      if (h.top) { mantle(h.k); return true; }
+      return true;
+    }
+    L.flatReach = (i) => flatReach(HOLDS[i]);
+    L.deskFire = () => {
+      // the bell, if you're up there
+      camera.getWorldPosition(_h);
+      if (_h.y > BASE[3] && _h.distanceTo(bell.position) < 2.5) { ringBell(); return; }
+      const h = flatAimHold();
+      if (h) flatReach(h);
+    };
+    L.onE = () => { L.deskFire(); return true; };
+    L.onKey = (code) => { if (code === 'KeyR') { backToStart(); return true; } return false; };
+    L.throwLabel = () => 'Reach';
+    // while you hang in the browser, the view is yours to turn but your body stays on the wall
+    L.flatCamera = () => {
+      if (!(P.flat.left || P.flat.right)) return false;
+      camera.position.set(0, 1.6, 0); camera.rotation.set(state.pitch, state.yaw, 0, 'YXZ');
+      return true;
+    };
+    // ---------------------------------------------------------------- per frame
+    const hiM = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.012, 6, 24), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.8 })); hiM.visible = false; G.add(hiM);
+    L.update = (dt, now) => {
+      const here = state.level === L.idx && state.mode !== 'menu';
+      if (!here) { hiM.visible = false; for (const s of SIDES) meters[s].visible = false; return; }
+      camera.getWorldDirection(camF);
+      let hanging = false;
+      if (state.mode === 'vr') hanging = vrClimb(dt);
+      else if (P.flat.left || P.flat.right) {
+        // crumbly holds go in the browser too
+        for (const s of SIDES) { const h = P.flat[s]; if (!h) continue; h.held += dt; if (h.crumbly && h.held > 1.6) { crumble(h); P.flat[s] = null; } }
+        if (P.flat.left || P.flat.right) {
+          const target = flatBodyFor();
+          camera.getWorldPosition(_h);
+          const k = Math.min(1, dt * 6);
+          dolly.position.x += (target.x - _h.x) * k; dolly.position.z += (target.z - _h.z) * k; dolly.position.y += (target.y - _h.y) * k;
+          hanging = true;
+        }
+      }
+      // let go: the auto-belay lowers you to whatever's below
+      if (!hanging) {
+        camera.getWorldPosition(_h);
+        const floor = support(_h.z);
+        if (dolly.position.y > floor + 0.005) { P.vy = Math.max(-3.2, P.vy - 9.8 * dt); dolly.position.y = Math.max(floor, dolly.position.y + P.vy * dt); if (dolly.position.y === floor) { P.vy = 0; sfx('floor', 0.4); } }
+        else { dolly.position.y = floor; P.vy = 0; }
+      } else { P.vy = 0; camera.getWorldPosition(_h); const fl = support(_h.z); if (dolly.position.y < fl) dolly.position.y = fl; }
+      // keep your head out of the rock
+      camera.getWorldPosition(_h);
+      const fz = faceAtY(_h.y - 0.3) + 0.18;
+      if (_h.z < fz && dolly.position.y < BASE[3] - 0.5) dolly.position.z += fz - _h.z;
+      // VR: the grip meters, and the bell
+      for (const s of SIDES) {
+        const m = meters[s], mh = myHands[s];
+        m.visible = state.mode === 'vr' && mh.ok && (P.hand[s].stam < 0.99 || !!P.hand[s].hold);
+        if (m.visible) { m.position.copy(mh.pos).add(_a.set(0, 0, 0.06).applyQuaternion(mh.quat)); m.quaternion.copy(mh.quat); const st = P.hand[s].stam; m.material.color.setRGB(1 - st * 0.6, 0.3 + st * 0.6, 0.25); }
+        if (state.mode === 'vr' && mh.ok && mh.pos.distanceTo(bell.position) < 0.35) ringBell();
+      }
+      if (dust.visible) { dust.userData.t += dt; dust.scale.setScalar(0.25 + dust.userData.t * 0.8); dust.material.opacity = 1 - dust.userData.t / 0.6; if (dust.userData.t > 0.6) dust.visible = false; }
+      if (bell.userData.ring > 0) { bell.userData.ring = Math.max(0, bell.userData.ring - dt * 0.5); bell.rotation.z = Math.sin(now / 60) * 0.4 * bell.userData.ring; }
+      // the browser: show which hold you're aiming at, green if it's in reach
+      if (state.mode === 'flat') {
+        const h = flatAimHold();
+        hiM.visible = !!h;
+        if (h) { camera.getWorldPosition(_h); hiM.position.copy(h.p).add(_a.set(0, 0, 0.05)); hiM.material.color.setHex(h.p.distanceTo(_h) <= FLAT_REACH + (anyHold() ? 0 : 0.8) ? 0x8bd450 : 0xff6a5a); }
+      } else hiM.visible = false;
+      P.top = Math.max(P.top, dolly.position.y);
+      if (ui.status && state.mode === 'flat') {
+        ui.status.hidden = false;
+        const t = P.ph === 'climb' ? fmt((performance.now() - P.t0) / 1000) : P.ph === 'done' ? `done in ${fmt(P.time)}` : 'click a hold to start';
+        const txt = `Cliffside Climb  ·  ${dolly.position.y.toFixed(1)} m  ·  ${t}  ·  click a hold in reach (green ring)  ·  R: back to the bottom`;
+        if (ui.status.textContent !== txt) ui.status.textContent = txt;
+      }
+    };
+    L.clampPlayer = (p) => {
+      const m = 0.3, z = clamp(p.z, L.bounds.minZ + m, L.bounds.maxZ - m), x = clamp(p.x, L.bounds.minX + m, L.bounds.maxX - m);
+      // (the rock face is handled in update; the top is a little plateau)
+      return [x - p.x, z - p.z];
+    };
+    L.presence = () => ({ cl: [Math.round(dolly.position.y * 10), Math.round(P.best * 10), P.ph === 'climb' ? 1 : 0] });
+    L.readPresence = (rec, pres, st) => {
+      const a = pres.cl;
+      if (!Array.isArray(a) || a.length !== 3 || !a.every((x) => Number.isInteger(x) && x >= 0 && x < 1e6)) { st.cl = null; return; }
+      if (!st.cl || st.cl[1] !== a[1]) state.dirtyBoard = true;
+      st.cl = a;
+    };
+    L.rowFor = (st, isMe) => { const a = isMe ? L.presence().cl : st.cl; if (!a) return { best: 0, text: '' }; return { best: a[1] ? 1e6 - a[1] : 0, text: `${a[2] ? `${(a[0] / 10).toFixed(0)} m up · ` : ''}${a[1] ? `best ${fmt(a[1] / 10)}` : 'not topped yet'}` }; };
+    L.sortRows = (a, b) => (b.best || 0) - (a.best || 0);
+    L.board = makeBoard(G, 720, 460, 2.2, 1.4, 5.4, 1.9, 1.6, -0.5);
+    L.drawBoard = (rows) => {
+      const g = L.board.g, Wd = 720;
+      g.fillStyle = '#3a2a1a'; g.fillRect(0, 0, Wd, 460); g.strokeStyle = '#ffb04a'; g.lineWidth = 8; g.strokeRect(4, 4, Wd - 8, 452);
+      g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+      g.fillStyle = '#ffb04a'; g.font = `800 56px ${DISPLAY}`; g.fillText('Summit times', 36, 80);
+      g.fillStyle = '#f4e8d8'; g.font = `400 24px ${BODY}`; g.fillText('Fastest from the beach to the bell', 36, 118);
+      drawRows(g, rows, 176, 46, Wd);
+      L.board.tex.needsUpdate = true;
+    };
+    makeKiosk(L, 3.4, 3.8, -Math.PI * 0.8);
+    RECORDS.def(L, [{ k: 'top', label: 'Fastest to the bell', low: true, fmt: 'time' }]);
+    L.hudActions = [{ label: () => 'Back to the bottom', run: () => backToStart() }];
+    L.hints = [['Grip', 'grab a hold and pull'], ['Hand to hip', 'chalk up when your grip tires'], ['Let go', 'the belay lowers you']];
+    L.hintsFor = () => (state.mode === 'flat' ? [['Click a hold', 'reach for it (green ring = in reach)'], ['E', 'ring the bell at the top'], ['R', 'back to the bottom']] : L.hints);
+    L.spawn = () => { backToStart(); };
+    L.onEnter = () => { P.ph = 'ground'; };
+    L.onExit = () => { if (ui.status) ui.status.hidden = true; for (const s of SIDES) { P.hand[s].hold = null; P.flat[s] = null; } dolly.position.y = 0; };
+    L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.4; camera.position.set(Math.sin(a) * 6, 4, 9); camera.lookAt(0, 9, -1); };
+    L.climbInternals = { P, HOLDS, BASE, FACE, mantle, ringBell, backToStart, holdNear, flatReach, support, crumble, LANES };
+    for (const n of ['D', 'Bm', 'G', 'A']) if (!CH[n]) CH[n] = genChord(n);
+    MUSIC_THEMES.climb = { gain: 0.6, bpm: 92, swing: 0.1, chords: ['D', 'Bm', 'G', 'A'], arp: { inst: 'guitar', every: 2, order: [1, 2, 3, 4, 3, 2, 3, 4] }, pad: { inst: 'pad' }, bass: { at: [0, 10] }, drums: { k: 'x.......x.x.....', s: '....x.......x...', sh: '-o-o-o-o-o-o-o-o' }, cut: 3600 };
+    return L;
+  })();
+  // ================================================================ LEVEL: ARCHERY RANGE (golf and lanes)
+  // A meadow range: straw targets at 10, 20, 30 and 50 metres, one sliding target, and balloons drifting about.
+  // A round is 12 arrows at whatever you like: rings score 1 to 10 (the sliding target doubles), a balloon is 10.
+  // VR: the bow's in your left hand. Bring your right hand to the string, squeeze the grip, draw back to your face and
+  // let go. Arrows drop over distance, so aim a little high for the far ones. Swap hands with the button on the HUD.
+  // Browser: hold Space to draw (the longer, the harder), aim with the view, let go to loose.
+  const archery = (() => {
+    const L = newLevel(57);
+    const G = L.group;
+    const rand = mulberry32(5757);
+    L.grabless = true;
+    L.chargeKick = true;
+    L.bounds = { minX: -6, maxX: 6, minZ: -1.5, maxZ: 4 };
+    L.env = {
+      sky: skyTexture([[0, '#4a8ad8'], [0.45, '#a8d0f0'], [0.5, '#f0f4e8'], [0.52, '#9ac87a'], [1, '#4a7a3a']]),
+      bg: 0xa8d0f0, fog: [0xc8e0e8, 70, 260], hemi: [0xf8fff0, 0x5a7a3a, 0.85],
+      sun: [0xfff4dc, 0.7], sunDir: new V3(0.4, 0.8, 0.3), ambient: [0x8a9a7a, 0.3], sprite: { tex: paleSunTex, pos: new V3(120, 200, 140), scale: 45 },
+    };
+    const AG = 6.0, VMAX = 62, ROUND = 12;
+    // ---------------------------------------------------------------- the meadow
+    const grass = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), lam(0x6aa84a)); grass.rotation.x = -Math.PI / 2; G.add(grass);
+    for (let i = 0; i < 60; i++) { const x = (rand() - 0.5) * 120, z = -60 - rand() * 50; if (Math.abs(x) < 8 && z > -70) continue; addCyl(G, 0.2, 0.25, 3, 6, lam(0x5a3a1a), x, 1.5, z); const c = new THREE.Mesh(new THREE.SphereGeometry(2 + rand(), 8, 6), lam(0x3a7a3a)); c.position.set(x, 4 + rand(), z); G.add(c); }
+    for (const sx of [-1, 1]) for (let i = 0; i < 14; i++) { const x = sx * (9 + rand() * 25), z = 5 - rand() * 60; addCyl(G, 0.18, 0.22, 3, 6, lam(0x5a3a1a), x, 1.5, z); const c = new THREE.Mesh(new THREE.ConeGeometry(1.6, 4, 8), lam(0x3a6a3a)); c.position.set(x, 4.5, z); G.add(c); }
+    // the shooting line and its little shelter
+    addBox(G, 12, 0.02, 0.12, new THREE.MeshBasicMaterial({ color: 0xffffff }), 0, 0.01, -0.6);
+    for (let i = 0; i < 12; i++) addBox(G, 0.1, 0.012, 1.2, lam(0x8a6a4a), -5.5 + i, 0.006, 0.6);
+    addBox(G, 13, 0.15, 3.6, lam(0x8a3a2a), 0, 3.0, 1.4); for (const x of [-6.2, 6.2]) for (const z of [-0.2, 3]) addBox(G, 0.15, 3, 0.15, lam(0x5a3a1a), x, 1.5, z);
+    makePlate(G, '\u{1F3F9}  ARCHERY RANGE', 3.2, 0.42, new V3(0, 2.7, -0.35), 0, { bg: '#2e5a2e', fg: '#fff4d8', size: 0.6 });
+    // ---------------------------------------------------------------- targets
+    const faceTex = canvasTexture(256, 256, (g) => {
+      const cols = ['#ffffff', '#ffffff', '#1a1a1a', '#1a1a1a', '#2a7ad8', '#2a7ad8', '#d8302a', '#d8302a', '#ffd23f', '#ffd23f'];
+      for (let i = 0; i < 10; i++) { g.fillStyle = cols[i]; g.beginPath(); g.arc(128, 128, 126 * (10 - i) / 10, 0, Math.PI * 2); g.fill(); g.strokeStyle = i === 2 || i === 3 ? '#ffffff' : '#1a1a1a'; g.lineWidth = 1; g.stroke(); }
+      g.strokeStyle = '#1a1a1a'; g.beginPath(); g.moveTo(124, 128); g.lineTo(132, 128); g.moveTo(128, 124); g.lineTo(128, 132); g.stroke();
+    }).tex;
+    const TG = [];
+    function target(x, z, R, moving) {
+      const g = new THREE.Group(); g.position.set(x, 1.3, z); G.add(g);
+      const bale = new THREE.Mesh(new THREE.CylinderGeometry(R * 1.12, R * 1.12, 0.35, 24), lam(0xd8b860)); bale.rotation.x = Math.PI / 2; bale.position.z = -0.18; g.add(bale);
+      const face = new THREE.Mesh(new THREE.CircleGeometry(R, 40), new THREE.MeshBasicMaterial({ map: faceTex })); face.position.z = 0.005; g.add(face);
+      for (const sx of [-1, 1]) { const leg = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.6, 0.08), lam(0x5a3a1a)); leg.position.set(sx * R * 0.7, -0.85, -0.4); leg.rotation.x = -0.25; g.add(leg); }
+      if (!moving) makePlate(G, `${Math.round(-z)} m`, 0.7, 0.26, new V3(x, 0.25, z + 0.3), 0, { bg: '#fff4d8', fg: '#2e5a2e', size: 0.7 });
+      const t = { g, R, x0: x, z, moving: !!moving, dist: -z };
+      TG.push(t); return t;
+    }
+    target(-3, -10, 0.5); target(2.5, -20, 0.6); target(-2.5, -30, 0.7); target(0.5, -50, 0.9);
+    const mover = target(0, -25, 0.45, true);
+    addBox(G, 12, 0.08, 0.12, lam(0x5a3a1a), 0, 0.4, -25.3);
+    makePlate(G, 'Moving: double points', 1.6, 0.24, new V3(5.5, 0.6, -25.1), 0, { bg: '#d8302a', fg: '#ffffff', size: 0.55 });
+    // balloons
+    const BAL = [];
+    const balCols = [0xff4d6a, 0x4fc3f7, 0xffd23f, 0x8bd450, 0xb388ff];
+    for (let i = 0; i < 4; i++) {
+      const m = new THREE.Mesh(new THREE.SphereGeometry(0.28, 14, 10), new THREE.MeshLambertMaterial({ color: balCols[i % 5], emissive: 0x111111 })); m.scale.y = 1.2; G.add(m);
+      const str = new THREE.Mesh(new THREE.CylinderGeometry(0.004, 0.004, 1.2, 4), lam(0xffffff)); str.position.y = -0.9; m.add(str);
+      const b = { m, p: new V3(), ph: rand() * 6, pop: 0 }; placeBalloon(b); BAL.push(b);
+    }
+    function placeBalloon(b) { b.p.set((rand() - 0.5) * 12, 3 + rand() * 4, -14 - rand() * 30); b.ph = rand() * 6; b.pop = 0; b.m.visible = true; }
+    // ---------------------------------------------------------------- bow and arrows
+    function makeBow() {
+      const g = new THREE.Group();
+      const wood = lam(0x8a4a2a);
+      const grip = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.12, 8), lam(0x2a1a10)); g.add(grip);
+      // two curved limbs, the bow standing up in your hand, curving away from you
+      const limbs = [];
+      for (const s of [1, -1]) {
+        const curve = new THREE.QuadraticBezierCurve3(new V3(0, s * 0.06, 0), new V3(0, s * 0.38, 0.03), new V3(0, s * 0.62, 0.14));
+        const limb = new THREE.Mesh(new THREE.TubeGeometry(curve, 10, 0.013, 6), wood); g.add(limb); limbs.push(curve);
+      }
+      const strM = new THREE.LineBasicMaterial({ color: 0xf4f2ec });
+      const strG = new THREE.BufferGeometry().setFromPoints([new V3(0, 0.62, 0.14), new V3(0, 0, 0.14), new V3(0, -0.62, 0.14)]);
+      const string = new THREE.Line(strG, strM); string.frustumCulled = false; g.add(string);
+      g.userData.string = string;
+      g.visible = false; L.overlay.add(g);
+      return g;
+    }
+    function makeArrow() {
+      const g = new THREE.Group();
+      const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.005, 0.75, 6), lam(0xd8b878)); shaft.rotation.x = Math.PI / 2; g.add(shaft);
+      const tip = new THREE.Mesh(new THREE.ConeGeometry(0.01, 0.05, 6), lam(0x8a8a90)); tip.rotation.x = -Math.PI / 2; tip.position.z = -0.4; g.add(tip);
+      for (let k = 0; k < 3; k++) { const f = new THREE.Mesh(new THREE.PlaneGeometry(0.03, 0.09), new THREE.MeshLambertMaterial({ color: k ? 0xffffff : 0xd8302a, side: THREE.DoubleSide })); f.position.set(0, 0, 0.32); f.rotation.set(0, Math.PI / 2, k * Math.PI * 2 / 3); const p = new THREE.Group(); p.rotation.z = k * Math.PI * 2 / 3; f.position.set(0, 0.018, 0.32); f.rotation.set(0, Math.PI / 2, 0); p.add(f); g.add(p); }
+      return g;
+    }
+    const bow = makeBow();
+    const nocked = makeArrow(); nocked.visible = false; L.overlay.add(nocked);
+    const ARROWS = [];
+    for (let i = 0; i < 30; i++) { const m = makeArrow(); m.visible = false; G.add(m); ARROWS.push({ m, p: new V3(), v: new V3(), st: 'off', t: 0 }); }
+    let arrowI = 0;
+    // ---------------------------------------------------------------- the round
+    const S = { ph: 'idle', left: ROUND, score: 0, last: null, best: 0, bowHand: 'left', drawing: false, draw: 0, bulls: 0, slot: 0 };
+    try { if (Number.isInteger(prefs.archBest)) S.best = prefs.archBest; if (prefs.bowHand === 'right') S.bowHand = 'right'; } catch (e) { /* none */ }
+    L.arch = S;
+    function newRound() { Object.assign(S, { ph: 'play', left: ROUND, score: 0, last: null, bulls: 0 }); for (const a of ARROWS) { a.st = 'off'; a.m.visible = false; } sbKey = ''; forcePresence(); state.dirtyBoard = true; }
+    L.newRound = newRound;
+    const _up = new V3(0, 0, -1), _q = new Q4();
+    function loose(from, dir, speed) {
+      if (S.ph !== 'play') newRound();
+      if (S.left <= 0) { showToast('That’s your twelve: start a new round'); return null; }
+      const a = ARROWS[arrowI++ % ARROWS.length];
+      a.p.copy(from); a.v.copy(dir).normalize().multiplyScalar(clamp(speed, 6, VMAX)); a.st = 'fly'; a.t = 0; a.m.visible = true;
+      S.left -= 1;
+      tone(180, 90, 0.12, 'triangle', 0.3); noiseBurst(0.1, 0.25, 2500, 0.6);
+      forcePresence(); sbKey = '';
+      return a;
+    }
+    L.loose = loose;
+    function scoreArrow(pts, what, at) {
+      S.score += pts; S.last = { pts, what };
+      if (pts >= 10 && what !== 'balloon') S.bulls += 1;
+      spawnFloat(pts ? (pts >= 10 && what !== 'balloon' ? `${pts}! Bullseye` : `+${pts}`) : 'Miss', at.clone().add(new V3(0, 0.5, 0)), pts >= 10 ? '#ffd23f' : pts ? '#ffffff' : '#c8c8c8');
+      if (pts) sfx(pts >= 10 ? 'cheer' : 'board', pts >= 10 ? 0.5 : 0.6);
+      sbKey = ''; forcePresence(); state.dirtyBoard = true;
+      if (S.left <= 0) setTimeout(() => endRound(), 900);
+    }
+    function endRound() {
+      if (S.ph !== 'play') return;
+      S.ph = 'done';
+      const isBest = S.score > S.best;
+      if (isBest) { S.best = S.score; prefs.archBest = S.best; savePrefs(); }
+      RECORDS.add(L, 'round', S.score);
+      if (S.bulls) RECORDS.add(L, 'bulls', S.bulls);
+      showToast(`Round over: ${S.score} points${isBest ? ' (your best!)' : ''}`);
+      sfx('chime', 0.8); sbKey = ''; forcePresence(); state.dirtyBoard = true;
+    }
+    L.endRound = endRound;
+    const _p0 = new V3(), _c = new V3();
+    function arrowStep(a, h) {
+      _p0.copy(a.p);
+      a.v.y -= AG * h; a.v.multiplyScalar(1 - 0.02 * h);
+      a.p.addScaledVector(a.v, h); a.t += h;
+      // a target face?
+      for (const t of TG) {
+        const cz = t.g.position.z + 0.01;
+        if (_p0.z >= cz && a.p.z < cz) {
+          const u = (_p0.z - cz) / (_p0.z - a.p.z), x = _p0.x + (a.p.x - _p0.x) * u, y = _p0.y + (a.p.y - _p0.y) * u;
+          const d = Math.hypot(x - t.g.position.x, y - t.g.position.y);
+          if (d < t.R * 1.12) {
+            a.p.set(x, y, cz - 0.05); a.st = 'stuck'; a.on = t; a.off = new V3(x - t.g.position.x, y - t.g.position.y, 0);
+            const ring = Math.floor(d / (t.R / 10)), pts = d < t.R ? (10 - ring) * (t.moving ? 2 : 1) : 0;
+            tone(140, 100, 0.08, 'square', 0.2);
+            scoreArrow(pts, 'target', a.p);
+            if (pts) RECORDS.add(L, 'long', Math.round(t.dist));
+            return;
+          }
+        }
+      }
+      // a balloon?
+      for (const b of BAL) {
+        if (!b.m.visible) continue;
+        _c.subVectors(b.m.position, _p0); const seg = a.p.clone().sub(_p0), l2 = seg.lengthSq(), k = l2 > 1e-9 ? clamp(_c.dot(seg) / l2, 0, 1) : 0;
+        if (_c.copy(_p0).addScaledVector(seg, k).distanceTo(b.m.position) < 0.32) {
+          b.m.visible = false; b.pop = 2.5; noiseBurst(0.12, 0.6, 3000, 0.4); tone(900, 200, 0.1, 'square', 0.15);
+          scoreArrow(10, 'balloon', b.m.position);
+        }
+      }
+      if (a.p.y < 0.02) { a.p.y = 0.02; a.st = 'stuck'; a.on = null; scoreArrow(0, 'ground', a.p); }
+      if (a.t > 6) { a.st = 'off'; a.m.visible = false; scoreArrow(0, 'lost', a.p); }
+    }
+    L.arrowStep = arrowStep;
+    // ---------------------------------------------------------------- shooting: VR
+    const _bp = new V3(), _sp = new V3(), _dir = new V3(), _nock = new V3();
+    const stringHand = () => (S.bowHand === 'left' ? 'right' : 'left');
+    function vrBow(dt) {
+      const bh = myHands[S.bowHand], sh = myHands[stringHand()];
+      bow.visible = bh.ok; bow.scale.setScalar(1); nocked.scale.setScalar(1);
+      if (!bh.ok) { S.drawing = false; nocked.visible = false; return; }
+      bow.position.copy(bh.pos); bow.quaternion.copy(bh.quat);
+      // (the bow faces where your bow hand points; the string sits just behind the grip)
+      _nock.set(0, 0, 0.14).applyQuaternion(bh.quat).add(bh.pos);
+      const gp = vrHands[stringHand()].source && vrHands[stringHand()].source.gamepad;
+      const grip = !!(gp && gp.buttons && ((gp.buttons[1] && gp.buttons[1].pressed) || (gp.buttons[0] && gp.buttons[0].pressed)));
+      if (!S.drawing && grip && sh.ok && sh.pos.distanceTo(_nock) < 0.2 && S.left > 0) { S.drawing = true; haptic(vrHands[stringHand()], 0.3, 20); }
+      const str = bow.userData.string.geometry.attributes.position;
+      if (S.drawing && sh.ok) {
+        _bp.copy(bh.pos); _sp.copy(sh.pos);
+        S.draw = clamp(_sp.distanceTo(_bp) - 0.12, 0, 0.62);
+        if (Math.random() < S.draw * 0.3) haptic(vrHands[stringHand()], 0.05 + S.draw * 0.25, 10);
+        // the string comes back to your hand; the arrow lies from your hand through the grip
+        const local = bow.worldToLocal(_sp.clone());
+        str.setXYZ(1, local.x, local.y, local.z); str.needsUpdate = true;
+        _dir.subVectors(_bp, _sp).normalize();
+        nocked.visible = true; nocked.position.copy(_sp).addScaledVector(_dir, 0.36); nocked.quaternion.setFromUnitVectors(_up, _dir);
+        if (!grip) {
+          S.drawing = false; nocked.visible = false; str.setXYZ(1, 0, 0, 0.14); str.needsUpdate = true;
+          if (S.draw > 0.12) { loose(_bp.clone().addScaledVector(_dir, 0.3), _dir.clone(), 10 + (S.draw / 0.62) * (VMAX - 10)); haptic(vrHands[S.bowHand], 0.7, 40); }
+        }
+      } else { S.drawing = false; nocked.visible = false; str.setXYZ(1, 0, 0, 0.14); str.needsUpdate = true; }
+    }
+    // ---------------------------------------------------------------- shooting: the browser
+    L.onChargeStart = () => { if (S.ph !== 'play') newRound(); };
+    L.kick = (c) => {
+      camera.getWorldPosition(_bp); camera.getWorldQuaternion(_q); _dir.set(0, 0, -1).applyQuaternion(_q);
+      if (c < 0.12) { showToast('Hold Space longer to draw the bow'); return; }
+      loose(_bp.clone().addScaledVector(_dir, 0.5).add(new V3(0, -0.05, 0)), _dir.clone(), 10 + c * (VMAX - 10));
+    };
+    L.throwLabel = () => 'Draw';
+    function flatBow(now) {
+      const c = state.charge !== null ? Math.min(1, (now - state.charge) / 1000) : 0;
+      camera.getWorldPosition(_bp); camera.getWorldQuaternion(_q);
+      bow.visible = true; bow.scale.setScalar(0.5); nocked.scale.setScalar(0.5); bow.position.copy(_bp).add(_sp.set(-0.2, -0.13, -0.7).applyQuaternion(_q)); bow.quaternion.copy(_q);
+      bow.rotateZ(0.3);
+      const str = bow.userData.string.geometry.attributes.position;
+      str.setXYZ(1, 0, 0, 0.14 + c * 0.32); str.needsUpdate = true;
+      nocked.visible = c > 0.02; if (nocked.visible) { nocked.position.copy(bow.position).add(_sp.set(0, 0, (0.14 + c * 0.32 - 0.36) * 0.5).applyQuaternion(bow.quaternion)); nocked.quaternion.copy(bow.quaternion); }
+    }
+    // ---------------------------------------------------------------- the scoreboard
+    const sb = canvasTexture(512, 256);
+    const sbM = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.7), new THREE.MeshBasicMaterial({ map: sb.tex })); sbM.position.set(-4.6, 1.6, 0.2); sbM.rotation.y = 0.5; G.add(sbM);
+    addBox(G, 0.06, 1.4, 0.06, lam(0x5a3a1a), -4.6, 0.7, 0.18);
+    let sbKey = '';
+    function drawSb() {
+      const key = `${S.ph}|${S.left}|${S.score}|${S.last ? S.last.pts : ''}|${S.best}`;
+      if (key === sbKey) return; sbKey = key;
+      const g = sb.g;
+      g.fillStyle = '#2e5a2e'; g.fillRect(0, 0, 512, 256); g.strokeStyle = '#fff4d8'; g.lineWidth = 6; g.strokeRect(3, 3, 506, 250);
+      g.textAlign = 'center'; g.textBaseline = 'alphabetic'; g.fillStyle = '#fff4d8';
+      g.font = `800 40px ${DISPLAY}`; g.fillText(S.ph === 'done' ? 'ROUND OVER' : 'ARCHERY', 256, 50);
+      g.fillStyle = '#ffd23f'; g.font = `900 96px ${DISPLAY}`; g.fillText(String(S.score), 256, 150);
+      g.fillStyle = '#fff4d8'; g.font = `700 28px ${BODY}`; g.fillText(`Arrows left: ${S.left}  ·  best ${S.best}`, 256, 200);
+      g.font = `400 22px ${BODY}`; g.fillText(S.last ? (S.last.what === 'balloon' ? 'Last: popped a balloon! +10' : S.last.pts ? `Last arrow: ${S.last.pts}` : 'Last arrow: missed') : 'Twelve arrows a round', 256, 236);
+      sb.tex.needsUpdate = true;
+    }
+    // ---------------------------------------------------------------- per frame
+    function stand() {
+      const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer);
+      ids.sort(); S.slot = Math.max(0, ids.indexOf(state.myPeer)) % 4;
+      const c = new V3(); camera.getWorldPosition(c);
+      dolly.position.x += [0, -1.6, 1.6, -3.2][S.slot] - c.x; dolly.position.z += 0.2 - c.z;
+      if (state.mode !== 'vr') { state.yaw = 0; state.pitch = 0.02; }
+    }
+    L.update = (dt, now) => {
+      const here = state.level === L.idx && state.mode !== 'menu';
+      // the sliding target and the balloons
+      mover.g.position.x = Math.sin(now * 0.0006) * 4.5;
+      for (const b of BAL) {
+        if (b.pop > 0) { b.pop -= dt; if (b.pop <= 0) placeBalloon(b); continue; }
+        b.m.position.set(b.p.x + Math.sin(now * 0.0004 + b.ph) * 1.5, b.p.y + Math.sin(now * 0.0011 + b.ph) * 0.4, b.p.z);
+      }
+      for (const a of ARROWS) {
+        if (a.st === 'fly') { const n = Math.max(1, Math.ceil(dt / 0.004)); for (let i = 0; i < n && a.st === 'fly'; i++) arrowStep(a, dt / n); }
+        if (a.st === 'stuck' && a.on) a.p.set(a.on.g.position.x + a.off.x, a.on.g.position.y + a.off.y, a.on.g.position.z - 0.05);
+        if (a.st !== 'off') { a.m.position.copy(a.p); if (a.st === 'fly' && a.v.lengthSq() > 1e-4) a.m.quaternion.setFromUnitVectors(_up, _dir.copy(a.v).normalize()); }
+      }
+      if (!here) { bow.visible = false; nocked.visible = false; return; }
+      if (state.mode === 'vr') vrBow(dt); else if (state.mode === 'flat') flatBow(now);
+      drawSb();
+      if (ui.status && state.mode === 'flat') {
+        ui.status.hidden = false;
+        const txt = `Archery  ·  ${S.score} points  ·  ${S.left} arrows left  ·  hold Space to draw, let go to shoot (aim a little high for the far ones)`;
+        if (ui.status.textContent !== txt) ui.status.textContent = txt;
+      }
+    };
+    L.presence = () => ({ ar: [S.score, S.best, S.ph === 'play' ? 1 : 0] });
+    L.readPresence = (rec, pres, st) => {
+      const a = pres.ar;
+      if (!Array.isArray(a) || a.length !== 3 || !a.every((x) => Number.isInteger(x) && x >= 0 && x < 1e5)) { st.ar = null; return; }
+      if (!st.ar || st.ar.join() !== a.join()) state.dirtyBoard = true;
+      st.ar = a;
+    };
+    L.rowFor = (st, isMe) => { const a = isMe ? L.presence().ar : st.ar; if (!a) return { best: 0, text: '' }; return { best: a[1], text: `${a[2] ? `${a[0]} now · ` : ''}best ${a[1]}` }; };
+    L.sortRows = (a, b) => (b.best || 0) - (a.best || 0);
+    L.board = makeBoard(G, 720, 460, 2.2, 1.4, 5.0, 1.9, 1.4, -0.6);
+    L.drawBoard = (rows) => {
+      const g = L.board.g, Wd = 720;
+      g.fillStyle = '#2e5a2e'; g.fillRect(0, 0, Wd, 460); g.strokeStyle = '#ffd23f'; g.lineWidth = 8; g.strokeRect(4, 4, Wd - 8, 452);
+      g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+      g.fillStyle = '#ffd23f'; g.font = `800 56px ${DISPLAY}`; g.fillText('Sharpshooters', 36, 80);
+      g.fillStyle = '#fff4d8'; g.font = `400 24px ${BODY}`; g.fillText('Best round of twelve arrows', 36, 118);
+      drawRows(g, rows, 176, 46, Wd);
+      L.board.tex.needsUpdate = true;
+    };
+    makeKiosk(L, -3.0, 3.2, Math.PI * 0.8);
+    RECORDS.def(L, [{ k: 'round', label: 'Best round (12 arrows)' }, { k: 'bulls', label: 'Most bullseyes in a round' }, { k: 'long', label: 'Longest hit', fmt: 'm' }]);
+    L.hudActions = [
+      { label: () => (S.ph === 'play' ? 'New round' : 'Start a round'), run: () => newRound() },
+      { label: () => `Bow hand: ${S.bowHand}`, show: () => state.mode === 'vr', run: () => { S.bowHand = S.bowHand === 'left' ? 'right' : 'left'; prefs.bowHand = S.bowHand; savePrefs(); } },
+    ];
+    L.hints = [['Bow hand', 'points where you shoot'], ['Other hand', 'grip at the string, draw back, let go'], ['Far targets', 'aim a little high']];
+    L.hintsFor = () => (state.mode === 'flat' ? [['Space', 'hold to draw, let go to shoot'], ['Drag', 'aim'], ['Far targets', 'aim a little high']] : L.hints);
+    L.spawn = () => { dolly.position.set(0, 0, 0); stand(); };
+    L.onEnter = () => { sbKey = ''; };
+    L.onExit = () => { if (ui.status) ui.status.hidden = true; S.drawing = false; };
+    L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.2; camera.position.set(Math.sin(a) * 3, 2.2, 3); camera.lookAt(0, 1.4, -25); };
+    L.archInternals = { S, TG, BAL, ARROWS, loose, arrowStep, newRound, endRound, mover };
+    for (const n of ['G', 'Em', 'C', 'D']) if (!CH[n]) CH[n] = genChord(n);
+    MUSIC_THEMES.archery = { gain: 0.55, bpm: 84, swing: 0.1, chords: ['G', 'Em', 'C', 'D'], arp: { inst: 'harp', every: 2, order: [1, 2, 3, 4, 3, 2, 3, 4] }, pad: { inst: 'flute' }, bass: { at: [0, 8] }, drums: { k: 'x.......x.......', sh: '--o---o---o---o-' }, cut: 3400 };
+    return L;
+  })();
+  // ================================================================ LEVEL: GORILLA TAG (party games)
+  // Jungle infection tag. No sticks, no legs: in VR you move with your arms, pushing off the ground, trunks and
+  // platforms like a gorilla (push down and back to go up and forward, let go to fly). One player starts as "lava";
+  // touch someone and they're lava too. Survive two and a half minutes to win, or tag everyone first.
+  // Friends or bots (the bots stay on the ground, so climb to get away from them).
+  // Browser: WASD to run, Space to leap; if you're lava, run into people to tag them.
+  const gorilla = (() => {
+    const L = newLevel(58);
+    const G = L.group;
+    const rand = mulberry32(5858);
+    L.grabless = true;
+    L.noLocomotion = 'turn';   // (VR: your arms are your legs; the right stick still turns you)
+    Object.defineProperty(L, 'walkSpeed', { get: () => 4.6 });
+    L.env = {
+      sky: skyTexture([[0, '#2a6a4a'], [0.4, '#7ab88a'], [0.5, '#d8f0c8'], [0.52, '#3a6a2a'], [1, '#1a3a1a']]),
+      bg: 0x6a9a6a, fog: [0x5a8a5a, 18, 70], hemi: [0xe8ffe0, 0x2a4a1a, 0.85],
+      sun: [0xfff4c8, 0.6], sunDir: new V3(0.3, 0.9, 0.2), ambient: [0x4a6a3a, 0.4], sprite: null,
+    };
+    const ARENA = 14, ROUND_T = 150, TAG_R = 0.85;
+    L.bounds = { minX: -ARENA, maxX: ARENA, minZ: -ARENA, maxZ: ARENA };
+    // ---------------------------------------------------------------- the jungle: everything you can touch is a box
+    const BOXES = [];
+    const bark = lam(0x6a4a2a), leaf = lam(0x3a7a2a), wood = lam(0x9a6a3a), stone = lam(0x7a7a72);
+    function box(x0, y0, z0, x1, y1, z1, mat) {
+      const b = { min: new V3(x0, y0, z0), max: new V3(x1, y1, z1) };
+      addBox(G, x1 - x0, y1 - y0, z1 - z0, mat, (x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2);
+      BOXES.push(b); return b;
+    }
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), lam(0x4a7a2a)); ground.rotation.x = -Math.PI / 2; G.add(ground);
+    // the big tree in the middle, with a treehouse deck around it
+    box(-0.8, 0, -0.8, 0.8, 9, 0.8, bark);
+    box(-3.6, 3.0, -3.6, 3.6, 3.2, -0.8, wood); box(-3.6, 3.0, 0.8, 3.6, 3.2, 3.6, wood); box(-3.6, 3.0, -0.8, -0.8, 3.2, 0.8, wood); box(0.8, 3.0, -0.8, 3.6, 3.2, 0.8, wood);
+    { const c = new THREE.Mesh(new THREE.SphereGeometry(4.5, 10, 8), leaf); c.position.set(0, 10, 0); c.scale.y = 0.6; G.add(c); }
+    // trees around it, each with a branch platform
+    for (let i = 0; i < 8; i++) {
+      const a = i / 8 * Math.PI * 2 + 0.2, x = Math.cos(a) * 9, z = Math.sin(a) * 9;
+      box(x - 0.45, 0, z - 0.45, x + 0.45, 8, z + 0.45, bark);
+      const h = i % 2 ? 2.1 : 4.2, px = x - Math.cos(a) * 1.4, pz = z - Math.sin(a) * 1.4;
+      box(px - 1, h - 0.2, pz - 1, px + 1, h, pz + 1, wood);
+      const c = new THREE.Mesh(new THREE.SphereGeometry(2.6, 8, 6), leaf); c.position.set(x, 8.6, z); c.scale.y = 0.7; G.add(c);
+      // a stump to get you up there
+      const sx = x - Math.cos(a) * 3.2 + Math.sin(a) * 1.2, sz = z - Math.sin(a) * 3.2 - Math.cos(a) * 1.2;
+      box(sx - 0.55, 0, sz - 0.55, sx + 0.55, i % 2 ? 1.0 : 1.1, sz + 0.55, stone);
+      if (!(i % 2)) { const s2x = sx - Math.cos(a) * 0.3, s2z = sz - Math.sin(a) * 0.3; box(s2x - 0.4 + Math.sin(a) * 1.4, 0, s2z - 0.4 - Math.cos(a) * 1.4, s2x + 0.4 + Math.sin(a) * 1.4, 2.2, s2z + 0.4 - Math.cos(a) * 1.4, stone); }
+    }
+    // logs and boulders on the ground
+    box(4.5, 0, -6.4, 8.5, 0.6, -5.8, bark); box(-8.5, 0, 5.8, -4.5, 0.6, 6.4, bark); box(-6.5, 0, -7.5, -5.3, 1.3, -6.3, stone); box(5.5, 0, 6.3, 6.7, 1.3, 7.5, stone);
+    // a wall of jungle round the edge (you can climb it a bit, but not out)
+    for (const [x0, z0, x1, z1] of [[-ARENA - 1, -ARENA - 1, ARENA + 1, -ARENA], [-ARENA - 1, ARENA, ARENA + 1, ARENA + 1], [-ARENA - 1, -ARENA, -ARENA, ARENA], [ARENA, -ARENA, ARENA + 1, ARENA]]) box(x0, 0, z0, x1, 3, z1, lam(0x2a5a1a));
+    for (let i = 0; i < 70; i++) { const a = rand() * Math.PI * 2, r = ARENA + 2 + rand() * 8; addCyl(G, 0.3, 0.4, 7, 6, bark, Math.cos(a) * r, 3.5, Math.sin(a) * r); const c = new THREE.Mesh(new THREE.SphereGeometry(2.5, 7, 5), leaf); c.position.set(Math.cos(a) * r, 7.5, Math.sin(a) * r); G.add(c); }
+    makePlate(G, '\u{1F98D}  GORILLA TAG', 2.6, 0.42, new V3(0, 2.1, 0.85), 0, { bg: '#ff6a1a', fg: '#ffffff', size: 0.6 });
+    // the ground beneath (x, z) for feet at height y: the highest top you're standing on (or could step up to)
+    function support(x, z, y, r) {
+      let s = 0; const rr = r || 0.2;
+      for (const b of BOXES) if (x > b.min.x - rr && x < b.max.x + rr && z > b.min.z - rr && z < b.max.z + rr && b.max.y <= y + 0.35 && b.max.y > s) s = b.max.y;
+      return s;
+    }
+    // push a point (a head) out of any box it's in, sideways or down
+    function pushOut(p, r) {
+      const out = new V3();
+      for (const b of BOXES) {
+        if (p.x < b.min.x - r || p.x > b.max.x + r || p.z < b.min.z - r || p.z > b.max.z + r || p.y < b.min.y - 0.1 || p.y > b.max.y + 0.05) continue;
+        const dx0 = p.x - (b.min.x - r), dx1 = b.max.x + r - p.x, dz0 = p.z - (b.min.z - r), dz1 = b.max.z + r - p.z, dyd = p.y - (b.min.y - 0.1);
+        const m = Math.min(dx0, dx1, dz0, dz1, dyd);
+        if (m === dx0) out.x -= dx0; else if (m === dx1) out.x += dx1; else if (m === dz0) out.z -= dz0; else if (m === dz1) out.z += dz1; else out.y -= dyd;
+      }
+      return out;
+    }
+    // is a hand touching a surface? returns where it touches and the surface's normal
+    function contact(p) {
+      if (p.y < 0.03) return { at: new V3(p.x, 0.03, p.z), n: new V3(0, 1, 0) };
+      const r = 0.035;
+      for (const b of BOXES) {
+        if (p.x < b.min.x - r || p.x > b.max.x + r || p.y < b.min.y - r || p.y > b.max.y + r || p.z < b.min.z - r || p.z > b.max.z + r) continue;
+        const d = [[p.x - (b.min.x - r), -1, 0, 0], [b.max.x + r - p.x, 1, 0, 0], [p.y - (b.min.y - r), 0, -1, 0], [b.max.y + r - p.y, 0, 1, 0], [p.z - (b.min.z - r), 0, 0, -1], [b.max.z + r - p.z, 0, 0, 1]];
+        d.sort((a, c) => a[0] - c[0]);
+        const [pen, nx, ny, nz] = d[0], n = new V3(nx, ny, nz);
+        return { at: p.clone().addScaledVector(n, pen), n };
+      }
+      return null;
+    }
+    L.gtSupport = support;
+
+    // ---------------------------------------------------------------- bots
+    const BOT_NAMES = ['Koko', 'Banjo', 'Mango', 'Bongo', 'Kiwi', 'Pepper', 'Moss'];
+    const bodyM = () => new THREE.MeshLambertMaterial({ color: 0x3a3a40 });
+    const bots = BOT_NAMES.map((name, i) => {
+      const g = new THREE.Group(), m = bodyM();
+      const body = new THREE.Mesh(new THREE.SphereGeometry(0.42, 12, 10), m); body.scale.set(1, 1.1, 0.85); body.position.y = 0.75; g.add(body);
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.25, 12, 10), m); head.position.set(0, 1.35, -0.08); g.add(head);
+      const face = new THREE.Mesh(new THREE.SphereGeometry(0.17, 10, 8), lam(0x8a7a6a)); face.position.set(0, 1.3, -0.22); face.scale.z = 0.6; g.add(face);
+      for (const sx of [-1, 1]) { const e = new THREE.Mesh(new THREE.SphereGeometry(0.035, 6, 5), new THREE.MeshBasicMaterial({ color: 0x111111 })); e.position.set(sx * 0.07, 1.4, -0.3); g.add(e); }
+      const arms = [-1, 1].map((sx) => { const a = new THREE.Group(); a.position.set(sx * 0.42, 1.05, 0); const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.11, 0.9, 8), m); arm.position.y = -0.42; a.add(arm); g.add(a); return a; });
+      const tag = new THREE.Sprite(new THREE.SpriteMaterial({ map: canvasTexture(256, 64, (gg) => { rr(gg, 4, 6, 248, 52, 26); gg.fillStyle = 'rgba(20,16,32,0.8)'; gg.fill(); gg.fillStyle = '#ffffff'; gg.font = `700 32px ${BODY}`; gg.textAlign = 'center'; gg.textBaseline = 'middle'; gg.fillText(name, 128, 33); }).tex, transparent: true, depthWrite: false }));
+      tag.scale.set(0.8, 0.2, 1); tag.position.y = 1.85; g.add(tag);
+      g.visible = false; G.add(g);
+      return { id: 'b' + i, name, g, m, arms, x: 0, z: 0, y: 0, vy: 0, yaw: 0, hop: rand() * 6, tx: 0, tz: 0 };
+    });
+    const botOf = (id) => (id && id[0] === 'b' && id.length <= 2 ? bots[Number(id.slice(1))] : null);
+    // a flame over everyone who's lava
+    const flameTex = canvasTexture(64, 64, (g) => { const gr = g.createRadialGradient(32, 40, 2, 32, 36, 30); gr.addColorStop(0, '#fff4a0'); gr.addColorStop(0.4, '#ff8a1a'); gr.addColorStop(1, 'rgba(255,60,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); }).tex;
+    const flames = [];
+    for (let i = 0; i < 12; i++) { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: flameTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); s.scale.set(0.5, 0.7, 1); s.visible = false; G.add(s); flames.push(s); }
+    // my own lava hands (VR) and a glow
+    const myLava = {};
+    for (const s of SIDES) { const m = new THREE.Mesh(new THREE.TorusGeometry(0.06, 0.02, 6, 16), new THREE.MeshBasicMaterial({ color: 0xff6a1a })); m.visible = false; L.overlay.add(m); myLava[s] = m; }
+
+    // ---------------------------------------------------------------- the round (run by the host)
+    const S = { g: 0, ph: 'lobby', ids: [], inf: [], t: ROUND_T, msg: '', msgSeq: 0, seen: {}, tagsMe: 0, survive: 0, start: 0, wins: 0 };
+    L.gt = S;
+    const ME = { claim: [0, -1], startReq: 0, aPrev: false };
+    const humansHere = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort(); };
+    const isHost = () => humansHere()[0] === state.myPeer;
+    const nameOf = (id) => { const b = botOf(id); if (b) return b.name; if (id === state.myPeer) return 'You'; const rec = remotes.get(id); return rec ? rec.name : 'Someone'; };
+    const myIdx = () => S.ids.indexOf(state.myPeer);
+    const amLava = () => myIdx() >= 0 && S.inf[myIdx()] === 1;
+    makePlayerPicker(L, { min: 2, max: 8, def: 5, label: 'Gorillas', note: 'bots make up the numbers' });
+    function say(m) { S.msg = m; S.msgSeq += 1; showToast(m); }
+    function posOf(id, out) {
+      if (id === state.myPeer) return out.copy(myHead.pos);
+      const b = botOf(id); if (b) return out.set(b.x, b.y + 1.35, b.z);
+      const rec = remotes.get(id); return rec && rec.hasH ? out.copy(rec.cur.h.pos) : null;
+    }
+    function startRound() {
+      const people = humansHere().filter((id) => { if (id === state.myPeer) return !(L.sitOut && L.sitOut.on); const st = remotes.get(id).lvState[L.id]; return !(st && st.sitOut); });
+      const nBots = clamp(L.picker.n - people.length, people.length < 2 ? 1 : 0, bots.length);
+      const ids = people.slice(); for (let i = 0; i < nBots; i++) ids.push(bots[i].id);
+      const it = Math.floor(rand() * ids.length);
+      S.g = (S.g + 1) % 100000; S.ph = 'play'; S.ids = ids; S.inf = ids.map((_, k) => (k === it ? 1 : 0)); S.t = ROUND_T; S.start = performance.now();
+      ids.forEach((id, k) => { const b = botOf(id); if (b) { const a = rand() * Math.PI * 2, r = 5 + rand() * 6; b.x = Math.cos(a) * r; b.z = Math.sin(a) * r; b.y = 0; b.vy = 0; } });
+      S.tagsMe = 0;
+      sfx('whistle', 1);
+      say(`${nameOf(ids[it])} ${ids[it] === state.myPeer ? 'are' : 'is'} lava! Don’t get tagged`);
+      forcePresence(); state.dirtyBoard = true;
+    }
+    L.startRound = startRound;
+    function tag(a, t) {
+      if (S.ph !== 'play' || S.inf[a] !== 1 || S.inf[t] !== 0) return false;
+      S.inf[t] = 1;
+      if (S.ids[a] === state.myPeer) S.tagsMe = (S.tagsMe || 0) + 1;
+      say(`${nameOf(S.ids[a])} tagged ${nameOf(S.ids[t]) === 'You' ? 'you' : nameOf(S.ids[t])}!`);
+      const at = posOf(S.ids[t], new V3()); if (at) { tone(220, 110, 0.3, 'sawtooth', 0.15); }
+      if (S.inf.every((x) => x === 1)) endRound(1);
+      forcePresence(); state.dirtyBoard = true;
+      return true;
+    }
+    L.tag = tag;
+    function endRound(lavaWon) {
+      S.ph = 'done'; S.t = 0;
+      const survivors = S.ids.filter((_, k) => S.inf[k] === 0).map(nameOf);
+      say(lavaWon ? 'Everyone’s lava! The lava wins' : `Time! Survivors win: ${survivors.join(', ')}`);
+      forcePresence();
+    }
+    // the host: the clock, the bots, bots tagging
+    function hostStep(dt) {
+      if (S.ph !== 'play') return;
+      S.t = Math.max(0, ROUND_T - (performance.now() - S.start) / 1000);
+      if (S.t <= 0) { endRound(0); return; }
+      const P = S.ids.map((id) => posOf(id, new V3()));
+      S.ids.forEach((id, k) => {
+        const b = botOf(id); if (!b) return;
+        const lava = S.inf[k] === 1;
+        // chase the nearest survivor (that's on the ground-ish), or run from the nearest lava
+        let best = -1, bd = 1e9;
+        S.ids.forEach((o, j) => { if (j === k || !P[j] || S.inf[j] === (lava ? 1 : 0)) return; const d = Math.hypot(P[j].x - b.x, P[j].z - b.z) + (lava ? Math.max(0, P[j].y - 2.2) * 6 : 0); if (d < bd) { bd = d; best = j; } });
+        let dx = 0, dz = 0;
+        if (best >= 0) { const p = P[best]; dx = p.x - b.x; dz = p.z - b.z; const d = Math.hypot(dx, dz) || 1; dx /= d; dz /= d; if (!lava) { dx = -dx; dz = -dz; if (bd > 9) { dx = Math.sin(b.hop * 0.3); dz = Math.cos(b.hop * 0.3); } } }
+        // keep off the edges
+        dx -= clamp((b.x) / ARENA, -1, 1) ** 3 * 1.5; dz -= clamp((b.z) / ARENA, -1, 1) ** 3 * 1.5;
+        const sp = lava ? 3.9 : 3.5, l = Math.hypot(dx, dz) || 1;
+        b.x += dx / l * sp * dt; b.z += dz / l * sp * dt; b.hop += dt * 7;
+        b.yaw = Math.atan2(-dx, -dz);
+        const push = pushOut(new V3(b.x, 0.8, b.z), 0.45); b.x += push.x; b.z += push.z;
+        b.x = clamp(b.x, -ARENA + 0.6, ARENA - 0.6); b.z = clamp(b.z, -ARENA + 0.6, ARENA - 0.6);
+        b.y = Math.abs(Math.sin(b.hop)) * 0.35;
+        // a lava bot tags anyone it reaches
+        if (lava) S.ids.forEach((o, j) => { if (S.inf[j] === 0 && P[j] && Math.hypot(P[j].x - b.x, P[j].z - b.z) < TAG_R && P[j].y - (b.y + 1.3) < 0.9) tag(k, j); });
+        else S.ids.forEach((o, j) => { if (S.inf[j] === 1 && !botOf(o) && P[j] && Math.hypot(P[j].x - b.x, P[j].z - b.z) < TAG_R && Math.abs(P[j].y - (b.y + 1.3)) < 1.1) tag(j, k); });
+      });
+    }
+    // me (anyone, host or not): if I'm lava, touching someone tags them
+    const _a = new V3(), _b = new V3();
+    function myTags() {
+      if (S.ph !== 'play' || !amLava()) return;
+      const me = myIdx();
+      S.ids.forEach((id, j) => {
+        if (j === me || S.inf[j] !== 0 || !posOf(id, _a)) return;
+        // their head, or their body below it; my head, or my hands
+        let hit = Math.hypot(_a.x - myHead.pos.x, _a.z - myHead.pos.z) < TAG_R * 0.8 && Math.abs(_a.y - myHead.pos.y) < 1.0;
+        for (const s of SIDES) { const h = myHands[s]; if (!h.ok) continue; const dy = clamp(h.pos.y, _a.y - 1.2, _a.y + 0.2); if (Math.hypot(h.pos.x - _a.x, h.pos.z - _a.z, h.pos.y - dy) < 0.42) hit = true; }
+        if (!hit) return;
+        if (isHost()) tag(me, j);
+        else if (ME.claimT === undefined || performance.now() - ME.claimT > 400) { ME.claim = [ME.claim[0] + 1, j]; ME.claimT = performance.now(); forcePresence(); }
+      });
+    }
+
+    // ---------------------------------------------------------------- moving: VR arms
+    const M = { vel: new V3(), hand: { left: { on: false, at: new V3(), n: new V3() }, right: { on: false, at: new V3(), n: new V3() } }, ground: true, hist: [] };
+    L.gtMove = M;
+    const _d = new V3(), _c = new V3();
+    function vrMove(dt) {
+      _c.set(0, 0, 0); let n = 0;
+      for (const s of SIDES) {
+        const h = myHands[s], H = M.hand[s];
+        if (!h.ok) { H.on = false; continue; }
+        if (!H.on) {
+          const c = contact(h.pos);
+          if (c) { H.on = true; H.at.copy(c.at); H.n.copy(c.n); const sp = M.vel.length(); haptic(vrHands[s], Math.min(1, 0.2 + sp * 0.12), 20); if (sp > 2) sfx('grass', Math.min(1, sp / 6)); }
+        }
+        if (H.on) {
+          _d.subVectors(h.pos, H.at);
+          // lifting the hand off (away from the surface) lets go
+          if (_d.dot(H.n) > 0.04) { H.on = false; continue; }
+          _c.sub(_d); n++;
+        }
+      }
+      if (n) {
+        _c.divideScalar(n);
+        dolly.position.add(_c);
+        // how fast your arms are moving you: carried on when you let go (a little extra, gorillas are bouncy)
+        M.hist.push(_c.clone().divideScalar(Math.max(dt, 1e-3))); while (M.hist.length > 4) M.hist.shift();
+        const v = M.hist.reduce((a, x) => a.add(x), new V3()).divideScalar(M.hist.length).multiplyScalar(1.15);
+        if (v.length() > 7.5) v.setLength(7.5);
+        M.vel.copy(v);
+      } else {
+        M.hist.length = 0;
+        M.vel.y -= 9.8 * dt;
+        dolly.position.addScaledVector(M.vel, dt);
+      }
+      settle(dt, n > 0);
+    }
+    // feet on whatever's below, head out of the trees, inside the arena
+    function settle(dt, holding) {
+      camera.getWorldPosition(_a);
+      const fl = support(_a.x, _a.z, dolly.position.y);
+      if (dolly.position.y <= fl) { dolly.position.y = fl; if (M.vel.y < 0) M.vel.y = 0; if (!holding) M.vel.x *= Math.exp(-dt * 7), M.vel.z *= Math.exp(-dt * 7); M.ground = true; } else M.ground = false;
+      camera.getWorldPosition(_a);
+      const push = pushOut(_a, 0.22); push.y = Math.min(0, push.y);
+      dolly.position.add(push);
+      if (push.x) M.vel.x = 0; if (push.z) M.vel.z = 0; if (push.y < 0 && M.vel.y > 0) M.vel.y = 0;
+      camera.getWorldPosition(_a);
+      dolly.position.x += clamp(_a.x, -ARENA + 0.4, ARENA - 0.4) - _a.x; dolly.position.z += clamp(_a.z, -ARENA + 0.4, ARENA - 0.4) - _a.z;
+    }
+    // the browser: WASD moves you (flat-controls), Space leaps; gravity and the trees are ours
+    L.deskFire = () => { if (M.ground) { M.vel.y = 5.4; M.ground = false; sfx('whoosh', 0.3); } };
+    L.throwLabel = () => 'Leap';
+    L.clampPlayer = (p) => { const push = pushOut(new V3(p.x, p.y, p.z), 0.25); const x = clamp(p.x + push.x, -ARENA + 0.4, ARENA - 0.4), z = clamp(p.z + push.z, -ARENA + 0.4, ARENA - 0.4); return [x - p.x, z - p.z]; };
+    function flatMove(dt) {
+      M.vel.y -= 9.8 * dt;
+      dolly.position.y += M.vel.y * dt;
+      settle(dt, false);
+    }
+
+    // ---------------------------------------------------------------- network
+    const PH = ['lobby', 'play', 'done'];
+    const r1 = (x) => Math.round(x * 10) / 10;
+    function snapshot() { return { g: S.g, ph: PH.indexOf(S.ph), ids: S.ids.slice(), inf: S.inf.slice(), t: Math.round(S.t), b: S.ids.flatMap((id) => { const b = botOf(id); return b ? [r1(b.x), r1(b.y), r1(b.z), r1(b.yaw)] : [0, 0, 0, 0]; }), m: [S.msgSeq, S.msg] }; }
+    function validSnap(q) {
+      const n = q && Array.isArray(q.ids) ? q.ids.length : -1;
+      return n >= 0 && n <= 12 && Number.isInteger(q.g) && Number.isInteger(q.ph) && q.ph >= 0 && q.ph < 3 && q.ids.every((x) => typeof x === 'string' && x.length < 64)
+        && Array.isArray(q.inf) && q.inf.length === n && q.inf.every((x) => x === 0 || x === 1) && Number.isInteger(q.t) && q.t >= 0 && q.t <= ROUND_T
+        && Array.isArray(q.b) && q.b.length === n * 4 && q.b.every((x) => typeof x === 'number' && Number.isFinite(x) && Math.abs(x) < 100)
+        && Array.isArray(q.m) && q.m.length === 2 && Number.isInteger(q.m[0]) && typeof q.m[1] === 'string' && q.m[1].length < 200;
+    }
+    let seenMsg = -1;
+    function applySnap(q) {
+      const wasLava = amLava(), prevPh = S.ph;
+      Object.assign(S, { g: q.g, ph: PH[q.ph], ids: q.ids.slice(), inf: q.inf.slice(), t: q.t });
+      S.ids.forEach((id, k) => { const b = botOf(id); if (b) { b.tx = q.b[k * 4]; b.ty = q.b[k * 4 + 1]; b.tz = q.b[k * 4 + 2]; b.yaw = q.b[k * 4 + 3]; } });
+      if (seenMsg >= 0 && q.m[0] !== seenMsg && q.m[1]) showToast(q.m[1]);
+      seenMsg = q.m[0];
+      if (!wasLava && amLava()) onTagged();
+      if (prevPh === 'play' && S.ph === 'done') roundOverForMe();
+    }
+    L.presence = () => {
+      const p = { gw: [S.wins || 0, ME.startReq || 0], gc: ME.claim };
+      if (isHost() && state.level === L.idx) p.gq = snapshot();
+      return p;
+    };
+    L.readPresence = (rec, pres, st) => {
+      const w = pres.gw;
+      if (Array.isArray(w) && w.length === 2 && w.every((x) => Number.isInteger(x) && x >= 0 && x < 1e6)) {
+        if (!st.gw || st.gw[0] !== w[0]) state.dirtyBoard = true;
+        if (st.gw && w[1] !== st.gw[1] && isHost() && state.level === L.idx && S.ph !== 'play') startRound();
+        st.gw = w;
+      } else st.gw = null;
+      const c = pres.gc;
+      if (Array.isArray(c) && c.length === 2 && Number.isInteger(c[0]) && Number.isInteger(c[1])) {
+        if (isHost() && state.level === L.idx && S.seen[rec.peer] !== undefined && S.seen[rec.peer] !== c[0] && c[1] >= 0 && c[1] < S.ids.length) {
+          const a = S.ids.indexOf(rec.peer), ap = posOf(rec.peer, new V3()), tp = posOf(S.ids[c[1]], new V3());
+          if (a >= 0 && ap && tp && ap.distanceTo(tp) < 2.5) tag(a, c[1]);
+        }
+        S.seen[rec.peer] = c[0];
+      }
+      if (pres.gq && validSnap(pres.gq)) { if (!isHost() && rec.peer === humansHere()[0]) applySnap(pres.gq); }
+    };
+    // ---------------------------------------------------------------- what happens to me
+    let wasLavaLocal = false;
+    function onTagged() {
+      S.survive = (performance.now() - S.start) / 1000;
+      if (S.survive > 5) RECORDS.add(L, 'survive', S.survive);
+      sfx('slam', 0.6); tone(160, 60, 0.6, 'sawtooth', 0.2);
+      if (state.mode === 'vr') for (const s of SIDES) haptic(vrHands[s], 1, 300);
+    }
+    function roundOverForMe() {
+      if (myIdx() < 0) return;
+      if (!amLava()) { S.survive = ROUND_T; RECORDS.add(L, 'survive', ROUND_T); S.wins = (S.wins || 0) + 1; sfx('fanfare', 0.8); }
+      if (S.tagsMe) RECORDS.add(L, 'tags', S.tagsMe);
+      state.dirtyBoard = true;
+    }
+    // the clock on the big tree
+    const clk = canvasTexture(512, 160);
+    const clkM = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.47), new THREE.MeshBasicMaterial({ map: clk.tex }));
+    const clkB = clkM.clone();
+    clkM.position.set(0, 5.0, 0.82); clkB.position.set(0, 5.0, -0.82); clkB.rotation.y = Math.PI; G.add(clkM); G.add(clkB);
+    let clkKey = '';
+    function drawClk() {
+      const nLava = S.inf.filter((x) => x === 1).length, key = `${S.ph}|${Math.ceil(S.t)}|${nLava}|${S.ids.length}`;
+      if (key === clkKey) return; clkKey = key;
+      const g = clk.g;
+      g.fillStyle = '#2a1a0a'; g.fillRect(0, 0, 512, 160); g.strokeStyle = '#ff8a1a'; g.lineWidth = 6; g.strokeRect(3, 3, 506, 154);
+      g.textAlign = 'center'; g.textBaseline = 'middle';
+      if (S.ph === 'play') { const t = Math.ceil(S.t); g.fillStyle = '#ffffff'; g.font = `900 70px ${DISPLAY}`; g.fillText(`${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`, 160, 82); g.fillStyle = '#ff8a1a'; g.font = `800 40px ${DISPLAY}`; g.fillText(`${nLava} lava`, 380, 60); g.fillStyle = '#8bd450'; g.fillText(`${S.ids.length - nLava} safe`, 380, 110); }
+      else { g.fillStyle = '#ff8a1a'; g.font = `800 50px ${DISPLAY}`; g.fillText(S.ph === 'done' ? 'Round over' : 'Gorilla Tag', 256, 62); g.fillStyle = '#ffffff'; g.font = `400 26px ${BODY}`; g.fillText(state.mode === 'vr' ? 'Press A or X to start' : 'Start a round from the buttons up top', 256, 116); }
+      clk.tex.needsUpdate = true;
+    }
+    // ---------------------------------------------------------------- per frame
+    L.update = (dt, now) => {
+      const here = state.level === L.idx && state.mode !== 'menu';
+      if (!here) { for (const s of SIDES) myLava[s].visible = false; return; }
+      if (isHost()) hostStep(dt);
+      else { const k = 1 - Math.exp(-dt * 10); for (const b of bots) if (b.tx !== undefined) { b.x += (b.tx - b.x) * k; b.y += (b.ty - b.y) * k; b.z += (b.tz - b.z) * k; } }
+      if (state.mode === 'vr') vrMove(dt); else if (state.mode === 'flat') flatMove(dt);
+      myTags();
+      // got tagged (the host sees it here)
+      if (amLava() && !wasLavaLocal && S.ph === 'play' && isHost()) onTagged();
+      wasLavaLocal = amLava();
+      if (S.ph === 'done' && S.doneSeen !== S.g) { S.doneSeen = S.g; if (isHost()) roundOverForMe(); }
+      // bots
+      const inRound = new Set(S.ids);
+      let fi = 0;
+      bots.forEach((b) => {
+        const k = S.ids.indexOf(b.id), on = inRound.has(b.id) && S.ph !== 'lobby';
+        b.g.visible = on; if (!on) return;
+        b.g.position.set(b.x, b.y, b.z); b.g.rotation.y = b.yaw;
+        const lava = S.inf[k] === 1;
+        b.m.color.setHex(lava ? 0xff5a1a : 0x3a3a40); b.m.emissive.setHex(lava ? 0x6a1a00 : 0x000000);
+        b.arms.forEach((a, i) => { a.rotation.x = Math.sin(b.hop + i * Math.PI) * 0.9 - 0.3; });
+        if (lava && fi < flames.length) { const f = flames[fi++]; f.visible = true; f.position.set(b.x, b.y + 1.85, b.z); }
+      });
+      // flames over lava people too
+      S.ids.forEach((id, k) => { if (botOf(id) || S.inf[k] !== 1 || id === state.myPeer || fi >= flames.length) return; const p = posOf(id, _b); if (p) { const f = flames[fi++]; f.visible = true; f.position.set(p.x, p.y + 0.45, p.z); } });
+      for (; fi < flames.length; fi++) flames[fi].visible = false;
+      for (const f of flames) if (f.visible) f.scale.set(0.45 + Math.random() * 0.1, 0.6 + Math.random() * 0.15, 1);
+      // my lava hands
+      for (const s of SIDES) { const m = myLava[s], h = myHands[s]; m.visible = amLava() && h.ok; if (m.visible) { m.position.copy(h.pos); m.quaternion.copy(h.quat); } }
+      // VR: A or X starts a round
+      if (state.mode === 'vr') {
+        let a = false; for (const s of SIDES) { const gp = vrHands[s].source && vrHands[s].source.gamepad; if (gp && gp.buttons && gp.buttons[4] && gp.buttons[4].pressed) a = true; }
+        if (a && !ME.aPrev && S.ph !== 'play') requestStart();
+        ME.aPrev = a;
+      }
+      drawClk();
+      if (ui.status && state.mode === 'flat') {
+        ui.status.hidden = false;
+        const txt = S.ph === 'play' ? `${amLava() ? '\u{1F525} You’re LAVA: run into people to tag them' : 'Safe: don’t let the lava touch you'}  ·  ${Math.ceil(S.t)} s  ·  Space to leap` : 'Gorilla Tag  ·  start a round from the buttons up top  ·  WASD run, Space leap';
+        if (ui.status.textContent !== txt) ui.status.textContent = txt;
+      }
+    };
+    function requestStart() { if (isHost()) startRound(); else { ME.startReq += 1; forcePresence(); showToast('Asking to start a round…'); } }
+    L.rowFor = (st, isMe) => { const w = isMe ? (S.wins || 0) : st.gw ? st.gw[0] : 0; return { best: w, text: `${w} round${w === 1 ? '' : 's'} survived` }; };
+    L.sortRows = (a, b) => (b.best || 0) - (a.best || 0);
+    L.board = makeBoard(G, 720, 460, 2.2, 1.4, 0, 1.6, -3.0, Math.PI);
+    L.drawBoard = (rows) => {
+      const g = L.board.g, Wd = 720;
+      g.fillStyle = '#2a1a0a'; g.fillRect(0, 0, Wd, 460); g.strokeStyle = '#ff8a1a'; g.lineWidth = 8; g.strokeRect(4, 4, Wd - 8, 452);
+      g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+      g.fillStyle = '#ff8a1a'; g.font = `800 56px ${DISPLAY}`; g.fillText('Top gorillas', 36, 80);
+      g.fillStyle = '#f4e8d8'; g.font = `400 24px ${BODY}`; g.fillText('Rounds survived without getting tagged', 36, 118);
+      drawRows(g, rows, 176, 46, Wd);
+      L.board.tex.needsUpdate = true;
+    };
+    makeKiosk(L, 11.5, 11.5, -Math.PI * 0.75);
+    RECORDS.def(L, [{ k: 'tags', label: 'Most tags in a round' }, { k: 'survive', label: 'Longest survival', fmt: 'time' }]);
+    L.hudActions = [{ label: () => (S.ph === 'play' ? 'New round' : 'Start a round'), run: () => requestStart() }];
+    L.hints = [['Arms', 'push off the ground and trees to move'], ['Push down + back', 'to leap forward'], ['A / X', 'start a round']];
+    L.hintsFor = () => (state.mode === 'flat' ? [['WASD', 'run'], ['Space', 'leap'], ['Lava?', 'run into people to tag them']] : L.hints);
+    L.spawn = () => { const a = rand() * Math.PI * 2; dolly.position.set(Math.cos(a) * 6, 0, Math.sin(a) * 6); M.vel.set(0, 0, 0); if (state.mode !== 'vr') { state.yaw = Math.atan2(Math.cos(a), Math.sin(a)) + Math.PI / 2; state.pitch = 0; } };
+    L.onEnter = () => { M.vel.set(0, 0, 0); clkKey = ''; };
+    L.onExit = () => { if (ui.status) ui.status.hidden = true; dolly.position.y = 0; for (const s of SIDES) { M.hand[s].on = false; myLava[s].visible = false; } if (isHost() && S.ph === 'play') S.ph = 'lobby'; };
+    L.attract = (now) => { const a = reduceMotion ? 0 : now * 0.00006; camera.position.set(Math.sin(a) * 12, 5, Math.cos(a) * 12); camera.lookAt(0, 2, 0); };
+    L.gtInternals = { S, M, bots, BOXES, startRound, tag, endRound, hostStep, contact, support, pushOut, vrMove, settle, snapshot, applySnap, validSnap, myTags };
+    MUSIC_THEMES.gorilla = { gain: 0.6, bpm: 118, swing: 0.15, chords: ['Am', 'G', 'F', 'G'], arp: { inst: 'marimba', every: 1, order: [1, 0, 3, 2, 0, 4, 3, 0] }, bass: { at: [0, 3, 6, 10] }, drums: { k: 'x..x..x...x..x..', c: '....x.......x...', sh: 'o-o-o-o-o-o-o-o-' }, cut: 4000 };
+    return L;
+  })();
   // ---------------------------------------------------------------- VR controllers
   const myHandMat = new THREE.MeshLambertMaterial({ color: PLAYER_COLORS[state.colorIdx].hex });
   function newHand(side) {
@@ -36114,7 +37697,7 @@ kbd {
         while (h.hist.length > 2 && now - h.hist[0].t > 160) h.hist.shift();
       } else h.hist.length = 0;
     }
-    const la = L.noLocomotion ? null : stickAxes(vrHands.left), ra = L.noLocomotion ? null : stickAxes(vrHands.right);
+    const la = L.noLocomotion ? null : stickAxes(vrHands.left), ra = L.noLocomotion && L.noLocomotion !== 'turn' ? null : stickAxes(vrHands.right);   // ('turn': no walking, but you can still turn)
     if (la) {
       const x = la[0], y = la[1], m = Math.hypot(x, y);
       if (m > 0.15) {
@@ -36287,6 +37870,7 @@ kbd {
     if (state.mode !== 'flat') return;
     const aimed = findFlatTarget();
     if (aimed && aimed.kind === 'button') { pressButton(aimed.obj, performance.now()); return; }
+    if (curLevel().onE && curLevel().onE()) return;   // (a level's own use for E)
     if (holdingTool()) {
       const t = state.held.obj;
       state.held = null;

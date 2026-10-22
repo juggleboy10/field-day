@@ -28,6 +28,7 @@ js/core/teams.js
 js/games/lasertag.js
 js/games/soccer.js
 js/games/minigolf.js
+js/games/drivingrange.js
 js/games/bowling.js
 js/games/clubhouse/hub.js
 js/games/clubhouse/airhockey.js
@@ -83,6 +84,10 @@ js/games/cmddojo.js
 js/games/mathsprint.js
 js/games/triggers-content.js
 js/games/triggers.js
+js/games/fruit.js
+js/games/climb.js
+js/games/archery.js
+js/games/gorilla.js
 js/app/vr-controls.js
 js/app/flat-controls.js
 js/app/modes.js
