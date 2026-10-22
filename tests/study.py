@@ -238,7 +238,7 @@ def main():
             check(r["score"] == 1 and r["strikes"] == 0 and dj["task"][2] in r["lines"][-2], f"dojo: aimed strike {r}")
             # three wrong strikes end it
             end = page.evaluate("""() => { const I = window.__fd.LEVELS[52].dojoInternals, S = I.S, L = window.__fd.LEVELS[52]; let n = 0;
-              while (S.ph !== 'menu' && n++ < 50) { if (S.ph === 'gap') { S.gap = 0; L.update(0.016, performance.now()); } else if (S.ph === 'play') I.strike((S.c + 1) % 3); }
+              while (S.ph !== 'menu' && n++ < 80) { if (S.ph === 'gap') { S.gap = 0; L.update(0.016, performance.now()); } else if (S.ph === 'play' && S.readT > 0) { S.readT = 0.001; L.update(0.016, performance.now()); } else if (S.ph === 'play') I.strike((S.c + 1) % 3); }
               return { sum: S.summary, belt: I.beltOf(31)[1], groups: I.CMDS.length }; }""")
             print("Dojo end:", end)
             check(end["sum"] and end["sum"]["score"] == 1 and end["belt"] == "Black" and end["groups"] >= 40, f"dojo: end {end}")

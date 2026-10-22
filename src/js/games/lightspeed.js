@@ -60,7 +60,7 @@
     function startRound() {
       Object.assign(S, { ph: 'play', t0: performance.now(), hits: 0, misses: 0, react: 0, lits: [] });
       for (let k = 0; k < LIVE; k++) lightNext();
-      sfx('whistle', 0.7); showToast(`${ROUND} seconds! Hit each light as fast as you can`);
+      sfx('whistle', 0.7); showToast(`${ROUND} seconds! Three lights at a time: hit them before they go out`);
       forcePresence(); state.dirtyBoard = true;
     }
     L.startRound = startRound;

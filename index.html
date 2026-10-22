@@ -33380,7 +33380,7 @@ kbd {
     function startRound() {
       Object.assign(S, { ph: 'play', t0: performance.now(), hits: 0, misses: 0, react: 0, lits: [] });
       for (let k = 0; k < LIVE; k++) lightNext();
-      sfx('whistle', 0.7); showToast(`${ROUND} seconds! Hit each light as fast as you can`);
+      sfx('whistle', 0.7); showToast(`${ROUND} seconds! Three lights at a time: hit them before they go out`);
       forcePresence(); state.dirtyBoard = true;
     }
     L.startRound = startRound;
@@ -34775,8 +34775,8 @@ kbd {
 
     // ---------------------------------------------------------------- controls
     const deck = STUDY.cards(G, { n: 2, w: 0.5, h: 0.26, numbered: false });
-    deck.place(0, 1.45, 1.42, 0.62, -0.95, 0); deck.place(1, 1.45, 1.1, 0.62, -0.95, 0);
-    addBox(G, 0.05, 1.2, 0.05, lam(0x3a3a3a), 1.47, 0.6, 0.6);
+    deck.place(0, 1.75, 1.45, 0.45, -0.8, 0); deck.place(1, 1.75, 1.13, 0.45, -0.8, 0);
+    addBox(G, 0.05, 1.2, 0.05, lam(0x3a3a3a), 1.77, 0.6, 0.43);
     function drawDeck() { deck.set(0, S.ph === 'idle' ? 'Guided build' : 'Restart guided', 'mode', { sub: 'With a checklist', big: 44 }); deck.set(1, S.ph === 'idle' ? 'Timed build' : 'Restart timed', 'mode', { sub: 'No hints, +10 s a mistake', big: 44 }); }
     const _o = new V3(), _d = new V3(), _q = new Q4(), _t = new V3();
     // the part (or slot) nearest a ray
@@ -34792,10 +34792,10 @@ kbd {
     }
     function clickAt(side) {
       aimRay(side);
+      // the power button (first: it's nearer than the cards)
+      if (rayNear(_o, _d, [powerBtn.pos], 0.08) === 0) { pressButton(powerBtn, performance.now()); return; }
       const di = deck.pickRay(_o, _d);
       if (di >= 0) { reset(di === 0 ? 'guided' : 'timed'); drawDeck(); return; }
-      // the power button
-      if (rayNear(_o, _d, [powerBtn.pos], 0.08) === 0) { pressButton(powerBtn, performance.now()); return; }
       if (S.held) {
         const si = rayNear(_o, _d, SLOTS.map((s) => slotPos(s, new V3())), 0.06);
         if (si >= 0) fit(S.held, SLOTS[si]);
