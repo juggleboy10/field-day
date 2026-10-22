@@ -206,7 +206,7 @@
       SAF.x = 0; SAF.z = -14; SAF.yaw = Math.PI;
       field.position.z = (100 - S.ballOn) * YD;
       fdLine.position.z = fdZ();
-      S.thrown = false; S.held = null; S.catcher = null; S.target = null; S.fg = null;
+      S.thrown = false; S.held = null; S.catcher = null; S.target = null; S.fg = null; S.chaser = null;
       S.bp.set(0, 0.25, 0.05); S.bv.set(0, 0, 0);
       drawRoutes(true);
       state.hudDirty = true;
@@ -305,7 +305,7 @@
     }
     function release(v, from) {
       S.thrown = true; S.held = null; S.phase = 'air'; S.attempts += 1;
-      S.bp.copy(from); S.bv.copy(v); S.airT = 0; S.landAt = null;
+      S.bp.copy(from); S.bv.copy(v); S.airT = 0; S.landAt = null; S.chaser = null;
       for (const d of DEFS) d.react = 0.25 + D().lag;
       sfx('whoosh', 0.8);
       state.hudDirty = true;
@@ -454,6 +454,8 @@
 
     // ---------------------------------------------------------------- one step of the play
     const near = (a, x, z, d) => Math.hypot(a.x - x, a.z - z) < d;
+    // where to run to cut off the ball carrier: ahead of him, by about the time it takes to get there
+    const cutOff = (d, v) => { const r = S.catcher, t = clamp(Math.hypot(d.x - r.x, d.z - r.z) / v, 0, 1.2); return [r.x + (r.svx !== undefined && r.human ? r.svx : r.vx || 0) * t, r.z + (r.svz !== undefined && r.human ? r.svz : r.vz || 0) * t]; };
     const moveTo = (p, tx, tz, v, dt) => {
       const dx = tx - p.x, dz = tz - p.z, d = Math.hypot(dx, dz);
       if (d < 1e-3) { p.vx = p.vz = 0; return; }
@@ -519,11 +521,17 @@
       }
       // receivers and their defenders
       if (live) {
-        for (const r of REC) if (r !== S.catcher && !r.human) { routeAt(r, S.snapT, _p); const dx = _p[0] - r.x, dz = _p[1] - r.z; r.vx = dx / dt; r.vz = dz / dt; if (Math.hypot(dx, dz) > 0.01) r.yaw = Math.atan2(-dx, -dz); r.x = _p[0]; r.z = _p[1]; }
+        if (S.phase === 'air' && S.landAt && !S.chaser) S.chaser = pickChaser();
+        for (const r of REC) if (r === S.chaser && S.phase === 'air' && S.landAt) {
+          // he breaks off the route and goes to where the ball comes down; once there, he waits for it, facing the ball
+          const d = Math.hypot(S.landAt[0] - r.x, S.landAt[1] - r.z);
+          if (d > 0.15) moveTo(r, S.landAt[0], S.landAt[1], V_REC * (d > 2 ? 1.05 : 0.8), dt);
+          else { r.vx = r.vz = 0; r.yaw = Math.atan2(-(S.bp.x - r.x), -(S.bp.z - r.z)); }
+        } else if (r !== S.catcher && !r.human) { routeAt(r, S.snapT, _p); const dx = _p[0] - r.x, dz = _p[1] - r.z; r.vx = dx / dt; r.vz = dz / dt; if (Math.hypot(dx, dz) > 0.01) r.yaw = Math.atan2(-dx, -dz); r.x = _p[0]; r.z = _p[1]; }
         for (const c of COV) {
           if (S.phase === 'run' || c.human) continue;
           if (S.phase === 'air' && S.target && c.react <= 0 && near(c, S.landAt[0], S.landAt[1], 9)) { moveTo(c, S.landAt[0], S.landAt[1], D().vDef + 0.4, dt); continue; }
-          if (S.phase === 'yac' && S.catcher) { moveTo(c, S.catcher.x, S.catcher.z, D().vDef + 0.3, dt); continue; }
+          if (S.phase === 'yac' && S.catcher) { const [tx, tz] = cutOff(c, D().vDef + 0.3); moveTo(c, tx, tz, D().vDef + 0.3, dt); continue; }
           c.react -= dt;
           if (c.man.human) { _p2[0] = c.man.x; _p2[1] = c.man.z; } else routeAt(c.man, Math.max(0, S.snapT - D().lag), _p2);
           moveTo(c, _p2[0] - c.man.side * 0.3 * 0, _p2[1] - D().cushion * YD * 0.6, D().vDef, dt);
@@ -531,7 +539,7 @@
         // the safety stays deep over the deepest receiver
         let deep = REC[0]; for (const r of REC) if (r.z < deep.z) deep = r;
         if (S.phase === 'run') { /* chasing you */ }
-        else if (S.phase === 'yac' && S.catcher) moveTo(SAF, S.catcher.x, S.catcher.z, D().vDef + 0.4, dt);
+        else if (S.phase === 'yac' && S.catcher) { const [tx, tz] = cutOff(SAF, D().vDef + 0.4); moveTo(SAF, tx, tz, D().vDef + 0.4, dt); }
         else if (S.phase === 'air' && S.landAt && SAF.react <= 0 && near(SAF, S.landAt[0], S.landAt[1], 12)) moveTo(SAF, S.landAt[0], S.landAt[1], D().vDef, dt);
         else { SAF.react -= dt; moveTo(SAF, deep.x * 0.6, Math.min(-12, deep.z - 6), D().vDef * 0.85, dt); }
       }
@@ -553,8 +561,8 @@
       const prev = S.bp.clone();
       S.bv.y -= G_ACC * dt;
       S.bp.addScaledVector(S.bv, dt);
-      if (S.target) S.landAt = S.landAt || passTo(S.target, prev, Math.max(6, Math.hypot(S.bv.x, S.bv.z))).at;
-      else S.landAt = [S.bp.x + S.bv.x, S.bp.z + S.bv.z];
+      void prev;
+      S.tLand = catchPoint(S.landAt || (S.landAt = [0, 0]));
       // defenders first: a ball through a defender is picked off or knocked down
       for (const d of DEFS) {
         const dist = reach(S.bp, d, 0.3);
@@ -577,6 +585,23 @@
       if (Math.abs(S.bp.x) > HALF_W + 1 || S.bp.y < 0.1) endPlay('inc', { msg: Math.abs(S.bp.x) > HALF_W ? 'Incomplete, out of bounds' : 'Incomplete' });
     }
     function endPlayLater(kind, msg) { endPlay(kind, { msg }); }
+    // where the ball comes down to catching height (1.3 m), and how long until it gets there
+    function catchPoint(out) {
+      const p = S.bp, v = S.bv, disc = v.y * v.y + 2 * G_ACC * (p.y - 1.3);
+      const t = disc >= 0 ? Math.max(0, (v.y + Math.sqrt(disc)) / G_ACC) : 0;
+      out[0] = clamp(p.x + v.x * t, -HALF_W - 1, HALF_W + 1); out[1] = p.z + v.z * t;
+      return t;
+    }
+    // which receiver goes for the ball: the one who can get there soonest (the one you threw to, if he's close)
+    function pickChaser() {
+      let best = null, bs = Infinity;
+      for (const r of REC) {
+        if (r.human) continue;
+        const d = Math.hypot(r.x - S.landAt[0], r.z - S.landAt[1]), score = d / V_REC - (r === S.target ? 0.6 : 0);
+        if (score < bs) { bs = score; best = r; }
+      }
+      return best && Math.hypot(best.x - S.landAt[0], best.z - S.landAt[1]) < 18 ? best : null;
+    }
     // how close the ball is to a player: their body, or for a person, their real hands (a hand counts for `hand` extra)
     function reach(b, p, hand) {
       let d = capsuleDist(b, p);
@@ -945,7 +970,17 @@
       drawRows(g, rows, 176, 46, W);
       L.board.tex.needsUpdate = true;
     };
-    MUSIC_THEMES.football = { gain: 0.75, bpm: 112, swing: 0, chords: ['C', 'F', 'G', 'C'], comp: { inst: 'brass', at: [0, 6, 8], dur: 0.2 }, bass: { at: [0, 8, 10] }, drums: { k: 'x...x...x...x...', s: '....x.......x...', h: 'o.o.o.o.o.o.o.o.' }, cut: 4200 };
+    // an original fight song for a marching band: brass on the tune, oom-pah horns, a snare cadence and the crowd clapping along
+    for (const n of ['Bb', 'Eb', 'F', 'F7']) if (!CH[n]) CH[n] = genChord(n);
+    MUSIC_THEMES.football = { gain: 0.8, bpm: 132, swing: 0, cut: 5200, crackle: 0.2, melInst: 'brass', melV: 1.3,
+      chords: ['Bb', 'Eb', 'F', 'F', 'Bb', 'Eb', 'F7', 'Bb', 'Bb', 'Eb', 'F', 'F', 'Bb', 'Eb', 'F7', 'Bb'],
+      melody: mel(
+        'F4:4 A#4:4 D5:4 F5:4 G5:6 F5:2 D5:4 A#4:4 C5:4 D5:4 D#5:4 C5:4 F5:12 R:4 ' +
+        'F4:4 A#4:4 D5:4 F5:4 G5:6 F5:2 D#5:4 G5:4 F5:4 D5:4 C5:4 A4:4 A#4:12 R:4 ' +
+        'D5:2 D5:2 D5:4 D#5:4 F5:4 G5:4 F5:4 D#5:4 D5:4 C5:2 C5:2 C5:4 D5:4 D#5:4 F5:12 R:4 ' +
+        'A#5:4 A5:4 G5:4 F5:4 D#5:4 G5:4 F5:4 D5:4 C5:4 F5:4 A4:4 C5:4 A#4:8 F5:2 F5:2 A#5:4'),
+      comp: { inst: 'brass', at: [4, 12], dur: 0.12 }, bass: { at: [0, 8] },
+      drums: { k: 'x.......x.......', s: 'x.o.x.oox.o.xoxo', c: '....x.......x...', h: '..-...-...-...-.' } };
     L.fbInternals = { MP, assignSpots, snapshot, applySnap, pickQB, cycleRole, S, PLAYS, DIFFS, REC, COV, SAF, RUSH, LINE, routeAt, passTo, hike, startGame, choosePlay, step, endPlay, release, throwFlat, lookTarget, fieldGoal, spike, timeout, setFormation, YD };
     setFormation();
     return L;
