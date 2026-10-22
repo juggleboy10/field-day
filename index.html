@@ -250,7 +250,7 @@ kbd {
 
 <section id="panel" class="panel" aria-labelledby="title">
   <h1 id="title">Field Day</h1>
-  <p class="lede">A clubhouse and forty-seven games to play with friends, in VR or right here in the browser. Everyone who has this page open can join you.</p>
+  <p class="lede">A clubhouse and fifty-three games to play with friends, in VR or right here in the browser. Everyone who has this page open can join you.</p>
   <p id="net" class="net" data-state="connecting"><span class="dot" aria-hidden="true"></span><span id="net-text">Looking for other players…</span></p>
   <fieldset class="levels">
     <legend class="field-label">Pick a game</legend>
@@ -1211,8 +1211,14 @@ kbd {
     { id: 'ringtoss', name: 'Ring Toss', short: 'Ring Toss', glyph: '\u{1F37E}', blurb: 'Ten rings, a table of bottles: drop a ring over a neck for tickets. Red bottles pay double, the gold one big.' },
     { id: 'whack', name: 'Whack-a-Mole', short: 'Whack', glyph: '\u{1F528}', blurb: 'Nine holes, 45 seconds, moles popping up faster and faster. Golden moles are worth 3. A mallet in each hand.' },
     { id: 'lightspeed', name: 'Speed of Light', short: 'Lightspeed', glyph: '\u{1F4A1}', blurb: 'Thirty buttons on a wall: hit each one the moment it lights up. How many in 30 seconds?' },
+    { id: 'quizblaster', name: 'Quiz Blaster', short: 'Quiz Blaster', glyph: '\u{1F52B}', blurb: 'CompTIA A+ practice: shoot the right answer card. Core 1, Core 2, the full exam mix or your weak spots, with a report card.' },
+    { id: 'portsorter', name: 'Port & Cable Sorter', short: 'Port Sorter', glyph: '\u{1F50C}', blurb: 'Crates of ports, protocols, cables and Wi-Fi standards roll down a belt: toss each into the right bin. Sixty seconds.' },
+    { id: 'pcbuild', name: 'PC Build Bench', short: 'PC Build', glyph: '\u{1F5A5}\uFE0F', blurb: 'Build a PC on a test bench: wrist strap, CPU, paste, cooler, the right RAM, SSD, graphics card, power. Then see if it POSTs.' },
+    { id: 'helpdesk', name: 'Help Desk Tickets', short: 'Help Desk', glyph: '\u{1F6E0}\uFE0F', blurb: 'Customers bring their computer problems to your counter: pick the likely cause, then the fix. Six customers a shift.' },
+    { id: 'cmddojo', name: 'Command Line Dojo', short: 'CLI Dojo', glyph: '\u{1F94B}', blurb: 'The terminal gives you a task; three command blocks fly at you. Strike the right one. Windows and Linux, white belt to black.' },
+    { id: 'mathsprint', name: 'Math Sprint', short: 'Math Sprint', glyph: '\u{1F9EE}', blurb: 'Mental maths against a 60-second clock: adding, times tables, percentages and squares, or binary and hex.' },
   ];
-  const KIOSK_COLORS = [0xf5821f, 0xe8e4d8, 0x8bd450, 0xb388ff, 0xff4d6a, 0x2ec4b6, 0x3fbf7f, 0xff9ad0, 0xffd27a, 0x4fc3f7, 0x4a8aff, 0xb06aff, 0xffb36b, 0xff9ad0, 0x8bd450, 0xd8f43a, 0xff7a3a, 0xe5453a, 0xe8a040, 0x2ec4d8, 0xf2c14e, 0xd84a3a, 0x2a8ab8, 0x9a6aff, 0x6ad04a, 0xff3aa8, 0xffd23f, 0xff9a5c, 0x4fc3f7, 0x8a5a2a, 0x9af0ff, 0xff4d8a, 0xff9ad0, 0xe5453a, 0xb8e0ff, 0x7ad8ff, 0xd8b060, 0xffd23f, 0xff5a8a, 0x9a7ad8, 0xe8c860, 0xff4d8a, 0xff4dc8, 0xe5453a, 0xffd23f, 0x4a7ad8, 0x8bd450, 0x4fc3f7];
+  const KIOSK_COLORS = [0xf5821f, 0xe8e4d8, 0x8bd450, 0xb388ff, 0xff4d6a, 0x2ec4b6, 0x3fbf7f, 0xff9ad0, 0xffd27a, 0x4fc3f7, 0x4a8aff, 0xb06aff, 0xffb36b, 0xff9ad0, 0x8bd450, 0xd8f43a, 0xff7a3a, 0xe5453a, 0xe8a040, 0x2ec4d8, 0xf2c14e, 0xd84a3a, 0x2a8ab8, 0x9a6aff, 0x6ad04a, 0xff3aa8, 0xffd23f, 0xff9a5c, 0x4fc3f7, 0x8a5a2a, 0x9af0ff, 0xff4d8a, 0xff9ad0, 0xe5453a, 0xb8e0ff, 0x7ad8ff, 0xd8b060, 0xffd23f, 0xff5a8a, 0x9a7ad8, 0xe8c860, 0xff4d8a, 0xff4dc8, 0xe5453a, 0xffd23f, 0x4a7ad8, 0x8bd450, 0x4fc3f7, 0xffd23f, 0x3aa86a, 0x4fc3f7, 0x2f6fd0, 0xb02a2a, 0x8bd450];
   const LEVEL_CATS = [
     { id: 'ball', name: 'Ball sports', glyph: '\u26BD', games: [0, 1, 5, 15, 29, 37] },
     { id: 'battle', name: 'Team battles', glyph: '\u{1F3AF}', games: [14, 4, 17, 21, 34, 38] },
@@ -1222,8 +1228,9 @@ kbd {
     { id: 'party', name: 'Party games', glyph: '\u{1F389}', games: [13, 12, 18, 23, 32, 41] },
     { id: 'active', name: 'Get active', glyph: '\u{1F4AA}', games: [25, 27, 28, 33, 42] },
     { id: 'carnival', name: 'Carnival', glyph: '\u{1F3A1}', games: [31, 26, 43, 44, 45, 46, 47] },
+    { id: 'study', name: 'Study Hall', glyph: '\u{1F4DA}', games: [48, 49, 50, 51, 52, 53] },
   ];
-  const PICKER_ORDER = [8, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 3, 10, 11, 0, 1, 2, 4, 5, 6, 7, 9];
+  const PICKER_ORDER = [8, 53, 52, 51, 50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 3, 10, 11, 0, 1, 2, 4, 5, 6, 7, 9];
   function makeKiosk(L, x, z, yaw) {
     const fx = Math.sin(yaw), fz = Math.cos(yaw);   // direction the kiosk faces
     const rx = Math.cos(yaw), rz = -Math.sin(yaw);  // its right-hand side
@@ -12516,7 +12523,7 @@ kbd {
       for (let k = 0; k < 3; k++) { g.beginPath(); for (let t = 0; t < 6.28; t += 0.1) { const r = 6 + t * 8.5, a = t + k * 2.09; g.lineTo(64 + Math.cos(a) * r, 64 + Math.sin(a) * r); } g.stroke(); }
     }).tex;
     swirl.center.set(0.5, 0.5);
-    const CAT_COLS = { ball: 0xff9a3a, battle: 0xff4d6a, lanes: 0x3fbf7f, adv: 0x9a6aff, race: 0x4fc3f7, party: 0xffd23f, active: 0xff3aa8, carnival: 0xe5453a };
+    const CAT_COLS = { ball: 0xff9a3a, battle: 0xff4d6a, lanes: 0x3fbf7f, adv: 0x9a6aff, race: 0x4fc3f7, party: 0xffd23f, active: 0xff3aa8, carnival: 0xe5453a, study: 0x2f6fd0 };
     const hexOf = (c) => `#${c.toString(16).padStart(6, '0')}`;
     const portals = [];
     // one doorway: a coloured frame, a swirling surface and a label overhead
@@ -33141,6 +33148,2221 @@ kbd {
     MUSIC_THEMES.lightspeed = { gain: 0.7, bpm: 140, swing: 0, chords: ['Em', 'C', 'G', 'D'], comp: { inst: 'synth', at: [0, 2, 4, 6, 8, 10, 12, 14], dur: 0.08 }, bass: { at: [0, 4, 8, 12] }, drums: { k: 'x...x...x...x...', h: 'o.o.o.o.o.o.o.o.' }, cut: 5200 };
     return L;
   })();
+  // ================================================================ STUDY HALL: content for the CompTIA A+ games
+  // Written to the A+ V15 exam objectives: Core 1 (220-1201) and Core 2 (220-1202). Each question:
+  // [domain, question, [four answers], index of the right one, why]. Answers are shuffled when shown.
+  const APLUS = (() => {
+    const DOMAINS = {
+      c1m: { exam: 'Core 1', name: 'Mobile devices', w: 13 },
+      c1n: { exam: 'Core 1', name: 'Networking', w: 23 },
+      c1h: { exam: 'Core 1', name: 'Hardware', w: 25 },
+      c1v: { exam: 'Core 1', name: 'Virtualization and cloud', w: 11 },
+      c1t: { exam: 'Core 1', name: 'Hardware and network troubleshooting', w: 28 },
+      c2o: { exam: 'Core 2', name: 'Operating systems', w: 28 },
+      c2s: { exam: 'Core 2', name: 'Security', w: 28 },
+      c2t: { exam: 'Core 2', name: 'Software troubleshooting', w: 23 },
+      c2p: { exam: 'Core 2', name: 'Operational procedures', w: 21 },
+    };
+    const Q = [
+      // ---------------- Core 1: mobile devices
+      ['c1m', 'Which technology lets you pay by tapping your phone on a card reader?', ['NFC', 'Bluetooth', 'Infrared', 'GPS'], 0, 'Near Field Communication works over a few centimetres, which suits tap-to-pay.'],
+      ['c1m', 'Which wireless technology usually pairs a phone with a wireless headset?', ['Bluetooth', 'NFC', 'Cellular', 'GPS'], 0, 'Bluetooth is the short-range standard for headsets, keyboards and speakers.'],
+      ['c1m', 'What memory form factor do most laptops use?', ['SO-DIMM', 'DIMM', 'SIMM', 'CompactFlash'], 0, 'SO-DIMMs (small outline DIMMs) are the smaller modules made for laptops.'],
+      ['c1m', 'A laptop screen is very dim, but you can just see the picture with a flashlight. What has most likely failed?', ['The backlight', 'The digitizer', 'The video card driver', 'The Wi-Fi antenna'], 0, 'The picture is there but not lit: the backlight (or its inverter on older screens) has failed.'],
+      ['c1m', 'What is the digitizer on a phone or tablet?', ['The layer that turns touches into input', 'The chip that stores photos', 'The camera sensor', 'The cellular modem'], 0, 'The digitizer senses touch and converts it to digital input.'],
+      ['c1m', 'Sharing your phone’s cellular data connection with a laptop is called:', ['Tethering (a hotspot)', 'Roaming', 'Port forwarding', 'Pairing'], 0, 'Tethering or a mobile hotspot shares the phone’s data connection.'],
+      ['c1m', 'What does MDM software do for a company?', ['Centrally manages and secures employees’ mobile devices', 'Speeds up the cellular network', 'Backs up the company website', 'Charges devices wirelessly'], 0, 'Mobile device management enforces policies, pushes apps and can wipe lost devices.'],
+      ['c1m', 'A phone’s back cover is bulging and the phone runs hot. What should you do?', ['Stop using it and have the swollen battery replaced', 'Press the cover back down', 'Charge it overnight', 'Update the apps'], 0, 'A swollen lithium-ion battery is a fire hazard: power down, replace it, dispose of it properly.'],
+      ['c1m', 'In most laptops, where do the Wi-Fi antenna wires run?', ['Around the display, in the lid', 'Under the keyboard', 'Inside the battery', 'Along the hinge only'], 0, 'The antennas sit in the display bezel, high up, for better reception.'],
+      ['c1m', 'What does a docking station let a laptop do?', ['Connect to many peripherals through one connection', 'Charge without a battery', 'Run two operating systems', 'Use a faster CPU'], 0, 'Docks and port replicators connect monitors, keyboards, network and more in one go.'],
+      ['c1m', 'Which connector do recent Android phones and iPhone 15 and later use to charge?', ['USB-C', 'Micro-USB', 'Lightning', 'Mini-USB'], 0, 'USB-C is reversible and now standard on phones, including iPhone 15 and later.'],
+      ['c1m', 'An employee’s company phone is lost. What should IT do first through MDM?', ['Lock it and remotely wipe it', 'Buy a new phone', 'Change the Wi-Fi password', 'Disable Bluetooth'], 0, 'A remote lock and wipe protects company data on a lost device.'],
+      // ---------------- Core 1: networking
+      ['c1n', 'Which port does HTTPS use by default?', ['443', '80', '22', '3389'], 0, 'HTTPS is TCP 443; plain HTTP is 80.'],
+      ['c1n', 'Which port does SSH use?', ['22', '23', '21', '25'], 0, 'SSH (secure remote shell) is TCP 22. Telnet, unencrypted, is 23.'],
+      ['c1n', 'Which port does Remote Desktop Protocol (RDP) use?', ['3389', '443', '445', '139'], 0, 'RDP listens on TCP 3389.'],
+      ['c1n', 'Which port does DNS use?', ['53', '67', '110', '161'], 0, 'DNS uses port 53 (UDP for most lookups, TCP too).'],
+      ['c1n', 'What does a DHCP server do?', ['Hands out IP addresses and settings automatically', 'Turns names into IP addresses', 'Encrypts Wi-Fi traffic', 'Blocks unwanted traffic'], 0, 'DHCP assigns IP address, subnet mask, gateway and DNS servers.'],
+      ['c1n', 'A PC has the address 169.254.33.7. What does that tell you?', ['It couldn’t reach a DHCP server (APIPA)', 'It has a static address', 'It’s on the internet', 'It’s using IPv6'], 0, '169.254.x.x is APIPA: Windows gave itself a link-local address because DHCP didn’t answer.'],
+      ['c1n', 'Which of these is a private IPv4 address?', ['192.168.1.10', '8.8.8.8', '172.32.5.1', '100.1.1.1'], 0, 'Private ranges are 10.x.x.x, 172.16-31.x.x and 192.168.x.x.'],
+      ['c1n', 'Which 802.11 standard is Wi-Fi 6?', ['802.11ax', '802.11ac', '802.11n', '802.11g'], 0, 'Wi-Fi 6 is 802.11ax; Wi-Fi 5 is 802.11ac; Wi-Fi 4 is 802.11n.'],
+      ['c1n', 'On 2.4 GHz Wi-Fi in North America, which channels don’t overlap?', ['1, 6 and 11', '1, 2 and 3', '2, 7 and 12', '36, 40 and 44'], 0, 'Channels 1, 6 and 11 are spaced far enough apart not to overlap.'],
+      ['c1n', 'Which device forwards frames inside a LAN using MAC addresses?', ['A switch', 'A router', 'A modem', 'A firewall'], 0, 'Switches work at layer 2 with MAC addresses; routers route between networks by IP address.'],
+      ['c1n', 'Which DNS record maps a host name to an IPv4 address?', ['A', 'AAAA', 'MX', 'CNAME'], 0, 'A records are IPv4, AAAA records IPv6, MX records point to mail servers.'],
+      ['c1n', 'How long is an IPv6 address?', ['128 bits', '32 bits', '64 bits', '48 bits'], 0, 'IPv6 addresses are 128 bits; IPv4 addresses are 32.'],
+      ['c1n', 'Which Wi-Fi security option is the strongest?', ['WPA3', 'WPA2-TKIP', 'WEP', 'WPA'], 0, 'WPA3 is the newest and strongest; WEP is broken.'],
+      ['c1n', 'Which feature on a home router sends incoming traffic on a port to a PC inside the network?', ['Port forwarding', 'Content filtering', 'MAC filtering', 'DHCP reservation'], 0, 'Port forwarding maps a public port to an internal address and port.'],
+      ['c1n', 'What does PoE provide?', ['Power and data over one Ethernet cable', 'Faster Wi-Fi', 'A backup internet line', 'Encryption on the cable'], 0, 'Power over Ethernet runs devices like access points and cameras from the switch.'],
+      ['c1n', 'Which connector goes on coaxial cable for a cable modem?', ['F-type', 'RJ45', 'LC', 'RJ11'], 0, 'Cable TV and cable modems use coax with F-type connectors.'],
+      ['c1n', 'Which tool helps you find which wall jack a cable runs to?', ['A toner probe', 'A crimper', 'A loopback plug', 'A punchdown tool'], 0, 'A toner puts a signal on the cable; the probe beeps when it’s near it.'],
+      ['c1n', 'What does a VLAN do?', ['Splits one switch into separate logical networks', 'Encrypts a WAN link', 'Speeds up Wi-Fi', 'Gives out IP addresses'], 0, 'VLANs separate traffic into different broadcast domains on the same hardware.'],
+      ['c1n', 'Up to what distance can Cat 6 carry 10 Gbps Ethernet?', ['55 metres', '100 metres', '10 metres', '500 metres'], 0, 'Cat 6 does 10GBASE-T to about 55 m; Cat 6a does it to 100 m.'],
+      ['c1n', 'Which port does SMTP use to send mail between servers?', ['25', '110', '143', '587'], 0, 'SMTP is port 25 (587 is used for submission from mail clients). POP3 is 110, IMAP 143.'],
+      // ---------------- Core 1: hardware
+      ['c1h', 'Which RAID level mirrors data across two drives?', ['RAID 1', 'RAID 0', 'RAID 5', 'RAID 10'], 0, 'RAID 1 is mirroring: either drive can fail.'],
+      ['c1h', 'Which RAID level stripes data with no redundancy?', ['RAID 0', 'RAID 1', 'RAID 5', 'RAID 6'], 0, 'RAID 0 is fast but one failed drive loses everything.'],
+      ['c1h', 'What is the minimum number of drives for RAID 5?', ['3', '2', '4', '5'], 0, 'RAID 5 stripes with parity across at least three drives.'],
+      ['c1h', 'What is the minimum number of drives for RAID 10?', ['4', '2', '3', '6'], 0, 'RAID 10 is mirrored pairs striped together: four drives at least.'],
+      ['c1h', 'An M.2 NVMe SSD talks to the system over:', ['PCIe lanes', 'SATA', 'USB', 'IDE'], 0, 'NVMe uses PCI Express lanes, which is why it’s much faster than SATA.'],
+      ['c1h', 'Will a DDR4 module fit in a DDR5 slot?', ['No: the notch is in a different place', 'Yes, it just runs slower', 'Yes, with an adapter in the BIOS', 'Only in laptops'], 0, 'Each DDR generation is keyed differently so the wrong one can’t be inserted.'],
+      ['c1h', 'What does ECC memory do?', ['Detects and corrects memory errors', 'Runs at a higher voltage', 'Doubles the capacity', 'Cools the RAM'], 0, 'Error-correcting code RAM is common in servers.'],
+      ['c1h', 'In a laser printer, which step melts the toner onto the paper?', ['Fusing', 'Developing', 'Charging', 'Exposing'], 0, 'The fuser’s heat and pressure bond the toner to the paper.'],
+      ['c1h', 'Which printer type needs special heat-sensitive paper?', ['Thermal', 'Inkjet', 'Laser', 'Impact'], 0, 'Thermal printers (like receipt printers) darken heat-sensitive paper.'],
+      ['c1h', 'Which printer type is used for multipart (carbon copy) forms?', ['Impact (dot matrix)', 'Laser', 'Inkjet', 'Thermal'], 0, 'Impact printers strike through the copies.'],
+      ['c1h', 'Which connector powers the motherboard itself?', ['24-pin ATX', 'SATA power', '6-pin PCIe', 'Molex'], 0, 'The main motherboard connector is the 24-pin ATX; the CPU gets a separate 4/8-pin.'],
+      ['c1h', 'Which video connector carries an analog signal?', ['VGA', 'HDMI', 'DisplayPort', 'USB-C'], 0, 'VGA is analog; HDMI, DisplayPort and USB-C carry digital video.'],
+      ['c1h', 'What is thermal paste for?', ['Filling the tiny gaps between the CPU and its cooler', 'Holding the CPU in the socket', 'Insulating the motherboard', 'Cleaning the CPU pins'], 0, 'It conducts heat across the microscopic air gaps.'],
+      ['c1h', 'What is a TPM used for?', ['Storing encryption keys in hardware (e.g. for BitLocker)', 'Speeding up the GPU', 'Cooling the CPU', 'Managing the fans'], 0, 'The Trusted Platform Module secures keys and supports Secure Boot and BitLocker.'],
+      ['c1h', 'How fast is SATA III?', ['6 Gbps', '3 Gbps', '1.5 Gbps', '12 Gbps'], 0, 'SATA III runs at 6 Gbps (about 600 MB/s in practice).'],
+      ['c1h', 'How fast is USB 3.2 Gen 2?', ['10 Gbps', '5 Gbps', '20 Gbps', '480 Mbps'], 0, 'Gen 1 is 5 Gbps, Gen 2 is 10 Gbps, Gen 2x2 is 20 Gbps; USB 2.0 is 480 Mbps.'],
+      ['c1h', 'Where should a graphics card normally go?', ['The PCIe x16 slot', 'A PCIe x1 slot', 'An M.2 slot', 'A RAM slot'], 0, 'GPUs need the bandwidth of the x16 slot.'],
+      ['c1h', 'What does Secure Boot do?', ['Lets only trusted, signed boot software run', 'Encrypts the hard drive', 'Sets a BIOS password', 'Boots from the network'], 0, 'Secure Boot, a UEFI feature, blocks unsigned bootloaders such as rootkits.'],
+      // ---------------- Core 1: virtualization and cloud
+      ['c1v', 'A Type 1 hypervisor runs:', ['Directly on the hardware (bare metal)', 'As an app on Windows or macOS', 'Only in the cloud', 'Inside a web browser'], 0, 'Type 1 (like ESXi or Hyper-V Server) is bare metal; Type 2 runs on a host OS.'],
+      ['c1v', 'Webmail like Gmail is an example of which cloud model?', ['SaaS', 'IaaS', 'PaaS', 'On-premises'], 0, 'Software as a Service: you just use the software.'],
+      ['c1v', 'Renting virtual servers, storage and networks by the hour is:', ['IaaS', 'SaaS', 'PaaS', 'DaaS'], 0, 'Infrastructure as a Service: you manage the OS and up.'],
+      ['c1v', 'A cloud that scales resources up and down automatically with demand has:', ['Rapid elasticity', 'Measured service', 'High availability', 'Shared tenancy'], 0, 'Elasticity grows and shrinks resources as needed.'],
+      ['c1v', 'Paying only for the cloud resources you actually use is called:', ['Metered (measured) service', 'Elasticity', 'Multitenancy', 'Redundancy'], 0, 'Measured service bills by usage.'],
+      ['c1v', 'A company uses its own private cloud plus a public cloud together. That’s a:', ['Hybrid cloud', 'Community cloud', 'Public cloud', 'Private cloud'], 0, 'Hybrid combines private and public clouds.'],
+      ['c1v', 'What must be on in the BIOS/UEFI to run virtual machines well?', ['Hardware virtualization (Intel VT-x / AMD-V)', 'Secure Boot', 'Fast Boot', 'Legacy USB support'], 0, 'Virtualization extensions let the hypervisor run guests efficiently.'],
+      ['c1v', 'How do containers differ from virtual machines?', ['Containers share the host’s OS kernel', 'Containers need their own full OS', 'Containers only run in the cloud', 'Containers can’t run apps'], 0, 'Containers are lighter because they share the kernel; VMs each have a full OS.'],
+      ['c1v', 'Why test suspicious software in a virtual machine?', ['It’s isolated (a sandbox) from the real system', 'It runs faster', 'It can’t use the network', 'It makes the software legal'], 0, 'A sandboxed VM can be thrown away if the software is harmful.'],
+      ['c1v', 'Desktops hosted in a data centre and used remotely are called:', ['VDI', 'IaaS', 'NAS', 'VPN'], 0, 'Virtual desktop infrastructure hosts the desktops centrally.'],
+      // ---------------- Core 1: hardware and network troubleshooting
+      ['c1t', 'What is the first step of the CompTIA troubleshooting method?', ['Identify the problem', 'Establish a theory of probable cause', 'Test the theory', 'Document findings'], 0, 'Identify, theorize, test, plan and implement, verify, document.'],
+      ['c1t', 'What is the last step of the troubleshooting method?', ['Document findings, actions and outcomes', 'Verify full functionality', 'Implement the solution', 'Test the theory'], 0, 'Documenting helps the next person (and you) with the same problem.'],
+      ['c1t', 'A user can ping 8.8.8.8 but can’t browse to websites by name. What’s the likely problem?', ['DNS', 'DHCP', 'A bad cable', 'The default gateway'], 0, 'Reaching an IP but not names points to name resolution: DNS.'],
+      ['c1t', 'A PC keeps shutting down after a few minutes of heavy use. First thing to check?', ['Overheating: fans, dust, thermal paste', 'The monitor cable', 'The keyboard', 'The DNS settings'], 0, 'Shutdowns under load are a classic sign of overheating.'],
+      ['c1t', 'A hard drive is clicking and grinding. What should you do first?', ['Back up the data, then replace the drive', 'Defragment it', 'Reinstall Windows', 'Update the BIOS'], 0, 'Clicking means a failing mechanical drive: save the data while you can.'],
+      ['c1t', 'Laser prints are faded all over. The likely cause?', ['Low toner', 'A bad fuser', 'Wrong paper size', 'A network problem'], 0, 'Faint prints usually mean the toner is low.'],
+      ['c1t', 'Toner on a laser print smears and rubs off. Which part has likely failed?', ['The fuser', 'The toner cartridge', 'The pickup roller', 'The transfer belt'], 0, 'If the toner isn’t fused it rubs off: replace the fuser.'],
+      ['c1t', 'A laser printer prints faint copies of earlier images (ghosting). What’s the likely cause?', ['The imaging drum (or cleaning) is failing', 'Low toner', 'The wrong driver', 'Damp paper'], 0, 'Ghosting comes from the drum not being cleaned or discharged properly.'],
+      ['c1t', 'A laptop display flickers when you move the lid. The likely cause?', ['A loose or damaged display cable', 'A bad hard drive', 'Low battery', 'A driver update'], 0, 'Flicker that changes with the lid points to the display cable through the hinge.'],
+      ['c1t', 'A PC says "No bootable device" after you added a drive. First thing to check?', ['The boot order in the BIOS/UEFI', 'The monitor', 'The network cable', 'The RAM speed'], 0, 'The new drive may now be first in the boot order.'],
+      ['c1t', 'Wi-Fi is slow in an apartment with dozens of nearby networks. Best fix?', ['Change to a less crowded channel (or 5 GHz)', 'Turn off DHCP', 'Use a longer cable', 'Lower the screen brightness'], 0, 'Channel interference is common in crowded areas.'],
+      ['c1t', 'A RAID 5 array reports "degraded". What does that mean?', ['A drive has failed; replace it and rebuild', 'It needs defragmenting', 'It’s full', 'It’s been encrypted'], 0, 'RAID 5 survives one failure but must be rebuilt before a second.'],
+      ['c1t', 'Which tool tests a network port on a switch or NIC by sending its own signal back?', ['A loopback plug', 'A toner probe', 'A multimeter', 'A crimper'], 0, 'A loopback plug loops transmit to receive for testing.'],
+      ['c1t', 'A new PC beeps and won’t show anything on screen at power-on. What’s happening?', ['POST found a hardware problem (beep code)', 'Windows is updating', 'The monitor is in sleep mode', 'DNS failed'], 0, 'Beep codes report POST failures, often RAM or video; check the board’s manual.'],
+      // ---------------- Core 2: operating systems
+      ['c2o', 'Which Windows command checks a disk for file system errors?', ['chkdsk', 'sfc', 'diskpart', 'format'], 0, 'chkdsk checks (and with /f fixes) the file system.'],
+      ['c2o', 'Which Windows command scans and repairs protected system files?', ['sfc /scannow', 'chkdsk /f', 'gpupdate /force', 'ipconfig /renew'], 0, 'System File Checker replaces damaged system files.'],
+      ['c2o', 'Which command applies new Group Policy settings right away?', ['gpupdate /force', 'gpresult /r', 'netstat', 'tasklist'], 0, 'gpupdate refreshes policy; gpresult shows what applied.'],
+      ['c2o', 'Which file system do Windows system drives use?', ['NTFS', 'FAT32', 'ext4', 'APFS'], 0, 'NTFS supports permissions, encryption and large files.'],
+      ['c2o', 'Which file system works on both Windows and macOS for big USB drives?', ['exFAT', 'NTFS', 'ext4', 'APFS'], 0, 'exFAT has no 4 GB file limit and is read and written by both.'],
+      ['c2o', 'Which Windows edition can’t join a corporate domain?', ['Home', 'Pro', 'Enterprise', 'Education'], 0, 'Home lacks domain join, Group Policy and BitLocker management.'],
+      ['c2o', 'GPT partitioning, compared with MBR:', ['Supports disks over 2 TB and many more partitions', 'Only works on USB drives', 'Is older and simpler', 'Can’t boot Windows'], 0, 'GPT goes with UEFI; MBR is limited to 2 TB and four primary partitions.'],
+      ['c2o', 'Which Linux command changes a file’s permissions?', ['chmod', 'chown', 'ls', 'grep'], 0, 'chmod changes permissions; chown changes the owner.'],
+      ['c2o', 'Which Linux command runs another command as the superuser?', ['sudo', 'su -l', 'passwd', 'top'], 0, 'sudo runs one command with elevated rights.'],
+      ['c2o', 'Which macOS feature backs up to an external drive automatically?', ['Time Machine', 'FileVault', 'Spotlight', 'Keychain'], 0, 'Time Machine makes hourly backups; FileVault encrypts the disk.'],
+      ['c2o', 'Which macOS feature encrypts the whole disk?', ['FileVault', 'Time Machine', 'Gatekeeper', 'Mission Control'], 0, 'FileVault is macOS full-disk encryption.'],
+      ['c2o', 'Where do you see Windows error and warning logs?', ['Event Viewer', 'Device Manager', 'Disk Management', 'Task Scheduler'], 0, 'Event Viewer holds the System, Application and Security logs.'],
+      ['c2o', 'Where do you update or roll back a Windows driver?', ['Device Manager', 'Event Viewer', 'Services', 'Registry Editor'], 0, 'Device Manager handles drivers and devices.'],
+      ['c2o', 'Windows 11 requires which security chip?', ['TPM 2.0', 'TPM 1.2', 'A fingerprint reader', 'No chip'], 0, 'Windows 11 needs TPM 2.0 and Secure Boot capability.'],
+      ['c2o', 'Which tool shows which apps run at startup in Windows 10/11?', ['Task Manager (Startup tab)', 'Disk Management', 'Device Manager', 'Event Viewer'], 0, 'Task Manager’s Startup tab enables and disables startup apps.'],
+      // ---------------- Core 2: security
+      ['c2s', 'Someone follows an employee through a secure door without badging in. That’s:', ['Tailgating', 'Phishing', 'Shoulder surfing', 'Whaling'], 0, 'Tailgating (piggybacking) gets past physical security by following someone.'],
+      ['c2s', 'An email pretending to be your bank asks you to log in through a link. That’s:', ['Phishing', 'Vishing', 'Tailgating', 'A DDoS attack'], 0, 'Phishing uses fake messages to steal credentials.'],
+      ['c2s', 'A phishing attack aimed at a company’s CEO is called:', ['Whaling', 'Smishing', 'Vishing', 'Spoofing'], 0, 'Whaling targets high-value people like executives.'],
+      ['c2s', 'Phishing by phone call is called:', ['Vishing', 'Smishing', 'Whaling', 'Pharming'], 0, 'Vishing is voice phishing; smishing is by text message.'],
+      ['c2s', 'Watching someone type their PIN over their shoulder is:', ['Shoulder surfing', 'Tailgating', 'Dumpster diving', 'Spoofing'], 0, 'Privacy screens help against shoulder surfing.'],
+      ['c2s', 'Malware that encrypts your files and demands payment is:', ['Ransomware', 'Spyware', 'Adware', 'A worm'], 0, 'Ransomware holds data hostage; good backups are the best defence.'],
+      ['c2s', 'Malware disguised as useful software is a:', ['Trojan', 'Worm', 'Rootkit', 'Keylogger'], 0, 'Trojans pretend to be legitimate programs.'],
+      ['c2s', 'Malware that hides deep in the OS to keep admin access is a:', ['Rootkit', 'Trojan', 'Adware', 'Botnet'], 0, 'Rootkits hide themselves and can be very hard to remove.'],
+      ['c2s', 'A password plus a code from an authenticator app is:', ['Multifactor authentication', 'Single sign-on', 'A passphrase', 'Biometrics'], 0, 'MFA combines factors: something you know plus something you have.'],
+      ['c2s', 'Giving users only the access they need to do their job is:', ['The principle of least privilege', 'Zero-day defence', 'Defence in depth', 'Single sign-on'], 0, 'Least privilege limits the damage from mistakes and compromised accounts.'],
+      ['c2s', 'In the malware removal steps, what comes right after quarantining the infected system?', ['Disable System Restore', 'Educate the user', 'Schedule scans', 'Enable System Restore'], 0, 'Investigate, quarantine, disable System Restore, remediate, schedule scans and update, re-enable System Restore, educate.'],
+      ['c2s', 'What is the last step of the malware removal process?', ['Educate the end user', 'Disable System Restore', 'Remediate the system', 'Quarantine the system'], 0, 'Teaching the user helps stop it happening again.'],
+      ['c2s', 'Degaussing destroys data on which kind of drive?', ['Magnetic hard drives', 'SSDs', 'USB flash drives', 'DVDs'], 0, 'A degausser scrambles magnetic media; SSDs need shredding or secure erase.'],
+      ['c2s', 'Which Windows feature encrypts individual files and folders on NTFS?', ['EFS', 'BitLocker', 'FileVault', 'UAC'], 0, 'EFS encrypts files; BitLocker encrypts whole volumes.'],
+      ['c2s', 'On a new SOHO router, what should you change first?', ['The default admin password', 'The Wi-Fi channel', 'The router’s colour scheme', 'The DHCP range'], 0, 'Default credentials are public knowledge.'],
+      ['c2s', 'Why disable WPS on a wireless router?', ['Its PIN can be brute-forced', 'It slows Wi-Fi down', 'It uses too much power', 'It blocks guests'], 0, 'WPS PIN mode is vulnerable to brute-force attacks.'],
+      // ---------------- Core 2: software troubleshooting
+      ['c2t', 'A browser keeps redirecting to strange sites and showing pop-ups. Most likely?', ['Malware or adware', 'A failing hard drive', 'Low memory', 'A bad network cable'], 0, 'Redirects and pop-ups are classic signs of browser malware.'],
+      ['c2t', 'Windows blue-screens right after a driver update. Best fix?', ['Boot to Safe Mode and roll back the driver', 'Replace the motherboard', 'Reinstall all apps', 'Change the wallpaper'], 0, 'Roll back the change that caused it.'],
+      ['c2t', 'A PC takes ages to start up. A good first step?', ['Disable unneeded startup programs', 'Replace the CPU', 'Format the drive', 'Turn off the firewall'], 0, 'Too many startup apps slow boot times.'],
+      ['c2t', 'Every secure site shows certificate warnings on one PC. Check first:', ['The system date and time', 'The monitor resolution', 'The printer queue', 'The mouse driver'], 0, 'A wrong clock makes valid certificates look expired or not yet valid.'],
+      ['c2t', 'An app says a DLL file is missing. A good fix?', ['Reinstall or repair the application', 'Defragment the disk', 'Replace the RAM', 'Change the DNS server'], 0, 'Reinstalling puts the app’s files back.'],
+      ['c2t', 'A phone’s battery drains fast after installing a new app. What to check?', ['Battery usage by app, then remove that app', 'The screen protector', 'The SIM card', 'The case'], 0, 'The battery settings show which app is using power.'],
+      ['c2t', 'Windows won’t start after an update. Which tool can help?', ['Startup Repair or System Restore in WinRE', 'Disk Cleanup', 'Paint', 'Device Manager'], 0, 'The recovery environment can repair startup or roll back changes.'],
+      ['c2t', 'A mobile app keeps crashing. First thing to try?', ['Force-close it, clear its cache, update it', 'Factory-reset the phone', 'Replace the battery', 'Turn off cellular'], 0, 'Start with the least drastic fix.'],
+      ['c2t', 'Files have been renamed with strange extensions and a ransom note appears. First action?', ['Disconnect it from the network', 'Pay the ransom', 'Restart repeatedly', 'Email the note to coworkers'], 0, 'Isolate it so it can’t spread, then follow the incident response plan.'],
+      ['c2t', 'A user gets "Access denied" opening a shared folder they could open yesterday. Likely cause?', ['Their permissions were changed', 'The monitor failed', 'The CPU is overheating', 'The mouse is unplugged'], 0, 'Check the share and NTFS permissions and group membership.'],
+      // ---------------- Core 2: operational procedures
+      ['c2p', 'What protects components from static when you work inside a PC?', ['An antistatic (ESD) wrist strap', 'Rubber gloves', 'A magnet', 'A surge protector'], 0, 'The strap keeps you at the same potential as the PC so no static discharges.'],
+      ['c2p', 'Where do you find how to safely handle and dispose of toner?', ['Its Safety Data Sheet (SDS)', 'The printer’s warranty', 'The Windows help', 'A user manual for the PC'], 0, 'The SDS covers handling, hazards and disposal.'],
+      ['c2p', 'The 3-2-1 backup rule is:', ['3 copies, on 2 kinds of media, 1 off-site', '3 backups a day, 2 a week, 1 a month', '3 drives in RAID, 2 spares, 1 cloud', '3 users, 2 passwords, 1 admin'], 0, 'It protects against hardware failure and site disasters.'],
+      ['c2p', 'An incremental backup copies:', ['Changes since the last backup of any kind', 'Changes since the last full backup', 'Everything, every time', 'Only system files'], 0, 'Incremental: since the last backup. Differential: since the last full.'],
+      ['c2p', 'A differential backup copies:', ['Changes since the last full backup', 'Changes since the last backup of any kind', 'Everything, every time', 'Only new files today'], 0, 'Differentials grow until the next full backup.'],
+      ['c2p', 'Before a major change to a company’s systems, change management needs:', ['An approved request with a rollback plan', 'Only the technician’s say-so', 'A new computer', 'The users’ passwords'], 0, 'The change advisory board approves; a backout plan is ready.'],
+      ['c2p', 'Tracking who handled evidence and when is called:', ['Chain of custody', 'Change management', 'Least privilege', 'An SLA'], 0, 'It proves evidence wasn’t tampered with.'],
+      ['c2p', 'What does a UPS do?', ['Keeps equipment running on battery during a power cut', 'Speeds up the network', 'Cools the server room', 'Backs up files'], 0, 'An uninterruptible power supply bridges outages and conditions power.'],
+      ['c2p', 'Which file extension is a PowerShell script?', ['.ps1', '.sh', '.bat', '.py'], 0, '.ps1 is PowerShell, .sh a shell script, .bat a Windows batch file, .py Python.'],
+      ['c2p', 'The right way to lift a heavy server?', ['Bend your knees and lift with your legs', 'Bend at the waist', 'Twist as you lift', 'Lift it alone, quickly'], 0, 'Lift with your legs, keep your back straight, get help for heavy loads.'],
+      ['c2p', 'A customer is frustrated. Good professional practice?', ['Listen, don’t interrupt, restate the problem', 'Argue the point', 'Take a personal call', 'Blame the user'], 0, 'Active listening and a calm manner.'],
+      ['c2p', 'What is PII?', ['Personally identifiable information', 'Private internet interface', 'Primary IP information', 'Printer ink indicator'], 0, 'Names, addresses, ID numbers and more: protect it.'],
+    ];
+    const pick = (arr, rand) => arr[Math.floor(rand() * arr.length)];
+    // a question, its answers shuffled: { d, q, a, c, why }
+    function shuffled(item, rand) {
+      const [d, q, ans, c, why] = item;
+      const order = [0, 1, 2, 3].sort(() => rand() - 0.5);
+      return { d, q, a: order.map((i) => ans[i]), c: order.indexOf(c), why };
+    }
+    // the study log: right/wrong per domain, and per question (so weak spots come up more)
+    const log = () => { prefs.study = prefs.study && typeof prefs.study === 'object' ? prefs.study : {}; const s = prefs.study; s.dom = s.dom || {}; s.q = s.q || {}; return s; };
+    function mark(item, ok) {
+      const s = log(), d = item.d, k = String(Q.findIndex((x) => x[1] === item.q));
+      s.dom[d] = s.dom[d] || [0, 0]; s.dom[d][ok ? 0 : 1] += 1;
+      s.q[k] = s.q[k] || [0, 0]; s.q[k][ok ? 0 : 1] += 1;
+      savePrefs();
+    }
+    // the next question: by exam weight, or (weak spots) toward the domains and questions you miss
+    function next(mode, rand, recent) {
+      const s = log();
+      let pool = Q.filter((x) => (mode === 'c1' ? x[0].startsWith('c1') : mode === 'c2' ? x[0].startsWith('c2') : true));
+      if (!pool.length) pool = Q.slice();
+      const fresh = pool.filter((x) => !recent.includes(x[1]));
+      if (fresh.length) pool = fresh;
+      // choose a domain first, weighted by the exam (or by how often you miss it)
+      const doms = [...new Set(pool.map((x) => x[0]))];
+      const wOf = (d) => { if (mode !== 'weak') return DOMAINS[d].w; const r = s.dom[d] || [0, 0]; return 4 + 40 * ((r[1] + 1) / (r[0] + r[1] + 2)); };
+      let tot = doms.reduce((a, d) => a + wOf(d), 0), r = rand() * tot, dom = doms[0];
+      for (const d of doms) { r -= wOf(d); if (r <= 0) { dom = d; break; } }
+      const inDom = pool.filter((x) => x[0] === dom);
+      if (mode !== 'weak') return shuffled(pick(inDom, rand), rand);
+      // weak spots: questions missed before come up more
+      const qw = (x) => { const e = s.q[String(Q.indexOf(x))] || [0, 0]; return 1 + 3 * e[1] - Math.min(0.8, e[0] * 0.2); };
+      tot = inDom.reduce((a, x) => a + qw(x), 0); r = rand() * tot;
+      for (const x of inDom) { r -= qw(x); if (r <= 0) return shuffled(x, rand); }
+      return shuffled(inDom[0], rand);
+    }
+    // ports and protocols (Core 1, 2.1)
+    const PORTS = [
+      [20, 'FTP (data)'], [21, 'FTP (control)'], [22, 'SSH'], [23, 'Telnet'], [25, 'SMTP'], [53, 'DNS'], [67, 'DHCP (server)'], [68, 'DHCP (client)'],
+      [80, 'HTTP'], [110, 'POP3'], [137, 'NetBIOS name'], [139, 'NetBIOS session'], [143, 'IMAP'], [161, 'SNMP'], [389, 'LDAP'], [443, 'HTTPS'], [445, 'SMB'], [3389, 'RDP'],
+    ];
+    // connectors and cables: [name, what it's for]
+    const CONNECTORS = [
+      ['RJ45', 'Ethernet (twisted pair)'], ['RJ11', 'Telephone / DSL line'], ['F-type', 'Coax: cable modem and TV'], ['BNC', 'Coax: older networks and video'],
+      ['LC', 'Fiber optic (small, latching)'], ['SC', 'Fiber optic (square, push-pull)'], ['ST', 'Fiber optic (round, twist-lock)'], ['USB-C', 'Reversible USB: data, power, video'],
+      ['Lightning', 'Older Apple iPhones and iPads'], ['HDMI', 'Digital video and audio to TVs and monitors'], ['DisplayPort', 'Digital video to monitors (PC)'], ['VGA', 'Analog video (old monitors)'],
+      ['DVI', 'Digital (and some analog) video'], ['SATA', 'Internal drives: data'], ['Molex', 'Old 4-pin drive power'], ['eSATA', 'External SATA drives'],
+      ['Punchdown block', 'Terminating wires on a patch panel'], ['Thunderbolt', 'High-speed data and video (USB-C shaped)'],
+    ];
+    // Wi-Fi standards: [standard, what it is]
+    const WIFI = [
+      ['802.11a', '5 GHz, up to 54 Mbps'], ['802.11b', '2.4 GHz, up to 11 Mbps'], ['802.11g', '2.4 GHz, up to 54 Mbps'],
+      ['802.11n', 'Wi-Fi 4: 2.4 and 5 GHz, MIMO'], ['802.11ac', 'Wi-Fi 5: 5 GHz, MU-MIMO'], ['802.11ax', 'Wi-Fi 6/6E: 2.4, 5 (and 6) GHz'],
+    ];
+    return { DOMAINS, Q, PORTS, CONNECTORS, WIFI, next, mark, log, shuffled };
+  })();
+  // ================================================================ STUDY HALL: the shared room, screens and answer cards
+  // A bright study hall: wood floor, tall windows, bookshelves, a wall clock that tells the real time.
+  // Answer cards are the one way you answer in every Study Hall game: in VR touch one (or point and pull the trigger),
+  // in the browser aim at it and click, or press its number.
+  const STUDY = (() => {
+    const env = () => ({
+      sky: skyTexture([[0, '#5a9ad8'], [0.48, '#bfe0f5'], [0.5, '#e8f2f8'], [0.52, '#7a9a5a'], [1, '#4a6a3a']]),
+      bg: 0xbfe0f5, fog: [0xbfe0f5, 60, 200], hemi: [0xfff8ee, 0x8a7a6a, 0.85],
+      sun: [0xfff2d8, 0.55], sunDir: new V3(0.5, 0.8, 0.4), ambient: [0xfff0e0, 0.5], sprite: null,
+    });
+    const floorTex = canvasTexture(256, 256, (g) => {
+      for (let i = 0; i < 8; i++) {
+        g.fillStyle = ['#b8875a', '#a87a50', '#c0905e', '#b0804f'][i % 4]; g.fillRect(0, i * 32, 256, 32);
+        g.fillStyle = 'rgba(40,20,0,0.25)'; g.fillRect(0, i * 32 + 31, 256, 1); g.fillRect((i * 97) % 256, i * 32, 2, 32);
+      }
+    }).tex;
+    floorTex.wrapS = floorTex.wrapT = THREE.RepeatWrapping; floorTex.repeat.set(4, 4);
+    const BOOK_COLS = [0xb03a2e, 0x2e6ab0, 0x2e8a4a, 0xd8a03a, 0x6a3ab0, 0x3a3a4a, 0xe8e0d0, 0x8a4a2a];
+    function shelf(G, rand, x, z, yaw, w) {
+      const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = yaw; G.add(g);
+      const wood = lam(0x6a4a30);
+      addBox(g, w, 2.2, 0.06, wood, 0, 1.1, -0.17);
+      for (const sx of [-1, 1]) addBox(g, 0.05, 2.2, 0.36, wood, sx * w / 2, 1.1, 0);
+      for (let r = 0; r < 5; r++) {
+        const y = 0.08 + r * 0.5;
+        addBox(g, w, 0.04, 0.36, wood, 0, y, 0);
+        if (r === 4) continue;
+        let bx = -w / 2 + 0.06;
+        while (bx < w / 2 - 0.1) {
+          const bw = 0.04 + rand() * 0.04, bh = 0.26 + rand() * 0.14;
+          if (rand() < 0.08) { bx += 0.12; continue; }
+          addBox(g, bw, bh, 0.24, lam(BOOK_COLS[Math.floor(rand() * BOOK_COLS.length)]), bx + bw / 2, y + 0.02 + bh / 2, 0.02);
+          bx += bw + 0.005;
+        }
+      }
+      return g;
+    }
+    // the room: o = { w, d, h, z (centre), shelves }
+    function room(G, rand, o) {
+      const W = o.w || 14, D = o.d || 12, H = o.h || 4.2, Z = o.z || 0;
+      const z0 = Z - D / 2, z1 = Z + D / 2;
+      const fl = new THREE.Mesh(new THREE.PlaneGeometry(W, D), new THREE.MeshLambertMaterial({ map: floorTex })); fl.rotation.x = -Math.PI / 2; fl.position.set(0, 0, Z); G.add(fl);
+      const ce = new THREE.Mesh(new THREE.PlaneGeometry(W, D), lam(0xf4f0e8)); ce.rotation.x = Math.PI / 2; ce.position.set(0, H, Z); G.add(ce);
+      const wall = lam(0xe8dfcc), trim = lam(0x7a5a3a);
+      addBox(G, W, H, 0.2, wall, 0, H / 2, z0 - 0.1); addBox(G, W, H, 0.2, wall, 0, H / 2, z1 + 0.1);
+      addBox(G, W, 1.0, 0.04, trim, 0, 0.5, z0 + 0.02); addBox(G, W, 1.0, 0.04, trim, 0, 0.5, z1 - 0.02);
+      const glass = new THREE.MeshBasicMaterial({ color: 0xcfe8ff }), frame = lam(0xf4f2ec);
+      for (const sx of [-1, 1]) {
+        const x = sx * (W / 2 + 0.1);
+        addBox(G, 0.2, H, D, wall, x, H / 2, Z);
+        addBox(G, 0.04, 1.0, D, trim, x - sx * 0.12, 0.5, Z);
+        // tall windows down each side, with a glimpse of sky and lawn
+        const nw = Math.max(2, Math.floor(D / 3.4));
+        for (let i = 0; i < nw; i++) {
+          const wz = z0 + (i + 0.5) * D / nw;
+          const pane = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 2.0), glass); pane.position.set(x - sx * 0.11, 2.2, wz); pane.rotation.y = -sx * Math.PI / 2; G.add(pane);
+          for (const dy of [-1.02, 0, 1.02]) addBox(G, 0.06, 0.07, 1.7, frame, x - sx * 0.12, 2.2 + dy, wz);
+          for (const dz of [-0.82, 0, 0.82]) addBox(G, 0.06, 2.1, 0.07, frame, x - sx * 0.12, 2.2, wz + dz);
+          addBox(G, 0.22, 0.05, 1.8, frame, x - sx * 0.15, 1.15, wz);
+        }
+      }
+      // ceiling lights
+      const lightM = new THREE.MeshBasicMaterial({ color: 0xfffaf0 });
+      for (let ix = -1; ix <= 1; ix++) for (let iz = 0; iz < Math.floor(D / 4); iz++) addBox(G, 1.4, 0.05, 0.5, lightM, ix * W / 3.2, H - 0.03, z0 + (iz + 0.5) * D / Math.floor(D / 4));
+      // bookshelves along the back of the room (behind you)
+      for (const sx of [-1, 1]) shelf(G, rand, sx * (W / 2 - 1.6), z1 - 0.25, Math.PI, 2.4);
+      if (o.shelves !== false) for (const sx of [-1, 1]) shelf(G, rand, sx * (W / 2 - 1.3), z0 + 0.25, 0, 1.8);
+      // a pennant over the front, and a clock with the real time
+      makePlate(G, '\u{1F4DA}  STUDY HALL', 3.6, 0.5, new V3(0, H - 0.45, z0 + 0.02), 0, { bg: '#1f5a9a', fg: '#ffffff', size: 0.62 });
+      const clock = new THREE.Group(); clock.position.set(o.clockX !== undefined ? o.clockX : W / 2 - 1.3, H - 1.0, z0 + 0.04); G.add(clock);
+      const face = new THREE.Mesh(new THREE.CircleGeometry(0.34, 32), lam(0xffffff)); clock.add(face);
+      const rim = new THREE.Mesh(new THREE.TorusGeometry(0.35, 0.03, 6, 32), lam(0x2a2a2a)); clock.add(rim);
+      for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2; addBox(clock, 0.02, i % 3 ? 0.04 : 0.07, 0.01, lam(0x2a2a2a), Math.sin(a) * 0.29, Math.cos(a) * 0.29, 0.01).rotation.z = -a; }
+      const hand = (len, wd, col) => { const p = new THREE.Group(); const m = addBox(p, wd, len, 0.01, lam(col), 0, len / 2 - 0.03, 0.02); void m; clock.add(p); return p; };
+      const hh = hand(0.18, 0.03, 0x1a1a1a), mh = hand(0.26, 0.02, 0x1a1a1a), sh = hand(0.28, 0.008, 0xd03a2a);
+      // a plant in a corner
+      for (const sx of [-1, 1]) {
+        const px = sx * (W / 2 - 0.5), pz = Z + D * 0.05;
+        addCyl(G, 0.22, 0.17, 0.4, 12, lam(0xc06a3a), px, 0.2, pz);
+        for (let k = 0; k < 7; k++) { const a = k / 7 * Math.PI * 2; const lf = new THREE.Mesh(new THREE.SphereGeometry(0.16, 6, 5), lam(0x3a8a3a)); lf.scale.set(0.6, 1.6, 0.6); lf.position.set(px + Math.cos(a) * 0.12, 0.65 + (k % 2) * 0.1, pz + Math.sin(a) * 0.12); lf.rotation.set(Math.sin(a) * 0.5, 0, Math.cos(a) * 0.5); G.add(lf); }
+      }
+      return {
+        tick() {
+          const d = new Date(), s = d.getSeconds() + d.getMilliseconds() / 1000, m = d.getMinutes() + s / 60, h = (d.getHours() % 12) + m / 60;
+          sh.rotation.z = -s / 60 * Math.PI * 2; mh.rotation.z = -m / 60 * Math.PI * 2; hh.rotation.z = -h / 12 * Math.PI * 2;
+        },
+      };
+    }
+    // a canvas screen on a stand or wall
+    function screen(G, cw, ch, w, h, x, y, z, yaw, frameCol) {
+      const ct = canvasTexture(cw, ch);
+      const fr = new THREE.Mesh(new THREE.BoxGeometry(w + 0.12, h + 0.12, 0.06), lam(frameCol || 0x2a2a35)); fr.position.set(x, y, z); fr.rotation.y = yaw || 0; G.add(fr);
+      const face = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: ct.tex }));
+      face.position.set(x + Math.sin(yaw || 0) * 0.035, y, z + Math.cos(yaw || 0) * 0.035); face.rotation.y = yaw || 0; G.add(face);
+      return { g: ct.g, tex: ct.tex, cw, ch, face, key: '' };
+    }
+    // word wrap: draws text in lines no wider than maxW; returns the number of lines (draw=false just measures)
+    function wrap(g, text, x, y, maxW, lh, maxLines, draw) {
+      const words = String(text).split(' '); const lines = []; let cur = '';
+      for (const w of words) { const t = cur ? `${cur} ${w}` : w; if (g.measureText(t).width > maxW && cur) { lines.push(cur); cur = w; } else cur = t; }
+      if (cur) lines.push(cur);
+      const n = maxLines ? Math.min(lines.length, maxLines) : lines.length;
+      if (draw !== false) for (let i = 0; i < n; i++) g.fillText(i === n - 1 && n < lines.length ? `${lines[i]}…` : lines[i], x, y + i * lh, maxW);
+      return lines.length;
+    }
+    // the biggest font (from big down to small) that fits text in maxLines lines
+    function fit(g, text, maxW, maxLines, big, small, weight, family) {
+      for (let s = big; s >= small; s -= 2) { g.font = `${weight || 700} ${s}px ${family || BODY}`; if (wrap(g, text, 0, 0, maxW, s, 0, false) <= maxLines) return s; }
+      return small;
+    }
+    // ---------------------------------------------------------------- answer cards
+    // o: { n, w, h, colors, numbered } -> { cards, set(i, text, look), pickRay(from, dir), touched(pos) }
+    const LOOKS = { idle: ['#ffffff', '#1a2a4a', '#3a6ad8'], right: ['#8bd450', '#12301a', '#2a8a2a'], wrong: ['#ff6a6a', '#3a1010', '#b02a2a'], dim: ['#c8ccd8', '#6a7088', '#9aa0b8'], mode: ['#ffd23f', '#2a2010', '#d89a1a'] };
+    function cards(G, o) {
+      const n = o.n || 4, W = o.w || 0.62, Hh = o.h || 0.36, CW = 512, CH = Math.round(512 * Hh / W);
+      const list = [];
+      for (let i = 0; i < n; i++) {
+        const grp = new THREE.Group(); G.add(grp);
+        const backM = new THREE.MeshLambertMaterial({ color: 0x3a6ad8, emissive: 0x000000 });
+        const back = new THREE.Mesh(new THREE.BoxGeometry(W + 0.05, Hh + 0.05, 0.03), backM); back.position.z = -0.018; grp.add(back);
+        const ct = canvasTexture(CW, CH);
+        const face = new THREE.Mesh(new THREE.PlaneGeometry(W, Hh), new THREE.MeshBasicMaterial({ map: ct.tex, transparent: true })); grp.add(face);
+        list.push({ i, grp, back, backM, face, ct, text: '', look: 'idle', key: '', hl: false, num: o.numbered === false ? '' : String(i + 1), visible: true });
+      }
+      function draw(c) {
+        const key = `${c.text}|${c.look}|${c.num}|${c.sub || ''}`;
+        if (key === c.key) return; c.key = key;
+        const g = c.ct.g, L2 = LOOKS[c.look] || LOOKS.idle;
+        g.clearRect(0, 0, CW, CH);
+        g.fillStyle = L2[0]; rr(g, 4, 4, CW - 8, CH - 8, 26); g.fill();
+        g.lineWidth = 8; g.strokeStyle = L2[2]; rr(g, 4, 4, CW - 8, CH - 8, 26); g.stroke();
+        const pad = c.num ? 92 : 30;
+        if (c.num) {
+          g.fillStyle = L2[2]; g.beginPath(); g.arc(52, CH / 2, 32, 0, Math.PI * 2); g.fill();
+          g.fillStyle = '#ffffff'; g.font = `900 40px ${DISPLAY}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(c.num, 52, CH / 2 + 2);
+        }
+        g.fillStyle = L2[1]; g.textAlign = 'center'; g.textBaseline = 'middle';
+        const mw = CW - pad - 30, lines = c.sub ? 2 : 3;
+        const s = fit(g, c.text, mw, lines, c.big || 58, 22, 700, c.mono ? 'ui-monospace, Menlo, Consolas, monospace' : BODY);
+        const nl = Math.min(lines, wrap(g, c.text, 0, 0, mw, s * 1.12, lines, false));
+        const y0 = CH / 2 - (nl - 1) * s * 0.56 - (c.sub ? 18 : 0);
+        wrap(g, c.text, pad + mw / 2, y0, mw, s * 1.12, lines);
+        if (c.sub) { g.font = `400 30px ${BODY}`; g.fillStyle = L2[1]; g.fillText(c.sub, pad + mw / 2, CH - 34, mw); }
+        c.ct.tex.needsUpdate = true;
+        c.backM.color.set(L2[2]);
+      }
+      const api = {
+        cards: list, W, H: Hh,
+        set(i, text, look, extra) { const c = list[i]; c.text = text; c.look = look || 'idle'; c.sub = extra && extra.sub; c.mono = extra && extra.mono; c.big = extra && extra.big; draw(c); },
+        look(i, look) { const c = list[i]; c.look = look; draw(c); },
+        show(i, on) { list[i].grp.visible = on; list[i].visible = on; },
+        place(i, x, y, z, yaw, tilt) { const g = list[i].grp; g.position.set(x, y, z); g.rotation.set(tilt || 0, yaw || 0, 0, 'YXZ'); },
+        // which card a ray hits (from, dir in world space)
+        pickRay(from, dir) {
+          let best = -1, bt = Infinity;
+          for (const c of list) {
+            if (!c.visible) continue;
+            c.grp.updateMatrixWorld();
+            const lf = c.grp.worldToLocal(_a.copy(from)), lt = c.grp.worldToLocal(_b.copy(from).add(dir));
+            const dz = lt.z - lf.z; if (Math.abs(dz) < 1e-6) continue;
+            const t = -lf.z / dz; if (t <= 0 || t > 30) continue;
+            const x = lf.x + (lt.x - lf.x) * t, y = lf.y + (lt.y - lf.y) * t;
+            if (Math.abs(x) < W / 2 + 0.03 && Math.abs(y) < Hh / 2 + 0.03 && t < bt) { bt = t; best = c.i; }
+          }
+          return best;
+        },
+        // which card a hand is touching
+        touched(pos) {
+          for (const c of list) {
+            if (!c.visible) continue;
+            c.grp.updateMatrixWorld();
+            const lp = c.grp.worldToLocal(_a.copy(pos));
+            if (Math.abs(lp.x) < W / 2 + 0.02 && Math.abs(lp.y) < Hh / 2 + 0.02 && lp.z < 0.06 && lp.z > -0.12) return c.i;
+          }
+          return -1;
+        },
+        highlight(i) { for (const c of list) { const on = c.i === i; if (on !== c.hl) { c.hl = on; c.backM.emissive.setHex(on ? 0x3a3a10 : 0x000000); c.grp.scale.setScalar(on ? 1.05 : 1); } } },
+      };
+      return api;
+    }
+    const _a = new V3(), _b = new V3(), _q = new Q4(), _o = new V3(), _d = new V3();
+    // ---------------------------------------------------------------- answering
+    // wires a set of cards to the controls. o: { onPick(i, how), touch: bool, ray: bool, keys: bool, enabled() }
+    // returns { tick(dt), laser } (call tick every frame while you're in the game)
+    function input(L, deck, o) {
+      const on = () => (o.enabled ? o.enabled() : true);
+      const laserM = new THREE.LineBasicMaterial({ color: 0x9af0ff, transparent: true, opacity: 0.9 });
+      const beams = {};
+      for (const s of SIDES) {
+        const geo = new THREE.BufferGeometry().setFromPoints([new V3(), new V3(0, 0, -1)]);
+        const ln = new THREE.Line(geo, laserM.clone()); ln.visible = false; ln.frustumCulled = false; L.overlay.add(ln);
+        beams[s] = { ln, flash: 0 };
+      }
+      const wasIn = { left: -1, right: -1 };
+      const prev = { left: new V3(), right: new V3() };
+      function aimFlat() { camera.getWorldPosition(_o); camera.getWorldQuaternion(_q); _d.set(0, 0, -1).applyQuaternion(_q); return deck.pickRay(_o, _d); }
+      function aimHand(s) { const mh = myHands[s]; _d.set(0, 0, -1).applyQuaternion(mh.quat); return deck.pickRay(mh.pos, _d); }
+      L.deskFire = () => {
+        if (!on()) return;
+        const i = aimFlat();
+        if (i >= 0) o.onPick(i, 'aim'); else if (o.onMiss) o.onMiss();
+      };
+      if (o.ray !== false) {
+        L.onVRTrigger = (h) => {
+          if (!on()) return;
+          const i = aimHand(h.side);
+          beams[h.side].flash = 0.18;
+          if (i >= 0) { o.onPick(i, 'ray'); haptic(vrHands[h.side], 0.5, 25); } else if (o.onMiss) o.onMiss();
+        };
+      }
+      if (o.keys !== false) {
+        L.onKey = (code) => {
+          const m = /^(?:Digit|Numpad)([1-9])$/.exec(code);
+          if (!m || !on()) return false;
+          const i = Number(m[1]) - 1;
+          if (i < deck.cards.length && deck.cards[i].visible) { o.onPick(i, 'key'); return true; }
+          return false;
+        };
+      }
+      return {
+        beams,
+        tick(dt) {
+          const vr = state.mode === 'vr';
+          let hl = -1;
+          if (!vr && state.mode === 'flat' && on()) hl = aimFlat();
+          for (const s of SIDES) {
+            const b = beams[s], mh = myHands[s];
+            // the pointer: a faint line from each hand, bright for a moment when you pull the trigger
+            b.flash = Math.max(0, b.flash - dt);
+            const show = vr && mh.ok && on() && o.ray !== false;
+            b.ln.visible = show;
+            if (show) {
+              const hit = aimHand(s);
+              if (hit >= 0 && hl < 0) hl = hit;
+              const pts = b.ln.geometry.attributes.position;
+              _d.set(0, 0, -1).applyQuaternion(mh.quat);
+              pts.setXYZ(0, mh.pos.x, mh.pos.y, mh.pos.z); pts.setXYZ(1, mh.pos.x + _d.x * 4, mh.pos.y + _d.y * 4, mh.pos.z + _d.z * 4); pts.needsUpdate = true;
+              b.ln.material.opacity = b.flash > 0 ? 1 : hit >= 0 ? 0.55 : 0.18;
+              b.ln.material.color.setHex(b.flash > 0 ? 0xffffff : 0x9af0ff);
+            }
+            // touch: a hand pushing into a card picks it (once, until the hand comes back out)
+            if (vr && mh.ok && o.touch !== false && on()) {
+              const i = deck.touched(mh.pos);
+              const speed = prev[s].distanceTo(mh.pos) / Math.max(dt, 1e-3);
+              if (i >= 0 && i !== wasIn[s] && (!o.minSpeed || speed > o.minSpeed)) { o.onPick(i, 'touch', s); haptic(vrHands[s], 0.6, 30); }
+              wasIn[s] = i;
+            } else wasIn[s] = -1;
+            prev[s].copy(mh.pos);
+          }
+          deck.highlight(on() ? hl : -1);
+        },
+        hide() { for (const s of SIDES) beams[s].ln.visible = false; deck.highlight(-1); },
+      };
+    }
+    // where you stand: everyone gets a spot along a line (up to 4), so friends don't stand inside each other
+    function slotOf(L) {
+      const ids = [state.myPeer];
+      for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer);
+      ids.sort();
+      return Math.max(0, ids.indexOf(state.myPeer)) % 4;
+    }
+    const SLOT_X = [0, -1.3, 1.3, -2.6];
+    function standAt(x, z, yaw, pitch) {
+      const c = new V3(); camera.getWorldPosition(c);
+      dolly.position.x += x - c.x; dolly.position.z += z - c.z;
+      if (state.mode !== 'vr') { state.yaw = yaw || 0; state.pitch = pitch === undefined ? -0.08 : pitch; }
+    }
+    // a little "ding" or "bonk"
+    const right = () => { tone(880, 0, 0.12, 'sine', 0.18); tone(1320, 0, 0.18, 'sine', 0.16, 0.08); };
+    const wrong = () => { tone(220, 160, 0.22, 'square', 0.08); };
+    return { env, room, shelf, screen, wrap, fit, cards, input, slotOf, SLOT_X, standAt, right, wrong };
+  })();
+  // ================================================================ LEVEL: QUIZ BLASTER (study hall)
+  // CompTIA A+ practice with a blaster: a question goes up on the big screen, four answer cards float in front of you,
+  // and you shoot the right one. Twelve questions a round, points for being quick and for streaks.
+  // Pick Core 1, Core 2, the full exam mix (weighted like the real exam's domains) or Weak spots, which serves up more of
+  // what you've been missing. Every answer goes in your report card on the wall, domain by domain.
+  // VR: point and pull the trigger. Browser: aim and click, or press 1-4.
+  const quizblaster = (() => {
+    const L = newLevel(48);
+    const G = L.group;
+    const rand = mulberry32(4848);
+    L.grabless = true;
+    L.bounds = { minX: -5.6, maxX: 5.6, minZ: -3.5, maxZ: 3.6 };
+    L.env = STUDY.env();
+    const hall = STUDY.room(G, rand, { w: 12, d: 10, z: -1, h: 4.8 });
+    const SPOT_Z = 2.2, ROUNDN = 12, QTIME = 25;
+    const scr = STUDY.screen(G, 1024, 512, 4.6, 2.3, 0, 2.95, -5.85, 0, 0x1a2a4a);
+    const deck = STUDY.cards(G, { n: 4, w: 1.2, h: 0.6 });
+    const BASE = [[-0.74, 1.28], [0.74, 1.28], [-0.74, 0.6], [0.74, 0.6]];
+    const MODES = [
+      { id: 'c1', name: 'Core 1 (220-1201)', sub: 'Hardware, networking, mobile, cloud' },
+      { id: 'c2', name: 'Core 2 (220-1202)', sub: 'Windows, security, software, procedures' },
+      { id: 'mix', name: 'Full exam mix', sub: 'Weighted like the real exams' },
+      { id: 'weak', name: 'Weak spots', sub: 'More of what you’ve been missing' },
+    ];
+
+    // ---------------------------------------------------------------- the round
+    const S = { ph: 'menu', mode: 'mix', n: 0, score: 0, right: 0, streak: 0, bestStreak: 0, q: null, t0: 0, pick: -1, revealT: 0, recent: [], dom: {}, best: 0, last: null };
+    try { if (Number.isInteger(prefs.qbBest)) S.best = prefs.qbBest; } catch (e) { /* none */ }
+    L.qb = S;
+    const timeLeft = () => Math.max(0, QTIME - (performance.now() - S.t0) / 1000);
+    function showMenu() {
+      S.ph = 'menu';
+      MODES.forEach((m, i) => { deck.set(i, m.name, 'mode', { sub: m.sub, big: 50 }); deck.show(i, true); });
+    }
+    function startRound(mode) {
+      Object.assign(S, { ph: 'ask', mode, n: 0, score: 0, right: 0, streak: 0, bestStreak: 0, dom: {}, last: null });
+      sfx('whistle', 0.6);
+      nextQuestion();
+    }
+    L.startRound = startRound;
+    function nextQuestion() {
+      if (S.n >= ROUNDN) { endRound(); return; }
+      S.q = APLUS.next(S.mode, rand, S.recent);
+      S.recent.push(S.q.q); if (S.recent.length > 40) S.recent.shift();
+      S.n += 1; S.pick = -1; S.ph = 'ask'; S.t0 = performance.now();
+      S.q.a.forEach((t, i) => { deck.set(i, t, 'idle'); deck.show(i, true); });
+      forcePresence(); state.dirtyBoard = true;
+    }
+    function answer(i) {
+      if (S.ph !== 'ask') return;
+      const ok = i === S.q.c, tl = timeLeft();
+      S.pick = i; S.ph = 'reveal'; S.revealT = 0;
+      const d = S.q.d; S.dom[d] = S.dom[d] || [0, 0]; S.dom[d][ok ? 0 : 1] += 1;
+      APLUS.mark(S.q, ok);
+      if (ok) {
+        const pts = 100 + Math.round(50 * tl / QTIME) + 10 * Math.min(10, S.streak);
+        S.score += pts; S.right += 1; S.streak += 1; S.bestStreak = Math.max(S.bestStreak, S.streak);
+        S.last = { ok: true, pts };
+        STUDY.right(); spawnFloat(`+${pts}`, deck.cards[i].grp.position.clone().add(new V3(0, 0.4, 0.2)), '#8bd450');
+      } else {
+        S.streak = 0; S.last = { ok: false, pts: 0, timeout: i < 0 };
+        STUDY.wrong();
+      }
+      for (let k = 0; k < 4; k++) deck.look(k, k === S.q.c ? 'right' : k === i ? 'wrong' : 'dim');
+      reportKey = '';
+      forcePresence(); state.dirtyBoard = true;
+    }
+    L.answer = answer;
+    function endRound() {
+      S.ph = 'menu';
+      const isBest = S.score > S.best;
+      if (isBest) { S.best = S.score; prefs.qbBest = S.best; savePrefs(); }
+      RECORDS.add(L, 'score', S.score);
+      if (S.bestStreak >= 3) RECORDS.add(L, 'streak', S.bestStreak);
+      sfx(S.right >= 10 ? 'fanfare' : 'chime', 0.8);
+      showToast(`${S.right} of ${ROUNDN} right, ${S.score} points${isBest ? ' (your best!)' : ''}`);
+      S.summary = { right: S.right, score: S.score, dom: S.dom, best: isBest, streak: S.bestStreak };
+      showMenu();
+      forcePresence(); state.dirtyBoard = true;
+    }
+    L.endRound = endRound;
+    function onPick(i) {
+      if (S.ph === 'menu') { fireAt(i); startRound(MODES[i].id); return; }
+      if (S.ph === 'ask') { fireAt(i); answer(i); return; }
+      if (S.ph === 'reveal' && S.revealT > 0.7) nextQuestion();
+    }
+
+    // ---------------------------------------------------------------- the blaster (and its bolts)
+    const blaster = new THREE.Group();
+    { const body = lam(0x3a4a6a), trim = lam(0xffd23f);
+      addBox(blaster, 0.06, 0.08, 0.2, body, 0, 0, -0.02);
+      addBox(blaster, 0.04, 0.12, 0.05, body, 0, -0.08, 0.05).rotation.x = 0.3;
+      const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.022, 0.16, 10), trim); barrel.rotation.x = Math.PI / 2; barrel.position.set(0, 0.015, -0.18); blaster.add(barrel);
+      const tip = new THREE.Mesh(new THREE.SphereGeometry(0.02, 8, 6), new THREE.MeshBasicMaterial({ color: 0x9af0ff })); tip.position.set(0, 0.015, -0.27); blaster.add(tip); }
+    L.overlay.add(blaster);
+    const bolt = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.4, 6), new THREE.MeshBasicMaterial({ color: 0x9af0ff })); bolt.visible = false; L.overlay.add(bolt);
+    const boom = new THREE.Sprite(new THREE.SpriteMaterial({ map: warmGlowTex, color: 0x9af0ff, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true })); boom.visible = false; L.overlay.add(boom);
+    const B = { t: -1, from: new V3(), to: new V3(), hand: 'right' };
+    const _m = new V3(), _q = new Q4(), _up = new V3(0, 1, 0);
+    function muzzle(out) {
+      if (state.mode === 'vr') { const mh = myHands[B.hand]; return out.set(0, 0.015, -0.28).applyQuaternion(mh.quat).add(mh.pos); }
+      return out.set(0, 0.015, -0.28).applyQuaternion(blaster.quaternion).multiplyScalar(blaster.scale.x).add(blaster.position);
+    }
+    function fireAt(i) {
+      muzzle(B.from); B.to.copy(deck.cards[i].grp.position); B.t = 0;
+      tone(1200, 300, 0.12, 'sawtooth', 0.06);
+    }
+    const input = STUDY.input(L, deck, { onPick: (i) => onPick(i), onMiss: () => { if (S.ph === 'reveal' && S.revealT > 0.7) nextQuestion(); }, touch: false, enabled: () => state.level === L.idx });
+    const trig = L.onVRTrigger;
+    L.onVRTrigger = (h) => { B.hand = h.side; trig(h); };
+    L.deskFire = ((f) => () => { if (S.ph === 'reveal' && S.revealT > 0.7) { nextQuestion(); return; } f(); })(L.deskFire);
+    L.throwLabel = () => (S.ph === 'menu' ? 'Pick' : S.ph === 'reveal' ? 'Next' : 'Shoot');
+
+    // ---------------------------------------------------------------- the big screen
+    const DN = APLUS.DOMAINS;
+    function drawScreen() {
+      const t = S.ph === 'ask' ? Math.ceil(timeLeft()) : 0;
+      const key = `${S.ph}|${S.n}|${t}|${S.pick}|${S.score}|${S.summary ? S.summary.score : ''}`;
+      if (key === scr.key) return; scr.key = key;
+      const g = scr.g, W = 1024, H = 512;
+      g.fillStyle = '#10203a'; g.fillRect(0, 0, W, H);
+      g.textBaseline = 'alphabetic';
+      if (S.ph === 'menu') {
+        g.textAlign = 'center'; g.fillStyle = '#ffd23f'; g.font = `900 92px ${DISPLAY}`; g.fillText('QUIZ BLASTER', W / 2, 108);
+        g.fillStyle = '#c8d8f0'; g.font = `400 30px ${BODY}`; g.fillText('CompTIA A+ practice: shoot the right answer', W / 2, 156);
+        if (S.summary) {
+          const s = S.summary;
+          g.fillStyle = '#ffffff'; g.font = `800 64px ${DISPLAY}`; g.fillText(`${s.right} / ${ROUNDN} right  ·  ${s.score} points`, W / 2, 252);
+          g.fillStyle = s.best ? '#8bd450' : '#9ab0d0'; g.font = `700 30px ${BODY}`; g.fillText(s.best ? 'Your best round yet!' : `Your best: ${S.best}`, W / 2, 298);
+          // the domain this round went worst in
+          let worst = null, wr = 2;
+          for (const d in s.dom) { const r = s.dom[d], f = r[0] / (r[0] + r[1]); if (r[1] && f < wr) { wr = f; worst = d; } }
+          g.fillStyle = '#ffffff'; g.font = `400 30px ${BODY}`;
+          g.fillText(worst ? `Brush up on: ${DN[worst].exam} · ${DN[worst].name}` : 'A clean sweep. Nice work!', W / 2, 360, W - 80);
+          g.fillStyle = '#9ab0d0'; g.font = `400 26px ${BODY}`; g.fillText('Shoot a card to go again', W / 2, 440);
+        } else {
+          g.fillStyle = '#ffffff'; g.font = `400 32px ${BODY}`;
+          STUDY.wrap(g, 'Twelve questions a round. Quick answers and streaks score more. Your report card on the right wall keeps track of every domain.', W / 2, 240, W - 140, 44);
+          g.fillStyle = '#ffd23f'; g.font = `700 34px ${BODY}`; g.fillText('Shoot a card below to pick a mode', W / 2, 420);
+        }
+        scr.tex.needsUpdate = true; return;
+      }
+      const q = S.q;
+      // header: question number, domain, score, timer
+      g.textAlign = 'left'; g.fillStyle = '#9ab0d0'; g.font = `700 28px ${BODY}`;
+      g.fillText(`Question ${S.n} of ${ROUNDN}  ·  ${DN[q.d].exam}: ${DN[q.d].name}`, 40, 52, 760);
+      g.textAlign = 'right'; g.fillStyle = '#ffd23f'; g.font = `900 46px ${DISPLAY}`; g.fillText(`${S.score}`, W - 40, 56);
+      if (S.ph === 'ask') {
+        const f = timeLeft() / QTIME;
+        g.fillStyle = '#24365a'; g.fillRect(40, 72, W - 80, 10);
+        g.fillStyle = f > 0.3 ? '#4fc3f7' : '#ff6a6a'; g.fillRect(40, 72, (W - 80) * f, 10);
+      }
+      g.textAlign = 'center'; g.fillStyle = '#ffffff';
+      const big = S.ph === 'ask';
+      const s = STUDY.fit(g, q.q, W - 100, big ? 4 : 2, big ? 58 : 40, 26, 700);
+      const nl = Math.min(big ? 4 : 2, STUDY.wrap(g, q.q, 0, 0, W - 100, s * 1.15, 0, false));
+      STUDY.wrap(g, q.q, W / 2, big ? 260 - (nl - 1) * s * 0.58 : 140, W - 100, s * 1.15, big ? 4 : 2);
+      if (S.ph === 'reveal') {
+        const ok = S.last && S.last.ok;
+        g.fillStyle = ok ? '#8bd450' : '#ff6a6a'; g.font = `900 64px ${DISPLAY}`;
+        g.fillText(ok ? `Correct! +${S.last.pts}` : S.last && S.last.timeout ? 'Out of time' : 'Not quite', W / 2, 272);
+        if (!ok) { g.fillStyle = '#ffffff'; g.font = `700 32px ${BODY}`; g.fillText(`Answer: ${q.a[q.c]}`, W / 2, 322, W - 80); }
+        g.fillStyle = '#c8d8f0'; g.font = `400 32px ${BODY}`;
+        STUDY.wrap(g, q.why, W / 2, ok ? 336 : 378, W - 120, 40, 3);
+        g.fillStyle = '#6a80a8'; g.font = `400 22px ${BODY}`; g.fillText('Shoot any card for the next question', W / 2, H - 22);
+      }
+      scr.tex.needsUpdate = true;
+    }
+
+    // ---------------------------------------------------------------- the report card on the wall
+    const rep = STUDY.screen(G, 640, 760, 2.0, 2.375, 5.88, 2.1, -1.4, -Math.PI / 2, 0x6a4a30);
+    let reportKey = '';
+    function drawReport() {
+      const log = APLUS.log(), key = JSON.stringify(log.dom);
+      if (key === reportKey) return; reportKey = key;
+      const g = rep.g, W = 640;
+      g.fillStyle = '#fbf6ea'; g.fillRect(0, 0, W, 760);
+      g.textAlign = 'center'; g.fillStyle = '#1f5a9a'; g.font = `900 58px ${DISPLAY}`; g.fillText('REPORT CARD', W / 2, 70);
+      g.fillStyle = '#6a6050'; g.font = `400 22px ${BODY}`; g.fillText('Every A+ answer you’ve given, by exam domain', W / 2, 104);
+      let y = 150, exam = '';
+      for (const d in DN) {
+        const D = DN[d], r = log.dom[d] || [0, 0], n = r[0] + r[1], f = n ? r[0] / n : 0;
+        if (D.exam !== exam) { exam = D.exam; g.textAlign = 'left'; g.fillStyle = '#1f5a9a'; g.font = `800 30px ${DISPLAY}`; g.fillText(`${exam} (${exam === 'Core 1' ? '220-1201' : '220-1202'})`, 30, y + 6); y += 44; }
+        g.textAlign = 'left'; g.fillStyle = '#2a2a2a'; g.font = `700 22px ${BODY}`; g.fillText(`${D.name} (${D.w}%)`, 30, y, 400);
+        g.fillStyle = '#e4dccc'; g.fillRect(30, y + 10, 460, 16);
+        g.fillStyle = !n ? '#e4dccc' : f >= 0.8 ? '#3a9a4a' : f >= 0.6 ? '#d8a03a' : '#c84a3a'; g.fillRect(30, y + 10, 460 * f, 16);
+        g.textAlign = 'right'; g.fillStyle = '#2a2a2a'; g.font = `800 26px ${DISPLAY}`; g.fillText(n ? `${Math.round(f * 100)}%` : '–', W - 30, y + 24);
+        g.fillStyle = '#8a8070'; g.font = `400 18px ${BODY}`; g.fillText(n ? `${r[0]}/${n}` : '', W - 30, y - 2);
+        y += 62;
+      }
+      g.textAlign = 'center'; g.fillStyle = '#6a6050'; g.font = `400 20px ${BODY}`; g.fillText('Green 80%+ · amber 60%+ · red: practise with Weak spots', W / 2, 744);
+      rep.tex.needsUpdate = true;
+    }
+    L.drawReport = () => { reportKey = ''; drawReport(); };
+
+    // ---------------------------------------------------------------- per frame
+    function stand() { S.slot = STUDY.slotOf(L); STUDY.standAt(STUDY.SLOT_X[S.slot], SPOT_Z, 0); }
+    L.update = (dt, now) => {
+      const here = state.level === L.idx && state.mode !== 'menu';
+      hall.tick();
+      if (!here) { blaster.visible = false; bolt.visible = false; input.hide(); return; }
+      if (STUDY.slotOf(L) !== S.slot) stand();
+      if (S.ph === 'ask' && timeLeft() <= 0) answer(-1);
+      if (S.ph === 'reveal') { S.revealT += dt; if (S.revealT > (S.last && S.last.ok ? 3.5 : 7)) nextQuestion(); }
+      // the cards drift about a little, like targets
+      const ts = reduceMotion ? 0 : now / 1000;
+      deck.cards.forEach((c, i) => {
+        const [bx, by] = BASE[i];
+        const chosen = S.ph === 'reveal' && i === S.pick, shake = chosen && S.revealT < 0.3 ? Math.sin(S.revealT * 90) * 0.03 : 0;
+        const dx = S.ph === 'ask' ? Math.sin(ts * 0.7 + i * 1.7) * 0.1 : 0, dy = S.ph === 'ask' ? Math.sin(ts * 0.9 + i * 2.3) * 0.06 : 0;
+        deck.place(i, bx + dx + shake, by + dy, -0.9, 0, 0);
+      });
+      input.tick(dt);
+      // the blaster: in your hand (VR) or held low on the right (browser)
+      blaster.visible = true;
+      if (state.mode === 'vr') { const mh = myHands[B.hand]; blaster.position.copy(mh.pos); blaster.quaternion.copy(mh.quat); blaster.scale.setScalar(1); blaster.visible = mh.ok; }
+      else { camera.getWorldPosition(_m); camera.getWorldQuaternion(_q); blaster.position.copy(new V3(0.2, -0.22, -0.45).applyQuaternion(_q).add(_m)); blaster.quaternion.copy(_q); blaster.scale.setScalar(0.8); }
+      if (B.t >= 0) {
+        B.t += dt / 0.12;
+        if (B.t >= 1) { B.t = -1; bolt.visible = false; boom.visible = true; boom.position.copy(B.to); boom.userData.t = 0; }
+        else { bolt.visible = true; bolt.position.lerpVectors(B.from, B.to, B.t); bolt.quaternion.setFromUnitVectors(_up, _m.subVectors(B.to, B.from).normalize()); }
+      }
+      if (boom.visible) { boom.userData.t += dt; const k = boom.userData.t / 0.3; boom.scale.setScalar(0.3 + k * 0.9); boom.material.opacity = 1 - k; if (k >= 1) boom.visible = false; }
+      drawScreen(); drawReport();
+      if (ui.status && state.mode === 'flat') {
+        ui.status.hidden = false;
+        const txt = S.ph === 'menu' ? 'Quiz Blaster  ·  aim at a mode and click (or press 1-4)' : S.ph === 'ask' ? `Question ${S.n}/${ROUNDN}  ·  ${Math.ceil(timeLeft())} s  ·  click an answer or press 1-4` : 'Click or press 1-4 for the next question';
+        if (ui.status.textContent !== txt) ui.status.textContent = txt;
+      }
+    };
+    L.presence = () => ({ qb: [S.score, S.best, S.ph === 'menu' ? 0 : 1, S.n] });
+    L.readPresence = (rec, pres, st) => {
+      const a = pres.qb;
+      if (!Array.isArray(a) || a.length !== 4 || !a.every((x) => Number.isInteger(x) && x >= 0 && x < 1e6)) { st.qb = null; return; }
+      if (!st.qb || st.qb[0] !== a[0] || st.qb[1] !== a[1]) state.dirtyBoard = true;
+      st.qb = a;
+    };
+    L.rowFor = (st, isMe) => {
+      const a = isMe ? [S.score, S.best, S.ph === 'menu' ? 0 : 1, S.n] : st.qb;
+      if (!a) return { best: 0, text: '' };
+      return { best: a[1], text: `${a[2] ? `${a[0]} now (Q${a[3]}) · ` : ''}best ${a[1]}` };
+    };
+    L.sortRows = (a, b) => (b.best || 0) - (a.best || 0);
+    L.board = makeBoard(G, 720, 460, 2.2, 1.4, -5.85, 2.0, -1.2, Math.PI / 2, false);
+    L.drawBoard = (rows) => {
+      const g = L.board.g, W = 720;
+      g.fillStyle = '#10203a'; g.fillRect(0, 0, W, 460); g.strokeStyle = '#ffd23f'; g.lineWidth = 8; g.strokeRect(4, 4, W - 8, 452);
+      g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+      g.fillStyle = '#ffd23f'; g.font = `800 56px ${DISPLAY}`; g.fillText('Top of the class', 36, 80);
+      g.fillStyle = '#c8d8f0'; g.font = `400 24px ${BODY}`; g.fillText('Best round of twelve questions', 36, 118);
+      drawRows(g, rows, 176, 46, W);
+      L.board.tex.needsUpdate = true;
+    };
+    makeKiosk(L, -4.2, 3.0, Math.PI * 0.75);
+    RECORDS.def(L, [{ k: 'score', label: 'Best round (12 questions)' }, { k: 'streak', label: 'Longest streak' }], { x: -5.75, z: 1.7, yaw: Math.PI / 2 });
+    L.hudActions = [{ label: () => (S.ph === 'menu' ? 'Exam mix' : 'Quit round'), run: () => { if (S.ph === 'menu') startRound('mix'); else { S.summary = null; showMenu(); } } }];
+    L.hints = [['Point + trigger', 'shoot an answer card'], ['Report card', 'on the right wall: how you’re doing per domain']];
+    L.hintsFor = () => (state.mode === 'flat' ? [['Aim + click', 'shoot an answer card'], ['1-4', 'answer by number'], ['Report card', 'on the right wall']] : L.hints);
+    L.spawn = () => { dolly.position.set(0, 0, 0); stand(); };
+    L.onEnter = () => { S.summary = null; showMenu(); scr.key = ''; reportKey = ''; };
+    L.onExit = () => { if (ui.status) ui.status.hidden = true; S.ph = 'menu'; input.hide(); };
+    L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 2, 1.7, 3.2); camera.lookAt(0, 1.7, -2); };
+    showMenu();
+    L.qbInternals = { S, deck, answer, nextQuestion, startRound, endRound, onPick, drawReport, MODES };
+    MUSIC_THEMES.quizblaster = { gain: 0.55, bpm: 112, swing: 0.1, chords: ['C', 'Am', 'F', 'G'], comp: { inst: 'piano', at: [0, 3, 6, 8, 11, 14], dur: 0.2 }, bass: { at: [0, 6, 8, 14] }, drums: { k: 'x.....x.x.......', h: '..o...o...o...o.' }, cut: 3600 };
+    return L;
+  })();
+  // ================================================================ LEVEL: PORT & CABLE SORTER (study hall)
+  // Crates ride a conveyor belt past you, each stamped with a port, a protocol, a cable use or a Wi-Fi standard.
+  // Toss each one into the bin with its match before it reaches the end of the belt. Sixty seconds; the belt speeds up.
+  // VR: grab the crate and throw (or drop) it in a bin, or point at a bin's label and pull the trigger.
+  // Browser: aim at a bin's label and click, or press 1-4.
+  const portsorter = (() => {
+    const L = newLevel(49);
+    const G = L.group;
+    const rand = mulberry32(4949);
+    L.grabless = true;
+    L.bounds = { minX: -5.6, maxX: 5.6, minZ: -1.2, maxZ: 3.6 };
+    L.env = STUDY.env();
+    const hall = STUDY.room(G, rand, { w: 12, d: 10, z: -1, h: 4.8, shelves: false });
+    const SPOT_Z = 1.65, ROUND = 60, BELT_Z = 0.98, BELT_Y = 0.86, BELT_X0 = -2.4, BELT_X1 = 2.4, CR = 0.34;
+    const BIN_X = [-1.2, -0.4, 0.4, 1.2], BIN_Z = 0.22, BIN_W = 0.72, BIN_D = 0.62, BIN_H = 0.62;
+    const MODES = [
+      { id: 'ports', name: 'Port → protocol', sub: 'Port 443? That’s HTTPS' },
+      { id: 'proto', name: 'Protocol → port', sub: 'SSH? That’s port 22' },
+      { id: 'conn', name: 'Connectors', sub: 'What plugs in where' },
+      { id: 'wifi', name: 'Wi-Fi standards', sub: '802.11a to Wi-Fi 6' },
+    ];
+    // the deck for each mode: [what's on the crate, what's on the right bin]
+    const items = (mode) => (mode === 'ports' ? APLUS.PORTS.map(([n, p]) => [`Port ${n}`, p])
+      : mode === 'proto' ? APLUS.PORTS.map(([n, p]) => [p, `Port ${n}`])
+        : mode === 'conn' ? APLUS.CONNECTORS.map(([c, u]) => [u, c])
+          : APLUS.WIFI.map(([s, d]) => [d, s]));
+
+    // ---------------------------------------------------------------- the belt, the bins, the backboard
+    const metal = lam(0x8a929e), dark = lam(0x2a2e36), beltM = lam(0x23262c);
+    addBox(G, BELT_X1 - BELT_X0 + 0.8, 0.06, 0.5, beltM, 0, BELT_Y - 0.03, BELT_Z);
+    for (const sz of [-1, 1]) addBox(G, BELT_X1 - BELT_X0 + 0.8, 0.1, 0.04, metal, 0, BELT_Y + 0.01, BELT_Z + sz * 0.27);
+    for (const x of [BELT_X0 - 0.3, 0, BELT_X1 + 0.3]) for (const sz of [-1, 1]) addBox(G, 0.06, BELT_Y - 0.06, 0.06, dark, x, (BELT_Y - 0.06) / 2, BELT_Z + sz * 0.2);
+    const rollers = [];
+    for (let i = 0; i < 18; i++) { const r = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.5, 8), metal); r.rotation.x = Math.PI / 2; r.position.set(BELT_X0 - 0.35 + i * 0.32, BELT_Y - 0.065, BELT_Z); G.add(r); rollers.push(r); }
+    // stripes on the belt so you can see it move
+    const stripes = [];
+    for (let i = 0; i < 12; i++) { const s = addBox(G, 0.04, 0.005, 0.46, lam(0x3a3e46), 0, BELT_Y + 0.003, BELT_Z); stripes.push(s); }
+    // a hatch the crates come out of, and the reject chute at the end
+    addBox(G, 0.5, 0.7, 0.6, lam(0x3a6ad8), BELT_X0 - 0.55, BELT_Y + 0.35, BELT_Z);
+    makePlate(G, 'INCOMING', 0.5, 0.12, new V3(BELT_X0 - 0.55, BELT_Y + 0.55, BELT_Z + 0.31), 0, { bg: '#3a6ad8', fg: '#ffffff', size: 0.6 });
+    addBox(G, 0.6, 0.5, 0.6, lam(0xc84a3a), BELT_X1 + 0.65, 0.25, BELT_Z);
+    makePlate(G, 'MISSED', 0.5, 0.12, new V3(BELT_X1 + 0.65, 0.42, BELT_Z + 0.31), 0, { bg: '#c84a3a', fg: '#ffffff', size: 0.6 });
+    const binCol = [0x3a8ad8, 0x3aa86a, 0xd8a03a, 0xb05ad8];
+    BIN_X.forEach((x, i) => {
+      const m = lam(binCol[i]);
+      addBox(G, BIN_W, 0.04, BIN_D, lam(0x1a1a1a), x, 0.08, BIN_Z);
+      addBox(G, BIN_W, BIN_H, 0.03, m, x, BIN_H / 2, BIN_Z - BIN_D / 2);
+      addBox(G, BIN_W, BIN_H * 0.6, 0.03, m, x, BIN_H * 0.3, BIN_Z + BIN_D / 2);
+      for (const sx of [-1, 1]) addBox(G, 0.03, BIN_H, BIN_D, m, x + sx * BIN_W / 2, BIN_H / 2, BIN_Z);
+    });
+    // the labels stand on a board behind the bins
+    addBox(G, 3.4, 1.2, 0.06, lam(0x5a4030), 0, 1.25, BIN_Z - BIN_D / 2 - 0.08);
+    const deck = STUDY.cards(G, { n: 4, w: 0.74, h: 0.4 });
+    BIN_X.forEach((x, i) => deck.place(i, x, 1.2, BIN_Z - BIN_D / 2 - 0.03, 0, 0));
+    const scr = STUDY.screen(G, 1024, 400, 3.6, 1.4, 0, 3.2, -5.85, 0, 0x1a2a4a);
+
+    // ---------------------------------------------------------------- the crate
+    const crateCt = canvasTexture(256, 256);
+    const crateFace = new THREE.MeshBasicMaterial({ map: crateCt.tex });
+    const crateSide = lam(0xc89a5a);
+    const crate = new THREE.Mesh(new THREE.BoxGeometry(CR, CR, CR), [crateSide, crateSide, crateFace, crateSide, crateFace, crateSide]);
+    G.add(crate);
+    const C = { st: 'belt', p: new V3(BELT_X0, BELT_Y + CR / 2, BELT_Z), v: new V3(), item: null, hand: null, spin: 0, wait: 0 };
+    function drawCrate(text) {
+      const g = crateCt.g;
+      g.fillStyle = '#e0b878'; g.fillRect(0, 0, 256, 256);
+      g.strokeStyle = '#8a6030'; g.lineWidth = 10; g.strokeRect(8, 8, 240, 240);
+      g.fillStyle = '#2a1a0a'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      const s = STUDY.fit(g, text, 220, 4, 64, 22, 800);
+      const nl = Math.min(4, STUDY.wrap(g, text, 0, 0, 220, s * 1.1, 0, false));
+      STUDY.wrap(g, text, 128, 128 - (nl - 1) * s * 0.55, 220, s * 1.1, 4);
+      crateCt.tex.needsUpdate = true;
+    }
+
+    // ---------------------------------------------------------------- the round
+    const S = { ph: 'menu', mode: 'ports', t0: 0, score: 0, wrong: 0, missed: 0, speed: 0.32, last: null, best: {}, deckLeft: [] };
+    try { if (prefs.sortBest && typeof prefs.sortBest === 'object') S.best = Object.assign({}, prefs.sortBest); } catch (e) { /* none */ }
+    L.sorter = S;
+    const timeLeft = () => Math.max(0, ROUND - (performance.now() - S.t0) / 1000);
+    function newCrate() {
+      Object.assign(C, { st: 'belt', hand: null, spin: 0, wait: 0 });
+      C.p.set(BELT_X0, BELT_Y + CR / 2, BELT_Z); C.v.set(0, 0, 0);
+      if (S.ph === 'menu') {
+        C.item = null; drawCrate('Toss me in a bin to start');
+        MODES.forEach((m, i) => deck.set(i, m.name, 'mode', { sub: m.sub, big: 46 }));
+        return;
+      }
+      const all = items(S.mode);
+      if (!S.deckLeft.length) S.deckLeft = all.slice().sort(() => rand() - 0.5);
+      const it = S.deckLeft.pop();
+      const others = all.filter((x) => x[1] !== it[1]).sort(() => rand() - 0.5).slice(0, 3).map((x) => x[1]);
+      const opts = others.concat([it[1]]).sort(() => rand() - 0.5);
+      C.item = { q: it[0], a: it[1], opts, c: opts.indexOf(it[1]) };
+      drawCrate(it[0]);
+      opts.forEach((t, i) => deck.set(i, t, 'idle', { big: S.mode === 'conn' || S.mode === 'wifi' ? 56 : 64 }));
+    }
+    function startRound(mode) {
+      Object.assign(S, { ph: 'play', mode, t0: performance.now(), score: 0, wrong: 0, missed: 0, speed: 0.32, last: null, deckLeft: [] });
+      sfx('whistle', 0.6);
+      newCrate();
+      forcePresence(); state.dirtyBoard = true;
+    }
+    L.startRound = startRound;
+    function endRound() {
+      S.ph = 'menu';
+      const prev = S.best[S.mode] || 0, isBest = S.score > prev;
+      if (isBest) { S.best[S.mode] = S.score; prefs.sortBest = Object.assign({}, S.best); savePrefs(); }
+      RECORDS.add(L, S.mode, S.score);
+      sfx(S.score >= 20 ? 'fanfare' : 'chime', 0.8);
+      showToast(`Time! ${S.score} sorted${S.wrong ? `, ${S.wrong} in the wrong bin` : ''}${isBest ? ' (your best!)' : ''}`);
+      S.summary = { score: S.score, wrong: S.wrong, missed: S.missed, mode: S.mode, best: isBest };
+      newCrate();
+      forcePresence(); state.dirtyBoard = true;
+    }
+    L.endRound = endRound;
+    // the crate went in bin i
+    function sorted(i) {
+      if (S.ph === 'menu') { startRound(MODES[i].id); return; }
+      if (S.ph !== 'play' || !C.item) return;
+      const ok = i === C.item.c;
+      if (ok) { S.score += 1; S.speed = Math.min(0.85, S.speed + 0.025); STUDY.right(); spawnFloat('+1', new V3(BIN_X[i], 1.0, BIN_Z), '#8bd450'); }
+      else { S.wrong += 1; STUDY.wrong(); spawnFloat('✗', new V3(BIN_X[i], 1.0, BIN_Z), '#ff6a6a'); }
+      S.last = { ok, q: C.item.q, a: C.item.a };
+      deck.look(C.item.c, 'right'); if (!ok) deck.look(i, 'wrong');
+      C.st = 'done'; C.wait = ok ? 0.45 : 1.3;
+      forcePresence(); state.dirtyBoard = true;
+    }
+    L.sorted = sorted;
+    function missed() {
+      if (S.ph === 'play' && C.item) { S.missed += 1; S.last = { ok: false, q: C.item.q, a: C.item.a, miss: true }; deck.look(C.item.c, 'right'); STUDY.wrong(); }
+      C.st = 'done'; C.wait = S.ph === 'play' ? 1.0 : 0.2;
+    }
+    // send the crate in a lob to bin i (the browser, and VR pointing)
+    function lobTo(i) {
+      if (C.st !== 'belt' && C.st !== 'held') return;
+      if (C.st === 'held') C.hand = null;
+      const T = 0.55, tx = BIN_X[i], ty = 0.3, tz = BIN_Z;
+      C.v.set((tx - C.p.x) / T, (ty - C.p.y) / T + 0.5 * 9.8 * T, (tz - C.p.z) / T);
+      C.st = 'fly'; C.spin = 6;
+      sfx('whoosh', 0.3);
+    }
+    L.lobTo = lobTo;
+    const input = STUDY.input(L, deck, { onPick: (i) => lobTo(i), touch: false, enabled: () => state.level === L.idx && (C.st === 'belt' || C.st === 'held') });
+    L.throwLabel = () => 'Send';
+    // VR: grab the crate when your hand is near it, throw it into a bin
+    L.onVRGrab = (h) => {
+      if (C.st !== 'belt' || myHands[h.side].pos.distanceTo(C.p) > 0.4) return false;
+      C.st = 'held'; C.hand = h.side; sfx('grab', 0.3);
+      return true;
+    };
+    L.onVRRelease = (h, vel) => {
+      if (C.st !== 'held' || C.hand !== h.side) return;
+      C.hand = null; C.st = 'fly'; C.v.copy(vel).multiplyScalar(1.1); C.spin = vel.length() * 2;
+    };
+    // flight: lands in a bin, on the floor, or bounces off the backboard
+    function flyStep(dt) {
+      C.v.y -= 9.8 * dt; C.p.addScaledVector(C.v, dt);
+      const backZ = BIN_Z - BIN_D / 2 + CR / 2;
+      if (C.p.z < backZ && C.p.y < 1.85) { C.p.z = backZ; C.v.z = Math.abs(C.v.z) * 0.3; C.v.x *= 0.6; sfx('wood', 0.3); }
+      // over a bin, low enough to be inside it?
+      if (C.p.y < BIN_H + CR * 0.3 && C.v.y < 0) {
+        for (let i = 0; i < 4; i++) {
+          if (Math.abs(C.p.x - BIN_X[i]) < BIN_W / 2 - 0.04 && Math.abs(C.p.z - BIN_Z) < BIN_D / 2) {
+            if (C.p.y < 0.1 + CR / 2) { C.p.y = 0.1 + CR / 2; sfx('wood', 0.5); sorted(i); }
+            return;
+          }
+        }
+      }
+      // back on the belt (dropped)
+      if (C.p.y < BELT_Y + CR / 2 && Math.abs(C.p.z - BELT_Z) < 0.28 && C.p.x > BELT_X0 - 0.3 && C.p.x < BELT_X1 + 0.3 && C.v.y < 0) { C.p.y = BELT_Y + CR / 2; C.p.z = BELT_Z; C.v.set(0, 0, 0); C.st = 'belt'; return; }
+      if (C.p.y < CR / 2) { C.p.y = CR / 2; sfx('wood', 0.4); missed(); }
+    }
+
+    // ---------------------------------------------------------------- the screen
+    function drawScreen() {
+      const t = S.ph === 'play' ? Math.ceil(timeLeft()) : 0;
+      const key = `${S.ph}|${S.mode}|${t}|${S.score}|${S.last ? S.last.q + S.last.ok : ''}|${S.summary ? S.summary.score : ''}`;
+      if (key === scr.key) return; scr.key = key;
+      const g = scr.g, W = 1024, H = 400;
+      g.fillStyle = '#10203a'; g.fillRect(0, 0, W, H);
+      g.textAlign = 'center'; g.textBaseline = 'alphabetic';
+      if (S.ph === 'menu') {
+        g.fillStyle = '#ffd23f'; g.font = `900 80px ${DISPLAY}`; g.fillText('PORT & CABLE SORTER', W / 2, 96, W - 40);
+        if (S.summary) {
+          const s = S.summary;
+          g.fillStyle = '#ffffff'; g.font = `800 60px ${DISPLAY}`; g.fillText(`${s.score} sorted in 60 seconds`, W / 2, 190);
+          g.fillStyle = s.best ? '#8bd450' : '#9ab0d0'; g.font = `700 30px ${BODY}`;
+          g.fillText(`${MODES.find((m) => m.id === s.mode).name}  ·  ${s.best ? 'your best yet!' : `best ${S.best[s.mode] || 0}`}${s.wrong ? `  ·  ${s.wrong} wrong bin` : ''}${s.missed ? `  ·  ${s.missed} missed` : ''}`, W / 2, 240, W - 60);
+        } else {
+          g.fillStyle = '#ffffff'; g.font = `400 32px ${BODY}`;
+          STUDY.wrap(g, 'Toss each crate into the bin with its match before it rolls off the end. Sixty seconds, and the belt speeds up.', W / 2, 170, W - 120, 42);
+        }
+        g.fillStyle = '#ffd23f'; g.font = `700 32px ${BODY}`; g.fillText('Pick a mode: toss the crate into a bin (or aim and click)', W / 2, 350, W - 60);
+        scr.tex.needsUpdate = true; return;
+      }
+      g.textAlign = 'left'; g.fillStyle = '#9ab0d0'; g.font = `700 30px ${BODY}`; g.fillText(MODES.find((m) => m.id === S.mode).name, 40, 52);
+      g.textAlign = 'right'; g.fillStyle = '#ffffff'; g.font = `900 64px ${DISPLAY}`; g.fillText(`${t}s`, W - 40, 70);
+      g.textAlign = 'center'; g.fillStyle = '#ffd23f'; g.font = `900 130px ${DISPLAY}`; g.fillText(String(S.score), W / 2, 200);
+      if (S.last && !S.last.ok) {
+        g.fillStyle = '#ff9a8a'; g.font = `700 38px ${BODY}`;
+        g.fillText(`${S.last.miss ? 'Missed: ' : ''}${S.last.q}  →  ${S.last.a}`, W / 2, 300, W - 60);
+      } else if (S.last) { g.fillStyle = '#8bd450'; g.font = `700 38px ${BODY}`; g.fillText(`${S.last.q}  →  ${S.last.a}`, W / 2, 300, W - 60); }
+      scr.tex.needsUpdate = true;
+    }
+
+    // ---------------------------------------------------------------- per frame
+    function stand() { S.slot = STUDY.slotOf(L); STUDY.standAt(STUDY.SLOT_X[S.slot] * 0.5, state.mode === 'vr' ? SPOT_Z : 2.75, 0, -0.3); }
+    let beltOff = 0;
+    L.update = (dt, now) => {
+      const here = state.level === L.idx && state.mode !== 'menu';
+      hall.tick();
+      if (!here) { input.hide(); return; }
+      if (STUDY.slotOf(L) !== S.slot) stand();
+      if (S.ph === 'play' && timeLeft() <= 0) { if (C.st === 'held') C.hand = null; endRound(); }
+      const sp = S.ph === 'play' ? S.speed : 0.25;
+      beltOff = (beltOff + sp * dt) % 0.4;
+      stripes.forEach((s, i) => { s.position.x = BELT_X0 - 0.3 + ((i * 0.4 + beltOff) % 4.8); s.visible = s.position.x < BELT_X1 + 0.3; });
+      for (const r of rollers) r.rotation.y -= sp * dt / 0.035;
+      if (C.st === 'belt') {
+        C.p.x += sp * dt;
+        if (C.p.x > BELT_X1 + 0.2) { C.st = 'drop'; C.v.set(0.4, 0, 0); }
+      } else if (C.st === 'drop') {
+        C.v.y -= 9.8 * dt; C.p.addScaledVector(C.v, dt);
+        if (C.p.y < 0.5) missed();
+      } else if (C.st === 'held') {
+        const mh = myHands[C.hand]; C.p.copy(mh.pos);
+      } else if (C.st === 'fly') {
+        const n = Math.max(1, Math.ceil(dt / 0.005)); for (let i = 0; i < n && C.st === 'fly'; i++) flyStep(dt / n);
+      } else if (C.st === 'done') {
+        C.wait -= dt;
+        if (C.wait <= 0) newCrate();
+      }
+      crate.position.copy(C.p);
+      if (C.st === 'fly') { crate.rotation.x += C.spin * dt * 0.3; crate.rotation.z += C.spin * dt * 0.2; }
+      else if (C.st === 'belt' || C.st === 'held') crate.rotation.set(-0.35, 0, 0);
+      crate.visible = !(C.st === 'done' && C.p.y < 0.4 && C.wait < 0.2);
+      input.tick(dt);
+      drawScreen();
+      if (ui.status && state.mode === 'flat') {
+        ui.status.hidden = false;
+        const txt = S.ph === 'play' ? `${Math.ceil(timeLeft())} s  ·  ${S.score} sorted  ·  aim at a bin's label and click (or press 1-4)` : 'Port & Cable Sorter  ·  aim at a mode and click (or press 1-4)';
+        if (ui.status.textContent !== txt) ui.status.textContent = txt;
+      }
+    };
+    L.presence = () => ({ ps: [S.score, Math.max(0, ...Object.values(S.best).map(Number).filter(Number.isFinite)), S.ph === 'play' ? 1 : 0] });
+    L.readPresence = (rec, pres, st) => {
+      const a = pres.ps;
+      if (!Array.isArray(a) || a.length !== 3 || !a.every((x) => Number.isInteger(x) && x >= 0 && x < 1e5)) { st.ps = null; return; }
+      if (!st.ps || st.ps[0] !== a[0] || st.ps[1] !== a[1]) state.dirtyBoard = true;
+      st.ps = a;
+    };
+    L.rowFor = (st, isMe) => {
+      const a = isMe ? L.presence().ps : st.ps;
+      if (!a) return { best: 0, text: '' };
+      return { best: a[1], text: `${a[2] ? `${a[0]} now · ` : ''}best ${a[1]}` };
+    };
+    L.sortRows = (a, b) => (b.best || 0) - (a.best || 0);
+    L.board = makeBoard(G, 720, 460, 2.2, 1.4, -5.85, 2.0, -0.4, Math.PI / 2, false);
+    L.drawBoard = (rows) => {
+      const g = L.board.g, W = 720;
+      g.fillStyle = '#10203a'; g.fillRect(0, 0, W, 460); g.strokeStyle = '#ffd23f'; g.lineWidth = 8; g.strokeRect(4, 4, W - 8, 452);
+      g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+      g.fillStyle = '#ffd23f'; g.font = `800 56px ${DISPLAY}`; g.fillText('Sorting champs', 36, 80);
+      g.fillStyle = '#c8d8f0'; g.font = `400 24px ${BODY}`; g.fillText('Most crates sorted in a minute (any mode)', 36, 118);
+      drawRows(g, rows, 176, 46, W);
+      L.board.tex.needsUpdate = true;
+    };
+    makeKiosk(L, 4.2, 2.8, -Math.PI * 0.75);
+    RECORDS.def(L, MODES.map((m) => ({ k: m.id, label: m.name })), { x: 5.75, z: -0.4, yaw: -Math.PI / 2 });
+    L.hudActions = [{ label: () => (S.ph === 'menu' ? 'Start: ports' : 'End round'), run: () => { if (S.ph === 'menu') startRound('ports'); else endRound(); } }];
+    L.hints = [['Grab + throw', 'toss the crate into the right bin'], ['Point + trigger', 'or send it to the bin you point at']];
+    L.hintsFor = () => (state.mode === 'flat' ? [['Aim + click', 'send the crate to that bin'], ['1-4', 'pick a bin by number']] : L.hints);
+    L.spawn = () => { dolly.position.set(0, 0, 0); stand(); };
+    L.onEnter = () => { S.ph = 'menu'; S.summary = null; scr.key = ''; newCrate(); };
+    L.onExit = () => { if (ui.status) ui.status.hidden = true; S.ph = 'menu'; input.hide(); };
+    L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 2, 1.9, 3.0); camera.lookAt(0, 1.0, 0); };
+    newCrate();
+    L.sortInternals = { S, C, deck, sorted, lobTo, startRound, endRound, newCrate, items, flyStep, MODES };
+    MUSIC_THEMES.portsorter = { gain: 0.6, bpm: 124, swing: 0.05, chords: ['Am', 'F', 'C', 'G'], arp: { inst: 'pluck', every: 1, order: [1, 2, 3, 4, 3, 2, 1, 2] }, bass: { at: [0, 3, 6, 8, 11, 14] }, drums: { k: 'x...x...x...x...', h: '-o-o-o-o-o-o-o-o' }, cut: 4200 };
+    return L;
+  })();
+  // ================================================================ LEVEL: PC BUILD BENCH (study hall)
+  // Build a PC on an open test bench, the way the A+ exam expects: wrist strap on first, CPU in the socket, thermal paste,
+  // cooler, memory of the right generation (one stick on the tray is the wrong kind), the M.2 SSD, the graphics card in
+  // the x16 slot, the 24-pin and 8-pin power cables. Then press the power button: if something's missing, the PC tells
+  // you the way a real one would (a beep code, no display, "no bootable device").
+  // Guided shows a checklist; Timed doesn't, and every mistake adds 10 seconds.
+  // VR: grab a part, put it on its slot and let go. Browser: click a part to pick it up, click a slot to fit it.
+  const pcbuild = (() => {
+    const L = newLevel(50);
+    const G = L.group;
+    const rand = mulberry32(5050);
+    L.grabless = true;
+    L.bounds = { minX: -5.6, maxX: 5.6, minZ: 1.1, maxZ: 3.6 };
+    L.env = STUDY.env();
+    const hall = STUDY.room(G, rand, { w: 12, d: 10, z: -1, h: 4.4 });
+    const K = 1.4, TOP = 0.9, BX = 0, BY = TOP + 0.006, BZ = 0.5, SPOT_Z = 1.45;
+    // ---------------------------------------------------------------- the bench and the motherboard
+    addBox(G, 2.3, 0.05, 0.85, lam(0x8a6a4a), 0, TOP - 0.025, 0.55);
+    for (const [x, z] of [[-1.05, 0.2], [1.05, 0.2], [-1.05, 0.9], [1.05, 0.9]]) addBox(G, 0.06, TOP - 0.05, 0.06, lam(0x3a3a3a), x, (TOP - 0.05) / 2, z);
+    const mat = addBox(G, 2.1, 0.004, 0.75, lam(0x2a5a8a), 0, TOP + 0.002, 0.55);   // an antistatic mat
+    void mat;
+    const board = addBox(G, 0.305 * K, 0.004, 0.244 * K, lam(0x1f5a3a), BX, BY, BZ);
+    void board;
+    // a little detail on the board: traces and chips
+    for (let i = 0; i < 14; i++) addBox(G, 0.002 * K, 0.001, (0.03 + rand() * 0.08) * K, lam(0x3a8a5a), BX + (rand() - 0.5) * 0.28 * K, BY + 0.0025, BZ + (rand() - 0.5) * 0.2 * K);
+    addBox(G, 0.025 * K, 0.006, 0.025 * K, lam(0x2a2a2a), BX + 0.04 * K, BY + 0.004, BZ + 0.07 * K);   // the chipset
+    addBox(G, 0.02 * K, 0.03, 0.09 * K, lam(0x8a8a90), BX - 0.14 * K, BY + 0.015, BZ - 0.06 * K);   // the I/O shield
+    // slots, in board coordinates (x right, z toward you), real ATX-ish layout
+    const SLOTS = [
+      { id: 'socket', kind: 'socket', at: [-0.03, -0.05], size: [0.05, 0.05], tip: 'That’s the CPU socket: the processor goes in, then thermal paste, then the cooler.' },
+      { id: 'dimm1', kind: 'ram', at: [0.06, -0.05], size: [0.008, 0.135], tip: 'Those are DIMM slots: memory only.' },
+      { id: 'dimm2', kind: 'ram', at: [0.078, -0.05], size: [0.008, 0.135], tip: 'Those are DIMM slots: memory only.' },
+      { id: 'atx', kind: 'atx', at: [0.14, -0.03], size: [0.012, 0.05], tip: 'That’s the 24-pin ATX power header: the big cable from the power supply.' },
+      { id: 'eps', kind: 'eps', at: [-0.125, -0.11], size: [0.02, 0.01], tip: 'That’s the 8-pin CPU power header (EPS12V).' },
+      { id: 'm2', kind: 'ssd', at: [-0.02, 0.035], size: [0.08, 0.022], tip: 'That’s the M.2 slot: it takes the M.2 NVMe SSD.' },
+      { id: 'pcie', kind: 'gpu', at: [-0.02, 0.075], size: [0.09, 0.008], tip: 'That’s the PCIe x16 slot: it’s for the graphics card.' },
+    ];
+    const slotPos = (s, out) => out.set(BX + s.at[0] * K, BY + 0.004, BZ + s.at[1] * K);
+    const markM = new THREE.MeshBasicMaterial({ color: 0x9af0ff, transparent: true, opacity: 0.0, depthWrite: false });
+    for (const s of SLOTS) {
+      const p = slotPos(s, new V3());
+      // the slot itself (black plastic), and a glow that shows where a held part could go
+      if (s.kind === 'ram' || s.kind === 'gpu' || s.kind === 'atx') addBox(G, s.size[0] * K, 0.01, s.size[1] * K, lam(0x1a1a1a), p.x, p.y + 0.005, p.z);
+      else if (s.kind === 'socket') { addBox(G, s.size[0] * K, 0.004, s.size[1] * K, lam(0xb8b8c0), p.x, p.y + 0.002, p.z); addBox(G, 0.004, 0.006, s.size[1] * K, lam(0x6a6a70), p.x + s.size[0] * K * 0.6, p.y + 0.003, p.z); }
+      else addBox(G, s.size[0] * K, 0.004, s.size[1] * K, lam(0x2a2a2a), p.x, p.y + 0.002, p.z);
+      s.glow = addBox(G, s.size[0] * K + 0.03, 0.03, s.size[1] * K + 0.03, markM.clone(), p.x, p.y + 0.02, p.z);
+      s.filled = null;
+    }
+    const genPlate = makePlate(G, 'DDR5', 0.07, 0.025, new V3(BX + 0.069 * K, BY + 0.003, BZ + 0.035 * K), 0, { bg: '#1f5a3a', fg: '#ffffff', size: 0.75, tilt: -Math.PI / 2 });
+    // the power supply, with its cables
+    const PSU = new V3(0.72, TOP + 0.065, 0.3);
+    addBox(G, 0.15 * K, 0.086 * K, 0.14 * K, lam(0x2a2a2e), PSU.x, PSU.y, PSU.z);
+    makePlate(G, 'POWER SUPPLY', 0.2, 0.04, new V3(PSU.x, PSU.y + 0.035, PSU.z + 0.1), 0, { bg: '#2a2a2e', fg: '#ffd23f', size: 0.7 });
+    // the monitor (it shows the checklist, then the POST screen)
+    addBox(G, 0.08, 0.3, 0.08, lam(0x2a2a2a), 0, TOP + 0.15, 0.17);
+    const mon = STUDY.screen(G, 1024, 600, 1.15, 0.67, 0, TOP + 0.62, 0.15, 0, 0x1a1a1a);
+    // the power button
+    addBox(G, 0.14, 0.24, 0.14, lam(0x2a2a2e), 0.95, TOP + 0.12, 0.8);
+    const powerBtn = makeButton(L, new V3(0.95, TOP + 0.265, 0.8), 0x3aa86a, 'Power', () => powerOn(), { pedestal: false });
+
+    // ---------------------------------------------------------------- the parts
+    const label = (t, x, z, col) => makePlate(G, t, 0.18, 0.04, new V3(x, TOP + 0.012, z + 0.07), 0, { bg: col || '#ffffff', fg: '#1a1a2a', size: 0.62, tilt: -Math.PI / 2 + 0.5 });
+    const P = {};
+    function part(id, kind, name, home, mesh, extra) {
+      const p = Object.assign({ id, kind, name, home: new V3(home[0], TOP + (extra && extra.h || 0.01), home[1]), mesh, st: 'home', slot: null, lab: label(name, home[0], home[1]) }, extra || {});
+      mesh.position.copy(p.home); G.add(mesh);
+      p.homeRot = mesh.rotation.clone();
+      P[id] = p; return p;
+    }
+    const grp = (...ms) => { const g = new THREE.Group(); for (const m of ms) g.add(m); g.scale.setScalar(K); return g; };
+    const box = (w, h, d, col, x, y, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), lam(col)); m.position.set(x || 0, y || 0, z || 0); return m; };
+    // ESD strap: a wristband and a coiled cord
+    { const g = new THREE.Group(); const band = new THREE.Mesh(new THREE.TorusGeometry(0.035, 0.008, 6, 20), lam(0x2a6ad8)); band.rotation.x = Math.PI / 2; g.add(band);
+      const clip = box(0.02, 0.012, 0.03, 0xd8d8d8, 0.05, 0, 0); g.add(clip);
+      for (let i = 0; i < 6; i++) { const c = new THREE.Mesh(new THREE.TorusGeometry(0.012, 0.003, 4, 10), lam(0x2a2a2a)); c.position.set(0.075 + i * 0.012, 0, 0); c.rotation.y = Math.PI / 2; g.add(c); }
+      part('strap', 'strap', 'ESD wrist strap', [-0.95, 0.83], g, { h: 0.012 }); }
+    // CPU
+    part('cpu', 'cpu', 'CPU', [-0.72, 0.8], grp(box(0.045, 0.004, 0.045, 0xc8c8d0), box(0.04, 0.002, 0.04, 0xd8b040, 0, -0.003, 0), box(0.006, 0.001, 0.006, 0xd8b040, -0.017, 0.0025, 0.017)), { h: 0.008 });
+    // thermal paste: a syringe
+    { const t = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.08, 10), lam(0xd8d8e0)); t.rotation.z = Math.PI / 2; const tip = new THREE.Mesh(new THREE.ConeGeometry(0.006, 0.02, 8), lam(0x8a8a90)); tip.rotation.z = -Math.PI / 2; tip.position.x = 0.05;
+      part('paste', 'paste', 'Thermal paste', [-0.5, 0.86], grp(t, tip), { h: 0.012 }); }
+    // CPU cooler: a heatsink with a fan on top
+    const fan = new THREE.Group();
+    { const hs = box(0.09, 0.05, 0.09, 0x9aa0a8); for (let i = 0; i < 8; i++) { const f = box(0.088, 0.002, 0.088, 0xb8bec8, 0, -0.02 + i * 0.006, 0); hs.add(f); }
+      const ring = new THREE.Mesh(new THREE.CylinderGeometry(0.042, 0.042, 0.012, 20), lam(0x2a2a2e)); ring.position.y = 0.031;
+      for (let i = 0; i < 5; i++) { const b = box(0.036, 0.002, 0.012, 0x3a3a40, 0, 0, 0); b.position.x = 0.018; const arm = new THREE.Group(); arm.rotation.y = i / 5 * Math.PI * 2; arm.add(b); fan.add(arm); }
+      fan.position.y = 0.038;
+      part('cooler', 'cooler', 'CPU cooler', [-0.82, 0.42], grp(hs, ring, fan), { h: 0.035 }); }
+    // memory: three sticks, one of the wrong generation
+    const ramMesh = (col) => { const g = new THREE.Group(); g.add(box(0.004, 0.031, 0.133, 0x1f6a3a)); for (let i = 0; i < 8; i++) g.add(box(0.0055, 0.012, 0.012, 0x1a1a1a, 0, 0.002, -0.056 + i * 0.016)); g.add(box(0.0056, 0.008, 0.11, col, 0, 0.011, 0)); g.scale.setScalar(K); return g; };
+    const RAMS = [['ramA', -0.46], ['ramB', -0.36], ['ramC', -0.26]].map(([id, x]) => part(id, 'ram', 'RAM', [x, 0.5], ramMesh(0x2a2a2a), { h: 0.024 }));
+    // M.2 NVMe SSD
+    part('ssd', 'ssd', 'M.2 NVMe SSD', [-0.5, 0.68], grp(box(0.08, 0.003, 0.022, 0x1f5a3a), box(0.02, 0.0035, 0.015, 0x1a1a1a, -0.015, 0.002, 0), box(0.012, 0.0035, 0.012, 0x1a1a1a, 0.015, 0.002, 0)), { h: 0.006 });
+    // graphics card: lies flat on the tray, stands up in the slot
+    const gpuFans = [];
+    { const g = new THREE.Group(); g.add(box(0.24, 0.1, 0.035, 0x2a2a30)); g.add(box(0.24, 0.1, 0.002, 0x1f5a3a, 0, 0, -0.019)); g.add(box(0.09, 0.01, 0.004, 0xd8b040, -0.02, -0.055, -0.016));
+      for (const fx of [-0.06, 0.06]) { const f = new THREE.Group(); f.position.set(fx, 0, 0.019); const ring = new THREE.Mesh(new THREE.CylinderGeometry(0.042, 0.042, 0.003, 20), lam(0x1a1a1a)); ring.rotation.x = Math.PI / 2; f.add(ring);
+        for (let i = 0; i < 7; i++) { const b = box(0.034, 0.012, 0.002, 0x4a4a52); b.position.x = 0.018; const arm = new THREE.Group(); arm.rotation.z = i / 7 * Math.PI * 2; arm.add(b); arm.position.z = 0.002; f.add(arm); } g.add(f); gpuFans.push(f); }
+      g.scale.setScalar(K); g.rotation.x = -Math.PI / 2;
+      part('gpu', 'gpu', 'Graphics card', [0.42, 0.8], g, { h: 0.03 }); }
+    // the power cables (a connector you plug; the wire follows it back to the PSU)
+    part('atx', 'atx', '24-pin ATX cable', [0.42, 0.5], grp(box(0.012, 0.02, 0.05, 0xf0f0f0), box(0.01, 0.006, 0.048, 0xd8a040, 0, 0.012, 0)), { h: 0.014 });
+    part('eps', 'eps', '8-pin CPU cable', [0.62, 0.58], grp(box(0.02, 0.02, 0.01, 0xf0f0f0), box(0.018, 0.006, 0.008, 0xd8a040, 0, 0.012, 0)), { h: 0.014 });
+    const wireM = lam(0x1a1a1a), wires = {};
+    function wire(id) {
+      const p = P[id], a = PSU.clone().add(new V3(-0.08, -0.02, id === 'atx' ? 0.04 : -0.02)), b = p.mesh.position.clone();
+      const mid = a.clone().lerp(b, 0.5); mid.y = Math.max(a.y, b.y) + 0.06;
+      const curve = new THREE.QuadraticBezierCurve3(a, mid, b);
+      if (wires[id]) { G.remove(wires[id]); wires[id].geometry.dispose(); }
+      wires[id] = new THREE.Mesh(new THREE.TubeGeometry(curve, 16, id === 'atx' ? 0.012 : 0.007, 6), wireM); G.add(wires[id]);
+    }
+    const pasteDot = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.003, 12), lam(0x9a9aa0)); pasteDot.visible = false; G.add(pasteDot);
+
+    // ---------------------------------------------------------------- the build
+    const S = { ph: 'idle', mode: 'guided', gen: 5, t0: 0, tEnd: 0, mistakes: 0, strap: false, cpu: false, paste: false, cooler: false, held: null, msg: '', msgOk: false, msgT: 0, posted: false, fails: 0, best: {} };
+    try { if (prefs.pcBest && typeof prefs.pcBest === 'object') S.best = Object.assign({}, prefs.pcBest); } catch (e) { /* none */ }
+    L.pc = S;
+    const elapsed = () => (S.ph === 'done' ? S.tEnd : S.ph === 'build' ? (performance.now() - S.t0) / 1000 : 0);
+    function say(msg, ok) { S.msg = msg; S.msgOk = !!ok; S.msgT = performance.now(); }
+    function goHome(p) {
+      p.st = 'home'; p.slot = null; p.mesh.position.copy(p.home); p.mesh.rotation.copy(p.homeRot); p.lab.visible = true;
+      if (p.kind === 'atx' || p.kind === 'eps') wire(p.id);
+    }
+    function reset(mode) {
+      for (const s of SLOTS) s.filled = null;
+      for (const id in P) goHome(P[id]);
+      // a DDR4 or a DDR5 board this time, with two sticks to match and one that won't fit
+      S.gen = rand() < 0.5 ? 4 : 5;
+      const wrongAt = Math.floor(rand() * 3);
+      RAMS.forEach((r, i) => { r.gen = i === wrongAt ? (S.gen === 5 ? 4 : 5) : S.gen; r.lab.userData.draw(`DDR${r.gen} RAM`); r.name = `DDR${r.gen} RAM`; });
+      genPlate.userData.draw(`DDR${S.gen}`);
+      pasteDot.visible = false;
+      Object.assign(S, { ph: mode ? 'build' : 'idle', mode: mode || S.mode, t0: performance.now(), tEnd: 0, mistakes: 0, strap: false, cpu: false, paste: false, cooler: false, held: null, posted: false, fails: 0 });
+      say(mode ? (mode === 'timed' ? 'The clock’s running. Every mistake adds 10 seconds.' : 'Follow the checklist. Start with the wrist strap.') : '', true);
+      monKey = '';
+      forcePresence(); state.dirtyBoard = true;
+    }
+    L.reset = reset;
+    function mistake(msg) {
+      S.mistakes += 1; say(msg, false); STUDY.wrong();
+      forcePresence();
+    }
+    function pickUp(p, side) {
+      if (S.ph !== 'build') reset(S.mode);
+      if (p.st !== 'home') return false;
+      if (p.kind === 'strap') { S.strap = true; p.st = 'worn'; p.lab.visible = false; say('Strap on: you’re grounded, so no static zaps.', true); STUDY.right(); return false; }
+      p.st = 'held'; p.side = side || null; S.held = p; p.lab.visible = false;
+      sfx('grab', 0.3);
+      return true;
+    }
+    L.pickUp = (id, side) => pickUp(P[id], side);
+    // try to fit the held part into slot s
+    function fit(p, s) {
+      S.held = null;
+      if (!S.strap) { goHome(p); mistake('Zap! Put on the ESD wrist strap first (front left of the bench): static can kill a part.'); return false; }
+      const want = s.kind === 'socket' ? ['cpu', 'paste', 'cooler'] : [s.kind];
+      if (!want.includes(p.kind)) { goHome(p); mistake(s.tip); return false; }
+      if (s.kind === 'socket') {
+        if (p.kind === 'cpu' && S.cpu) { goHome(p); return false; }
+        if (p.kind === 'paste' && !S.cpu) { goHome(p); mistake('The CPU goes in first; the paste goes on top of it.'); return false; }
+        if (p.kind === 'paste' && S.paste) { goHome(p); say('There’s already enough paste: a pea-sized dot is plenty.', true); return false; }
+        if (p.kind === 'cooler' && !S.cpu) { goHome(p); mistake('The CPU goes in before the cooler.'); return false; }
+        if (p.kind === 'cooler' && !S.paste) { goHome(p); mistake('Thermal paste first! Without it the CPU will overheat.'); return false; }
+      } else if (s.filled) { goHome(p); return false; }
+      if (p.kind === 'ram' && p.gen !== S.gen) { goHome(p); mistake(`That’s DDR${p.gen}: the notch is in a different place, so it won’t fit a DDR${S.gen} slot.`); return false; }
+      // it fits
+      const sp = slotPos(s, new V3());
+      p.st = 'in'; p.slot = s.id; p.lab.visible = false;
+      if (p.kind === 'paste') { S.paste = true; goHome(p); P.paste.st = 'used'; P.paste.lab.visible = false; pasteDot.position.set(sp.x, sp.y + 0.012, sp.z); pasteDot.visible = true; say('A pea-sized dot of paste: the cooler will spread it.', true); STUDY.right(); return true; }
+      if (p.kind === 'cpu') { S.cpu = true; p.mesh.position.set(sp.x, sp.y + 0.006, sp.z); p.mesh.rotation.set(0, 0, 0); say('CPU in: the little triangle lines up with the socket’s corner.', true); }
+      else if (p.kind === 'cooler') { S.cooler = true; p.mesh.position.set(sp.x, sp.y + 0.05, sp.z); p.mesh.rotation.set(0, 0, 0); pasteDot.visible = false; say('Cooler on, pressing the paste into a thin layer.', true); }
+      else if (p.kind === 'ram') { s.filled = p.id; p.mesh.position.set(sp.x, sp.y + 0.024, sp.z); p.mesh.rotation.set(0, 0, 0); say(`DDR${S.gen} in: press until the clips snap shut.`, true); }
+      else if (p.kind === 'ssd') { s.filled = p.id; p.mesh.position.set(sp.x, sp.y + 0.004, sp.z); p.mesh.rotation.set(0, 0, 0); say('SSD in, screwed down: NVMe talks over PCIe lanes, so it’s fast.', true); }
+      else if (p.kind === 'gpu') { s.filled = p.id; p.mesh.position.set(sp.x + 0.07, sp.y + 0.075, sp.z); p.mesh.rotation.set(0, 0, 0); say('Graphics card in the PCIe x16 slot.', true); }
+      else if (p.kind === 'atx') { s.filled = p.id; p.mesh.position.set(sp.x, sp.y + 0.015, sp.z); p.mesh.rotation.set(0, 0, 0); wire('atx'); say('24-pin in: the motherboard has power.', true); }
+      else if (p.kind === 'eps') { s.filled = p.id; p.mesh.position.set(sp.x, sp.y + 0.015, sp.z); p.mesh.rotation.set(0, 0, 0); wire('eps'); say('8-pin in: the CPU has its own power.', true); }
+      sfx('click', 1); tone(660, 880, 0.08, 'triangle', 0.12);
+      forcePresence(); state.dirtyBoard = true;
+      return true;
+    }
+    L.fit = (slotId) => { const p = S.held; const s = SLOTS.find((x) => x.id === slotId); return p && s ? fit(p, s) : false; };
+    const ramIn = () => SLOTS.filter((s) => s.kind === 'ram' && s.filled).length;
+    const filled = (k) => SLOTS.some((s) => s.kind === k && s.filled);
+    // the checklist (and what a missing step does when you press the power button)
+    const STEPS = [
+      ['Put on the ESD wrist strap', () => S.strap],
+      ['CPU into the socket', () => S.cpu],
+      ['Thermal paste on the CPU', () => S.paste],
+      ['CPU cooler on top', () => S.cooler],
+      [() => `Two sticks of DDR${S.gen} RAM`, () => ramIn() === 2],
+      ['M.2 SSD in the M.2 slot', () => filled('ssd')],
+      ['Graphics card in PCIe x16', () => filled('gpu')],
+      ['24-pin ATX power cable', () => filled('atx')],
+      ['8-pin CPU power cable', () => filled('eps')],
+      ['Press the power button', () => S.posted],
+    ];
+    function powerOn() {
+      if (S.ph !== 'build') { if (S.ph === 'done') reset(S.mode); return; }
+      const fails = [
+        [!filled('atx'), 'Nothing at all: the motherboard has no power. Plug in the 24-pin ATX cable.'],
+        [!S.cpu, 'Fans spin, nothing on screen: there’s no CPU.'],
+        [!filled('eps'), 'Fans twitch, then nothing: the CPU needs its 8-pin power cable.'],
+        [!S.cooler, 'It shuts off after a few seconds: the CPU is overheating with no cooler.'],
+        [ramIn() === 0, 'Beep, beep, beep: a POST beep code. No memory found.'],
+        [!filled('gpu'), 'It powers up but there’s no picture: this CPU has no built-in graphics, so fit the graphics card.'],
+        [ramIn() === 1, 'It boots, but with one stick the memory runs single-channel. Fit the second stick for dual-channel.'],
+        [!filled('ssd'), 'POST passes, then: "No bootable device". Fit the M.2 SSD.'],
+      ];
+      const f = fails.find((x) => x[0]);
+      if (f) { S.fails += 1; mistake(f[1]); sfx('buzzer', 0.4); return; }
+      S.posted = true; S.ph = 'done'; S.tEnd = (performance.now() - S.t0) / 1000;
+      const total = S.tEnd + (S.mode === 'timed' ? S.mistakes * 10 : 0);
+      S.total = total;
+      const prev = S.best[S.mode], isBest = !prev || total < prev;
+      if (isBest) { S.best[S.mode] = Math.round(total * 10) / 10; prefs.pcBest = Object.assign({}, S.best); savePrefs(); }
+      RECORDS.add(L, S.mode, total);
+      sfx('fanfare', 0.8);
+      say(`POST OK! Built in ${fmtT(total)}${S.mode === 'timed' && S.mistakes ? ` (with ${S.mistakes * 10} s of penalties)` : ''}${S.mistakes ? '' : ', with no mistakes'}.`, true);
+      showToast(`It boots! ${fmtT(total)}${isBest ? ' (your best!)' : ''}`);
+      forcePresence(); state.dirtyBoard = true;
+    }
+    L.powerOn = powerOn;
+    const fmtT = (t) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
+
+    // ---------------------------------------------------------------- controls
+    const deck = STUDY.cards(G, { n: 2, w: 0.5, h: 0.26, numbered: false });
+    deck.place(0, 1.45, 1.42, 0.62, -0.95, 0); deck.place(1, 1.45, 1.1, 0.62, -0.95, 0);
+    addBox(G, 0.05, 1.2, 0.05, lam(0x3a3a3a), 1.47, 0.6, 0.6);
+    function drawDeck() { deck.set(0, S.ph === 'idle' ? 'Guided build' : 'Restart guided', 'mode', { sub: 'With a checklist', big: 44 }); deck.set(1, S.ph === 'idle' ? 'Timed build' : 'Restart timed', 'mode', { sub: 'No hints, +10 s a mistake', big: 44 }); }
+    const _o = new V3(), _d = new V3(), _q = new Q4(), _t = new V3();
+    // the part (or slot) nearest a ray
+    function rayNear(from, dir, pts, maxD) {
+      let best = -1, bd = maxD;
+      pts.forEach((p, i) => { if (!p) return; _t.subVectors(p, from); const along = _t.dot(dir); if (along < 0.1) return; const d = _t.addScaledVector(dir, -along).length(); if (d < bd) { bd = d; best = i; } });
+      return best;
+    }
+    const partList = () => Object.values(P);
+    function aimRay(side) {
+      if (side) { const mh = myHands[side]; _o.copy(mh.pos); _d.set(0, 0, -1).applyQuaternion(mh.quat); }
+      else { camera.getWorldPosition(_o); camera.getWorldQuaternion(_q); _d.set(0, 0, -1).applyQuaternion(_q); }
+    }
+    function clickAt(side) {
+      aimRay(side);
+      const di = deck.pickRay(_o, _d);
+      if (di >= 0) { reset(di === 0 ? 'guided' : 'timed'); drawDeck(); return; }
+      // the power button
+      if (rayNear(_o, _d, [powerBtn.pos], 0.08) === 0) { pressButton(powerBtn, performance.now()); return; }
+      if (S.held) {
+        const si = rayNear(_o, _d, SLOTS.map((s) => slotPos(s, new V3())), 0.06);
+        if (si >= 0) fit(S.held, SLOTS[si]);
+        else { goHome(S.held); S.held = null; }
+        return;
+      }
+      const ps = partList(), i = rayNear(_o, _d, ps.map((p) => (p.st === 'home' ? p.mesh.position : null)), 0.07);
+      if (i >= 0) pickUp(ps[i], side);
+    }
+    L.deskFire = () => clickAt(null);
+    L.onVRTrigger = (h) => {
+      aimRay(h.side);
+      if (deck.pickRay(_o, _d) >= 0 || rayNear(_o, _d, [powerBtn.pos], 0.08) === 0) clickAt(h.side);
+    };
+    L.onVRGrab = (h) => {
+      const mh = myHands[h.side];
+      let best = null, bd = 0.14;
+      for (const p of partList()) { if (p.st !== 'home') continue; const d = p.mesh.position.distanceTo(mh.pos); if (d < bd) { bd = d; best = p; } }
+      if (!best) return false;
+      const held = pickUp(best, h.side);
+      if (!held) haptic(vrHands[h.side], 0.4, 30);
+      return held;
+    };
+    L.onVRRelease = (h) => {
+      const p = S.held; if (!p || p.side !== h.side) return;
+      let best = null, bd = 0.11;
+      for (const s of SLOTS) { const sp = slotPos(s, _t); const d = Math.hypot(sp.x - p.mesh.position.x, sp.z - p.mesh.position.z); if (d < bd && p.mesh.position.y < BY + 0.3) { bd = d; best = s; } }
+      if (best) { if (fit(p, best)) haptic(vrHands[h.side], 0.6, 40); }
+      else { goHome(p); S.held = null; }
+    };
+    L.throwLabel = () => (S.held ? 'Fit' : 'Pick up');
+    L.hudActions = [{ label: () => (S.held ? 'Put it back' : 'Restart'), run: () => { if (S.held) { goHome(S.held); S.held = null; } else { reset(S.mode); drawDeck(); } } }];
+
+    // ---------------------------------------------------------------- the monitor
+    let monKey = '';
+    function drawMon() {
+      const tt = Math.floor(elapsed());
+      const key = `${S.ph}|${S.mode}|${tt}|${S.msg}|${STEPS.map((s) => (s[1]() ? 1 : 0)).join('')}|${S.mistakes}|${S.gen}`;
+      if (key === monKey) return; monKey = key;
+      const g = mon.g, W = 1024, H = 600;
+      if (S.ph === 'done') {
+        g.fillStyle = '#000814'; g.fillRect(0, 0, W, H);
+        g.textAlign = 'left'; g.fillStyle = '#9af0ff'; g.font = `700 34px ui-monospace, Menlo, Consolas, monospace`;
+        const lines = ['FieldDay BIOS v2.1', `CPU ......... OK`, `Memory ...... 32 GB DDR${S.gen} dual-channel OK`, 'NVMe SSD .... OK', 'Graphics .... OK', '', 'Booting...'];
+        lines.forEach((l, i) => g.fillText(l, 50, 70 + i * 46));
+        g.fillStyle = '#8bd450'; g.font = `900 70px ${DISPLAY}`; g.fillText(`POST OK  ·  ${fmtT(S.total)}`, 50, 470);
+        g.fillStyle = '#c8d8f0'; g.font = `400 28px ${BODY}`; g.fillText(S.mistakes ? `${S.mistakes} mistake${S.mistakes > 1 ? 's' : ''} on the way` : 'No mistakes!', 50, 520);
+        g.fillText('Press Power (or a card) to build again', 50, 568);
+        mon.tex.needsUpdate = true; return;
+      }
+      g.fillStyle = '#10203a'; g.fillRect(0, 0, W, H);
+      g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+      g.fillStyle = '#ffd23f'; g.font = `900 52px ${DISPLAY}`; g.fillText('PC BUILD BENCH', 30, 62);
+      g.textAlign = 'right'; g.fillStyle = '#ffffff'; g.font = `800 52px ${DISPLAY}`;
+      if (S.ph === 'build') g.fillText(`${fmtT(elapsed())}${S.mode === 'timed' && S.mistakes ? ` +${S.mistakes * 10}s` : ''}`, W - 30, 62);
+      g.textAlign = 'left';
+      if (S.ph === 'idle') {
+        g.fillStyle = '#ffffff'; g.font = `400 32px ${BODY}`;
+        STUDY.wrap(g, 'Build a working PC from the parts on the bench, then press the power button. Pick Guided (with a checklist) or Timed on the stand to your right.', 30, 140, W - 60, 44);
+        g.fillStyle = '#9ab0d0'; g.font = `400 28px ${BODY}`;
+        STUDY.wrap(g, state.mode === 'vr' ? 'Grab a part, hold it over its slot and let go.' : 'Click a part to pick it up, then click the slot it goes in.', 30, 380, W - 60, 38);
+      } else if (S.mode === 'guided') {
+        let next = STEPS.findIndex((s) => !s[1]());
+        STEPS.forEach((s, i) => {
+          const done = s[1](), y = 112 + i * 36, txt = typeof s[0] === 'function' ? s[0]() : s[0];
+          g.fillStyle = done ? '#8bd450' : i === next ? '#ffd23f' : '#9ab0d0'; g.font = `${i === next ? 800 : 400} 28px ${BODY}`;
+          g.fillText(`${done ? '✔' : i === next ? '▶' : '○'}  ${txt}`, 30, y, W - 60);
+        });
+        void next;
+      } else {
+        const n = STEPS.filter((s) => s[1]()).length;
+        g.fillStyle = '#ffffff'; g.font = `800 44px ${DISPLAY}`; g.fillText(`${n} of ${STEPS.length} steps done  ·  ${S.mistakes} mistake${S.mistakes === 1 ? '' : 's'}`, 30, 150);
+        g.fillStyle = '#9ab0d0'; g.font = `400 28px ${BODY}`; g.fillText('No checklist in Timed mode: you know the drill.', 30, 200);
+      }
+      if (S.msg && S.ph !== 'idle') {
+        g.fillStyle = S.msgOk ? '#1f4a2a' : '#5a1a1a'; g.fillRect(20, 480, W - 40, 106);
+        g.fillStyle = '#ffffff'; g.font = `700 28px ${BODY}`; STUDY.wrap(g, S.msg, 36, 520, W - 72, 34, 2);
+      }
+      mon.tex.needsUpdate = true;
+    }
+
+    // ---------------------------------------------------------------- per frame
+    function stand() { S.slot = STUDY.slotOf(L); STUDY.standAt(STUDY.SLOT_X[S.slot] * 0.4, state.mode === 'vr' ? SPOT_Z : 2.15, 0, -0.42); }
+    const strapP = P.strap;
+    L.update = (dt, now) => {
+      const here = state.level === L.idx && state.mode !== 'menu';
+      hall.tick();
+      if (!here) return;
+      if (STUDY.slotOf(L) !== S.slot) stand();
+      // a held part: in your hand (VR) or floating in front of you (browser)
+      const p = S.held;
+      if (p) {
+        if (state.mode === 'vr' && p.side) { p.mesh.position.copy(myHands[p.side].pos); }
+        else { camera.getWorldPosition(_o); camera.getWorldQuaternion(_q); p.mesh.position.copy(_t.set(0.1, -0.12, -0.38).applyQuaternion(_q).add(_o)); }
+        if (p.kind === 'atx' || p.kind === 'eps') wire(p.id);
+      }
+      // the wrist strap goes on your left wrist
+      if (strapP.st === 'worn') { const h = myHands.left; strapP.mesh.position.copy(h.ok ? h.pos : _t.set(-0.25, -0.4, -0.3).applyQuaternion(myHead.quat).add(myHead.pos)); }
+      // slots glow while you hold a part (the one you're over brightest)
+      let near = -1;
+      if (p) {
+        let bd = 0.12;
+        if (state.mode === 'vr') SLOTS.forEach((s, i) => { const sp = slotPos(s, _t), d = Math.hypot(sp.x - p.mesh.position.x, sp.z - p.mesh.position.z); if (d < bd) { bd = d; near = i; } });
+        else { aimRay(null); near = rayNear(_o, _d, SLOTS.map((s) => slotPos(s, new V3())), 0.06); }
+      }
+      SLOTS.forEach((s, i) => { s.glow.material.opacity = !p ? 0 : i === near ? 0.75 : 0.18 + 0.1 * Math.sin(now / 200); });
+      // power on: the fans spin
+      if (S.posted) { fan.rotation.y += dt * 30; for (const f of gpuFans) f.rotation.z += dt * 25; }
+      deck.highlight(state.mode === 'flat' ? (aimRay(null), deck.pickRay(_o, _d)) : -1);
+      drawMon();
+      if (ui.status && state.mode === 'flat') {
+        ui.status.hidden = false;
+        const txt = S.ph === 'idle' ? 'PC Build Bench  ·  pick Guided or Timed on the stand to your right' : S.held ? `Holding: ${S.held.name}  ·  aim at its slot and click (click elsewhere to put it back)` : S.ph === 'done' ? 'It boots!  ·  press a card on the right to build again' : 'Click a part to pick it up';
+        if (ui.status.textContent !== txt) ui.status.textContent = txt;
+      }
+    };
+    L.presence = () => ({ pb: [S.ph === 'build' ? 1 : S.ph === 'done' ? 2 : 0, STEPS.filter((s) => s[1]()).length, Math.round((S.best.timed || 0) * 10), Math.round((S.best.guided || 0) * 10)] });
+    L.readPresence = (rec, pres, st) => {
+      const a = pres.pb;
+      if (!Array.isArray(a) || a.length !== 4 || !a.every((x) => Number.isInteger(x) && x >= 0 && x < 1e6)) { st.pb = null; return; }
+      if (!st.pb || st.pb.join() !== a.join()) state.dirtyBoard = true;
+      st.pb = a;
+    };
+    L.rowFor = (st, isMe) => {
+      const a = isMe ? L.presence().pb : st.pb;
+      if (!a) return { best: 0, text: '' };
+      const b = a[2] || a[3];
+      return { best: b ? 1e6 - b : 0, text: `${a[0] === 1 ? `${a[1]}/10 steps · ` : ''}${b ? `best ${fmtT(b / 10)}` : 'no build yet'}` };
+    };
+    L.sortRows = (a, b) => (b.best || 0) - (a.best || 0);
+    L.board = makeBoard(G, 720, 460, 2.2, 1.4, -5.85, 2.0, -0.2, Math.PI / 2, false);
+    L.drawBoard = (rows) => {
+      const g = L.board.g, W = 720;
+      g.fillStyle = '#10203a'; g.fillRect(0, 0, W, 460); g.strokeStyle = '#ffd23f'; g.lineWidth = 8; g.strokeRect(4, 4, W - 8, 452);
+      g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+      g.fillStyle = '#ffd23f'; g.font = `800 56px ${DISPLAY}`; g.fillText('Builders', 36, 80);
+      g.fillStyle = '#c8d8f0'; g.font = `400 24px ${BODY}`; g.fillText('Fastest build that boots', 36, 118);
+      drawRows(g, rows, 176, 46, W);
+      L.board.tex.needsUpdate = true;
+    };
+    makeKiosk(L, -3.6, 2.6, Math.PI * 0.75);
+    RECORDS.def(L, [{ k: 'timed', label: 'Fastest timed build (+10 s a mistake)', low: true, fmt: 'time' }, { k: 'guided', label: 'Fastest guided build', low: true, fmt: 'time' }], { x: 2.6, z: 0.2, yaw: -0.4 });
+    L.hints = [['Grip', 'grab a part; let go over its slot'], ['Trigger', 'point at a card or the power button']];
+    L.hintsFor = () => (state.mode === 'flat' ? [['Click a part', 'pick it up'], ['Click a slot', 'fit it'], ['Power', 'the green button, when you’re done']] : L.hints);
+    L.spawn = () => { dolly.position.set(0, 0, 0); stand(); };
+    L.onEnter = () => { reset(null); drawDeck(); };
+    L.onExit = () => { if (ui.status) ui.status.hidden = true; if (S.held) { goHome(S.held); S.held = null; } };
+    L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 1.2, 1.7, 1.9); camera.lookAt(0, 0.95, 0.5); };
+    reset(null); drawDeck();
+    L.pcInternals = { S, P, SLOTS, STEPS, fit, pickUp, powerOn, reset, goHome, slotPos, deck, clickAt };
+    MUSIC_THEMES.pcbuild = { gain: 0.55, bpm: 96, swing: 0.1, chords: ['Dm7', 'G7', 'Cmaj7', 'Am7'], comp: { inst: 'ep', at: [0, 6, 10], dur: 0.5 }, bass: { at: [0, 7, 10] }, drums: { k: 'x.....x...x.....', s: '....x.......x...', h: 'o-o-o-o-o-o-o-o-' }, cut: 3400 };
+    return L;
+  })();
+  // ================================================================ LEVEL: HELP DESK TICKETS (study hall)
+  // You're on the help desk. Customers walk up with a problem; for each one, pick the most likely cause and then the
+  // right fix, the way the A+ troubleshooting questions work. Six customers a shift. Quick right answers score more,
+  // and the customer tells you how it went.
+  // VR: touch an answer card on the counter (or point and pull the trigger). Browser: aim and click, or press 1-4.
+  const helpdesk = (() => {
+    const L = newLevel(51);
+    const G = L.group;
+    const rand = mulberry32(5151);
+    L.grabless = true;
+    L.bounds = { minX: -5.6, maxX: 5.6, minZ: 0.2, maxZ: 3.6 };
+    L.env = STUDY.env();
+    const hall = STUDY.room(G, rand, { w: 12, d: 10, z: -1, h: 4.4 });
+    const SPOT_Z = 0.62, SHIFT = 6, STEPT = 30;
+    // ---------------------------------------------------------------- the tickets
+    // [domain, what the customer says, [cause step], [fix step], what to remember]; a step is [prompt or '', [answers], right]
+    // (the right answer is listed first; they're shuffled when shown)
+    const CAUSE = 'What’s the most likely cause?', FIX = 'What do you do?';
+    const TICKETS = [
+      ['c1t', 'My laptop says it’s charging, but the battery dies after about twenty minutes. It’s four years old.',
+        ['', ['The battery has worn out', 'The screen resolution is too high', 'The Wi-Fi card is failing', 'It has too many browser tabs open']],
+        ['', ['Replace the battery', 'Reinstall Windows', 'Replace the keyboard', 'Turn off Bluetooth']], 'Lithium-ion batteries lose capacity with age and charge cycles.'],
+      ['c1n', 'I can’t get on the internet at all. Someone told me to run ipconfig: it says 169.254.10.4.',
+        ['', ['The PC couldn’t reach a DHCP server', 'The DNS server is down', 'The browser is out of date', 'The monitor cable is loose']],
+        ['', ['Check the network link, then ipconfig /release and /renew', 'Clear the browser cache', 'Replace the monitor', 'Uninstall the antivirus']], '169.254.x.x is APIPA: no DHCP answer. Check the connection first.'],
+      ['c1t', 'Everything I print smears when I run my thumb over it.',
+        ['', ['The fuser isn’t melting the toner on', 'The toner is low', 'The print driver is wrong', 'The paper tray is overfilled']],
+        ['', ['Replace the fuser assembly', 'Shake the toner cartridge', 'Reinstall the driver', 'Print in draft mode']], 'Toner that rubs off = fuser. Faded prints = low toner.'],
+      ['c1t', 'My PC turns itself off after twenty minutes of gaming. It’s fine for email.',
+        ['', ['It’s overheating', 'The monitor is failing', 'The keyboard is broken', 'The internet is too slow']],
+        ['', ['Clean the dust out, check the fans spin and the cooler is seated', 'Add a second monitor', 'Reinstall the game', 'Change the desktop wallpaper']], 'Shutdowns under load usually mean heat: dust, a dead fan or old thermal paste.'],
+      ['c1n', 'I can’t open any websites by name, but if I type 8.8.8.8 into the ping command it replies fine.',
+        ['', ['Name resolution (DNS) isn’t working', 'The network cable is unplugged', 'The PC has no IP address', 'The web browser needs updating']],
+        ['', ['Check the DNS server settings, then ipconfig /flushdns', 'Replace the network card', 'Reinstall Windows', 'Turn off the firewall for good']], 'IP works but names don’t: DNS.'],
+      ['c1t', 'My computer has started clicking and grinding, and files take forever to open.',
+        ['', ['The hard drive is failing', 'The RAM is too slow', 'The power supply is too big', 'The mouse needs new batteries']],
+        ['', ['Back up the data right away, then replace the drive', 'Defragment the drive', 'Run Disk Cleanup', 'Add more RAM']], 'A clicking hard drive is dying: save the data first.'],
+      ['c1m', 'My phone’s back has started bulging and the case won’t close properly. It’s warm, too.',
+        ['', ['The battery is swelling', 'The case is the wrong size', 'The screen protector is peeling', 'It has too many apps']],
+        ['', ['Power it off and have the battery replaced, then recycle the old one safely', 'Press the case shut', 'Charge it to 100%', 'Factory-reset it']], 'A swollen lithium-ion battery can catch fire: stop using it.'],
+      ['c1m', 'My laptop screen is so dark I can only see the picture if I shine a flashlight on it. Brightness is all the way up.',
+        ['', ['The backlight has failed', 'The video driver is out of date', 'The hard drive is full', 'The keyboard light is off']],
+        ['', ['Replace the backlight (or the display panel)', 'Reinstall the video driver', 'Delete some files', 'Turn on the keyboard light']], 'A picture with no light behind it is the backlight.'],
+      ['c2s', 'My browser keeps opening pop-ups, and my home page changed to some search site by itself.',
+        ['', ['Malware: adware or a browser hijacker', 'The screen is failing', 'The Wi-Fi password changed', 'The hard drive is full']],
+        ['', ['Quarantine it, remove the malware, update and scan, then show the user what to avoid', 'Buy a new computer', 'Just delete the browser history', 'Replace the mouse']], 'Investigate, quarantine, disable System Restore, remediate, update and scan, re-enable System Restore, educate.'],
+      ['c2t', 'Every secure website I visit says its certificate isn’t valid. It started after the PC was unplugged for a month.',
+        ['', ['The system date and time are wrong', 'Every website’s certificate expired', 'The monitor is broken', 'The keyboard layout changed']],
+        ['', ['Set the correct date and time (sync with a time server)', 'Turn off the antivirus', 'Reinstall the browser', 'Replace the network card']], 'A wrong clock makes good certificates look expired or not yet valid.'],
+      ['c2t', 'Since I updated my graphics driver yesterday, Windows crashes to a blue screen.',
+        ['', ['The new driver', 'A failing keyboard', 'A full recycle bin', 'The wallpaper']],
+        ['', ['Boot into Safe Mode and roll back the driver', 'Replace the graphics card', 'Reinstall Office', 'Format the drive']], 'Undo the most recent change first.'],
+      ['c2s', 'All my files have strange new extensions and there’s a note on screen asking for Bitcoin!',
+        ['', ['Ransomware', 'A failing monitor', 'A full hard drive', 'Spyware that only watches']],
+        ['', ['Disconnect it from the network now and follow the incident response plan', 'Pay the ransom', 'Keep restarting until it goes away', 'Email the note to coworkers']], 'Isolate first so it can’t spread. Good backups are the cure.'],
+      ['c2o', 'I can’t copy a 6 GB video onto my brand-new 64 GB USB stick. It says the file is too large.',
+        ['', ['The stick is formatted FAT32, which can’t hold files over 4 GB', 'The stick is too small', 'The video is corrupted', 'The USB port is USB 2.0']],
+        ['', ['Back it up, then reformat the stick as exFAT (or NTFS)', 'Buy a bigger stick', 'Rename the file', 'Run chkdsk on the stick']], 'FAT32 has a 4 GB file size limit; exFAT and NTFS don’t.'],
+      ['c2t', 'My PC takes about five minutes to start up, and loads of little icons appear by the clock.',
+        ['', ['Too many programs run at startup', 'The CPU is too fast', 'The screen is too big', 'The mouse driver is old']],
+        ['', ['Disable the startup apps you don’t need (Task Manager > Startup)', 'Replace the CPU', 'Turn off the firewall', 'Plug in a second monitor']], 'Startup apps slow the boot down.'],
+      ['c1n', 'Our Wi-Fi is really slow in my apartment. There are about thirty other networks showing up.',
+        ['', ['Interference from neighbours on the same channel', 'The router’s power cable', 'DHCP is turned on', 'The laptop’s screen brightness']],
+        ['', ['Move to a less crowded channel, or use the 5 GHz band', 'Turn off DHCP', 'Replace the power cable', 'Lower the screen brightness']], 'On 2.4 GHz, only channels 1, 6 and 11 don’t overlap.'],
+      ['c2s', 'I got an email from “IT Support” saying my mailbox is full and I need to reply with my password.',
+        ['', ['It’s a phishing email', 'Their mailbox really is full', 'It’s a normal IT request', 'It’s a software update']],
+        ['', ['Don’t reply or click anything; report it to the security team', 'Reply with the password', 'Forward it to everyone', 'Click the link to check']], 'Real IT never asks for your password.'],
+      ['c1h', 'I added a new stick of RAM and now my PC just beeps and shows nothing.',
+        ['', ['The new memory isn’t seated or isn’t the right type', 'The monitor is broken', 'Windows needs updating', 'The network is down']],
+        ['', ['Reseat it, and check it’s the type the board takes (DDR4 or DDR5)', 'Replace the monitor', 'Reinstall Windows', 'Reset the router']], 'Beep codes at POST often point at memory.'],
+      ['c2o', 'I need to join my laptop to the company domain, but there’s no option for it in Settings.',
+        ['', ['It’s running Windows Home edition', 'The laptop has no Wi-Fi', 'The domain is full', 'The mouse is unplugged']],
+        ['', ['Upgrade it to Windows Pro (or Enterprise)', 'Reinstall Windows Home', 'Buy a new mouse', 'Turn off the firewall']], 'Home can’t join a domain; Pro, Enterprise and Education can.'],
+      ['c2s', 'Someone I didn’t know followed me straight through the badge door this morning.',
+        ['What’s that called?', ['Tailgating', 'Phishing', 'Shoulder surfing', 'Whaling']],
+        ['What should the company do?', ['Train people not to hold the door, and add an access control vestibule', 'Nothing, it’s polite', 'Turn off the badge readers', 'Give everyone the door code']], 'Tailgating beats physical security by following someone in.'],
+      ['c1v', 'My virtual machine won’t start. It says hardware virtualization is turned off.',
+        ['', ['Intel VT-x or AMD-V is disabled in the BIOS/UEFI', 'The VM needs more monitors', 'The hard drive is full of photos', 'The hypervisor is Type 1']],
+        ['', ['Turn on virtualization in the BIOS/UEFI settings', 'Reinstall the VM’s OS', 'Buy a new hard drive', 'Disable Secure Boot']], 'Hypervisors need the CPU’s virtualization extensions.'],
+      ['c2p', 'The laser printer needs new toner. What should I do with the old cartridge?',
+        ['Where do you check how to handle it?', ['Its Safety Data Sheet (SDS)', 'The Windows help', 'The printer’s warranty card', 'The company website']],
+        ['And then?', ['Recycle it the way the SDS and local rules say', 'Put it in the regular trash', 'Shake out the leftover toner', 'Burn it']], 'Toner and batteries need proper disposal: check the SDS.'],
+      ['c2p', 'Oh no, I just spilled coffee all over my laptop keyboard!',
+        ['What comes first?', ['Power it off and unplug it straight away', 'Keep typing to see if it works', 'Dry it with a hair dryer while it’s on', 'Restart it']],
+        ['Then what?', ['Remove the battery if you can, let it dry, and get it checked', 'Charge it up', 'Put it in the freezer', 'Run Windows Update']], 'Power off first: liquid plus power shorts things out.'],
+    ];
+    const NAMES = ['Priya', 'Marcus', 'Ellen', 'Tomas', 'Grace', 'Dev', 'Aiko', 'Sam', 'Fatima', 'Leo', 'Nora', 'Kwame'];
+    const COLS = ['#ffb04a', '#7ab0ff', '#ff8a7a', '#8bd450', '#d88aff', '#ffd23f', '#4fc3f7', '#ff9ad0'];
+
+    // ---------------------------------------------------------------- the desk
+    addBox(G, 3.2, 1.05, 0.5, lam(0x2f6fd0), 0, 0.525, -0.3);
+    addBox(G, 3.3, 0.05, 0.62, lam(0xe8e0d0), 0, 1.07, -0.3);
+    makePlate(G, '\u{1F6E0}️  HELP DESK', 1.6, 0.26, new V3(0, 0.8, -0.04), 0, { bg: '#2f6fd0', fg: '#ffffff', size: 0.6 });
+    // a "take a number" sign and a door the customers come through
+    addBox(G, 1.4, 2.4, 0.08, lam(0x8a5a3a), 4.6, 1.2, -5.88);
+    addBox(G, 0.06, 0.06, 0.1, lam(0xd8b040), 4.15, 1.1, -5.82);
+    makePlate(G, 'CUSTOMERS', 1.2, 0.2, new V3(4.6, 2.6, -5.86), 0, { bg: '#2f6fd0', fg: '#ffffff', size: 0.6 });
+    // the ticket monitor on the counter, angled to you
+    addBox(G, 0.06, 0.22, 0.06, lam(0x2a2a2a), -1.15, 1.2, -0.38);
+    const mon = STUDY.screen(G, 1024, 640, 0.9, 0.56, -1.15, 1.58, -0.4, 0.35, 0x1a1a1a);
+    // the customer's speech bubble
+    const bubble = STUDY.screen(G, 1024, 420, 1.7, 0.7, 0, 2.3, -1.3, 0, 0xffffff);
+    // the answer cards lie on the counter, tilted up to you
+    const deck = STUDY.cards(G, { n: 4, w: 0.56, h: 0.28 });
+    const CARD_AT = [[-0.31, 1.37, -0.22], [0.31, 1.37, -0.22], [-0.31, 1.14, 0.08], [0.31, 1.14, 0.08]];
+    CARD_AT.forEach(([x, y, z], i) => deck.place(i, x, y, z, 0, -0.75));
+
+    // ---------------------------------------------------------------- the customer
+    const cust = { g: null, x: 4.4, z: -5.2, tx: 0, tz: -1.0, walk: 0, mood: 0, name: '' };
+    function newCustomer() {
+      if (cust.g) G.remove(cust.g);
+      const k = Math.floor(rand() * 64);
+      cust.g = buildAvatar(COLS[k % COLS.length], k % 4, (k >> 2) % 4, true, k % 3, (k >> 1) % 6);
+      cust.g.rotation.y = Math.PI;
+      G.add(cust.g);
+      cust.x = 4.4; cust.z = -5.2; cust.tx = 0; cust.tz = -1.0; cust.name = NAMES[Math.floor(rand() * NAMES.length)];
+    }
+
+    // ---------------------------------------------------------------- the shift
+    const S = { ph: 'idle', n: 0, step: 0, score: 0, right: 0, t0: 0, tk: null, last: null, best: 0, list: [], revealT: 0, opts: null };
+    try { if (Number.isInteger(prefs.deskBest)) S.best = prefs.deskBest; } catch (e) { /* none */ }
+    L.desk = S;
+    const timeLeft = () => Math.max(0, STEPT - (performance.now() - S.t0) / 1000);
+    function menuCards() {
+      deck.set(0, 'Start a shift', 'mode', { sub: 'Six customers', big: 48 });
+      deck.set(1, 'Core 1 only', 'mode', { sub: 'Hardware and networks', big: 48 });
+      deck.set(2, 'Core 2 only', 'mode', { sub: 'Software and security', big: 48 });
+      deck.set(3, 'Practice', 'mode', { sub: 'Every ticket, no score kept', big: 48 });
+    }
+    function startShift(kind) {
+      const pool = TICKETS.filter((t) => (kind === 'c1' ? t[0].startsWith('c1') : kind === 'c2' ? t[0].startsWith('c2') : true));
+      S.list = pool.slice().sort(() => rand() - 0.5).slice(0, kind === 'practice' ? pool.length : SHIFT);
+      Object.assign(S, { ph: 'walk', kind, n: 0, score: 0, right: 0, last: null, summary: null });
+      nextCustomer();
+      sfx('whistle', 0.5);
+      forcePresence(); state.dirtyBoard = true;
+    }
+    L.startShift = startShift;
+    function nextCustomer() {
+      if (S.n >= S.list.length) { endShift(); return; }
+      S.tk = S.list[S.n]; S.n += 1; S.step = 0; S.ph = 'walk'; S.last = null;
+      newCustomer();
+      for (let i = 0; i < 4; i++) deck.show(i, false);
+    }
+    function ask() {
+      const st = S.tk[2 + S.step];   // [cause] is tk[2], [fix] is tk[3]
+      const ans = st[1], order = [0, 1, 2, 3].sort(() => rand() - 0.5);
+      S.opts = { prompt: st[0] || (S.step === 0 ? CAUSE : FIX), a: order.map((i) => ans[i]), c: order.indexOf(0) };
+      S.opts.a.forEach((t, i) => { deck.set(i, t, 'idle', { big: 40 }); deck.show(i, true); });
+      S.ph = 'ask'; S.t0 = performance.now();
+    }
+    function answer(i) {
+      if (S.ph !== 'ask') return;
+      const ok = i === S.opts.c, tl = timeLeft();
+      if (ok) { const pts = 100 + Math.round(50 * tl / STEPT); S.score += pts; S.right += 1; STUDY.right(); spawnFloat(`+${pts}`, new V3(0, 1.9, -0.9), '#8bd450'); }
+      else STUDY.wrong();
+      S.last = { ok, pts: ok ? 100 + Math.round(50 * tl / STEPT) : 0, timeout: i < 0 };
+      for (let k = 0; k < 4; k++) deck.look(k, k === S.opts.c ? 'right' : k === i ? 'wrong' : 'dim');
+      cust.mood = ok ? 1 : -1;
+      S.ph = 'reveal'; S.revealT = 0;
+      forcePresence(); state.dirtyBoard = true;
+    }
+    L.answer = answer;
+    function advance() {
+      if (S.step === 0) { S.step = 1; ask(); return; }
+      // done with this customer: off they go
+      S.ph = 'leave'; cust.tx = 4.4; cust.tz = -5.2;
+      for (let i = 0; i < 4; i++) deck.show(i, false);
+    }
+    function endShift() {
+      S.ph = 'idle';
+      const isBest = S.kind !== 'practice' && S.score > S.best;
+      if (isBest) { S.best = S.score; prefs.deskBest = S.best; savePrefs(); }
+      if (S.kind !== 'practice') RECORDS.add(L, 'shift', S.score);
+      const of = S.list.length * 2;
+      S.summary = { score: S.score, right: S.right, of, best: isBest, kind: S.kind };
+      showToast(`Shift over: ${S.right} of ${of} right, ${S.score} points${isBest ? ' (your best!)' : ''}`);
+      sfx(S.right >= of - 1 ? 'fanfare' : 'chime', 0.8);
+      if (cust.g) { G.remove(cust.g); cust.g = null; }
+      menuCards(); for (let i = 0; i < 4; i++) deck.show(i, true);
+      forcePresence(); state.dirtyBoard = true;
+    }
+    L.endShift = endShift;
+    function onPick(i) {
+      if (S.ph === 'idle') { startShift(['all', 'c1', 'c2', 'practice'][i]); return; }
+      if (S.ph === 'ask') answer(i);
+      else if (S.ph === 'reveal' && S.revealT > 0.7) advance();
+    }
+    const input = STUDY.input(L, deck, { onPick, onMiss: () => { if (S.ph === 'reveal' && S.revealT > 0.7) advance(); }, enabled: () => state.level === L.idx });
+    L.throwLabel = () => (S.ph === 'reveal' ? 'Next' : 'Answer');
+
+    // ---------------------------------------------------------------- drawing
+    function drawBubble() {
+      const key = `${S.ph}|${S.n}|${S.step}|${S.last ? S.last.ok : ''}|${S.summary ? S.summary.score : ''}`;
+      if (key === bubble.key) return; bubble.key = key;
+      const g = bubble.g, W = 1024, H = 420;
+      g.fillStyle = '#ffffff'; g.fillRect(0, 0, W, H);
+      g.textAlign = 'center'; g.textBaseline = 'alphabetic'; g.fillStyle = '#1a2a4a';
+      if (S.ph === 'idle') {
+        g.fillStyle = '#2f6fd0'; g.font = `900 84px ${DISPLAY}`; g.fillText('HELP DESK TICKETS', W / 2, 110);
+        g.fillStyle = '#1a2a4a'; g.font = `400 34px ${BODY}`;
+        if (S.summary) { const s = S.summary; g.font = `800 56px ${DISPLAY}`; g.fillText(`${s.right} of ${s.of} right  ·  ${s.score} points`, W / 2, 220); g.font = `400 32px ${BODY}`; g.fillText(s.kind === 'practice' ? 'Practice round' : s.best ? 'Your best shift yet!' : `Your best: ${S.best}`, W / 2, 280); }
+        else STUDY.wrap(g, 'Customers bring you their problems. For each, pick the likely cause, then the fix. Quick right answers score more.', W / 2, 190, W - 120, 44);
+        g.fillStyle = '#6a7a9a'; g.font = `700 30px ${BODY}`; g.fillText('Touch a card on the counter to start', W / 2, 380);
+        bubble.tex.needsUpdate = true; return;
+      }
+      if (S.ph === 'walk' || !S.tk) { g.fillStyle = '#9aa0b8'; g.font = `700 40px ${BODY}`; g.fillText(`Next customer: ${cust.name}…`, W / 2, 220); bubble.tex.needsUpdate = true; return; }
+      g.textAlign = 'left'; g.fillStyle = '#2f6fd0'; g.font = `800 34px ${BODY}`; g.fillText(`${cust.name}:`, 40, 60);
+      if ((S.ph === 'reveal' && S.step === 1) || S.ph === 'leave') {
+        const ok = S.last && S.last.ok;
+        g.fillStyle = ok ? '#2a8a2a' : '#b02a2a'; g.font = `800 48px ${BODY}`;
+        g.fillText(ok ? 'That fixed it, thank you!' : 'Hmm, that didn’t help…', 40, 140, W - 80);
+        g.fillStyle = '#4a5a7a'; g.font = `400 34px ${BODY}`; g.textAlign = 'left';
+        STUDY.wrap(g, `Remember: ${S.tk[4]}`, 40, 220, W - 80, 44, 4);
+      } else {
+        g.fillStyle = '#1a2a4a';
+        const s = STUDY.fit(g, `“${S.tk[1]}”`, W - 80, 4, 64, 26, 400);
+        STUDY.wrap(g, `“${S.tk[1]}”`, 40, 120, W - 80, s * 1.2, 4);
+      }
+      bubble.tex.needsUpdate = true;
+    }
+    function drawMon() {
+      const t = S.ph === 'ask' ? Math.ceil(timeLeft()) : 0;
+      const key = `${S.ph}|${S.n}|${S.step}|${t}|${S.score}`;
+      if (key === mon.key) return; mon.key = key;
+      const g = mon.g, W = 1024, H = 640;
+      g.fillStyle = '#10203a'; g.fillRect(0, 0, W, H);
+      g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+      g.fillStyle = '#ffd23f'; g.font = `900 64px ${DISPLAY}`; g.fillText(S.ph === 'idle' ? 'TICKET QUEUE' : `TICKET #${1040 + S.n}`, 40, 90);
+      g.textAlign = 'right'; g.fillStyle = '#ffffff'; g.font = `900 64px ${DISPLAY}`; g.fillText(String(S.score), W - 40, 90);
+      g.textAlign = 'left';
+      if (S.ph === 'idle') { g.fillStyle = '#c8d8f0'; g.font = `400 40px ${BODY}`; STUDY.wrap(g, 'No open tickets. Start a shift with the cards on the counter.', 40, 200, W - 80, 52); mon.tex.needsUpdate = true; return; }
+      g.fillStyle = '#9ab0d0'; g.font = `700 36px ${BODY}`; g.fillText(`Customer ${S.n} of ${S.list.length}  ·  ${APLUS.DOMAINS[S.tk[0]].exam}: ${APLUS.DOMAINS[S.tk[0]].name}`, 40, 160, W - 80);
+      if (S.ph === 'ask' || S.ph === 'reveal') {
+        g.fillStyle = '#ffffff'; g.font = `800 64px ${BODY}`; STUDY.wrap(g, S.opts.prompt, 40, 280, W - 80, 72, 2);
+        g.fillStyle = '#9ab0d0'; g.font = `700 34px ${BODY}`; g.fillText(`Step ${S.step + 1} of 2`, 40, 450);
+        if (S.ph === 'ask') { const f = timeLeft() / STEPT; g.fillStyle = '#24365a'; g.fillRect(40, 500, W - 80, 24); g.fillStyle = f > 0.3 ? '#4fc3f7' : '#ff6a6a'; g.fillRect(40, 500, (W - 80) * f, 24); }
+        else { g.fillStyle = S.last.ok ? '#8bd450' : '#ff6a6a'; g.font = `900 60px ${DISPLAY}`; g.fillText(S.last.ok ? `Right! +${S.last.pts}` : S.last.timeout ? 'Out of time' : 'Not quite', 40, 540); g.fillStyle = '#6a80a8'; g.font = `400 28px ${BODY}`; g.fillText('Touch any card to carry on', 40, 600); }
+      }
+      mon.tex.needsUpdate = true;
+    }
+
+    // ---------------------------------------------------------------- per frame
+    function stand() { S.slot = STUDY.slotOf(L); STUDY.standAt(STUDY.SLOT_X[S.slot] * 0.5, state.mode === 'vr' ? SPOT_Z : 1.45, 0, -0.1); }
+    L.update = (dt, now) => {
+      const here = state.level === L.idx && state.mode !== 'menu';
+      hall.tick();
+      if (!here) { input.hide(); return; }
+      if (STUDY.slotOf(L) !== S.slot) stand();
+      // the customer walks to the counter, waits, and walks off
+      if (cust.g) {
+        const dx = cust.tx - cust.x, dz = cust.tz - cust.z, d = Math.hypot(dx, dz);
+        if (d > 0.02) { const sp = Math.min(d, 1.6 * dt); cust.x += dx / d * sp; cust.z += dz / d * sp; cust.walk += dt * 9; cust.g.rotation.y = Math.atan2(-dx, -dz) + 0; }
+        else { cust.g.rotation.y = S.ph === 'leave' ? cust.g.rotation.y : Math.PI; }
+        const bob = d > 0.02 ? Math.abs(Math.sin(cust.walk)) * 0.04 : 0;
+        const happy = S.ph === 'reveal' && cust.mood > 0 ? Math.abs(Math.sin(now / 120)) * 0.05 : 0;
+        cust.g.position.set(cust.x, 1.62 + bob + happy, cust.z);
+        cust.g.rotation.z = S.ph === 'reveal' && cust.mood < 0 ? Math.sin(now / 150) * 0.08 : 0;
+        if (S.ph === 'walk' && d <= 0.02) ask();
+        if (S.ph === 'leave' && d <= 0.02) nextCustomer();
+      }
+      if (S.ph === 'ask' && timeLeft() <= 0) answer(-1);
+      if (S.ph === 'reveal') { S.revealT += dt; if (S.revealT > (S.last.ok ? 3 : 6)) advance(); }
+      input.tick(dt);
+      drawBubble(); drawMon();
+      if (ui.status && state.mode === 'flat') {
+        ui.status.hidden = false;
+        const txt = S.ph === 'idle' ? 'Help Desk  ·  aim at a card on the counter and click (or press 1-4)' : S.ph === 'ask' ? `${Math.ceil(timeLeft())} s  ·  ${S.opts.prompt}  ·  click an answer or press 1-4` : `${S.score} points  ·  customer ${S.n} of ${S.list.length}`;
+        if (ui.status.textContent !== txt) ui.status.textContent = txt;
+      }
+    };
+    L.presence = () => ({ hd: [S.score, S.best, S.ph === 'idle' ? 0 : 1, S.n] });
+    L.readPresence = (rec, pres, st) => {
+      const a = pres.hd;
+      if (!Array.isArray(a) || a.length !== 4 || !a.every((x) => Number.isInteger(x) && x >= 0 && x < 1e6)) { st.hd = null; return; }
+      if (!st.hd || st.hd[0] !== a[0] || st.hd[1] !== a[1]) state.dirtyBoard = true;
+      st.hd = a;
+    };
+    L.rowFor = (st, isMe) => {
+      const a = isMe ? L.presence().hd : st.hd;
+      if (!a) return { best: 0, text: '' };
+      return { best: a[1], text: `${a[2] ? `${a[0]} now · ` : ''}best ${a[1]}` };
+    };
+    L.sortRows = (a, b) => (b.best || 0) - (a.best || 0);
+    L.board = makeBoard(G, 720, 460, 2.2, 1.4, -5.85, 2.0, -0.6, Math.PI / 2, false);
+    L.drawBoard = (rows) => {
+      const g = L.board.g, W = 720;
+      g.fillStyle = '#10203a'; g.fillRect(0, 0, W, 460); g.strokeStyle = '#ffd23f'; g.lineWidth = 8; g.strokeRect(4, 4, W - 8, 452);
+      g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+      g.fillStyle = '#ffd23f'; g.font = `800 56px ${DISPLAY}`; g.fillText('Employee of the month', 36, 80, W - 72);
+      g.fillStyle = '#c8d8f0'; g.font = `400 24px ${BODY}`; g.fillText('Best shift score', 36, 118);
+      drawRows(g, rows, 176, 46, W);
+      L.board.tex.needsUpdate = true;
+    };
+    makeKiosk(L, 3.8, 2.6, -Math.PI * 0.75);
+    RECORDS.def(L, [{ k: 'shift', label: 'Best shift (six customers)' }], { x: 5.75, z: 0.6, yaw: -Math.PI / 2 });
+    L.hudActions = [{ label: () => (S.ph === 'idle' ? 'Start shift' : 'End shift'), run: () => { if (S.ph === 'idle') startShift('all'); else endShift(); } }];
+    L.hints = [['Touch a card', 'on the counter to answer'], ['Point + trigger', 'works too']];
+    L.hintsFor = () => (state.mode === 'flat' ? [['Aim + click', 'pick an answer card'], ['1-4', 'answer by number']] : L.hints);
+    L.spawn = () => { dolly.position.set(0, 0, 0); stand(); };
+    L.onEnter = () => { S.ph = 'idle'; S.summary = null; if (cust.g) { G.remove(cust.g); cust.g = null; } menuCards(); for (let i = 0; i < 4; i++) deck.show(i, true); bubble.key = ''; mon.key = ''; };
+    L.onExit = () => { if (ui.status) ui.status.hidden = true; S.ph = 'idle'; input.hide(); };
+    L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 1.5, 1.8, 2.2); camera.lookAt(0, 1.5, -1); };
+    menuCards();
+    L.deskInternals = { S, TICKETS, deck, answer, advance, startShift, endShift, onPick, cust, ask };
+    MUSIC_THEMES.helpdesk = { gain: 0.5, bpm: 88, swing: 0.2, chords: ['Fmaj7', 'Em7', 'Dm7', 'Cmaj7'], comp: { inst: 'ep', at: [0, 6, 11], dur: 0.8 }, bass: { at: [0, 8, 10] }, drums: { k: 'x.......x.......', s: '....x.......x...', h: 'o-o-o-o-o-o-o-o-' }, cut: 3200, crackle: 0.6 };
+    return L;
+  })();
+  // ================================================================ LEVEL: COMMAND LINE DOJO (study hall)
+  // The terminal on the wall gives you a task ("show this PC's IP settings"); three command blocks fly at you and you
+  // strike the one that does it. The command types itself into the terminal with its output. Three strikes (a wrong
+  // block or a missed one) and the round is over; your score earns a belt, white to black.
+  // Windows, Linux or both: the commands from the A+ Core 2 objectives.
+  // VR: slice or punch the block (or point and pull the trigger). Browser: aim and click, or press 1-3.
+  const cmddojo = (() => {
+    const L = newLevel(52);
+    const G = L.group;
+    const rand = mulberry32(5252);
+    L.grabless = true;
+    L.bounds = { minX: -5.6, maxX: 5.6, minZ: -3.5, maxZ: 3.6 };
+    L.env = STUDY.env();
+    const hall = STUDY.room(G, rand, { w: 12, d: 10, z: -1, h: 4.8 });
+    const SPOT_Z = 2.0, LANES = [-0.58, 0, 0.58], BY = 1.3, Z0 = -5.2;
+    // [os, the task, the command, a line of what it prints, group (commands in one group are never offered together)]
+    const CMDS = [
+      ['win', 'Show this PC\u2019s IP address, subnet mask and gateway', 'ipconfig', 'IPv4 Address. . . . : 192.168.1.20'],
+      ['win', 'Check whether you can reach another computer', 'ping', 'Reply from 8.8.8.8: bytes=32 time=12ms TTL=117', 'reach'],
+      ['win', 'Show every router hop on the way to a website', 'tracert', '  1    <1 ms    192.168.1.1', 'reach'],
+      ['win', 'Ask DNS which IP address a name belongs to', 'nslookup', 'Address:  93.184.216.34'],
+      ['win', 'List this PC\u2019s network connections and listening ports', 'netstat', '  TCP    0.0.0.0:3389    LISTENING'],
+      ['win', 'Check a disk for file system errors', 'chkdsk', 'Windows has scanned the file system and found no problems.'],
+      ['win', 'Scan and repair protected Windows system files', 'sfc /scannow', 'Windows Resource Protection did not find any integrity violations.'],
+      ['win', 'Manage disks and partitions from the command line', 'diskpart', 'DISKPART>'],
+      ['win', 'Put a new file system on a drive (it wipes it)', 'format', 'Format complete.'],
+      ['win', 'Apply new Group Policy settings right now', 'gpupdate /force', 'Computer Policy update has completed successfully.'],
+      ['win', 'Show which Group Policy settings were applied', 'gpresult /r', 'Applied Group Policy Objects'],
+      ['win', 'Copy whole folders reliably, with retries', 'robocopy', 'Files :  120   Copied :  120', 'copy'],
+      ['win', 'Restart this PC from the command line', 'shutdown /r', 'You are about to be signed out.'],
+      ['win', 'List the programs and processes running', 'tasklist', 'chrome.exe     4120 Console   1   212,844 K'],
+      ['win', 'End a process that\u2019s stuck', 'taskkill', 'SUCCESS: The process "app.exe" with PID 4120 has been terminated.'],
+      ['win', 'Map a shared folder to a drive letter', 'net use', 'The command completed successfully.'],
+      ['win', 'Create or change user accounts', 'net user', 'The command completed successfully.'],
+      ['win', 'Show this computer\u2019s name', 'hostname', 'WS-ACCT-07'],
+      ['win', 'Show which version and build of Windows this is', 'winver', '(About Windows: Version 24H2)'],
+      ['win', 'Show which user you\u2019re signed in as', 'whoami', 'corp\\jsmith'],
+      ['win', 'List the files in this folder', 'dir', '03/14  09:12   <DIR>   Documents'],
+      ['win', 'Make a new folder', 'md', '(a new folder appears)'],
+      ['win', 'Delete an empty folder', 'rmdir', '(the folder is gone)'],
+      ['lin', 'List the files in this directory', 'ls', 'Desktop  Documents  notes.txt'],
+      ['lin', 'Show which directory you\u2019re in', 'pwd', '/home/sam'],
+      ['lin', 'Copy a file', 'cp', '(notes.txt copied)'],
+      ['lin', 'Move or rename a file', 'mv', '(notes.txt is now todo.txt)'],
+      ['lin', 'Delete a file', 'rm', '(notes.txt is gone)'],
+      ['lin', 'Change a file\u2019s permissions', 'chmod', '-rwxr-xr-x  1 sam sam  220 backup.sh'],
+      ['lin', 'Change who owns a file', 'chown', '-rw-r--r--  1 alex staff 220 report.txt'],
+      ['lin', 'Run one command as the superuser (root)', 'sudo', '[sudo] password for sam:'],
+      ['lin', 'Switch to another user account', 'su', 'Password:'],
+      ['lin', 'Install software on Ubuntu or Debian', 'apt', 'Setting up htop (3.3.0) ...'],
+      ['lin', 'Install software on Fedora or Red Hat', 'dnf', 'Installed: htop-3.3.0  Complete!'],
+      ['lin', 'List the running processes (a snapshot)', 'ps', '  PID TTY    TIME CMD\n 4120 pts/0  0:00 bash', 'proc'],
+      ['lin', 'Watch processes and CPU use, live', 'top', 'Tasks: 182 total,  1 running', 'proc'],
+      ['lin', 'Search inside files for some text', 'grep', 'notes.txt: call the printer guy'],
+      ['lin', 'Search for files by name', 'find', './Documents/report.txt'],
+      ['lin', 'Look up the DNS records for a name', 'dig', ';; ANSWER SECTION: example.com. 300 IN A 93.184.216.34'],
+      ['lin', 'Show network interfaces and their addresses', 'ip addr', 'inet 192.168.1.30/24 brd 192.168.1.255'],
+      ['lin', 'Show how much space is free on each drive', 'df -h', '/dev/sda1   98G   41G   52G  45% /'],
+      ['lin', 'Show how much space a folder takes up', 'du', '1.2G    ./Videos'],
+      ['lin', 'Print a file\u2019s contents to the screen', 'cat', 'Remember: back up on Fridays'],
+      ['lin', 'Edit a text file in the terminal', 'nano', '  GNU nano 7.2     notes.txt'],
+      ['lin', 'Read the manual page for a command', 'man', 'LS(1)          User Commands          LS(1)'],
+      ['lin', 'Change your password', 'passwd', 'passwd: password updated successfully'],
+    ];
+    const MODES = [{ id: 'win', name: 'Windows', sub: 'ipconfig, chkdsk, gpupdate\u2026' }, { id: 'lin', name: 'Linux', sub: 'ls, chmod, sudo, grep\u2026' }, { id: 'mix', name: 'Both', sub: 'Mixed, and you say which' }];
+    const BELTS = [[0, 'White', '#f4f2ec'], [5, 'Yellow', '#ffd23f'], [10, 'Orange', '#ff9a3a'], [15, 'Green', '#3aa86a'], [20, 'Blue', '#3a6ad8'], [25, 'Brown', '#8a5a2a'], [30, 'Black', '#1a1a1a']];
+    const gong = () => { tone(110, 104, 1.6, 'sine', 0.3); tone(220, 214, 1.1, 'triangle', 0.08); tone(331, 325, 0.8, 'sine', 0.06); };
+    const beltOf = (n) => BELTS.filter((b) => n >= b[0]).pop();
+
+    // ---------------------------------------------------------------- the dojo: mats, a banner, the terminal
+    for (let i = 0; i < 6; i++) addBox(G, 2.6, 0.02, 1.3, lam(i % 2 ? 0xb8c88a : 0xc8d89a), 0, 0.01, 2.6 - i * 1.32);
+    for (let i = 0; i <= 6; i++) addBox(G, 2.62, 0.022, 0.04, lam(0x2a3a1a), 0, 0.012, 3.25 - i * 1.32);
+    makePlate(G, '\u{1F94B}  COMMAND LINE DOJO', 3.4, 0.42, new V3(0, 3.82, -5.86), 0, { bg: '#b02a2a', fg: '#ffffff', size: 0.6 });
+    const term = STUDY.screen(G, 1024, 560, 4.0, 2.19, 0, 2.42, -5.85, 0, 0x2a2a2a);
+    // the blocks
+    const deck = STUDY.cards(G, { n: 3, w: 0.5, h: 0.3, numbered: true });
+    const blk = [0, 1, 2].map(() => ({ z: Z0, vx: 0, vy: 0, spin: 0, st: 'off', t: 0, y: BY, x: 0 }));
+
+    // ---------------------------------------------------------------- the round
+    const S = { ph: 'menu', mode: 'win', score: 0, strikes: 0, task: null, c: -1, waveT: 0, speed: 1.0, lines: [], best: {}, hover: 0, gap: 0 };
+    try { if (prefs.dojoBest && typeof prefs.dojoBest === 'object') S.best = Object.assign({}, prefs.dojoBest); } catch (e) { /* none */ }
+    L.dojo = S;
+    const promptOf = (os) => (os === 'lin' ? 'sam@dojo:~$ ' : 'C:\\Users\\sam> ');
+    function showMenu() {
+      S.ph = 'menu';
+      MODES.forEach((m, i) => { deck.set(i, m.name, 'mode', { sub: m.sub, big: 56 }); deck.show(i, true); blk[i].st = 'menu'; blk[i].x = LANES[i]; blk[i].y = BY; blk[i].z = SPOT_Z - 1.6; });
+    }
+    function startRound(mode) {
+      Object.assign(S, { ph: 'play', mode, score: 0, strikes: 0, speed: 1.0, lines: [], recent: [] });
+      gong();
+      wave();
+      forcePresence(); state.dirtyBoard = true;
+    }
+    L.startRound = startRound;
+    function wave() {
+      const pool = CMDS.filter((c) => S.mode === 'mix' || c[0] === S.mode);
+      let task; let n = 0;
+      do { task = pool[Math.floor(rand() * pool.length)]; } while (S.recent.includes(task[2]) && n++ < 30);
+      S.recent.push(task[2]); if (S.recent.length > 12) S.recent.shift();
+      // two wrong commands: never from the task's group; in "Both", one is from the other OS
+      const others = pool.filter((c) => c !== task && !(task[4] && c[4] === task[4]) && c[2] !== task[2]).sort(() => rand() - 0.5);
+      let wrong = others.slice(0, 2);
+      if (S.mode === 'mix') { const a = others.find((c) => c[0] !== task[0]), b = others.find((c) => c[0] === task[0]); wrong = [a, b].filter(Boolean); }
+      const opts = [task].concat(wrong).sort(() => rand() - 0.5);
+      S.task = task; S.c = opts.indexOf(task); S.opts = opts;
+      opts.forEach((o, i) => {
+        deck.set(i, S.mode === 'mix' ? `${o[2]}` : o[2], 'idle', { mono: true, big: 60, sub: S.mode === 'mix' ? (o[0] === 'win' ? 'Windows' : 'Linux') : undefined });
+        deck.show(i, true);
+        Object.assign(blk[i], { st: 'in', z: Z0 - i * 0.25, x: LANES[i], y: BY + (i === 1 ? 0.06 : 0), t: 0, vx: 0, vy: 0, spin: 0 });
+      });
+      S.ph = 'play'; S.hover = 0;
+    }
+    function typeLine(text) { for (const l of String(text).split('\n')) S.lines.push(l); while (S.lines.length > 7) S.lines.shift(); termKey = ''; }
+    function strike(i, how) {
+      if (S.ph === 'menu') { startRound(MODES[i].id); return; }
+      if (S.ph !== 'play' || blk[i].st !== 'in') return;
+      const ok = i === S.c;
+      // the struck block flies off; the others drop
+      blk.forEach((b, k) => { if (b.st !== 'in') return; if (k === i) Object.assign(b, { st: 'fly', vx: (rand() - 0.5) * 3, vy: 2.5, spin: 12, t: 0 }); else Object.assign(b, { st: 'drop', vx: 0, vy: 0, spin: 2, t: 0 }); });
+      if (ok) {
+        S.score += 1; S.speed = Math.min(2.2, 1 + S.score * 0.05);
+        STUDY.right(); if (how === 'touch') sfx('swish', 0.5);
+        typeLine(`${promptOf(S.task[0])}${S.task[2]}`); typeLine(S.task[3]);
+        deck.look(i, 'right');
+        const nb = beltOf(S.score);
+        if (nb[0] === S.score && S.score > 0) { showToast(`${nb[1]} belt!`); gong(); }
+      } else {
+        S.strikes += 1; STUDY.wrong();
+        typeLine(`${promptOf(S.opts[i][0])}${S.opts[i][2]}`); typeLine(`  \u2717 Not that one: ${S.task[2]} does it.`);
+        deck.look(i, 'wrong'); deck.look(S.c, 'right');
+      }
+      S.last = { ok }; S.ph = 'gap'; S.gap = ok ? 0.7 : 1.6;
+      forcePresence(); state.dirtyBoard = true;
+    }
+    L.strike = strike;
+    function missed() {
+      S.strikes += 1; STUDY.wrong();
+      typeLine(`${promptOf(S.task[0])}\u2026`); typeLine(`  \u2717 Too slow: it was ${S.task[2]}.`);
+      blk.forEach((b) => { if (b.st === 'in') Object.assign(b, { st: 'drop', vy: 0, spin: 2, t: 0 }); });
+      deck.look(S.c, 'right');
+      S.last = { ok: false }; S.ph = 'gap'; S.gap = 1.6;
+      forcePresence();
+    }
+    function endRound() {
+      const prev = S.best[S.mode] || 0, isBest = S.score > prev;
+      if (isBest) { S.best[S.mode] = S.score; prefs.dojoBest = Object.assign({}, S.best); savePrefs(); }
+      RECORDS.add(L, S.mode, S.score);
+      const b = beltOf(S.score);
+      showToast(`Three strikes! ${S.score} commands: ${b[1]} belt${isBest ? ' (your best!)' : ''}`);
+      sfx(S.score >= 15 ? 'fanfare' : 'chime', 0.8);
+      S.summary = { score: S.score, belt: b, mode: S.mode, best: isBest };
+      showMenu();
+      forcePresence(); state.dirtyBoard = true;
+    }
+    L.endRound = endRound;
+    const input = STUDY.input(L, deck, { onPick: (i, how) => strike(i, how), minSpeed: 1.0, enabled: () => state.level === L.idx && (S.ph === 'play' || S.ph === 'menu') });
+    L.throwLabel = () => 'Strike';
+
+    // ---------------------------------------------------------------- the terminal
+    let termKey = '';
+    function drawTerm() {
+      const key = `${S.ph}|${S.score}|${S.strikes}|${S.task ? S.task[1] : ''}|${S.lines.length}|${S.lines[S.lines.length - 1] || ''}|${S.summary ? S.summary.score : ''}`;
+      if (key === termKey) return; termKey = key;
+      const g = term.g, W = 1024, H = 560, mono = 'ui-monospace, Menlo, Consolas, "Courier New", monospace';
+      g.fillStyle = '#0a0f0a'; g.fillRect(0, 0, W, H);
+      g.textBaseline = 'alphabetic'; g.textAlign = 'left';
+      if (S.ph === 'menu') {
+        g.fillStyle = '#8bff6a'; g.font = `700 40px ${mono}`;
+        g.fillText('> COMMAND LINE DOJO', 40, 80);
+        g.fillStyle = '#c8f0c0'; g.font = `400 30px ${mono}`;
+        STUDY.wrap(g, 'Read the task. Strike the command that does it. Three strikes and you\u2019re out.', 40, 150, W - 80, 40);
+        if (S.summary) {
+          const s = S.summary;
+          g.fillStyle = s.belt[2] === '#1a1a1a' ? '#ffffff' : s.belt[2]; g.font = `700 48px ${mono}`; g.fillText(`${s.score} commands: ${s.belt[1]} belt`, 40, 330);
+          g.fillStyle = '#c8f0c0'; g.font = `400 28px ${mono}`; g.fillText(s.best ? 'Your best yet!' : `Best (${MODES.find((m) => m.id === s.mode).name}): ${S.best[s.mode] || 0}`, 40, 380);
+        }
+        g.fillStyle = '#ffd23f'; g.font = `700 30px ${mono}`; g.fillText('Strike a block to pick: Windows, Linux or Both', 40, 500, W - 80);
+        term.tex.needsUpdate = true; return;
+      }
+      // the task, the belt, the strikes
+      g.fillStyle = '#16301a'; g.fillRect(0, 0, W, 136);
+      g.fillStyle = '#ffd23f'; g.font = `700 28px ${mono}`; g.fillText(`# Task (${S.task && S.task[0] === 'lin' ? 'Linux' : 'Windows'}):`, 30, 38);
+      g.fillStyle = '#ffffff'; g.font = `700 50px ${BODY}`; g.fillText(S.task ? S.task[1] : '', 30, 106, W - 60);
+      const b = beltOf(S.score);
+      g.textAlign = 'right'; g.fillStyle = b[2] === '#1a1a1a' ? '#ffffff' : b[2]; g.font = `700 28px ${mono}`; g.fillText(`${b[1]} belt \u00B7 ${S.score}  ` + '\u2716'.repeat(S.strikes) + '\u25CB'.repeat(Math.max(0, 3 - S.strikes)), W - 30, 38);
+      g.textAlign = 'left'; g.font = `400 38px ${mono}`;
+      const shown = S.lines.slice(-6);
+      shown.forEach((l, i) => { g.fillStyle = /^\s*\u2717/.test(l) ? '#ff8a7a' : /[$>] /.test(l) ? '#8bff6a' : '#c8d8c8'; g.fillText(l, 30, 190 + i * 56, W - 60); });
+      if (S.ph === 'play' && shown.length < 7) { g.fillStyle = '#8bff6a'; g.fillText(`${promptOf(S.task[0])}_`, 30, 190 + shown.length * 56); }
+      term.tex.needsUpdate = true;
+    }
+
+    // ---------------------------------------------------------------- per frame
+    function stand() { S.slot = STUDY.slotOf(L); STUDY.standAt(STUDY.SLOT_X[S.slot] * 0.6, state.mode === 'vr' ? SPOT_Z : SPOT_Z + 0.5, 0, -0.04); }
+    const STOP_Z = () => SPOT_Z - 0.55;
+    L.update = (dt, now) => {
+      const here = state.level === L.idx && state.mode !== 'menu';
+      hall.tick();
+      if (!here) { input.hide(); return; }
+      if (STUDY.slotOf(L) !== S.slot) stand();
+      const ox = STUDY.SLOT_X[S.slot || 0] * 0.6;
+      // blocks fly in and wait at arm's length; strike before the timer runs out
+      let waiting = false;
+      blk.forEach((b, i) => {
+        if (b.st === 'in') {
+          const v = 1.6 * S.speed;
+          b.z = Math.min(STOP_Z(), b.z + v * dt);
+          if (b.z >= STOP_Z() - 1e-3) waiting = true;
+        } else if (b.st === 'fly' || b.st === 'drop') {
+          b.t += dt; b.vy -= 9.8 * dt * (b.st === 'drop' ? 0.6 : 1); b.y += b.vy * dt; b.x += b.vx * dt;
+          if (b.t > 0.9) { b.st = 'off'; deck.show(i, false); }
+        }
+        if (b.st !== 'off') {
+          deck.place(i, ox + b.x, b.y, b.z, 0, 0);
+          deck.cards[i].grp.rotation.z = b.st === 'fly' || b.st === 'drop' ? b.t * b.spin : 0;
+          deck.cards[i].grp.rotation.x = b.st === 'menu' || b.st === 'in' ? Math.sin(now / 300 + i) * 0.05 : b.t * b.spin * 0.3;
+        }
+      });
+      if (S.ph === 'play') {
+        if (waiting) { S.hover += dt; if (S.hover > Math.max(2.2, 5 - S.score * 0.12)) missed(); }
+      } else if (S.ph === 'gap') {
+        S.gap -= dt;
+        if (S.gap <= 0) { if (S.strikes >= 3) endRound(); else wave(); }
+      }
+      input.tick(dt);
+      drawTerm();
+      if (ui.status && state.mode === 'flat') {
+        ui.status.hidden = false;
+        const txt = S.ph === 'menu' ? 'Command Line Dojo  \u00B7  aim at a block and click (or press 1-3)' : `${S.score} commands  \u00B7  ${3 - S.strikes} strikes left  \u00B7  click the right command (or 1-3)`;
+        if (ui.status.textContent !== txt) ui.status.textContent = txt;
+      }
+    };
+    L.presence = () => ({ cd: [S.score, Math.max(0, ...Object.values(S.best).map(Number).filter(Number.isFinite)), S.ph === 'menu' ? 0 : 1] });
+    L.readPresence = (rec, pres, st) => {
+      const a = pres.cd;
+      if (!Array.isArray(a) || a.length !== 3 || !a.every((x) => Number.isInteger(x) && x >= 0 && x < 1e5)) { st.cd = null; return; }
+      if (!st.cd || st.cd[0] !== a[0] || st.cd[1] !== a[1]) state.dirtyBoard = true;
+      st.cd = a;
+    };
+    L.rowFor = (st, isMe) => {
+      const a = isMe ? L.presence().cd : st.cd;
+      if (!a) return { best: 0, text: '' };
+      return { best: a[1], text: `${a[2] ? `${a[0]} now \u00B7 ` : ''}${beltOf(a[1])[1]} belt (${a[1]})` };
+    };
+    L.sortRows = (a, b) => (b.best || 0) - (a.best || 0);
+    L.board = makeBoard(G, 720, 460, 2.2, 1.4, -5.85, 2.0, -0.8, Math.PI / 2, false);
+    L.drawBoard = (rows) => {
+      const g = L.board.g, W = 720;
+      g.fillStyle = '#0a0f0a'; g.fillRect(0, 0, W, 460); g.strokeStyle = '#b02a2a'; g.lineWidth = 8; g.strokeRect(4, 4, W - 8, 452);
+      g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+      g.fillStyle = '#8bff6a'; g.font = `800 56px ${DISPLAY}`; g.fillText('Senseis', 36, 80);
+      g.fillStyle = '#c8f0c0'; g.font = `400 24px ${BODY}`; g.fillText('Most commands before three strikes', 36, 118);
+      drawRows(g, rows, 176, 46, W);
+      L.board.tex.needsUpdate = true;
+    };
+    makeKiosk(L, 3.6, 3.0, -Math.PI * 0.75);
+    RECORDS.def(L, MODES.map((m) => ({ k: m.id, label: `${m.name}: most commands` })), { x: 5.75, z: 0.2, yaw: -Math.PI / 2 });
+    L.hudActions = [{ label: () => (S.ph === 'menu' ? 'Start: Windows' : 'End round'), run: () => { if (S.ph === 'menu') startRound('win'); else { S.strikes = 3; endRound(); } } }];
+    L.hints = [['Slice or punch', 'the block with the right command'], ['Point + trigger', 'works too']];
+    L.hintsFor = () => (state.mode === 'flat' ? [['Aim + click', 'strike a block'], ['1-3', 'strike by number']] : L.hints);
+    L.spawn = () => { dolly.position.set(0, 0, 0); stand(); };
+    L.onEnter = () => { S.summary = null; S.lines = []; showMenu(); termKey = ''; };
+    L.onExit = () => { if (ui.status) ui.status.hidden = true; showMenu(); input.hide(); };
+    L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 2, 1.7, 3.0); camera.lookAt(0, 1.8, -3); };
+    showMenu();
+    L.dojoInternals = { S, CMDS, blk, deck, strike, missed, wave, startRound, endRound, beltOf, MODES };
+    MUSIC_THEMES.cmddojo = { gain: 0.6, bpm: 100, swing: 0.05, chords: ['Am', 'Em', 'F', 'G'], arp: { inst: 'pluck', every: 2, order: [1, 3, 2, 4, 1, 3, 2, 4] }, bass: { at: [0, 6, 10] }, drums: { k: 'x.....x...x.....', s: '....x.......x...', h: '-o-o-o-o-o-o-o-o' }, cut: 3400 };
+    return L;
+  })();
+  // ================================================================ LEVEL: MATH SPRINT (study hall)
+  // Mental maths against the clock: a problem goes up on the chalkboard, four answers hang in front of you, and you tap
+  // the right one. Sixty seconds, as many as you can; a wrong answer locks you out for a second and a half.
+  // Warm-up (adding and taking away), Times tables (and dividing), Mental mix (percentages, squares, bigger products)
+  // and Binary & hex, for the A+ crowd.
+  // VR: tap an answer (or point and pull the trigger). Browser: aim and click, or press 1-4.
+  const mathsprint = (() => {
+    const L = newLevel(53);
+    const G = L.group;
+    const rand = mulberry32(5353);
+    L.grabless = true;
+    L.bounds = { minX: -5.6, maxX: 5.6, minZ: -3.5, maxZ: 3.6 };
+    L.env = STUDY.env();
+    const hall = STUDY.room(G, rand, { w: 12, d: 10, z: -1, h: 4.4 });
+    const SPOT_Z = 1.6, ROUND = 60, LOCK = 1.5;
+    const MODES = [
+      { id: 'add', name: 'Warm-up', sub: 'Adding and taking away' },
+      { id: 'times', name: 'Times tables', sub: 'Up to 12 × 12, and dividing' },
+      { id: 'mix', name: 'Mental mix', sub: 'Percentages, squares, bigger sums' },
+      { id: 'bin', name: 'Binary & hex', sub: 'Number systems for IT' },
+    ];
+    const ri = (a, b) => a + Math.floor(rand() * (b - a + 1));
+    const pick = (arr) => arr[Math.floor(rand() * arr.length)];
+    const toBin = (n) => n.toString(2), toHex = (n) => n.toString(16).toUpperCase();
+    // a problem: { q, a (the answer, as text), wrong: [three near misses] }
+    function nearNums(ans, extra) {
+      const out = new Set();
+      const cands = [ans + 1, ans - 1, ans + 2, ans - 2, ans + 10, ans - 10, Number(String(ans).split('').reverse().join(''))].concat(extra || []);
+      for (const c of cands.sort(() => rand() - 0.5)) if (Number.isInteger(c) && c >= 0 && c !== ans) out.add(c);
+      let k = 3; while (out.size < 3) { out.add(ans + k); k += 1; }
+      return [...out].slice(0, 3).map(String);
+    }
+    function problem(mode) {
+      if (mode === 'add') {
+        if (rand() < 0.55) { const a = ri(11, 89), b = ri(6, 99 - a); return { q: `${a} + ${b}`, a: String(a + b), wrong: nearNums(a + b) }; }
+        const a = ri(25, 99), b = ri(6, a - 5); return { q: `${a} − ${b}`, a: String(a - b), wrong: nearNums(a - b, [a + b - 0]) };
+      }
+      if (mode === 'times') {
+        const a = ri(2, 12), b = ri(2, 12);
+        if (rand() < 0.65) return { q: `${a} × ${b}`, a: String(a * b), wrong: nearNums(a * b, [a * (b + 1), (a + 1) * b, a * (b - 1)]) };
+        return { q: `${a * b} ÷ ${a}`, a: String(b), wrong: nearNums(b, [b + 1, b - 1, a]) };
+      }
+      if (mode === 'mix') {
+        const k = rand();
+        if (k < 0.3) { const p = pick([10, 20, 25, 50, 75, 5, 15]), n = pick([20, 40, 60, 80, 120, 160, 200, 240]); const v = p * n / 100; if (!Number.isInteger(v)) return problem(mode); return { q: `${p}% of ${n}`, a: String(v), wrong: nearNums(v, [v * 2, v / 2 | 0, n - v]) }; }
+        if (k < 0.55) { const n = ri(11, 20); return { q: `${n}²`, a: String(n * n), wrong: nearNums(n * n, [n * 2, (n + 1) * (n + 1), (n - 1) * (n - 1)]) }; }
+        if (k < 0.8) { const a = ri(12, 49), b = ri(3, 9); return { q: `${a} × ${b}`, a: String(a * b), wrong: nearNums(a * b, [a * b + b, a * b - b, a * b + 10]) }; }
+        const d = pick([2, 3, 4, 5]), n = d * ri(6, 30); const name = { 2: 'Half', 3: 'A third', 4: 'A quarter', 5: 'A fifth' }[d];
+        return { q: `${name} of ${n}`, a: String(n / d), wrong: nearNums(n / d, [n / (d + 1) | 0, n * d]) };
+      }
+      // binary and hex
+      const k = rand();
+      if (k < 0.3) { const n = ri(3, 31); const b = toBin(n); const flip = (i) => { const arr = b.split(''); arr[i] = arr[i] === '1' ? '0' : '1'; return arr.join('').replace(/^0+(?=.)/, ''); };
+        const w = new Set(); for (let i = 0; i < b.length && w.size < 3; i++) { const f = flip((i * 7 + 3) % b.length); if (f !== b) w.add(f); } while (w.size < 3) w.add(toBin(n + w.size + 1));
+        return { q: `${n} in binary`, a: b, wrong: [...w].slice(0, 3), mono: true }; }
+      if (k < 0.6) { const n = ri(5, 63), b = toBin(n); return { q: `${b}₂ in decimal`, a: String(n), wrong: nearNums(n, [n ^ 1, n ^ 2, n ^ 4].filter((x) => x !== n)) }; }
+      if (k < 0.8) { const n = ri(16, 255); return { q: `0x${toHex(n)} in decimal`, a: String(n), wrong: nearNums(n, [n + 16, n - 16, parseInt(toHex(n).split('').reverse().join(''), 16)]) }; }
+      const n = ri(10, 255), h = toHex(n), alt = [toHex(n + 1), toHex(Math.max(1, n - 1)), toHex(n + 16), h.split('').reverse().join('')].filter((x) => x !== h);
+      return { q: `${n} in hex`, a: h, wrong: [...new Set(alt)].slice(0, 3), mono: true };
+    }
+    L.problem = problem;
+
+    // ---------------------------------------------------------------- the chalkboard and the answers
+    addBox(G, 5.2, 2.5, 0.08, lam(0x6a4a2a), 0, 2.35, -5.86);
+    const board = STUDY.screen(G, 1024, 470, 5.0, 2.3, 0, 2.35, -5.82, 0, 0x6a4a2a);
+    addBox(G, 5.0, 0.05, 0.12, lam(0x6a4a2a), 0, 1.18, -5.76);
+    for (let i = 0; i < 4; i++) addBox(G, 0.07, 0.02, 0.02, lam(0xffffff), -2.2 + i * 0.14, 1.215, -5.75);   // chalk
+    const deck = STUDY.cards(G, { n: 4, w: 0.5, h: 0.28 });
+    const AT = [[-0.29, 1.4], [0.29, 1.4], [-0.29, 1.08], [0.29, 1.08]];
+
+    // ---------------------------------------------------------------- the round
+    const S = { ph: 'menu', mode: 'add', t0: 0, score: 0, wrong: 0, p: null, c: -1, lock: 0, streak: 0, best: {}, lastQ: '' };
+    try { if (prefs.mathBest && typeof prefs.mathBest === 'object') S.best = Object.assign({}, prefs.mathBest); } catch (e) { /* none */ }
+    L.math = S;
+    const timeLeft = () => Math.max(0, ROUND - (performance.now() - S.t0) / 1000);
+    function showMenu() { S.ph = 'menu'; MODES.forEach((m, i) => deck.set(i, m.name, 'mode', { sub: m.sub, big: 48 })); }
+    function startRound(mode) {
+      Object.assign(S, { ph: 'play', mode, t0: performance.now(), score: 0, wrong: 0, lock: 0, streak: 0 });
+      sfx('whistle', 0.6);
+      next();
+      forcePresence(); state.dirtyBoard = true;
+    }
+    L.startRound = startRound;
+    function next() {
+      let p, n = 0;
+      do { p = problem(S.mode); } while (p.q === S.lastQ && n++ < 10);
+      S.lastQ = p.q;
+      const opts = [p.a].concat(p.wrong.slice(0, 3)).sort(() => rand() - 0.5);
+      S.p = p; S.c = opts.indexOf(p.a);
+      opts.forEach((t, i) => deck.set(i, t, 'idle', { big: 76, mono: p.mono }));
+      boardKey = '';
+    }
+    function answer(i) {
+      if (S.ph === 'menu') { startRound(MODES[i].id); return; }
+      if (S.ph !== 'play' || S.lock > 0) return;
+      if (i === S.c) {
+        S.score += 1; S.streak += 1;
+        tone(660 + Math.min(10, S.streak) * 50, 0, 0.09, 'sine', 0.16);
+        spawnFloat('+1', deck.cards[i].grp.position.clone().add(new V3(0, 0.25, 0)), '#8bd450');
+        next();
+      } else {
+        S.wrong += 1; S.streak = 0; S.lock = LOCK;
+        STUDY.wrong();
+        deck.look(i, 'wrong'); deck.look(S.c, 'right');
+      }
+      forcePresence(); state.dirtyBoard = true;
+    }
+    L.answer = answer;
+    function endRound() {
+      S.ph = 'menu';
+      const prev = S.best[S.mode] || 0, isBest = S.score > prev;
+      if (isBest) { S.best[S.mode] = S.score; prefs.mathBest = Object.assign({}, S.best); savePrefs(); }
+      RECORDS.add(L, S.mode, S.score);
+      sfx(S.score >= 25 ? 'fanfare' : 'chime', 0.8);
+      showToast(`Time! ${S.score} right${S.wrong ? `, ${S.wrong} wrong` : ''}${isBest ? ' (your best!)' : ''}`);
+      S.summary = { score: S.score, wrong: S.wrong, mode: S.mode, best: isBest };
+      showMenu(); boardKey = '';
+      forcePresence(); state.dirtyBoard = true;
+    }
+    L.endRound = endRound;
+    const input = STUDY.input(L, deck, { onPick: (i) => answer(i), enabled: () => state.level === L.idx });
+    L.throwLabel = () => 'Answer';
+
+    // ---------------------------------------------------------------- the chalkboard
+    let boardKey = '';
+    function drawBoard() {
+      const t = S.ph === 'play' ? Math.ceil(timeLeft()) : 0;
+      const key = `${S.ph}|${S.p ? S.p.q : ''}|${t}|${S.score}|${S.lock > 0}|${S.summary ? S.summary.score : ''}`;
+      if (key === boardKey) return; boardKey = key;
+      const g = board.g, W = 1024, H = 470;
+      g.fillStyle = '#2a4a3a'; g.fillRect(0, 0, W, H);
+      // a little chalk dust
+      g.fillStyle = 'rgba(255,255,255,0.04)'; for (let i = 0; i < 30; i++) g.fillRect((i * 337) % W, (i * 191) % H, 60, 6);
+      g.textAlign = 'center'; g.textBaseline = 'alphabetic';
+      if (S.ph === 'menu') {
+        g.fillStyle = '#f4f2e8'; g.font = `900 110px ${DISPLAY}`; g.fillText('MATH SPRINT', W / 2, 130);
+        g.font = `400 36px ${BODY}`; g.fillStyle = '#d8e8d8';
+        if (S.summary) { const s = S.summary; g.font = `800 72px ${DISPLAY}`; g.fillStyle = '#ffe08a'; g.fillText(`${s.score} in 60 seconds`, W / 2, 250); g.font = `400 34px ${BODY}`; g.fillStyle = '#d8e8d8'; g.fillText(`${MODES.find((m) => m.id === s.mode).name}  ·  ${s.best ? 'your best yet!' : `best ${S.best[s.mode] || 0}`}`, W / 2, 310); }
+        else STUDY.wrap(g, 'Sixty seconds. Tap the right answer as fast as you can. A wrong one costs you a second and a half.', W / 2, 220, W - 140, 46);
+        g.fillStyle = '#ffe08a'; g.font = `700 34px ${BODY}`; g.fillText('Pick a mode below', W / 2, 420);
+        board.tex.needsUpdate = true; return;
+      }
+      g.textAlign = 'left'; g.fillStyle = '#d8e8d8'; g.font = `700 40px ${BODY}`; g.fillText(MODES.find((m) => m.id === S.mode).name, 40, 60);
+      g.textAlign = 'right'; g.fillStyle = t <= 10 ? '#ff9a8a' : '#f4f2e8'; g.font = `900 72px ${DISPLAY}`; g.fillText(`${t}`, W - 40, 80);
+      g.fillStyle = '#ffe08a'; g.font = `800 48px ${DISPLAY}`; g.fillText(`${S.score} right`, W - 40, 140);
+      g.textAlign = 'center'; g.fillStyle = S.lock > 0 ? '#ff9a8a' : '#ffffff';
+      const q = `${S.p.q}${/in |of /.test(S.p.q) ? '' : ' = ?'}`;
+      g.font = `900 ${q.length > 14 ? 120 : 170}px ${DISPLAY}`; g.fillText(q, W / 2, 330, W - 80);
+      if (S.lock > 0) { g.font = `700 40px ${BODY}`; g.fillText(`It’s ${S.p.a}`, W / 2, 420); }
+      board.tex.needsUpdate = true;
+    }
+
+    // ---------------------------------------------------------------- per frame
+    function stand() { S.slot = STUDY.slotOf(L); STUDY.standAt(STUDY.SLOT_X[S.slot] * 0.6, state.mode === 'vr' ? SPOT_Z : SPOT_Z + 1.0, 0, -0.08); }
+    L.update = (dt, now) => {
+      const here = state.level === L.idx && state.mode !== 'menu';
+      hall.tick();
+      if (!here) { input.hide(); return; }
+      if (STUDY.slotOf(L) !== S.slot) stand();
+      const ox = STUDY.SLOT_X[S.slot || 0] * 0.6;
+      AT.forEach(([x, y], i) => deck.place(i, ox + x, y, SPOT_Z - 0.5, 0, -0.25));
+      if (S.ph === 'play') {
+        if (timeLeft() <= 0) endRound();
+        else if (S.lock > 0) { S.lock -= dt; if (S.lock <= 0) { S.lock = 0; next(); } }
+      }
+      input.tick(dt);
+      drawBoard();
+      if (ui.status && state.mode === 'flat') {
+        ui.status.hidden = false;
+        const txt = S.ph === 'menu' ? 'Math Sprint  ·  aim at a mode and click (or press 1-4)' : `${Math.ceil(timeLeft())} s  ·  ${S.score} right  ·  click the answer or press 1-4`;
+        if (ui.status.textContent !== txt) ui.status.textContent = txt;
+      }
+    };
+    L.presence = () => ({ ms: [S.score, Math.max(0, ...Object.values(S.best).map(Number).filter(Number.isFinite)), S.ph === 'play' ? 1 : 0] });
+    L.readPresence = (rec, pres, st) => {
+      const a = pres.ms;
+      if (!Array.isArray(a) || a.length !== 3 || !a.every((x) => Number.isInteger(x) && x >= 0 && x < 1e5)) { st.ms = null; return; }
+      if (!st.ms || st.ms[0] !== a[0] || st.ms[1] !== a[1]) state.dirtyBoard = true;
+      st.ms = a;
+    };
+    L.rowFor = (st, isMe) => {
+      const a = isMe ? L.presence().ms : st.ms;
+      if (!a) return { best: 0, text: '' };
+      return { best: a[1], text: `${a[2] ? `${a[0]} now · ` : ''}best ${a[1]}` };
+    };
+    L.sortRows = (a, b) => (b.best || 0) - (a.best || 0);
+    L.board = makeBoard(G, 720, 460, 2.2, 1.4, -5.85, 2.0, -0.8, Math.PI / 2, false);
+    L.drawBoard = (rows) => {
+      const g = L.board.g, W = 720;
+      g.fillStyle = '#2a4a3a'; g.fillRect(0, 0, W, 460); g.strokeStyle = '#ffe08a'; g.lineWidth = 8; g.strokeRect(4, 4, W - 8, 452);
+      g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+      g.fillStyle = '#ffe08a'; g.font = `800 56px ${DISPLAY}`; g.fillText('Quickest minds', 36, 80);
+      g.fillStyle = '#d8e8d8'; g.font = `400 24px ${BODY}`; g.fillText('Most right in 60 seconds (any mode)', 36, 118);
+      drawRows(g, rows, 176, 46, W);
+      L.board.tex.needsUpdate = true;
+    };
+    makeKiosk(L, 3.6, 3.0, -Math.PI * 0.75);
+    RECORDS.def(L, MODES.map((m) => ({ k: m.id, label: `${m.name}: most in a minute` })), { x: 5.75, z: 0.2, yaw: -Math.PI / 2 });
+    L.hudActions = [{ label: () => (S.ph === 'menu' ? 'Start: warm-up' : 'End round'), run: () => { if (S.ph === 'menu') startRound('add'); else endRound(); } }];
+    L.hints = [['Tap', 'the right answer'], ['Point + trigger', 'works too']];
+    L.hintsFor = () => (state.mode === 'flat' ? [['Aim + click', 'pick an answer'], ['1-4', 'answer by number']] : L.hints);
+    L.spawn = () => { dolly.position.set(0, 0, 0); stand(); };
+    L.onEnter = () => { S.summary = null; showMenu(); boardKey = ''; };
+    L.onExit = () => { if (ui.status) ui.status.hidden = true; showMenu(); input.hide(); };
+    L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 2, 1.7, 3.0); camera.lookAt(0, 1.8, -3); };
+    showMenu();
+    L.mathInternals = { S, deck, answer, next, startRound, endRound, problem, MODES };
+    MUSIC_THEMES.mathsprint = { gain: 0.6, bpm: 132, swing: 0, chords: ['C', 'G', 'Am', 'F'], arp: { inst: 'marimba', every: 1, order: [1, 2, 3, 4, 3, 2, 1, 2] }, bass: { at: [0, 4, 8, 12] }, drums: { k: 'x...x...x...x...', h: 'o.o.o.o.o.o.o.o.' }, cut: 4800 };
+    return L;
+  })();
   // ---------------------------------------------------------------- VR controllers
   const myHandMat = new THREE.MeshLambertMaterial({ color: PLAYER_COLORS[state.colorIdx].hex });
   function newHand(side) {
@@ -34471,7 +36693,7 @@ kbd {
   // the tests in tests/ reach inside through this, only when the page is opened with ?test
   // the shared records board (the Claude page's database, or records.php on your own site), if there is one
   RECORDS.shared.start();
-  try { if (new URLSearchParams(location.search).has('test')) window.__fd = { LEVELS, state, dolly, camera, myHead, myHands, RECORDS, switchLevel, startGame, voice: { VOICE, voiceWatch, voiceResend, remotes, buildPresence }, audio: { snd, tone, sfx, ensureAudio, MUSIC } }; } catch (e) { /* ignore */ }
+  try { if (new URLSearchParams(location.search).has('test')) window.__fd = { LEVELS, state, dolly, camera, myHead, myHands, RECORDS, APLUS, switchLevel, startGame, voice: { VOICE, voiceWatch, voiceResend, remotes, buildPresence }, audio: { snd, tone, sfx, ensureAudio, MUSIC } }; } catch (e) { /* ignore */ }
 })();
 </script>
 </body>

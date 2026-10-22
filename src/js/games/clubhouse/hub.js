@@ -150,7 +150,7 @@
       for (let k = 0; k < 3; k++) { g.beginPath(); for (let t = 0; t < 6.28; t += 0.1) { const r = 6 + t * 8.5, a = t + k * 2.09; g.lineTo(64 + Math.cos(a) * r, 64 + Math.sin(a) * r); } g.stroke(); }
     }).tex;
     swirl.center.set(0.5, 0.5);
-    const CAT_COLS = { ball: 0xff9a3a, battle: 0xff4d6a, lanes: 0x3fbf7f, adv: 0x9a6aff, race: 0x4fc3f7, party: 0xffd23f, active: 0xff3aa8, carnival: 0xe5453a };
+    const CAT_COLS = { ball: 0xff9a3a, battle: 0xff4d6a, lanes: 0x3fbf7f, adv: 0x9a6aff, race: 0x4fc3f7, party: 0xffd23f, active: 0xff3aa8, carnival: 0xe5453a, study: 0x2f6fd0 };
     const hexOf = (c) => `#${c.toString(16).padStart(6, '0')}`;
     const portals = [];
     // one doorway: a coloured frame, a swirling surface and a label overhead

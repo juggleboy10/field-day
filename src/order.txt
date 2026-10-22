@@ -73,6 +73,14 @@ js/games/duckshoot.js
 js/games/ringtoss.js
 js/games/whack.js
 js/games/lightspeed.js
+js/games/study-content.js
+js/games/study.js
+js/games/quizblaster.js
+js/games/portsorter.js
+js/games/pcbuild.js
+js/games/helpdesk.js
+js/games/cmddojo.js
+js/games/mathsprint.js
 js/app/vr-controls.js
 js/app/flat-controls.js
 js/app/modes.js

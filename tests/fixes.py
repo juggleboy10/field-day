@@ -332,7 +332,7 @@ def main():
         page.evaluate(HUB_STEP, ["game", 0, 26]); page.wait_for_timeout(900)
         hubw["level"] = page.evaluate("() => window.__fd.state.level")
         print("clubhouse doors and wings:", hubw)
-        checks += [("clubhouse: one door per kind of game, each with its own wing", hubw["doors"] == 8 and hubw["wings"] == 8),
+        checks += [("clubhouse: one door per kind of game, each with its own wing", hubw["doors"] == 9 and hubw["wings"] == 9),
                    ("clubhouse: walking through a door takes you into its wing (and its walls keep you in)", hubw["inWing"] == 6 and hubw["clamped"]),
                    ("clubhouse: the door at the back of a wing brings you back to the clubhouse", hubw["backIn"] == -1),
                    ("clubhouse: a portal in a wing takes you to its game", hubw["level"] == 26)]

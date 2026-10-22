@@ -545,8 +545,14 @@
     { id: 'ringtoss', name: 'Ring Toss', short: 'Ring Toss', glyph: '\u{1F37E}', blurb: 'Ten rings, a table of bottles: drop a ring over a neck for tickets. Red bottles pay double, the gold one big.' },
     { id: 'whack', name: 'Whack-a-Mole', short: 'Whack', glyph: '\u{1F528}', blurb: 'Nine holes, 45 seconds, moles popping up faster and faster. Golden moles are worth 3. A mallet in each hand.' },
     { id: 'lightspeed', name: 'Speed of Light', short: 'Lightspeed', glyph: '\u{1F4A1}', blurb: 'Thirty buttons on a wall: hit each one the moment it lights up. How many in 30 seconds?' },
+    { id: 'quizblaster', name: 'Quiz Blaster', short: 'Quiz Blaster', glyph: '\u{1F52B}', blurb: 'CompTIA A+ practice: shoot the right answer card. Core 1, Core 2, the full exam mix or your weak spots, with a report card.' },
+    { id: 'portsorter', name: 'Port & Cable Sorter', short: 'Port Sorter', glyph: '\u{1F50C}', blurb: 'Crates of ports, protocols, cables and Wi-Fi standards roll down a belt: toss each into the right bin. Sixty seconds.' },
+    { id: 'pcbuild', name: 'PC Build Bench', short: 'PC Build', glyph: '\u{1F5A5}\uFE0F', blurb: 'Build a PC on a test bench: wrist strap, CPU, paste, cooler, the right RAM, SSD, graphics card, power. Then see if it POSTs.' },
+    { id: 'helpdesk', name: 'Help Desk Tickets', short: 'Help Desk', glyph: '\u{1F6E0}\uFE0F', blurb: 'Customers bring their computer problems to your counter: pick the likely cause, then the fix. Six customers a shift.' },
+    { id: 'cmddojo', name: 'Command Line Dojo', short: 'CLI Dojo', glyph: '\u{1F94B}', blurb: 'The terminal gives you a task; three command blocks fly at you. Strike the right one. Windows and Linux, white belt to black.' },
+    { id: 'mathsprint', name: 'Math Sprint', short: 'Math Sprint', glyph: '\u{1F9EE}', blurb: 'Mental maths against a 60-second clock: adding, times tables, percentages and squares, or binary and hex.' },
   ];
-  const KIOSK_COLORS = [0xf5821f, 0xe8e4d8, 0x8bd450, 0xb388ff, 0xff4d6a, 0x2ec4b6, 0x3fbf7f, 0xff9ad0, 0xffd27a, 0x4fc3f7, 0x4a8aff, 0xb06aff, 0xffb36b, 0xff9ad0, 0x8bd450, 0xd8f43a, 0xff7a3a, 0xe5453a, 0xe8a040, 0x2ec4d8, 0xf2c14e, 0xd84a3a, 0x2a8ab8, 0x9a6aff, 0x6ad04a, 0xff3aa8, 0xffd23f, 0xff9a5c, 0x4fc3f7, 0x8a5a2a, 0x9af0ff, 0xff4d8a, 0xff9ad0, 0xe5453a, 0xb8e0ff, 0x7ad8ff, 0xd8b060, 0xffd23f, 0xff5a8a, 0x9a7ad8, 0xe8c860, 0xff4d8a, 0xff4dc8, 0xe5453a, 0xffd23f, 0x4a7ad8, 0x8bd450, 0x4fc3f7];
+  const KIOSK_COLORS = [0xf5821f, 0xe8e4d8, 0x8bd450, 0xb388ff, 0xff4d6a, 0x2ec4b6, 0x3fbf7f, 0xff9ad0, 0xffd27a, 0x4fc3f7, 0x4a8aff, 0xb06aff, 0xffb36b, 0xff9ad0, 0x8bd450, 0xd8f43a, 0xff7a3a, 0xe5453a, 0xe8a040, 0x2ec4d8, 0xf2c14e, 0xd84a3a, 0x2a8ab8, 0x9a6aff, 0x6ad04a, 0xff3aa8, 0xffd23f, 0xff9a5c, 0x4fc3f7, 0x8a5a2a, 0x9af0ff, 0xff4d8a, 0xff9ad0, 0xe5453a, 0xb8e0ff, 0x7ad8ff, 0xd8b060, 0xffd23f, 0xff5a8a, 0x9a7ad8, 0xe8c860, 0xff4d8a, 0xff4dc8, 0xe5453a, 0xffd23f, 0x4a7ad8, 0x8bd450, 0x4fc3f7, 0xffd23f, 0x3aa86a, 0x4fc3f7, 0x2f6fd0, 0xb02a2a, 0x8bd450];
   const LEVEL_CATS = [
     { id: 'ball', name: 'Ball sports', glyph: '\u26BD', games: [0, 1, 5, 15, 29, 37] },
     { id: 'battle', name: 'Team battles', glyph: '\u{1F3AF}', games: [14, 4, 17, 21, 34, 38] },
@@ -556,8 +562,9 @@
     { id: 'party', name: 'Party games', glyph: '\u{1F389}', games: [13, 12, 18, 23, 32, 41] },
     { id: 'active', name: 'Get active', glyph: '\u{1F4AA}', games: [25, 27, 28, 33, 42] },
     { id: 'carnival', name: 'Carnival', glyph: '\u{1F3A1}', games: [31, 26, 43, 44, 45, 46, 47] },
+    { id: 'study', name: 'Study Hall', glyph: '\u{1F4DA}', games: [48, 49, 50, 51, 52, 53] },
   ];
-  const PICKER_ORDER = [8, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 3, 10, 11, 0, 1, 2, 4, 5, 6, 7, 9];
+  const PICKER_ORDER = [8, 53, 52, 51, 50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 3, 10, 11, 0, 1, 2, 4, 5, 6, 7, 9];
   function makeKiosk(L, x, z, yaw) {
     const fx = Math.sin(yaw), fz = Math.cos(yaw);   // direction the kiosk faces
     const rx = Math.cos(yaw), rz = -Math.sin(yaw);  // its right-hand side
