@@ -2165,15 +2165,25 @@ kbd {
     if (now < WATCH.cool || state.level === HUB_IDX) return;
     WATCH.cool = now + 1500;
     WATCH.pressed += 1;
-    haptic(vrHands.left, 0.5, 40);
+    haptic(vrHands[WATCH.side === 'left' ? 'right' : 'left'], 0.5, 40);
     sfx('whoosh', 1);
     WATCH.awake = false; panel.visible = false;
     switchLevel(HUB_IDX);
   }
   const _watchWp = new V3(), _watchWn = new V3(), _watchEye = new V3(), _watchGaze = new V3(), _watchCq = new Q4(), _watchTip = new V3(), _watchInv = new THREE.Matrix4(), _watchLoc = new V3(), _watchRd = new V3();
   function onButton(local) { return Math.abs(local.x - BTN.x) < BTN.w / 2 && Math.abs(local.y - BTN.y) < BTN.h / 2; }
+  // which wrist the watch is on: the right, unless that hand's busy holding something (a bow, a bat, a tool), when it
+  // hops to the left for the time being. If both hands are busy it sleeps, so it can't wake in your face mid-shot.
+  function watchSide() {
+    const L = curLevel();
+    const busy = (s) => !!(vrHands[s] && vrHands[s].holding) || !!(L.handBusy && L.handBusy(s));
+    const r = busy('right'), l = busy('left');
+    return r && l ? null : r ? 'left' : 'right';
+  }
   function watchTick(dt, now) {
-    const lh = myHands.right, show = state.mode === 'vr' && lh.ok;   // the watch is on your right wrist
+    const side = watchSide(), other = side === 'left' ? 'right' : 'left';
+    if (side !== WATCH.side) { WATCH.side = side; WATCH.awake = false; WATCH.lookT = 0; }
+    const lh = side ? myHands[side] : null, show = state.mode === 'vr' && !!lh && lh.ok;
     watchG.visible = show;
     if (!show) { panel.visible = false; WATCH.awake = false; WATCH.lookT = 0; return; }
     // on the back of the left wrist, behind the controller grip
@@ -2191,12 +2201,12 @@ kbd {
     // looking at it: the face turned toward you, and you looking at the face
     const looking = dist < 0.65 && _watchWn.dot(toEye) > 0.5 && -_watchGaze.dot(toEye) > Math.cos(0.5);
     if (looking) { WATCH.lookT += dt; WATCH.awayT = 0; } else { WATCH.lookT = 0; if (WATCH.awake) WATCH.awayT += dt; }
-    if (!WATCH.awake && WATCH.lookT > 0.25) { WATCH.awake = true; haptic(vrHands.right, 0.15, 20); }
+    if (!WATCH.awake && WATCH.lookT > 0.25) { WATCH.awake = true; haptic(vrHands[side], 0.15, 20); }
     if (WATCH.awake && WATCH.awayT > 0.8) WATCH.awake = false;
     const minute = Math.floor(Date.now() / 60000) * 2 + (WATCH.awake ? 1 : 0);
     if (minute !== WATCH.minute) { WATCH.minute = minute; drawWatchFace(WATCH.awake); }
     panel.visible = WATCH.awake;
-    const rh = myHands.left;   // you press it with your left hand
+    const rh = myHands[other];   // you press it with your other hand
     if (!WATCH.awake) { WATCH.trigPrev = false; return; }
     // the panel floats just above the watch, facing you
     panel.position.copy(_watchWp).addScaledVector(toEye, 0.03).addScaledVector(_watchRd.set(0, 1, 0).applyQuaternion(_watchCq), 0.075);
@@ -2217,7 +2227,7 @@ kbd {
         const t = panel.position.clone().sub(rh.pos).dot(n) / den;
         if (t > 0 && t < 1.2) { _watchLoc.copy(rh.pos).addScaledVector(_watchRd, t).applyMatrix4(_watchInv); if (onButton(_watchLoc)) hover = true; }
       }
-      const gp = vrHands.left.source && vrHands.left.source.gamepad;
+      const gp = vrHands[other].source && vrHands[other].source.gamepad;
       const trig = !!(gp && gp.buttons && gp.buttons[0] && gp.buttons[0].pressed);
       if (trig && !WATCH.trigPrev && hover) watchPress();
       WATCH.trigPrev = trig;
@@ -3102,7 +3112,7 @@ kbd {
     const RIM = new V3(0, 2.9, -5.5), RIM_R = 0.275, RIM_TUBE = 0.018, THREE_PT = 4.2;
     const FENCE = { minX: -6, maxX: 6, minZ: -7.5, maxZ: 5.5, h: 3.6 };
     const TABLE = { x0: 2.5, x1: 3.1, z0: 0.35, z1: 2.05, top: 0.92 };
-    L.bounds = { minX: FENCE.minX, maxX: FENCE.maxX, minZ: FENCE.minZ, maxZ: FENCE.maxZ };
+    L.bounds = { minX: FENCE.minX, maxX: FENCE.maxX, minZ: FENCE.minZ, maxZ: FENCE.maxZ };   // (the court; clampPlayer below adds the roof behind the gate)
     L.stats = { score: 0 };
     L.env = {
       sky: skyTexture([[0, '#131135'], [0.22, '#27225e'], [0.38, '#5b3f7f'], [0.46, '#b3607c'], [0.495, '#f3a468'], [0.51, '#b86e78'], [0.56, '#5e4474'], [1, '#1c1733']]),
@@ -3223,7 +3233,27 @@ kbd {
       G.add(m);
     }
     fencePanel(12, 0, FENCE.minZ, 0);
-    fencePanel(12, 0, FENCE.maxZ, 0);
+    // the back fence has a gate in the middle: walk out onto the roof for the really long shots
+    const GATE = 0.6, ROOF = { minX: -11.5, maxX: 11.5, maxZ: 11.5 };
+    fencePanel(6 - GATE, -(6 + GATE) / 2, FENCE.maxZ, 0); fencePanel(6 - GATE, (6 + GATE) / 2, FENCE.maxZ, 0);
+    for (const sx of [-1, 1]) addCyl(G, 0.05, 0.05, FENCE.h + 0.1, 8, lam(0xffd23f), sx * GATE, (FENCE.h + 0.1) / 2, FENCE.maxZ);
+    makePlate(G, 'Long shots \u2192 the roof', 1.4, 0.2, new V3(0, 2.6, FENCE.maxZ - 0.04), Math.PI, { bg: '#ffd23f', fg: '#1b1932', size: 0.55 });
+    makePlate(G, 'Long shots \u2192 the roof', 1.4, 0.2, new V3(0, 2.6, FENCE.maxZ + 0.04), 0, { bg: '#ffd23f', fg: '#1b1932', size: 0.55 });
+    // distance marks out on the roof
+    for (const d of [12, 14, 16]) { const z = RIM.z + d; if (z > ROOF.maxZ) continue; addBox(G, 6, 0.01, 0.06, new THREE.MeshBasicMaterial({ color: 0xffd23f }), 0, 0.006, z); makePlate(G, `${d} m`, 0.6, 0.22, new V3(3.4, 0.012, z + 0.2), 0, { bg: '#ffd23f', fg: '#1b1932', size: 0.7, tilt: -Math.PI / 2 }); }
+    // walking: the court, or the roof behind it, through the gate
+    const STAIR = { x0: 8.4 - 1.4, x1: 8.4 + 1.4, z0: 7.4 - 1.25, z1: 7.4 + 1.25 };
+    L.clampPlayer = (p) => {
+      const m = 0.3, gate = Math.abs(p.x) < GATE - 0.15;
+      let x = p.x, z = p.z;
+      if (z < FENCE.maxZ) { x = clamp(x, FENCE.minX + m, FENCE.maxX - m); z = clamp(z, FENCE.minZ + m, gate ? ROOF.maxZ : FENCE.maxZ - m); }
+      else {
+        if (!gate && z < FENCE.maxZ + m) z = FENCE.maxZ + m;
+        x = clamp(x, ROOF.minX, ROOF.maxX); z = Math.min(z, ROOF.maxZ);
+        if (x > STAIR.x0 - m && x < STAIR.x1 + m && z > STAIR.z0 - m && z < STAIR.z1 + m) { const dx0 = x - (STAIR.x0 - m), dz0 = z - (STAIR.z0 - m), dz1 = STAIR.z1 + m - z, mn = Math.min(dx0, dz0, dz1); if (mn === dx0) x -= dx0; else if (mn === dz0) z -= dz0; else z += dz1; }
+      }
+      return [x - p.x, z - p.z];
+    };
     fencePanel(13, FENCE.minX, -1, Math.PI / 2);
     fencePanel(13, FENCE.maxX, -1, Math.PI / 2);
     const corners = [[FENCE.minX, FENCE.minZ], [FENCE.maxX, FENCE.minZ], [FENCE.maxX, FENCE.maxZ], [FENCE.minX, FENCE.maxZ]];
@@ -3384,10 +3414,20 @@ kbd {
     const _rimPt = new V3();
     L.collide = (b) => {
       let support = groundBounce(b, 0.72, 0.97, 'floor');
-      if (b.pos.x < FENCE.minX + b.r) { b.pos.x = FENCE.minX + b.r; if (b.vel.x < 0) { impact(b, -b.vel.x, 'wall'); b.vel.x *= -0.4; } }
-      if (b.pos.x > FENCE.maxX - b.r) { b.pos.x = FENCE.maxX - b.r; if (b.vel.x > 0) { impact(b, b.vel.x, 'wall'); b.vel.x *= -0.4; } }
+      if (b.pos.z < FENCE.maxZ) {
+        if (b.pos.x < FENCE.minX + b.r) { b.pos.x = FENCE.minX + b.r; if (b.vel.x < 0) { impact(b, -b.vel.x, 'wall'); b.vel.x *= -0.4; } }
+        if (b.pos.x > FENCE.maxX - b.r) { b.pos.x = FENCE.maxX - b.r; if (b.vel.x > 0) { impact(b, b.vel.x, 'wall'); b.vel.x *= -0.4; } }
+      }
       if (b.pos.z < FENCE.minZ + b.r) { b.pos.z = FENCE.minZ + b.r; if (b.vel.z < 0) { impact(b, -b.vel.z, 'wall'); b.vel.z *= -0.4; } }
-      if (b.pos.z > FENCE.maxZ - b.r) { b.pos.z = FENCE.maxZ - b.r; if (b.vel.z > 0) { impact(b, b.vel.z, 'wall'); b.vel.z *= -0.4; } }
+      // the back fence: a ball goes over it (or through the gate) either way; below the top it bounces off whichever side it's on
+      const pz = b.prev ? b.prev.z : b.pos.z, gateB = Math.abs(b.pos.x) < GATE - b.r;
+      if (!gateB && b.pos.y < FENCE.h) {
+        if (pz <= FENCE.maxZ && b.pos.z > FENCE.maxZ - b.r) { b.pos.z = FENCE.maxZ - b.r; if (b.vel.z > 0) { impact(b, b.vel.z, 'wall'); b.vel.z *= -0.4; } }
+        else if (pz > FENCE.maxZ && b.pos.z < FENCE.maxZ + b.r) { b.pos.z = FENCE.maxZ + b.r; if (b.vel.z < 0) { impact(b, -b.vel.z, 'wall'); b.vel.z *= -0.4; } }
+      }
+      // the roof's edge (a safety net catches anything that gets that far)
+      if (b.pos.z > ROOF.maxZ + 0.2 - b.r) { b.pos.z = ROOF.maxZ + 0.2 - b.r; if (b.vel.z > 0) { impact(b, b.vel.z, 'wall'); b.vel.z *= -0.3; } }
+      if (b.pos.z > FENCE.maxZ) { if (b.pos.x < ROOF.minX - 0.2 + b.r) { b.pos.x = ROOF.minX - 0.2 + b.r; b.vel.x = Math.abs(b.vel.x) * 0.3; } if (b.pos.x > ROOF.maxX + 0.2 - b.r) { b.pos.x = ROOF.maxX + 0.2 - b.r; b.vel.x = -Math.abs(b.vel.x) * 0.3; } }
       for (const bx of COLLIDERS) if (collideBox(b, bx) > 0.6) support = true;
       if (Math.abs(b.pos.y - RIM.y) < 0.2) {
         const rx = b.pos.x - RIM.x, rz = b.pos.z - RIM.z, rl = Math.hypot(rx, rz);
@@ -4062,7 +4102,7 @@ kbd {
     setMachine(true);
     makeButton(L, new V3(-4.1, 1.0, 4.3), 0xf5821f, 'Reset balls', () => resetBodies(L), { faceYaw: Math.PI });
     makeKiosk(L, -4.9, 3.3, Math.PI * 0.75);
-    RECORDS.def(L, [{ k: 'hr', label: 'Longest home run', fmt: 'm' }], { x: 6.9, z: 5.6, yaw: Math.PI });   // (behind the backstop, facing the field)
+    RECORDS.def(L, [{ k: 'hr', label: 'Longest home run', fmt: 'm' }, { k: 'streak', label: 'Most home runs in a row' }], { x: 6.9, z: 5.6, yaw: Math.PI });   // (behind the backstop, facing the field)
     L.board = makeBoard(G, 720, 460, 2.4, 1.533, 4.4, 2.0, 5.6, Math.PI);   // behind the backstop, facing the field
     {
       const big = new THREE.Mesh(new THREE.PlaneGeometry(14, 8.94), new THREE.MeshBasicMaterial({ map: L.board.tex, fog: false }));
@@ -4119,7 +4159,11 @@ kbd {
       showToast(text);
       if (pos) spawnFloat('Home run!', pos, '#ffd23f');
     }
-    L.onBatHit = (b, speed) => { L.lastHitSpeed = speed; };
+    // a hot streak: every home run in a row adds a little power to your next hit (3.5% each, up to +70%)
+    L.streak = 0;
+    const streakBoost = () => 1 + 0.035 * Math.min(20, L.streak);
+    L.streakBoost = streakBoost;
+    L.onBatHit = (b, speed) => { L.lastHitSpeed = speed; if (L.streak > 0 && !gameOn()) b.vel.multiplyScalar(streakBoost()); };
     L.onBodyFrame = (b, dt) => {
       if (b.owner !== state.myPeer || b.held) return;
       const dd = b.data;
@@ -4140,9 +4184,16 @@ kbd {
           if (dd.hr || fair(lp.x, lp.z)) {
             if (dist > L.stats.best) { L.stats.best = dist; state.dirtyBoard = true; forcePresence(); }
             if (dd.hr && dd.mine !== false) RECORDS.add(L, 'hr', dist);
+            if (dd.mine !== false && !gameOn()) {
+              if (dd.hr) {
+                L.streak += 1;
+                if (L.streak >= 2) { RECORDS.add(L, 'streak', L.streak); showToast(`\u{1F525} Hot streak: ${L.streak} in a row! +${Math.round((streakBoost() - 1) * 100)}% power`); }
+              } else if (L.streak) { showToast(L.streak >= 2 ? `Streak over at ${L.streak}` : 'Streak over'); L.streak = 0; }
+              state.dirtyBoard = true;
+            }
             if (!dd.hr && !gameOn()) showToast(`${dist} m`);
             spawnFloat(`${dist} m`, new V3(lp.x, 1.6, lp.z), dd.hr ? '#ffd23f' : '#ffffff');
-          } else if (dist > 3 && !gameOn()) showToast('Foul ball');
+          } else if (dist > 3 && !gameOn()) { showToast(L.streak >= 2 ? `Foul ball: streak over at ${L.streak}` : 'Foul ball'); if (dd.mine !== false) { L.streak = 0; state.dirtyBoard = true; } }
         }
       }
       // balls left lying around drift back to the crate
@@ -4307,7 +4358,8 @@ kbd {
       g.fillStyle = '#ffd23f'; g.font = `800 64px ${DISPLAY}`;
       g.fillText('Sandlot Baseball', 36, 84);
       g.fillStyle = '#b9d8c4'; g.font = `400 24px ${BODY}`;
-      g.fillText(`Home runs and longest hit. The wall is ${FENCE_R} m.`, 36, 122);
+      if (L.streak >= 1) { g.fillStyle = '#ff8a3a'; g.font = `800 32px ${DISPLAY}`; g.fillText(`\u{1F525} Hot streak: ${L.streak} home run${L.streak > 1 ? 's' : ''} in a row \u00B7 +${Math.round((streakBoost() - 1) * 100)}% power`, 36, 126, W - 72); }
+      else g.fillText(`Home runs and longest hit. The wall is ${FENCE_R} m. Hit them in a row for a hot streak.`, 36, 122, W - 72);
       drawRows(g, rows, 180, 46, W);
       L.board.tex.needsUpdate = true;
     };
@@ -11990,6 +12042,37 @@ kbd {
       G.add(g);
       return g;
     }
+    // ---------------------------------------------------------------- cosmic bowling: the lights go down, the lanes glow
+    const cosmicTex = canvasTexture(128, 1024, (g) => {
+      g.fillStyle = '#0a0618'; g.fillRect(0, 0, 128, 1024);
+      const cols = ['#ff4dc8', '#4fe8ff', '#b8ff3a', '#ffd23f', '#9a6aff'];
+      for (let i = 0; i < 70; i++) { g.strokeStyle = cols[i % 5]; g.lineWidth = 2 + (i % 3); g.globalAlpha = 0.85; const x = rand() * 128, y = rand() * 1024; g.beginPath(); g.moveTo(x, y); g.bezierCurveTo(x + 30, y - 40, x - 30, y + 60, x + 10, y + 90); g.stroke(); }
+      for (let i = 0; i < 120; i++) { g.fillStyle = cols[i % 5]; g.globalAlpha = 0.9; g.beginPath(); g.arc(rand() * 128, rand() * 1024, 1.5 + rand() * 2, 0, Math.PI * 2); g.fill(); }
+      g.globalAlpha = 1;
+      for (let k = 0; k < 7; k++) { g.fillStyle = '#ffffff'; const x = 16 + k * 16, az = 1024 - Math.round((4.6 / LEN) * 1024); g.beginPath(); g.moveTo(x, az - 14 - Math.abs(k - 3) * 8); g.lineTo(x - 4, az - Math.abs(k - 3) * 8); g.lineTo(x + 4, az - Math.abs(k - 3) * 8); g.closePath(); g.fill(); }
+    }).tex;
+    const COSMIC = { on: false, spots: [] };
+    try { COSMIC.on = !!prefs.cosmic; } catch (e) { /* none */ }
+    const spotCols = [0xff4dc8, 0x4fe8ff, 0xb8ff3a, 0xffd23f, 0x9a6aff];
+    for (let i = 0; i < 14; i++) { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: warmGlowTex, color: spotCols[i % 5], blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.55 })); sp.scale.set(1.6, 1.6, 1); sp.visible = false; G.add(sp); COSMIC.spots.push({ sp, ph: rand() * 6, sp2: 0.3 + rand() * 0.5, lane: i % NL }); }
+    const discoBall = new THREE.Mesh(new THREE.SphereGeometry(0.35, 16, 12), new THREE.MeshLambertMaterial({ color: 0xd8d8e8, emissive: 0x6a6a8a })); discoBall.position.set(0, 3.2, 2.5); discoBall.visible = false; G.add(discoBall);
+    function applyCosmic() {
+      const on = COSMIC.on;
+      laneMat.map = on ? cosmicTex : maple; laneMat.emissive.setHex(on ? 0xffffff : 0x000000); laneMat.emissiveMap = on ? cosmicTex : null; laneMat.emissiveIntensity = on ? 0.75 : 1; laneMat.needsUpdate = true;
+      pinMat.emissive.setHex(on ? 0x8a8ab0 : 0x000000); stripeMat.emissive.setHex(on ? 0xff2a8a : 0x000000);
+      for (const c of COSMIC.spots) c.sp.visible = on;
+      discoBall.visible = on;
+      if (state.level === L.idx) { hemi.intensity = on ? 0.28 : L.env.hemi[2]; ambient.color.setHex(on ? 0x5a2a9a : L.env.ambient[0]); ambient.intensity = on ? 0.5 : L.env.ambient[1]; sunLight.intensity = on ? 0.12 : L.env.sun[1]; }
+    }
+    function setCosmic(on) { COSMIC.on = on; prefs.cosmic = on; savePrefs(); applyCosmic(); showToast(on ? 'Cosmic bowling! Lights down, lanes glowing' : 'Lights up'); state.hudDirty = true; }
+    L.setCosmic = setCosmic; L.cosmic = COSMIC;
+    { const baseEnter = L.onEnter; L.onEnter = () => { if (baseEnter) baseEnter(); applyCosmic(); }; }
+    applyCosmic();
+    function cosmicTick(now) {
+      if (!COSMIC.on) return;
+      discoBall.rotation.y = now * 0.0006;
+      COSMIC.spots.forEach((c, i) => { const t = now * 0.001 * c.sp2 + c.ph; c.sp.position.set(laneX(c.lane) + Math.sin(t * 1.3) * 0.7, 0.05, -2 - ((t * 3 + i * 2) % (LEN - 2))); });
+    }
     const lanePins = [];
     for (let i = 0; i < NL; i++) lanePins.push(SPOTS.map(([sx, sz]) => { const m = makePin(); m.position.set(laneX(i) + sx, 0, sz); return m; }));
     function poseMesh(m, x, z, state, tilt, tdir) {
@@ -12316,6 +12399,7 @@ kbd {
     const wrist = makeWristPanel();
     let statusKey = '';
     L.update = (dt, now) => {
+      if (state.level === L.idx) cosmicTick(now);
       // hold the ball in VR
       if (me.phase === 'held') {
         const mh = myHands[me.side];
@@ -12440,7 +12524,7 @@ kbd {
     }
     drawHow();
     redraws.push(drawHow);
-    L.hudActions = [{ label: () => 'New game', run: () => newGame() }];
+    L.hudActions = [{ label: () => 'New game', run: () => newGame() }, { label: () => (COSMIC.on ? 'Cosmic bowling: on' : 'Cosmic bowling: off'), run: () => setCosmic(!COSMIC.on) }];
     L.hints = [['Drag', 'aim'], ['Space', 'hold, then let go to roll'], ['A/D', 'line up']];
     L.clampPlayer = (p) => [clamp(p.x, -HALF + 0.2, HALF - 0.2) - p.x, clamp(p.z, -0.25, 8.3) - p.z];
     L.attract = (now) => {
@@ -13513,9 +13597,7 @@ kbd {
     const ballMesh = new THREE.Mesh(new THREE.SphereGeometry(BR, 14, 10), new THREE.MeshLambertMaterial({ color: 0xff9a3c }));
     ballMesh.visible = false;
     G.add(ballMesh);
-    // a faint trail filling in where the ball went this frame, so a fast ball reads as moving rather than jumping
-    const trail = [0.1, 0.16, 0.24, 0.34].map((o) => { const m = new THREE.Mesh(new THREE.SphereGeometry(BR * 0.9, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffb36b, transparent: true, opacity: o, depthWrite: false })); m.visible = false; G.add(m); return m; });
-    const prevBall = new V3();
+
     const botPaddle = TOOL_MESH.paddle();
     botPaddle.visible = false; G.add(botPaddle);
     // the clubhouse bot has a body, standing at its end of the table
@@ -13870,11 +13952,8 @@ kbd {
         deskHit(now);
       } else if (PP.ph === 'rally') { simOnly = true; for (let k = 0; k < steps; k++) stepBall(h); simOnly = false; prevPC = null; }
       botStep(dt, now);
-      prevBall.copy(ballMesh.position);
       toWorld(PP.b.u, PP.b.y, PP.b.v, ballMesh.position);
       ballMesh.visible = PP.ph !== 'idle';
-      const jump = prevBall.distanceTo(ballMesh.position), showTrail = PP.ph === 'rally' && jump > 0.03 && jump < 0.6;
-      trail.forEach((m, i) => { m.visible = showTrail; if (showTrail) m.position.lerpVectors(prevBall, ballMesh.position, (i + 1) / (trail.length + 1)); });
       const key = `${PP.score}|${PP.server}|${PP.ph === 'idle'}|${players().join()}|${PP.botOn}`;
       if (key !== scoreKey) { scoreKey = key; drawScore(); }
     };
@@ -14981,7 +15060,7 @@ kbd {
     // grandstand beside the start straight, and the scoreboard on it
     for (let row = 0; row < 5; row++) addBox(G, 30, 0.6 + row * 0.6, 1.2, lam([0x3b4f9a, 0xc23b4a, 0xe8e4d8][row % 3]), -20, (0.6 + row * 0.6) / 2, 40 + row * 1.2);
     L.board = makeBoard(G, 720, 460, 8, 5.1, -20, 7.2, 46.5, Math.PI, false);
-    RECORDS.def(L, [{ k: 'lap', label: 'Fastest lap', low: true, fmt: 'time' }, { k: 'race', label: 'Fastest three-lap race', low: true, fmt: 'time' }], { x: -13.6, z: 46.4, yaw: Math.PI });
+    RECORDS.def(L, [{ k: 'lap', label: 'Fastest lap', low: true, fmt: 'time' }, { k: 'race', label: 'Fastest three-lap race', low: true, fmt: 'time' }], { x: -28, z: 44.8, yaw: Math.PI, y: 3 });   // (up on the stand, beside the big board)
     addBox(G, 8.4, 5.4, 0.3, lam(0x2b2d42), -20, 7.2, 46.8);
     // arch back to the clubhouse, on the grass beside the straight
     const ARCH = { x: 12, z: 40.5, w: 2.4 };
@@ -18380,7 +18459,7 @@ kbd {
       sign.tex.needsUpdate = true;
     })();
     makeKiosk(L, R.maxX - 1.2, R.maxZ - 1.2, -Math.PI * 0.75);
-    RECORDS.def(L, [{ k: 'rally', label: 'Longest rally (hits)' }]);
+    RECORDS.def(L, [{ k: 'rally', label: 'Longest rally (hits)' }], { x: R.maxX - 3.0, z: R.maxZ - 0.9, yaw: Math.PI });   // (inside the fence, facing the court)
 
     // ---------------------------------------------------------------- paddles and ball
     TOOL_MESH.pbpaddle = () => {
@@ -21503,7 +21582,7 @@ kbd {
     }
     makeKiosk(L, 4.5, -3.5, Math.atan2(-4.5, 3.5));
     RECORDS.def(L, [{ k: 'rounds', label: 'Quickest win (fewest rounds to 21)', low: true }]);
-    L.board = makeBoard(G, 720, 460, 2.6, 1.66, -4.2, 2.1, 0, Math.PI / 2);
+    L.board = makeBoard(G, 720, 460, 2.6, 1.66, -4.2, 2.1, -2.4, Math.PI / 2);
 
     // ---------------------------------------------------------------- the boards: d = -1 at the north end, +1 at the south
     const boardTex = canvasTexture(128, 256, (g) => {
@@ -26949,7 +27028,7 @@ kbd {
       if (kind !== 'td' && kind !== 'int') {
         S.ballOn = clamp(S.ballOn - gain, 1, 99);
         if (gain >= S.toGo) { S.down = 1; S.toGo = Math.min(10, S.ballOn); msg += '. First down!'; sfx('chime', 0.8); }
-        else { S.toGo -= gain; S.down += 1; if (S.down > 4) { msg += '. Turnover on downs'; S.pending = 'turnover'; keepRunning = false; newDown = false; } }
+        else { S.toGo -= gain; if (S.down >= 4) { msg += '. Turnover on downs'; S.pending = 'turnover'; keepRunning = false; newDown = false; } else S.down += 1; }   // (never a 5th down)
       }
       void newDown;
       // records: the longest pass and the longest QB run
@@ -26988,6 +27067,7 @@ kbd {
     // where to run to cut off the ball carrier: ahead of him, by about the time it takes to get there
     const cutOff = (d, v) => { const r = S.catcher, t = clamp(Math.hypot(d.x - r.x, d.z - r.z) / v, 0, 1.2); return [r.x + (r.svx !== undefined && r.human ? r.svx : r.vx || 0) * t, r.z + (r.svz !== undefined && r.human ? r.svz : r.vz || 0) * t]; };
     const moveTo = (p, tx, tz, v, dt) => {
+      if (!Number.isFinite(tx) || !Number.isFinite(tz)) return;   // (a bad target never turns a player into NaN)
       const dx = tx - p.x, dz = tz - p.z, d = Math.hypot(dx, dz);
       if (d < 1e-3) { p.vx = p.vz = 0; return; }
       const s = Math.min(d, v * dt);
@@ -27170,7 +27250,7 @@ kbd {
       let nd = null, ndd = 1e9;
       for (const d of DEFS) { const dd = Math.hypot(d.x - r.x, d.z - r.z); if (dd < ndd) { ndd = dd; nd = d; } }
       let ax = 0, az = -1;
-      if (nd && ndd < 5) { ax = (r.x - nd.x) / ndd * 0.6; }
+      if (nd && ndd < 5 && ndd > 1e-3) { ax = (r.x - nd.x) / ndd * 0.6; }   // (a defender right on top of him can't push him anywhere: and mustn't divide by zero)
       moveTo(r, r.x + ax * 3, r.z + az * 3, V_REC * 0.92, dt);
       S.bp.set(r.x + 0.2, 1.1, r.z - 0.2);
       if (r.z <= goalZ()) { endPlay('td'); return; }
@@ -27534,7 +27614,7 @@ kbd {
       sun: [0xffffff, 0.45], sunDir: new V3(0.2, 1, 0.4), ambient: [0x503a60, 0.5], sprite: null,
     };
     const N = 4, PITCH = 1.4, BR = 0.045, BALLS = 9;
-    const LANE_W = 0.56, LANE_Z0 = 0, LANE_Z1 = -2.9, LANE_Y0 = 0.78, SLOPE = 0.09;
+    const LANE_W = 0.56, LANE_Z0 = 0, LANE_Z1 = -2.9, LANE_Y0 = 0.6, SLOPE = 0.152;   // (the lane starts low, about knee height, for a natural underhand roll)
     const BZ0 = -3.0, BZ1 = -3.85, BY0 = 1.081, BOARD_TILT = 0.6;   // the target board: from (BZ0, BY0) rising toward the back
     const C_T = 0.58, RINGS = [[0.07, 50], [0.14, 40], [0.21, 30], [0.28, 20]], HUNDREDS = [[-0.19, 0.98], [0.19, 0.98]];
     const machX = (k) => (k - (N - 1) / 2) * PITCH;
@@ -27615,7 +27695,7 @@ kbd {
       }
       for (const [hx, ht] of HUNDREDS) { const rim = new THREE.Mesh(new THREE.TorusGeometry(0.055, 0.008, 6, 24), rimM); rim.position.copy(boardPt(k, hx, ht)).addScaledVector(nrm, 0.008); rim.quaternion.copy(tiltQ); G.add(rim); }
       // the return chute: a clear tube down the side of the lane to your tray, so you see the ball come back
-      { const a = new V3(mx + LANE_W / 2 + 0.16, 0.95, BZ0 + 0.05), b2 = new V3(mx + LANE_W / 2 + 0.16, 0.86, 0.0), d = b2.clone().sub(a);
+      { const a = new V3(mx + LANE_W / 2 + 0.16, 0.95, BZ0 + 0.05), b2 = new V3(mx + LANE_W / 2 + 0.16, 0.7, 0.0), d = b2.clone().sub(a);
         const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, d.length(), 12, 1, true), new THREE.MeshLambertMaterial({ color: 0x8be0ff, transparent: true, opacity: 0.22, depthWrite: false, side: THREE.DoubleSide }));
         tube.position.copy(a).add(b2).multiplyScalar(0.5); tube.quaternion.setFromUnitVectors(new V3(0, 1, 0), d.normalize()); G.add(tube); }
       addBox(G, LANE_W + 0.2, boardY(BZ1) + 0.2, 0.1, cabMat, mx, (boardY(BZ1) + 0.2) / 2, BZ1 - 0.1);
@@ -27625,8 +27705,8 @@ kbd {
       const marquee = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.55), new THREE.MeshBasicMaterial({ map: sc.tex }));
       marquee.position.set(mx, boardY(BZ1) + 0.65, BZ1 - 0.04); G.add(marquee);
       // the ball tray at the front
-      addBox(G, 0.3, 0.06, 0.24, lam(0x2a1a44), mx + LANE_W / 2 + 0.2, 0.74, 0.12);
-      const tag = makePlate(G, `Machine ${k + 1}`, 0.6, 0.12, new V3(mx, 0.6, 0.2), 0, { size: 0.55, bg: '#2a1a44', fg: '#ffffff' });
+      addBox(G, 0.3, 0.06, 0.24, lam(0x2a1a44), mx + LANE_W / 2 + 0.2, 0.58, 0.12);
+      const tag = makePlate(G, `Machine ${k + 1}`, 0.6, 0.12, new V3(mx, 0.4, 0.2), 0, { size: 0.55, bg: '#2a1a44', fg: '#ffffff' });
       machines.push({ k, mx, sc, tag, owner: null, key: '' });
     }
     // the ticket counter and prize shelf, along the right wall
@@ -27725,7 +27805,7 @@ kbd {
     for (let i = 0; i < 8; i++) { const m = new THREE.Mesh(sph(BR, 12, 10), ballMat); G.add(m); trayBalls.push(m); }
     L.setColor = (hex) => ballMat.color.set(hex).lerp(new THREE.Color(0xffffff), 0.45);
     L.setColor(PLAYER_COLORS[state.colorIdx].hex);
-    const trayPos = (i) => new V3(machX(me.k) + LANE_W / 2 + 0.13 + (i % 2) * 0.1, 0.81, 0.04 + Math.floor(i / 2) * 0.1);
+    const trayPos = (i) => new V3(machX(me.k) + LANE_W / 2 + 0.13 + (i % 2) * 0.1, 0.65, 0.04 + Math.floor(i / 2) * 0.1);
     function mySlot() {
       const ids = [state.myPeer];
       for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer);
@@ -27867,7 +27947,7 @@ kbd {
       if (B.st !== 'tray') return;
       if (me.phase !== 'play') newGame();
       camera.getWorldQuaternion(_q); _f.set(0, 0, -1).applyQuaternion(_q);
-      const yaw = Math.atan2(-_f.x, -_f.z), sp = 2.4 + c * 3.0;
+      const yaw = Math.atan2(-_f.x, -_f.z), sp = 2.7 + c * 3.0;
       const vx = clamp(-Math.sin(yaw) * sp, -0.6, 0.6);
       launch(new V3(machX(me.k) + clamp(-Math.sin(yaw) * 0.3, -0.15, 0.15), laneY(LANE_Z0 - 0.05) + BR, LANE_Z0 - 0.05), new V3(vx, 0, -sp));
     };
@@ -32625,7 +32705,7 @@ kbd {
       L.board.tex.needsUpdate = true;
     };
     makeKiosk(L, 6.0, 4.2, -Math.PI * 0.75);
-    RECORDS.def(L, [{ k: 'streak', label: 'Most bells in a row' }]);
+    RECORDS.def(L, [{ k: 'streak', label: 'Most bells in a row' }], { x: -6.2, z: 4.5, yaw: Math.PI / 2 });   // (beside the leaderboard, clear of the prize stand)
     const prizes = CARNIVAL.prizeStand(L, 6.0, 0.6, -Math.PI / 2);   // spend your tickets here
     L.hints = [['Grip', 'pick up the mallet from its stand'], ['Swing down', 'hard, onto the red pad'], ['Tickets', 'spend them at the prize stand on the right']];
     L.hintsFor = () => (state.mode === 'flat' ? [['Space or click', 'swing when the needle is at the top'], ['Tickets', 'spend them at the prize stand on the right']] : L.hints);
@@ -32857,7 +32937,7 @@ kbd {
       L.board.tex.needsUpdate = true;
     };
     makeKiosk(L, 6.2, 4.6, -Math.PI * 0.75);
-    RECORDS.def(L, [{ k: 'score', label: 'Best score in 40 seconds' }]);
+    RECORDS.def(L, [{ k: 'score', label: 'Best score in 40 seconds' }], { x: -6.3, z: 4.7, yaw: Math.PI / 2 });
     const prizes = CARNIVAL.prizeStand(L, 6.2, 1.6, -Math.PI / 2);   // spend your tickets here
     L.hudActions = [{ label: () => (R.ph === 'play' ? 'Restart' : 'Start round'), run: () => startRound() }];
     L.hints = [['Trigger', 'fire a cork (the first shot starts the round)'], ['Golden ducks', '5 points'], ['Bunnies', 'cost you 3'], ['Prize stand', 'on the right: spend your tickets']];
@@ -33076,7 +33156,7 @@ kbd {
       L.board.tex.needsUpdate = true;
     };
     makeKiosk(L, 6.2, 4.8, -Math.PI * 0.75);
-    RECORDS.def(L, [{ k: 'ringers', label: 'Most ringers from ten rings' }, { k: 'tickets', label: 'Most tickets in one game' }]);
+    RECORDS.def(L, [{ k: 'ringers', label: 'Most ringers from ten rings' }, { k: 'tickets', label: 'Most tickets in one game' }], { x: -6.3, z: 4.9, yaw: Math.PI / 2 });
     const prizes = CARNIVAL.prizeStand(L, 6.2, 1.6, -Math.PI / 2);   // spend your tickets here
     L.hudActions = [{ label: () => (T.ph === 'play' ? 'New game' : 'Start game'), run: () => newGame() }];
     L.hints = [['Grip', 'a ring appears in your hand'], ['Toss', 'underhand, a gentle lob'], ['Gold bottle', '15 tickets'], ['Prize stand', 'on the right: spend your tickets']];
@@ -33806,7 +33886,7 @@ kbd {
       const hh = hand(0.18, 0.03, 0x1a1a1a), mh = hand(0.26, 0.02, 0x1a1a1a), sh = hand(0.28, 0.008, 0xd03a2a);
       // a plant in a corner
       for (const sx of [-1, 1]) {
-        const px = sx * (W / 2 - 0.5), pz = Z + D * 0.05;
+        const px = sx * (W / 2 - 0.5), pz = Z + D / 2 - 0.7;   // (in the back corners, out of the way of the boards on the side walls)
         addCyl(G, 0.22, 0.17, 0.4, 12, lam(0xc06a3a), px, 0.2, pz);
         for (let k = 0; k < 7; k++) { const a = k / 7 * Math.PI * 2; const lf = new THREE.Mesh(new THREE.SphereGeometry(0.16, 6, 5), lam(0x3a8a3a)); lf.scale.set(0.6, 1.6, 0.6); lf.position.set(px + Math.cos(a) * 0.12, 0.65 + (k % 2) * 0.1, pz + Math.sin(a) * 0.12); lf.rotation.set(Math.sin(a) * 0.5, 0, Math.cos(a) * 0.5); G.add(lf); }
       }
@@ -34937,7 +35017,7 @@ kbd {
       L.board.tex.needsUpdate = true;
     };
     makeKiosk(L, -3.6, 2.6, Math.PI * 0.75);
-    RECORDS.def(L, [{ k: 'timed', label: 'Fastest timed build (+10 s a mistake)', low: true, fmt: 'time' }, { k: 'guided', label: 'Fastest guided build', low: true, fmt: 'time' }], { x: 2.6, z: 0.2, yaw: -0.4 });
+    RECORDS.def(L, [{ k: 'timed', label: 'Fastest timed build (+10 s a mistake)', low: true, fmt: 'time' }, { k: 'guided', label: 'Fastest guided build', low: true, fmt: 'time' }], { x: 3.4, z: 0.2, yaw: -0.4 });
     L.hints = [['Grip', 'grab a part; let go over its slot'], ['Trigger', 'point at a card or the power button']];
     L.hintsFor = () => (state.mode === 'flat' ? [['Click a part', 'pick it up'], ['Click a slot', 'fit it'], ['Power', 'the green button, when you’re done']] : L.hints);
     L.spawn = () => { dolly.position.set(0, 0, 0); stand(); };
@@ -35034,6 +35114,42 @@ kbd {
       ['c2p', 'Oh no, I just spilled coffee all over my laptop keyboard!',
         ['What comes first?', ['Power it off and unplug it straight away', 'Keep typing to see if it works', 'Dry it with a hair dryer while it’s on', 'Restart it']],
         ['Then what?', ['Remove the battery if you can, let it dry, and get it checked', 'Charge it up', 'Put it in the freezer', 'Run Windows Update']], 'Power off first: liquid plus power shorts things out.'],
+      ['c1h', 'My new graphics card is in, but the PC won\u2019t even turn on now. It was fine with the old one.',
+        ['', ['The power supply can\u2019t give the new card enough power', 'The monitor is too old', 'Windows needs activating', 'The keyboard is unplugged']],
+        ['', ['Check the card\u2019s PCIe power cables, and fit a bigger power supply if it\u2019s underpowered', 'Reinstall Windows', 'Replace the monitor', 'Clear the browser cache']], 'Graphics cards need their own power connectors, and enough watts from the PSU.'],
+      ['c1t', 'My PC\u2019s clock is wrong every time I turn it on, and it\u2019s about eight years old.',
+        ['', ['The CMOS battery on the motherboard is dead', 'The hard drive is failing', 'Windows Update is broken', 'The power supply is too strong']],
+        ['', ['Replace the CMOS battery (a CR2032 coin cell)', 'Replace the hard drive', 'Reinstall Windows', 'Swap the power supply']], 'A dead CMOS battery loses the time and BIOS settings when the PC is unplugged.'],
+      ['c1t', 'The printer says it\u2019s jammed, but I can\u2019t see any paper stuck inside.',
+        ['', ['A scrap of paper is caught deeper in, or a sensor is dirty', 'The printer driver is the wrong version', 'The toner is the wrong colour', 'The Wi-Fi is down']],
+        ['', ['Power it off, open every door and tray, remove any scraps and clean the rollers', 'Reinstall Windows', 'Buy a new printer', 'Print from a different program']], 'Check the whole paper path, and clean or replace worn pickup rollers.'],
+      ['c1t', 'Pages come out of the laser printer with a line down the same place on every sheet.',
+        ['', ['A scratch or dirt on the imaging drum', 'The wrong paper size in Windows', 'Low Wi-Fi signal', 'An old print driver']],
+        ['', ['Replace the drum (or the toner cartridge it\u2019s part of)', 'Reinstall the driver', 'Move the printer nearer the router', 'Change the paper size']], 'A repeating mark at the same spot points to the drum or another roller.'],
+      ['c1n', 'My laptop connects to the office Wi-Fi but says "No internet". Everyone else is fine.',
+        ['', ['The laptop has a wrong static IP or DNS setting', 'The office internet is down', 'The screen is too dim', 'The battery is low']],
+        ['', ['Set the adapter to get its IP and DNS automatically (DHCP)', 'Restart the office router', 'Turn up the brightness', 'Plug in the charger']], 'If it\u2019s only one device, look at that device\u2019s settings first.'],
+      ['c1m', 'My phone\u2019s screen turns on and off by itself and taps things I didn\u2019t touch.',
+        ['', ['The digitizer (the touch layer) is faulty', 'The battery is new', 'The SIM card is loose', 'The Wi-Fi is too fast']],
+        ['', ['Remove the case and screen protector to check, then replace the screen/digitizer if it continues', 'Factory-reset straight away', 'Replace the SIM', 'Turn off Wi-Fi']], 'Ghost touches usually come from the digitizer, or a cheap screen protector.'],
+      ['c2o', 'I deleted an important file from my Windows PC an hour ago. Can I get it back?',
+        ['Where do you look first?', ['The Recycle Bin', 'Device Manager', 'Disk Management', 'The BIOS']],
+        ['It\u2019s not there either. What next?', ['Restore it from a backup or File History (Previous Versions)', 'Defragment the drive', 'Run chkdsk /f', 'Reinstall Windows']], 'Deleted files go to the Recycle Bin first; then backups.'],
+      ['c2t', 'Every time I open a program, Windows asks "Do you want to allow this app to make changes?"',
+        ['What is that prompt?', ['User Account Control (UAC)', 'A virus warning', 'Windows Firewall', 'BitLocker']],
+        ['What should you tell them?', ['It\u2019s normal for apps that need admin rights: only say Yes to ones you trust', 'Turn off all security', 'Reinstall the program', 'Delete the program']], 'UAC asks before anything gets administrator rights.'],
+      ['c2s', 'A caller says they\u2019re from Microsoft and need remote access to fix a virus on my PC.',
+        ['', ['A tech-support scam (social engineering)', 'A real Microsoft engineer', 'An automatic Windows update', 'A printer problem']],
+        ['', ['Hang up, don\u2019t give access, and report it', 'Let them connect to check', 'Give them your password only', 'Pay for the fix']], 'Microsoft doesn\u2019t cold-call users. Never give remote access to an unknown caller.'],
+      ['c2s', 'I found a USB stick in the car park labelled "Salaries 2026". Can I plug it in to see whose it is?',
+        ['', ['No: it could be a baiting attack loaded with malware', 'Yes, it\u2019s just a lost stick', 'Only on a Mac', 'Only if it\u2019s USB-C']],
+        ['', ['Hand it to IT or security unopened', 'Plug it into a coworker\u2019s PC', 'Format it and keep it', 'Open the files to find the owner']], 'Dropping infected USB sticks is a classic social engineering trick.'],
+      ['c2o', 'My Mac is almost out of disk space and I don\u2019t know what\u2019s using it.',
+        ['Where do you look?', ['Storage settings (About This Mac / System Settings > Storage)', 'Time Machine', 'FileVault', 'Keychain Access']],
+        ['Then what?', ['Remove large unneeded files or apps, and empty the Trash', 'Turn off FileVault', 'Reinstall macOS', 'Delete the System folder']], 'The storage view breaks down what\u2019s using the space.'],
+      ['c2p', 'A user wants you to install their personal copy of some software on a company laptop.',
+        ['What should you check first?', ['The company\u2019s software and licensing policy', 'How fast the laptop is', 'The user\u2019s favourite colour', 'Whether the screen is big enough']],
+        ['If it isn\u2019t allowed?', ['Explain the policy politely and point them to the approved request process', 'Install it anyway', 'Ignore the request', 'Install a cracked copy']], 'Licences and acceptable use policies (AUPs) decide what can be installed.'],
     ];
     const NAMES = ['Priya', 'Marcus', 'Ellen', 'Tomas', 'Grace', 'Dev', 'Aiko', 'Sam', 'Fatima', 'Leo', 'Nora', 'Kwame'];
     const COLS = ['#ffb04a', '#7ab0ff', '#ff8a7a', '#8bd450', '#d88aff', '#ffd23f', '#4fc3f7', '#ff9ad0'];
@@ -36892,7 +37008,7 @@ kbd {
       L.board.tex.needsUpdate = true;
     };
     makeKiosk(L, 3.4, 3.8, -Math.PI * 0.8);
-    RECORDS.def(L, [{ k: 'top', label: 'Fastest to the bell', low: true, fmt: 'time' }]);
+    RECORDS.def(L, [{ k: 'top', label: 'Fastest to the bell', low: true, fmt: 'time' }], { x: -4.4, z: 2.6, yaw: Math.PI * 0.75 });
     L.hudActions = [{ label: () => (P.ph === 'done' ? 'Climb again' : 'Back to the bottom'), run: () => backToStart() }];
     // up top: a button to go again (it takes you back down to the beach)
     makeButton(L, new V3(1.4, BASE[3] + 1.0, TOP_Z + 0.2), 0x3ac84a, 'Climb again', () => backToStart(), { faceYaw: 0 });
@@ -37030,7 +37146,8 @@ kbd {
       if (isBest) { S.best = S.score; prefs.archBest = S.best; savePrefs(); }
       RECORDS.add(L, 'round', S.score);
       if (S.bulls) RECORDS.add(L, 'bulls', S.bulls);
-      showToast(`Round over: ${S.score} points${isBest ? ' (your best!)' : ''}`);
+      state.hudDirty = true;
+      showToast(`Round over: ${S.score} points${isBest ? ' (your best!)' : ''}. Draw again (or press Play again) for another round`);
       sfx('chime', 0.8); sbKey = ''; forcePresence(); state.dirtyBoard = true;
     }
     L.endRound = endRound;
@@ -37071,6 +37188,8 @@ kbd {
     // ---------------------------------------------------------------- shooting: VR
     const _bp = new V3(), _sp = new V3(), _dir = new V3(), _nock = new V3();
     const stringHand = () => (S.bowHand === 'left' ? 'right' : 'left');
+    // (the watch keeps off the bow hand, and off the drawing hand too)
+    L.handBusy = (side) => state.level === L.idx && (side === S.bowHand || (S.drawing && side === stringHand()));
     function vrBow(dt) {
       const bh = myHands[S.bowHand], sh = myHands[stringHand()];
       bow.visible = bh.ok; bow.scale.setScalar(1); nocked.scale.setScalar(1);
@@ -37080,7 +37199,7 @@ kbd {
       _nock.set(0, 0, 0.14).applyQuaternion(bh.quat).add(bh.pos);
       const gp = vrHands[stringHand()].source && vrHands[stringHand()].source.gamepad;
       const grip = !!(gp && gp.buttons && ((gp.buttons[1] && gp.buttons[1].pressed) || (gp.buttons[0] && gp.buttons[0].pressed)));
-      if (!S.drawing && grip && sh.ok && sh.pos.distanceTo(_nock) < 0.2 && S.left > 0) { S.drawing = true; haptic(vrHands[stringHand()], 0.3, 20); }
+      if (!S.drawing && grip && sh.ok && sh.pos.distanceTo(_nock) < 0.2 && (S.left > 0 || S.ph !== 'play')) { S.drawing = true; haptic(vrHands[stringHand()], 0.3, 20); }
       const str = bow.userData.string.geometry.attributes.position;
       if (S.drawing && sh.ok) {
         _bp.copy(bh.pos); _sp.copy(sh.pos);
@@ -37183,9 +37302,10 @@ kbd {
     };
     makeKiosk(L, -3.0, 3.2, Math.PI * 0.8);
     makeButton(L, new V3(3.2, 1.0, 1.0), 0x2e8a4c, 'Lefty / righty', () => swapHands(), { faceYaw: -0.4 });
+    makeButton(L, new V3(-3.4, 1.0, 1.0), 0xffd23f, 'Play again', () => newRound(), { faceYaw: 0.4 });
     RECORDS.def(L, [{ k: 'round', label: 'Best round (12 arrows)' }, { k: 'bulls', label: 'Most bullseyes in a round' }, { k: 'long', label: 'Longest hit', fmt: 'm' }]);
     L.hudActions = [
-      { label: () => (S.ph === 'play' ? 'New round' : 'Start a round'), run: () => newRound() },
+      { label: () => (S.ph === 'play' ? 'New round' : S.ph === 'done' ? 'Play again' : 'Start a round'), run: () => newRound() },
       { label: () => (S.bowHand === 'left' ? 'Right-handed ▸' : 'Left-handed ▸'), run: () => swapHands() },
     ];
     L.hints = [['Bow hand', 'points where you shoot'], ['Other hand', 'grip at the string, draw back, let go'], ['Far targets', 'aim a little high']];

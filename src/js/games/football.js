@@ -418,7 +418,7 @@
       if (kind !== 'td' && kind !== 'int') {
         S.ballOn = clamp(S.ballOn - gain, 1, 99);
         if (gain >= S.toGo) { S.down = 1; S.toGo = Math.min(10, S.ballOn); msg += '. First down!'; sfx('chime', 0.8); }
-        else { S.toGo -= gain; S.down += 1; if (S.down > 4) { msg += '. Turnover on downs'; S.pending = 'turnover'; keepRunning = false; newDown = false; } }
+        else { S.toGo -= gain; if (S.down >= 4) { msg += '. Turnover on downs'; S.pending = 'turnover'; keepRunning = false; newDown = false; } else S.down += 1; }   // (never a 5th down)
       }
       void newDown;
       // records: the longest pass and the longest QB run
@@ -457,6 +457,7 @@
     // where to run to cut off the ball carrier: ahead of him, by about the time it takes to get there
     const cutOff = (d, v) => { const r = S.catcher, t = clamp(Math.hypot(d.x - r.x, d.z - r.z) / v, 0, 1.2); return [r.x + (r.svx !== undefined && r.human ? r.svx : r.vx || 0) * t, r.z + (r.svz !== undefined && r.human ? r.svz : r.vz || 0) * t]; };
     const moveTo = (p, tx, tz, v, dt) => {
+      if (!Number.isFinite(tx) || !Number.isFinite(tz)) return;   // (a bad target never turns a player into NaN)
       const dx = tx - p.x, dz = tz - p.z, d = Math.hypot(dx, dz);
       if (d < 1e-3) { p.vx = p.vz = 0; return; }
       const s = Math.min(d, v * dt);
@@ -639,7 +640,7 @@
       let nd = null, ndd = 1e9;
       for (const d of DEFS) { const dd = Math.hypot(d.x - r.x, d.z - r.z); if (dd < ndd) { ndd = dd; nd = d; } }
       let ax = 0, az = -1;
-      if (nd && ndd < 5) { ax = (r.x - nd.x) / ndd * 0.6; }
+      if (nd && ndd < 5 && ndd > 1e-3) { ax = (r.x - nd.x) / ndd * 0.6; }   // (a defender right on top of him can't push him anywhere: and mustn't divide by zero)
       moveTo(r, r.x + ax * 3, r.z + az * 3, V_REC * 0.92, dt);
       S.bp.set(r.x + 0.2, 1.1, r.z - 0.2);
       if (r.z <= goalZ()) { endPlay('td'); return; }

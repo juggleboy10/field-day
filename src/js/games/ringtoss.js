@@ -204,7 +204,7 @@
       L.board.tex.needsUpdate = true;
     };
     makeKiosk(L, 6.2, 4.8, -Math.PI * 0.75);
-    RECORDS.def(L, [{ k: 'ringers', label: 'Most ringers from ten rings' }, { k: 'tickets', label: 'Most tickets in one game' }]);
+    RECORDS.def(L, [{ k: 'ringers', label: 'Most ringers from ten rings' }, { k: 'tickets', label: 'Most tickets in one game' }], { x: -6.3, z: 4.9, yaw: Math.PI / 2 });
     const prizes = CARNIVAL.prizeStand(L, 6.2, 1.6, -Math.PI / 2);   // spend your tickets here
     L.hudActions = [{ label: () => (T.ph === 'play' ? 'New game' : 'Start game'), run: () => newGame() }];
     L.hints = [['Grip', 'a ring appears in your hand'], ['Toss', 'underhand, a gentle lob'], ['Gold bottle', '15 tickets'], ['Prize stand', 'on the right: spend your tickets']];

@@ -205,7 +205,7 @@
       L.board.tex.needsUpdate = true;
     };
     makeKiosk(L, 6.0, 4.2, -Math.PI * 0.75);
-    RECORDS.def(L, [{ k: 'streak', label: 'Most bells in a row' }]);
+    RECORDS.def(L, [{ k: 'streak', label: 'Most bells in a row' }], { x: -6.2, z: 4.5, yaw: Math.PI / 2 });   // (beside the leaderboard, clear of the prize stand)
     const prizes = CARNIVAL.prizeStand(L, 6.0, 0.6, -Math.PI / 2);   // spend your tickets here
     L.hints = [['Grip', 'pick up the mallet from its stand'], ['Swing down', 'hard, onto the red pad'], ['Tickets', 'spend them at the prize stand on the right']];
     L.hintsFor = () => (state.mode === 'flat' ? [['Space or click', 'swing when the needle is at the top'], ['Tickets', 'spend them at the prize stand on the right']] : L.hints);

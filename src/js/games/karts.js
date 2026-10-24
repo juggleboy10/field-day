@@ -104,7 +104,7 @@
     // grandstand beside the start straight, and the scoreboard on it
     for (let row = 0; row < 5; row++) addBox(G, 30, 0.6 + row * 0.6, 1.2, lam([0x3b4f9a, 0xc23b4a, 0xe8e4d8][row % 3]), -20, (0.6 + row * 0.6) / 2, 40 + row * 1.2);
     L.board = makeBoard(G, 720, 460, 8, 5.1, -20, 7.2, 46.5, Math.PI, false);
-    RECORDS.def(L, [{ k: 'lap', label: 'Fastest lap', low: true, fmt: 'time' }, { k: 'race', label: 'Fastest three-lap race', low: true, fmt: 'time' }], { x: -13.6, z: 46.4, yaw: Math.PI });
+    RECORDS.def(L, [{ k: 'lap', label: 'Fastest lap', low: true, fmt: 'time' }, { k: 'race', label: 'Fastest three-lap race', low: true, fmt: 'time' }], { x: -28, z: 44.8, yaw: Math.PI, y: 3 });   // (up on the stand, beside the big board)
     addBox(G, 8.4, 5.4, 0.3, lam(0x2b2d42), -20, 7.2, 46.8);
     // arch back to the clubhouse, on the grass beside the straight
     const ARCH = { x: 12, z: 40.5, w: 2.4 };

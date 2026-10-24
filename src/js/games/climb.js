@@ -313,7 +313,7 @@
       L.board.tex.needsUpdate = true;
     };
     makeKiosk(L, 3.4, 3.8, -Math.PI * 0.8);
-    RECORDS.def(L, [{ k: 'top', label: 'Fastest to the bell', low: true, fmt: 'time' }]);
+    RECORDS.def(L, [{ k: 'top', label: 'Fastest to the bell', low: true, fmt: 'time' }], { x: -4.4, z: 2.6, yaw: Math.PI * 0.75 });
     L.hudActions = [{ label: () => (P.ph === 'done' ? 'Climb again' : 'Back to the bottom'), run: () => backToStart() }];
     // up top: a button to go again (it takes you back down to the beach)
     makeButton(L, new V3(1.4, BASE[3] + 1.0, TOP_Z + 0.2), 0x3ac84a, 'Climb again', () => backToStart(), { faceYaw: 0 });

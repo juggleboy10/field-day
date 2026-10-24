@@ -121,7 +121,8 @@
       if (isBest) { S.best = S.score; prefs.archBest = S.best; savePrefs(); }
       RECORDS.add(L, 'round', S.score);
       if (S.bulls) RECORDS.add(L, 'bulls', S.bulls);
-      showToast(`Round over: ${S.score} points${isBest ? ' (your best!)' : ''}`);
+      state.hudDirty = true;
+      showToast(`Round over: ${S.score} points${isBest ? ' (your best!)' : ''}. Draw again (or press Play again) for another round`);
       sfx('chime', 0.8); sbKey = ''; forcePresence(); state.dirtyBoard = true;
     }
     L.endRound = endRound;
@@ -162,6 +163,8 @@
     // ---------------------------------------------------------------- shooting: VR
     const _bp = new V3(), _sp = new V3(), _dir = new V3(), _nock = new V3();
     const stringHand = () => (S.bowHand === 'left' ? 'right' : 'left');
+    // (the watch keeps off the bow hand, and off the drawing hand too)
+    L.handBusy = (side) => state.level === L.idx && (side === S.bowHand || (S.drawing && side === stringHand()));
     function vrBow(dt) {
       const bh = myHands[S.bowHand], sh = myHands[stringHand()];
       bow.visible = bh.ok; bow.scale.setScalar(1); nocked.scale.setScalar(1);
@@ -171,7 +174,7 @@
       _nock.set(0, 0, 0.14).applyQuaternion(bh.quat).add(bh.pos);
       const gp = vrHands[stringHand()].source && vrHands[stringHand()].source.gamepad;
       const grip = !!(gp && gp.buttons && ((gp.buttons[1] && gp.buttons[1].pressed) || (gp.buttons[0] && gp.buttons[0].pressed)));
-      if (!S.drawing && grip && sh.ok && sh.pos.distanceTo(_nock) < 0.2 && S.left > 0) { S.drawing = true; haptic(vrHands[stringHand()], 0.3, 20); }
+      if (!S.drawing && grip && sh.ok && sh.pos.distanceTo(_nock) < 0.2 && (S.left > 0 || S.ph !== 'play')) { S.drawing = true; haptic(vrHands[stringHand()], 0.3, 20); }
       const str = bow.userData.string.geometry.attributes.position;
       if (S.drawing && sh.ok) {
         _bp.copy(bh.pos); _sp.copy(sh.pos);
@@ -274,9 +277,10 @@
     };
     makeKiosk(L, -3.0, 3.2, Math.PI * 0.8);
     makeButton(L, new V3(3.2, 1.0, 1.0), 0x2e8a4c, 'Lefty / righty', () => swapHands(), { faceYaw: -0.4 });
+    makeButton(L, new V3(-3.4, 1.0, 1.0), 0xffd23f, 'Play again', () => newRound(), { faceYaw: 0.4 });
     RECORDS.def(L, [{ k: 'round', label: 'Best round (12 arrows)' }, { k: 'bulls', label: 'Most bullseyes in a round' }, { k: 'long', label: 'Longest hit', fmt: 'm' }]);
     L.hudActions = [
-      { label: () => (S.ph === 'play' ? 'New round' : 'Start a round'), run: () => newRound() },
+      { label: () => (S.ph === 'play' ? 'New round' : S.ph === 'done' ? 'Play again' : 'Start a round'), run: () => newRound() },
       { label: () => (S.bowHand === 'left' ? 'Right-handed ▸' : 'Left-handed ▸'), run: () => swapHands() },
     ];
     L.hints = [['Bow hand', 'points where you shoot'], ['Other hand', 'grip at the string, draw back, let go'], ['Far targets', 'aim a little high']];

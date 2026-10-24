@@ -386,7 +386,7 @@
       L.board.tex.needsUpdate = true;
     };
     makeKiosk(L, -3.6, 2.6, Math.PI * 0.75);
-    RECORDS.def(L, [{ k: 'timed', label: 'Fastest timed build (+10 s a mistake)', low: true, fmt: 'time' }, { k: 'guided', label: 'Fastest guided build', low: true, fmt: 'time' }], { x: 2.6, z: 0.2, yaw: -0.4 });
+    RECORDS.def(L, [{ k: 'timed', label: 'Fastest timed build (+10 s a mistake)', low: true, fmt: 'time' }, { k: 'guided', label: 'Fastest guided build', low: true, fmt: 'time' }], { x: 3.4, z: 0.2, yaw: -0.4 });
     L.hints = [['Grip', 'grab a part; let go over its slot'], ['Trigger', 'point at a card or the power button']];
     L.hintsFor = () => (state.mode === 'flat' ? [['Click a part', 'pick it up'], ['Click a slot', 'fit it'], ['Power', 'the green button, when you’re done']] : L.hints);
     L.spawn = () => { dolly.position.set(0, 0, 0); stand(); };

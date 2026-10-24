@@ -36,10 +36,10 @@ def main():
         # ---- Skee-Ball
         go(31)
         skee = page.evaluate("""() => { const L = window.__fd.LEVELS[31], V = window.THREE.Vector3; L.update = () => {}; const B = L.skeeBall, out = {};
-          const roll = (sp) => { L.launch(new V(-2.1 + 1.4 * L.skee.k, 0.83, -0.05), new V(0, 0, -sp)); let n = 0; const s0 = L.skee.score; while ((B.st === 'roll' || B.st === 'fly') && n++ < 20000) L.stepBall(0.002); out.states = (out.states || []).concat([B.st]); while (B.st !== 'tray' && n++ < 40000) L.stepBall(0.01); return L.skee.score - s0; };
+          const roll = (sp) => { L.launch(new V(-2.1 + 1.4 * L.skee.k, 0.65, -0.05), new V(0, 0, -sp)); let n = 0; const s0 = L.skee.score; while ((B.st === 'roll' || B.st === 'fly') && n++ < 20000) L.stepBall(0.002); out.states = (out.states || []).concat([B.st]); while (B.st !== 'tray' && n++ < 40000) L.stepBall(0.01); return L.skee.score - s0; };
           out.curve = [2.6, 3.0, 3.4, 3.8, 4.2, 4.6, 5.0, 5.5, 6.0];
           L.newGame(); const t0 = L.skeeSave.tickets;
-          out.rolls = [3.0, 3.8, 4.1, 4.6, 5.1, 3.0, 3.0, 3.0, 3.0].map(roll);
+          out.rolls = [3.4, 4.0, 4.2, 4.6, 5.1, 3.4, 3.4, 3.4, 3.4].map(roll);
           out.phase = L.skee.phase; out.score = L.skee.score; out.tickets = L.skeeSave.tickets - t0;
           return out; }""")
         print("Skee-Ball:", skee)

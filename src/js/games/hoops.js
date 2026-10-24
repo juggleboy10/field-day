@@ -8,7 +8,7 @@
     const RIM = new V3(0, 2.9, -5.5), RIM_R = 0.275, RIM_TUBE = 0.018, THREE_PT = 4.2;
     const FENCE = { minX: -6, maxX: 6, minZ: -7.5, maxZ: 5.5, h: 3.6 };
     const TABLE = { x0: 2.5, x1: 3.1, z0: 0.35, z1: 2.05, top: 0.92 };
-    L.bounds = { minX: FENCE.minX, maxX: FENCE.maxX, minZ: FENCE.minZ, maxZ: FENCE.maxZ };
+    L.bounds = { minX: FENCE.minX, maxX: FENCE.maxX, minZ: FENCE.minZ, maxZ: FENCE.maxZ };   // (the court; clampPlayer below adds the roof behind the gate)
     L.stats = { score: 0 };
     L.env = {
       sky: skyTexture([[0, '#131135'], [0.22, '#27225e'], [0.38, '#5b3f7f'], [0.46, '#b3607c'], [0.495, '#f3a468'], [0.51, '#b86e78'], [0.56, '#5e4474'], [1, '#1c1733']]),
@@ -129,7 +129,27 @@
       G.add(m);
     }
     fencePanel(12, 0, FENCE.minZ, 0);
-    fencePanel(12, 0, FENCE.maxZ, 0);
+    // the back fence has a gate in the middle: walk out onto the roof for the really long shots
+    const GATE = 0.6, ROOF = { minX: -11.5, maxX: 11.5, maxZ: 11.5 };
+    fencePanel(6 - GATE, -(6 + GATE) / 2, FENCE.maxZ, 0); fencePanel(6 - GATE, (6 + GATE) / 2, FENCE.maxZ, 0);
+    for (const sx of [-1, 1]) addCyl(G, 0.05, 0.05, FENCE.h + 0.1, 8, lam(0xffd23f), sx * GATE, (FENCE.h + 0.1) / 2, FENCE.maxZ);
+    makePlate(G, 'Long shots \u2192 the roof', 1.4, 0.2, new V3(0, 2.6, FENCE.maxZ - 0.04), Math.PI, { bg: '#ffd23f', fg: '#1b1932', size: 0.55 });
+    makePlate(G, 'Long shots \u2192 the roof', 1.4, 0.2, new V3(0, 2.6, FENCE.maxZ + 0.04), 0, { bg: '#ffd23f', fg: '#1b1932', size: 0.55 });
+    // distance marks out on the roof
+    for (const d of [12, 14, 16]) { const z = RIM.z + d; if (z > ROOF.maxZ) continue; addBox(G, 6, 0.01, 0.06, new THREE.MeshBasicMaterial({ color: 0xffd23f }), 0, 0.006, z); makePlate(G, `${d} m`, 0.6, 0.22, new V3(3.4, 0.012, z + 0.2), 0, { bg: '#ffd23f', fg: '#1b1932', size: 0.7, tilt: -Math.PI / 2 }); }
+    // walking: the court, or the roof behind it, through the gate
+    const STAIR = { x0: 8.4 - 1.4, x1: 8.4 + 1.4, z0: 7.4 - 1.25, z1: 7.4 + 1.25 };
+    L.clampPlayer = (p) => {
+      const m = 0.3, gate = Math.abs(p.x) < GATE - 0.15;
+      let x = p.x, z = p.z;
+      if (z < FENCE.maxZ) { x = clamp(x, FENCE.minX + m, FENCE.maxX - m); z = clamp(z, FENCE.minZ + m, gate ? ROOF.maxZ : FENCE.maxZ - m); }
+      else {
+        if (!gate && z < FENCE.maxZ + m) z = FENCE.maxZ + m;
+        x = clamp(x, ROOF.minX, ROOF.maxX); z = Math.min(z, ROOF.maxZ);
+        if (x > STAIR.x0 - m && x < STAIR.x1 + m && z > STAIR.z0 - m && z < STAIR.z1 + m) { const dx0 = x - (STAIR.x0 - m), dz0 = z - (STAIR.z0 - m), dz1 = STAIR.z1 + m - z, mn = Math.min(dx0, dz0, dz1); if (mn === dx0) x -= dx0; else if (mn === dz0) z -= dz0; else z += dz1; }
+      }
+      return [x - p.x, z - p.z];
+    };
     fencePanel(13, FENCE.minX, -1, Math.PI / 2);
     fencePanel(13, FENCE.maxX, -1, Math.PI / 2);
     const corners = [[FENCE.minX, FENCE.minZ], [FENCE.maxX, FENCE.minZ], [FENCE.maxX, FENCE.maxZ], [FENCE.minX, FENCE.maxZ]];
@@ -290,10 +310,20 @@
     const _rimPt = new V3();
     L.collide = (b) => {
       let support = groundBounce(b, 0.72, 0.97, 'floor');
-      if (b.pos.x < FENCE.minX + b.r) { b.pos.x = FENCE.minX + b.r; if (b.vel.x < 0) { impact(b, -b.vel.x, 'wall'); b.vel.x *= -0.4; } }
-      if (b.pos.x > FENCE.maxX - b.r) { b.pos.x = FENCE.maxX - b.r; if (b.vel.x > 0) { impact(b, b.vel.x, 'wall'); b.vel.x *= -0.4; } }
+      if (b.pos.z < FENCE.maxZ) {
+        if (b.pos.x < FENCE.minX + b.r) { b.pos.x = FENCE.minX + b.r; if (b.vel.x < 0) { impact(b, -b.vel.x, 'wall'); b.vel.x *= -0.4; } }
+        if (b.pos.x > FENCE.maxX - b.r) { b.pos.x = FENCE.maxX - b.r; if (b.vel.x > 0) { impact(b, b.vel.x, 'wall'); b.vel.x *= -0.4; } }
+      }
       if (b.pos.z < FENCE.minZ + b.r) { b.pos.z = FENCE.minZ + b.r; if (b.vel.z < 0) { impact(b, -b.vel.z, 'wall'); b.vel.z *= -0.4; } }
-      if (b.pos.z > FENCE.maxZ - b.r) { b.pos.z = FENCE.maxZ - b.r; if (b.vel.z > 0) { impact(b, b.vel.z, 'wall'); b.vel.z *= -0.4; } }
+      // the back fence: a ball goes over it (or through the gate) either way; below the top it bounces off whichever side it's on
+      const pz = b.prev ? b.prev.z : b.pos.z, gateB = Math.abs(b.pos.x) < GATE - b.r;
+      if (!gateB && b.pos.y < FENCE.h) {
+        if (pz <= FENCE.maxZ && b.pos.z > FENCE.maxZ - b.r) { b.pos.z = FENCE.maxZ - b.r; if (b.vel.z > 0) { impact(b, b.vel.z, 'wall'); b.vel.z *= -0.4; } }
+        else if (pz > FENCE.maxZ && b.pos.z < FENCE.maxZ + b.r) { b.pos.z = FENCE.maxZ + b.r; if (b.vel.z < 0) { impact(b, -b.vel.z, 'wall'); b.vel.z *= -0.4; } }
+      }
+      // the roof's edge (a safety net catches anything that gets that far)
+      if (b.pos.z > ROOF.maxZ + 0.2 - b.r) { b.pos.z = ROOF.maxZ + 0.2 - b.r; if (b.vel.z > 0) { impact(b, b.vel.z, 'wall'); b.vel.z *= -0.3; } }
+      if (b.pos.z > FENCE.maxZ) { if (b.pos.x < ROOF.minX - 0.2 + b.r) { b.pos.x = ROOF.minX - 0.2 + b.r; b.vel.x = Math.abs(b.vel.x) * 0.3; } if (b.pos.x > ROOF.maxX + 0.2 - b.r) { b.pos.x = ROOF.maxX + 0.2 - b.r; b.vel.x = -Math.abs(b.vel.x) * 0.3; } }
       for (const bx of COLLIDERS) if (collideBox(b, bx) > 0.6) support = true;
       if (Math.abs(b.pos.y - RIM.y) < 0.2) {
         const rx = b.pos.x - RIM.x, rz = b.pos.z - RIM.z, rl = Math.hypot(rx, rz);

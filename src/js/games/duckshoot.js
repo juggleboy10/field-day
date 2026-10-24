@@ -218,7 +218,7 @@
       L.board.tex.needsUpdate = true;
     };
     makeKiosk(L, 6.2, 4.6, -Math.PI * 0.75);
-    RECORDS.def(L, [{ k: 'score', label: 'Best score in 40 seconds' }]);
+    RECORDS.def(L, [{ k: 'score', label: 'Best score in 40 seconds' }], { x: -6.3, z: 4.7, yaw: Math.PI / 2 });
     const prizes = CARNIVAL.prizeStand(L, 6.2, 1.6, -Math.PI / 2);   // spend your tickets here
     L.hudActions = [{ label: () => (R.ph === 'play' ? 'Restart' : 'Start round'), run: () => startRound() }];
     L.hints = [['Trigger', 'fire a cork (the first shot starts the round)'], ['Golden ducks', '5 points'], ['Bunnies', 'cost you 3'], ['Prize stand', 'on the right: spend your tickets']];

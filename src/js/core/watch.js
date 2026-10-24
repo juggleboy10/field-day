@@ -52,15 +52,25 @@
     if (now < WATCH.cool || state.level === HUB_IDX) return;
     WATCH.cool = now + 1500;
     WATCH.pressed += 1;
-    haptic(vrHands.left, 0.5, 40);
+    haptic(vrHands[WATCH.side === 'left' ? 'right' : 'left'], 0.5, 40);
     sfx('whoosh', 1);
     WATCH.awake = false; panel.visible = false;
     switchLevel(HUB_IDX);
   }
   const _watchWp = new V3(), _watchWn = new V3(), _watchEye = new V3(), _watchGaze = new V3(), _watchCq = new Q4(), _watchTip = new V3(), _watchInv = new THREE.Matrix4(), _watchLoc = new V3(), _watchRd = new V3();
   function onButton(local) { return Math.abs(local.x - BTN.x) < BTN.w / 2 && Math.abs(local.y - BTN.y) < BTN.h / 2; }
+  // which wrist the watch is on: the right, unless that hand's busy holding something (a bow, a bat, a tool), when it
+  // hops to the left for the time being. If both hands are busy it sleeps, so it can't wake in your face mid-shot.
+  function watchSide() {
+    const L = curLevel();
+    const busy = (s) => !!(vrHands[s] && vrHands[s].holding) || !!(L.handBusy && L.handBusy(s));
+    const r = busy('right'), l = busy('left');
+    return r && l ? null : r ? 'left' : 'right';
+  }
   function watchTick(dt, now) {
-    const lh = myHands.right, show = state.mode === 'vr' && lh.ok;   // the watch is on your right wrist
+    const side = watchSide(), other = side === 'left' ? 'right' : 'left';
+    if (side !== WATCH.side) { WATCH.side = side; WATCH.awake = false; WATCH.lookT = 0; }
+    const lh = side ? myHands[side] : null, show = state.mode === 'vr' && !!lh && lh.ok;
     watchG.visible = show;
     if (!show) { panel.visible = false; WATCH.awake = false; WATCH.lookT = 0; return; }
     // on the back of the left wrist, behind the controller grip
@@ -78,12 +88,12 @@
     // looking at it: the face turned toward you, and you looking at the face
     const looking = dist < 0.65 && _watchWn.dot(toEye) > 0.5 && -_watchGaze.dot(toEye) > Math.cos(0.5);
     if (looking) { WATCH.lookT += dt; WATCH.awayT = 0; } else { WATCH.lookT = 0; if (WATCH.awake) WATCH.awayT += dt; }
-    if (!WATCH.awake && WATCH.lookT > 0.25) { WATCH.awake = true; haptic(vrHands.right, 0.15, 20); }
+    if (!WATCH.awake && WATCH.lookT > 0.25) { WATCH.awake = true; haptic(vrHands[side], 0.15, 20); }
     if (WATCH.awake && WATCH.awayT > 0.8) WATCH.awake = false;
     const minute = Math.floor(Date.now() / 60000) * 2 + (WATCH.awake ? 1 : 0);
     if (minute !== WATCH.minute) { WATCH.minute = minute; drawWatchFace(WATCH.awake); }
     panel.visible = WATCH.awake;
-    const rh = myHands.left;   // you press it with your left hand
+    const rh = myHands[other];   // you press it with your other hand
     if (!WATCH.awake) { WATCH.trigPrev = false; return; }
     // the panel floats just above the watch, facing you
     panel.position.copy(_watchWp).addScaledVector(toEye, 0.03).addScaledVector(_watchRd.set(0, 1, 0).applyQuaternion(_watchCq), 0.075);
@@ -104,7 +114,7 @@
         const t = panel.position.clone().sub(rh.pos).dot(n) / den;
         if (t > 0 && t < 1.2) { _watchLoc.copy(rh.pos).addScaledVector(_watchRd, t).applyMatrix4(_watchInv); if (onButton(_watchLoc)) hover = true; }
       }
-      const gp = vrHands.left.source && vrHands.left.source.gamepad;
+      const gp = vrHands[other].source && vrHands[other].source.gamepad;
       const trig = !!(gp && gp.buttons && gp.buttons[0] && gp.buttons[0].pressed);
       if (trig && !WATCH.trigPrev && hover) watchPress();
       WATCH.trigPrev = trig;

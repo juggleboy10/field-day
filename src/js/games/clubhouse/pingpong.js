@@ -53,9 +53,7 @@
     const ballMesh = new THREE.Mesh(new THREE.SphereGeometry(BR, 14, 10), new THREE.MeshLambertMaterial({ color: 0xff9a3c }));
     ballMesh.visible = false;
     G.add(ballMesh);
-    // a faint trail filling in where the ball went this frame, so a fast ball reads as moving rather than jumping
-    const trail = [0.1, 0.16, 0.24, 0.34].map((o) => { const m = new THREE.Mesh(new THREE.SphereGeometry(BR * 0.9, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffb36b, transparent: true, opacity: o, depthWrite: false })); m.visible = false; G.add(m); return m; });
-    const prevBall = new V3();
+
     const botPaddle = TOOL_MESH.paddle();
     botPaddle.visible = false; G.add(botPaddle);
     // the clubhouse bot has a body, standing at its end of the table
@@ -410,11 +408,8 @@
         deskHit(now);
       } else if (PP.ph === 'rally') { simOnly = true; for (let k = 0; k < steps; k++) stepBall(h); simOnly = false; prevPC = null; }
       botStep(dt, now);
-      prevBall.copy(ballMesh.position);
       toWorld(PP.b.u, PP.b.y, PP.b.v, ballMesh.position);
       ballMesh.visible = PP.ph !== 'idle';
-      const jump = prevBall.distanceTo(ballMesh.position), showTrail = PP.ph === 'rally' && jump > 0.03 && jump < 0.6;
-      trail.forEach((m, i) => { m.visible = showTrail; if (showTrail) m.position.lerpVectors(prevBall, ballMesh.position, (i + 1) / (trail.length + 1)); });
       const key = `${PP.score}|${PP.server}|${PP.ph === 'idle'}|${players().join()}|${PP.botOn}`;
       if (key !== scoreKey) { scoreKey = key; drawScore(); }
     };

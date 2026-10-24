@@ -54,7 +54,7 @@
     }
     makeKiosk(L, 4.5, -3.5, Math.atan2(-4.5, 3.5));
     RECORDS.def(L, [{ k: 'rounds', label: 'Quickest win (fewest rounds to 21)', low: true }]);
-    L.board = makeBoard(G, 720, 460, 2.6, 1.66, -4.2, 2.1, 0, Math.PI / 2);
+    L.board = makeBoard(G, 720, 460, 2.6, 1.66, -4.2, 2.1, -2.4, Math.PI / 2);
 
     // ---------------------------------------------------------------- the boards: d = -1 at the north end, +1 at the south
     const boardTex = canvasTexture(128, 256, (g) => {

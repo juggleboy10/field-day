@@ -80,7 +80,7 @@
       sign.tex.needsUpdate = true;
     })();
     makeKiosk(L, R.maxX - 1.2, R.maxZ - 1.2, -Math.PI * 0.75);
-    RECORDS.def(L, [{ k: 'rally', label: 'Longest rally (hits)' }]);
+    RECORDS.def(L, [{ k: 'rally', label: 'Longest rally (hits)' }], { x: R.maxX - 3.0, z: R.maxZ - 0.9, yaw: Math.PI });   // (inside the fence, facing the court)
 
     // ---------------------------------------------------------------- paddles and ball
     TOOL_MESH.pbpaddle = () => {

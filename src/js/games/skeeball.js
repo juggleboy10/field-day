@@ -16,7 +16,7 @@
       sun: [0xffffff, 0.45], sunDir: new V3(0.2, 1, 0.4), ambient: [0x503a60, 0.5], sprite: null,
     };
     const N = 4, PITCH = 1.4, BR = 0.045, BALLS = 9;
-    const LANE_W = 0.56, LANE_Z0 = 0, LANE_Z1 = -2.9, LANE_Y0 = 0.78, SLOPE = 0.09;
+    const LANE_W = 0.56, LANE_Z0 = 0, LANE_Z1 = -2.9, LANE_Y0 = 0.6, SLOPE = 0.152;   // (the lane starts low, about knee height, for a natural underhand roll)
     const BZ0 = -3.0, BZ1 = -3.85, BY0 = 1.081, BOARD_TILT = 0.6;   // the target board: from (BZ0, BY0) rising toward the back
     const C_T = 0.58, RINGS = [[0.07, 50], [0.14, 40], [0.21, 30], [0.28, 20]], HUNDREDS = [[-0.19, 0.98], [0.19, 0.98]];
     const machX = (k) => (k - (N - 1) / 2) * PITCH;
@@ -97,7 +97,7 @@
       }
       for (const [hx, ht] of HUNDREDS) { const rim = new THREE.Mesh(new THREE.TorusGeometry(0.055, 0.008, 6, 24), rimM); rim.position.copy(boardPt(k, hx, ht)).addScaledVector(nrm, 0.008); rim.quaternion.copy(tiltQ); G.add(rim); }
       // the return chute: a clear tube down the side of the lane to your tray, so you see the ball come back
-      { const a = new V3(mx + LANE_W / 2 + 0.16, 0.95, BZ0 + 0.05), b2 = new V3(mx + LANE_W / 2 + 0.16, 0.86, 0.0), d = b2.clone().sub(a);
+      { const a = new V3(mx + LANE_W / 2 + 0.16, 0.95, BZ0 + 0.05), b2 = new V3(mx + LANE_W / 2 + 0.16, 0.7, 0.0), d = b2.clone().sub(a);
         const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, d.length(), 12, 1, true), new THREE.MeshLambertMaterial({ color: 0x8be0ff, transparent: true, opacity: 0.22, depthWrite: false, side: THREE.DoubleSide }));
         tube.position.copy(a).add(b2).multiplyScalar(0.5); tube.quaternion.setFromUnitVectors(new V3(0, 1, 0), d.normalize()); G.add(tube); }
       addBox(G, LANE_W + 0.2, boardY(BZ1) + 0.2, 0.1, cabMat, mx, (boardY(BZ1) + 0.2) / 2, BZ1 - 0.1);
@@ -107,8 +107,8 @@
       const marquee = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.55), new THREE.MeshBasicMaterial({ map: sc.tex }));
       marquee.position.set(mx, boardY(BZ1) + 0.65, BZ1 - 0.04); G.add(marquee);
       // the ball tray at the front
-      addBox(G, 0.3, 0.06, 0.24, lam(0x2a1a44), mx + LANE_W / 2 + 0.2, 0.74, 0.12);
-      const tag = makePlate(G, `Machine ${k + 1}`, 0.6, 0.12, new V3(mx, 0.6, 0.2), 0, { size: 0.55, bg: '#2a1a44', fg: '#ffffff' });
+      addBox(G, 0.3, 0.06, 0.24, lam(0x2a1a44), mx + LANE_W / 2 + 0.2, 0.58, 0.12);
+      const tag = makePlate(G, `Machine ${k + 1}`, 0.6, 0.12, new V3(mx, 0.4, 0.2), 0, { size: 0.55, bg: '#2a1a44', fg: '#ffffff' });
       machines.push({ k, mx, sc, tag, owner: null, key: '' });
     }
     // the ticket counter and prize shelf, along the right wall
@@ -207,7 +207,7 @@
     for (let i = 0; i < 8; i++) { const m = new THREE.Mesh(sph(BR, 12, 10), ballMat); G.add(m); trayBalls.push(m); }
     L.setColor = (hex) => ballMat.color.set(hex).lerp(new THREE.Color(0xffffff), 0.45);
     L.setColor(PLAYER_COLORS[state.colorIdx].hex);
-    const trayPos = (i) => new V3(machX(me.k) + LANE_W / 2 + 0.13 + (i % 2) * 0.1, 0.81, 0.04 + Math.floor(i / 2) * 0.1);
+    const trayPos = (i) => new V3(machX(me.k) + LANE_W / 2 + 0.13 + (i % 2) * 0.1, 0.65, 0.04 + Math.floor(i / 2) * 0.1);
     function mySlot() {
       const ids = [state.myPeer];
       for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer);
@@ -349,7 +349,7 @@
       if (B.st !== 'tray') return;
       if (me.phase !== 'play') newGame();
       camera.getWorldQuaternion(_q); _f.set(0, 0, -1).applyQuaternion(_q);
-      const yaw = Math.atan2(-_f.x, -_f.z), sp = 2.4 + c * 3.0;
+      const yaw = Math.atan2(-_f.x, -_f.z), sp = 2.7 + c * 3.0;
       const vx = clamp(-Math.sin(yaw) * sp, -0.6, 0.6);
       launch(new V3(machX(me.k) + clamp(-Math.sin(yaw) * 0.3, -0.15, 0.15), laneY(LANE_Z0 - 0.05) + BR, LANE_Z0 - 0.05), new V3(vx, 0, -sp));
     };

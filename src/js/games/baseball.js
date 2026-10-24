@@ -225,7 +225,7 @@
     setMachine(true);
     makeButton(L, new V3(-4.1, 1.0, 4.3), 0xf5821f, 'Reset balls', () => resetBodies(L), { faceYaw: Math.PI });
     makeKiosk(L, -4.9, 3.3, Math.PI * 0.75);
-    RECORDS.def(L, [{ k: 'hr', label: 'Longest home run', fmt: 'm' }], { x: 6.9, z: 5.6, yaw: Math.PI });   // (behind the backstop, facing the field)
+    RECORDS.def(L, [{ k: 'hr', label: 'Longest home run', fmt: 'm' }, { k: 'streak', label: 'Most home runs in a row' }], { x: 6.9, z: 5.6, yaw: Math.PI });   // (behind the backstop, facing the field)
     L.board = makeBoard(G, 720, 460, 2.4, 1.533, 4.4, 2.0, 5.6, Math.PI);   // behind the backstop, facing the field
     {
       const big = new THREE.Mesh(new THREE.PlaneGeometry(14, 8.94), new THREE.MeshBasicMaterial({ map: L.board.tex, fog: false }));
@@ -282,7 +282,11 @@
       showToast(text);
       if (pos) spawnFloat('Home run!', pos, '#ffd23f');
     }
-    L.onBatHit = (b, speed) => { L.lastHitSpeed = speed; };
+    // a hot streak: every home run in a row adds a little power to your next hit (3.5% each, up to +70%)
+    L.streak = 0;
+    const streakBoost = () => 1 + 0.035 * Math.min(20, L.streak);
+    L.streakBoost = streakBoost;
+    L.onBatHit = (b, speed) => { L.lastHitSpeed = speed; if (L.streak > 0 && !gameOn()) b.vel.multiplyScalar(streakBoost()); };
     L.onBodyFrame = (b, dt) => {
       if (b.owner !== state.myPeer || b.held) return;
       const dd = b.data;
@@ -303,9 +307,16 @@
           if (dd.hr || fair(lp.x, lp.z)) {
             if (dist > L.stats.best) { L.stats.best = dist; state.dirtyBoard = true; forcePresence(); }
             if (dd.hr && dd.mine !== false) RECORDS.add(L, 'hr', dist);
+            if (dd.mine !== false && !gameOn()) {
+              if (dd.hr) {
+                L.streak += 1;
+                if (L.streak >= 2) { RECORDS.add(L, 'streak', L.streak); showToast(`\u{1F525} Hot streak: ${L.streak} in a row! +${Math.round((streakBoost() - 1) * 100)}% power`); }
+              } else if (L.streak) { showToast(L.streak >= 2 ? `Streak over at ${L.streak}` : 'Streak over'); L.streak = 0; }
+              state.dirtyBoard = true;
+            }
             if (!dd.hr && !gameOn()) showToast(`${dist} m`);
             spawnFloat(`${dist} m`, new V3(lp.x, 1.6, lp.z), dd.hr ? '#ffd23f' : '#ffffff');
-          } else if (dist > 3 && !gameOn()) showToast('Foul ball');
+          } else if (dist > 3 && !gameOn()) { showToast(L.streak >= 2 ? `Foul ball: streak over at ${L.streak}` : 'Foul ball'); if (dd.mine !== false) { L.streak = 0; state.dirtyBoard = true; } }
         }
       }
       // balls left lying around drift back to the crate
@@ -470,7 +481,8 @@
       g.fillStyle = '#ffd23f'; g.font = `800 64px ${DISPLAY}`;
       g.fillText('Sandlot Baseball', 36, 84);
       g.fillStyle = '#b9d8c4'; g.font = `400 24px ${BODY}`;
-      g.fillText(`Home runs and longest hit. The wall is ${FENCE_R} m.`, 36, 122);
+      if (L.streak >= 1) { g.fillStyle = '#ff8a3a'; g.font = `800 32px ${DISPLAY}`; g.fillText(`\u{1F525} Hot streak: ${L.streak} home run${L.streak > 1 ? 's' : ''} in a row \u00B7 +${Math.round((streakBoost() - 1) * 100)}% power`, 36, 126, W - 72); }
+      else g.fillText(`Home runs and longest hit. The wall is ${FENCE_R} m. Hit them in a row for a hot streak.`, 36, 122, W - 72);
       drawRows(g, rows, 180, 46, W);
       L.board.tex.needsUpdate = true;
     };

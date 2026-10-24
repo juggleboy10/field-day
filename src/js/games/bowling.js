@@ -165,6 +165,37 @@
       G.add(g);
       return g;
     }
+    // ---------------------------------------------------------------- cosmic bowling: the lights go down, the lanes glow
+    const cosmicTex = canvasTexture(128, 1024, (g) => {
+      g.fillStyle = '#0a0618'; g.fillRect(0, 0, 128, 1024);
+      const cols = ['#ff4dc8', '#4fe8ff', '#b8ff3a', '#ffd23f', '#9a6aff'];
+      for (let i = 0; i < 70; i++) { g.strokeStyle = cols[i % 5]; g.lineWidth = 2 + (i % 3); g.globalAlpha = 0.85; const x = rand() * 128, y = rand() * 1024; g.beginPath(); g.moveTo(x, y); g.bezierCurveTo(x + 30, y - 40, x - 30, y + 60, x + 10, y + 90); g.stroke(); }
+      for (let i = 0; i < 120; i++) { g.fillStyle = cols[i % 5]; g.globalAlpha = 0.9; g.beginPath(); g.arc(rand() * 128, rand() * 1024, 1.5 + rand() * 2, 0, Math.PI * 2); g.fill(); }
+      g.globalAlpha = 1;
+      for (let k = 0; k < 7; k++) { g.fillStyle = '#ffffff'; const x = 16 + k * 16, az = 1024 - Math.round((4.6 / LEN) * 1024); g.beginPath(); g.moveTo(x, az - 14 - Math.abs(k - 3) * 8); g.lineTo(x - 4, az - Math.abs(k - 3) * 8); g.lineTo(x + 4, az - Math.abs(k - 3) * 8); g.closePath(); g.fill(); }
+    }).tex;
+    const COSMIC = { on: false, spots: [] };
+    try { COSMIC.on = !!prefs.cosmic; } catch (e) { /* none */ }
+    const spotCols = [0xff4dc8, 0x4fe8ff, 0xb8ff3a, 0xffd23f, 0x9a6aff];
+    for (let i = 0; i < 14; i++) { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: warmGlowTex, color: spotCols[i % 5], blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.55 })); sp.scale.set(1.6, 1.6, 1); sp.visible = false; G.add(sp); COSMIC.spots.push({ sp, ph: rand() * 6, sp2: 0.3 + rand() * 0.5, lane: i % NL }); }
+    const discoBall = new THREE.Mesh(new THREE.SphereGeometry(0.35, 16, 12), new THREE.MeshLambertMaterial({ color: 0xd8d8e8, emissive: 0x6a6a8a })); discoBall.position.set(0, 3.2, 2.5); discoBall.visible = false; G.add(discoBall);
+    function applyCosmic() {
+      const on = COSMIC.on;
+      laneMat.map = on ? cosmicTex : maple; laneMat.emissive.setHex(on ? 0xffffff : 0x000000); laneMat.emissiveMap = on ? cosmicTex : null; laneMat.emissiveIntensity = on ? 0.75 : 1; laneMat.needsUpdate = true;
+      pinMat.emissive.setHex(on ? 0x8a8ab0 : 0x000000); stripeMat.emissive.setHex(on ? 0xff2a8a : 0x000000);
+      for (const c of COSMIC.spots) c.sp.visible = on;
+      discoBall.visible = on;
+      if (state.level === L.idx) { hemi.intensity = on ? 0.28 : L.env.hemi[2]; ambient.color.setHex(on ? 0x5a2a9a : L.env.ambient[0]); ambient.intensity = on ? 0.5 : L.env.ambient[1]; sunLight.intensity = on ? 0.12 : L.env.sun[1]; }
+    }
+    function setCosmic(on) { COSMIC.on = on; prefs.cosmic = on; savePrefs(); applyCosmic(); showToast(on ? 'Cosmic bowling! Lights down, lanes glowing' : 'Lights up'); state.hudDirty = true; }
+    L.setCosmic = setCosmic; L.cosmic = COSMIC;
+    { const baseEnter = L.onEnter; L.onEnter = () => { if (baseEnter) baseEnter(); applyCosmic(); }; }
+    applyCosmic();
+    function cosmicTick(now) {
+      if (!COSMIC.on) return;
+      discoBall.rotation.y = now * 0.0006;
+      COSMIC.spots.forEach((c, i) => { const t = now * 0.001 * c.sp2 + c.ph; c.sp.position.set(laneX(c.lane) + Math.sin(t * 1.3) * 0.7, 0.05, -2 - ((t * 3 + i * 2) % (LEN - 2))); });
+    }
     const lanePins = [];
     for (let i = 0; i < NL; i++) lanePins.push(SPOTS.map(([sx, sz]) => { const m = makePin(); m.position.set(laneX(i) + sx, 0, sz); return m; }));
     function poseMesh(m, x, z, state, tilt, tdir) {
@@ -491,6 +522,7 @@
     const wrist = makeWristPanel();
     let statusKey = '';
     L.update = (dt, now) => {
+      if (state.level === L.idx) cosmicTick(now);
       // hold the ball in VR
       if (me.phase === 'held') {
         const mh = myHands[me.side];
@@ -615,7 +647,7 @@
     }
     drawHow();
     redraws.push(drawHow);
-    L.hudActions = [{ label: () => 'New game', run: () => newGame() }];
+    L.hudActions = [{ label: () => 'New game', run: () => newGame() }, { label: () => (COSMIC.on ? 'Cosmic bowling: on' : 'Cosmic bowling: off'), run: () => setCosmic(!COSMIC.on) }];
     L.hints = [['Drag', 'aim'], ['Space', 'hold, then let go to roll'], ['A/D', 'line up']];
     L.clampPlayer = (p) => [clamp(p.x, -HALF + 0.2, HALF - 0.2) - p.x, clamp(p.z, -0.25, 8.3) - p.z];
     L.attract = (now) => {

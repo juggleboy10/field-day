@@ -75,7 +75,7 @@
       const hh = hand(0.18, 0.03, 0x1a1a1a), mh = hand(0.26, 0.02, 0x1a1a1a), sh = hand(0.28, 0.008, 0xd03a2a);
       // a plant in a corner
       for (const sx of [-1, 1]) {
-        const px = sx * (W / 2 - 0.5), pz = Z + D * 0.05;
+        const px = sx * (W / 2 - 0.5), pz = Z + D / 2 - 0.7;   // (in the back corners, out of the way of the boards on the side walls)
         addCyl(G, 0.22, 0.17, 0.4, 12, lam(0xc06a3a), px, 0.2, pz);
         for (let k = 0; k < 7; k++) { const a = k / 7 * Math.PI * 2; const lf = new THREE.Mesh(new THREE.SphereGeometry(0.16, 6, 5), lam(0x3a8a3a)); lf.scale.set(0.6, 1.6, 0.6); lf.position.set(px + Math.cos(a) * 0.12, 0.65 + (k % 2) * 0.1, pz + Math.sin(a) * 0.12); lf.rotation.set(Math.sin(a) * 0.5, 0, Math.cos(a) * 0.5); G.add(lf); }
       }
