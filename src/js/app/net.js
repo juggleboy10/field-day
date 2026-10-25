@@ -3,7 +3,7 @@
   function buildPresence() {
     const L = curLevel();
     const inGame = state.mode !== 'menu';
-    const p = { n: state.name, c: state.colorIdx, a: [state.hat, state.face, state.shirt, state.shirtColor], p: inGame ? 1 : 0, lv: state.level, h: null, l: null, r: null, b: [], t: [], s: null, bb: null, dg: null, d: null, dq: null, hx: null, sh: null, pc: null, dr: null, dh: null, lq: null, ls: null, lh: null, sq: null, mq: null, mb: null, bo: null, bp: null, bw: null, ka: null };
+    const p = { n: state.name, c: state.colorIdx, a: [state.hat, state.face, state.shirt, state.shirtColor], p: inGame ? 1 : 0, lv: state.level, h: null, l: null, r: null, b: [], t: [], s: null, bb: null, dg: null, d: null, dq: null, hx: null, sh: null, pc: null, dr: null, dh: null, lq: null, ls: null, lh: null, sq: null, mq: null, mb: null, bo: null, bp: null, bw: null, ka: null, pz: PRIZE_FX.mask() };
     if (inGame) {
       const over = L.publishPose ? L.publishPose() : null;
       if (over) {
@@ -78,6 +78,7 @@
       state.dirtyBoard = true;
     }
     rec.pres = pres;
+    rec.pz = Number.isInteger(pres.pz) && pres.pz >= 0 && pres.pz < 64 ? pres.pz : 0;
     const look = Array.isArray(pres.a) ? pres.a : [];
     const pick = (v, n) => (Number.isInteger(v) && v >= 0 && v < n ? v : 0);
     setLook(rec, pick(look[0], HATS.length), pick(look[1], FACES.length), pick(look[2], SHIRTS.length), pick(look[3], SHIRT_COLORS.length));

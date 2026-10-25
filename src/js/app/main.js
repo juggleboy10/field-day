@@ -42,6 +42,7 @@
       if (L.recBoard) RECORDS.draw(L);
       if (si < steps - 1) updateMyPose(t);
     }
+    PRIZE_FX.tick(dt * steps, now);
     if (L.picker) L.picker.tick();
     if (L.sitOut) L.sitOut.tick(dt * steps);
     updateButtons(L, now);

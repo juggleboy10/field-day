@@ -14,6 +14,7 @@ js/core/remotes.js
 js/core/bodies.js
 js/core/claims.js
 js/core/quest-registry.js
+js/core/prizes.js
 js/games/hoops.js
 js/games/baseball.js
 js/games/discgolf.js

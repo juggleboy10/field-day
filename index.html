@@ -1406,6 +1406,7 @@ kbd {
       const place = kept.findIndex((e) => e[1] === String(name).slice(0, 24) && e[0] === Math.round(value * 100) / 100) + 1;
       if (!who && place === 1 && (!prev || better(d, value, prev[0]))) {
         showToast(`\u{1F3C6} New record! ${d.label}: ${fmtOf(d)(value)}`); sfx('fanfare', 0.7);
+        PRIZE_FX.fireworks();
       }
       if (L.recBoard) L.recBoard.key = '';
       if (!who && place > 0) SHARED.soon();
@@ -3102,6 +3103,195 @@ kbd {
   const WEAPON_FX = ['bolt', 'pistol', 'scatter', 'rail', 'plasma', 'fire', 'frost', 'storm'];
   const WEAPON_FX_COLOR = { bolt: 0x9aa0b0, pistol: 0x4fc3f7, scatter: 0xffb020, rail: 0xb388ff, plasma: 0x6aff8a, fire: 0xff7a2a, frost: 0x8ad8ff, storm: 0xe8e06a };
 
+  // ================================================================ PRIZE_FX: what the Skee-Ball prizes do
+  // Prizes bought with tickets at the prize counter can each be switched on or off there (press an owned prize's
+  // button). What they do, everywhere you go:
+  //   Rubber duck: lucky duck, 25% more tickets from every carnival game
+  //   Teddy bear: a buddy that follows you around (friends see it too)
+  //   Toy rocket: fireworks go up over you whenever you set a new record
+  //   Wind-up robot: follows you and pipes up with a tip for each game you visit
+  //   Golden crown: gold sparkles round you, and a crown on your name tag (friends see both)
+  const PRIZE_FX = (() => {
+    const IDS = ['duck', 'bear', 'rocket', 'robot', 'crown'];
+    const DESC = {
+      duck: 'Lucky duck: 25% more tickets from every carnival game',
+      bear: 'Your teddy bear follows you everywhere',
+      rocket: 'Fireworks go up whenever you set a new record',
+      robot: 'Your robot follows you and gives you a tip in each game',
+      crown: 'Gold sparkles round you, and a crown on your name tag',
+    };
+    const save = () => (prefs.skee && typeof prefs.skee === 'object' ? prefs.skee : (prefs.skee = { tickets: 0, owned: [] }));
+    const owned = (id) => Array.isArray(save().owned) && save().owned.includes(id);
+    const isOn = (id) => owned(id) && Array.isArray(save().on) && save().on.includes(id);
+    function setOn(id, on) {
+      const s = save(); s.on = Array.isArray(s.on) ? s.on.filter((x) => x !== id) : [];
+      if (on) s.on.push(id);
+      savePrefs(); forcePresence();
+    }
+    const toggle = (id) => { const on = !isOn(id); setOn(id, on); return on; };
+    const mask = () => IDS.reduce((m, id, i) => (isOn(id) ? m | (1 << i) : m), 0);
+    const bit = (m, id) => !!(m & (1 << IDS.indexOf(id)));
+    // tickets: the lucky duck adds a quarter, rounded up
+    const tickets = (n) => (isOn('duck') && n > 0 ? Math.ceil(n * 1.25) : n);
+
+    // ---------------------------------------------------------------- the pets
+    function makeBear() {
+      const g = new THREE.Group(), b = lam(0xa8743a), dk = lam(0x1a1a1a);
+      const body = new THREE.Group(); g.add(body);
+      body.add(at(new THREE.Mesh(sph(0.11, 12, 10), b), 0, 0.12, 0), at(new THREE.Mesh(sph(0.08, 12, 10), b), 0, 0.28, -0.01));
+      for (const sx of [-1, 1]) {
+        body.add(at(new THREE.Mesh(sph(0.03, 8, 6), b), sx * 0.06, 0.35, -0.01));
+        body.add(at(new THREE.Mesh(sph(0.012, 6, 5), dk), sx * 0.03, 0.3, -0.08));
+        body.add(at(new THREE.Mesh(sph(0.035, 8, 6), b), sx * 0.09, 0.15, -0.03));   // arms
+      }
+      body.add(at(new THREE.Mesh(sph(0.03, 8, 6), lam(0xd8b080)), 0, 0.26, -0.075));
+      const feet = [-1, 1].map((sx) => { const f = at(new THREE.Mesh(sph(0.04, 8, 6), b), sx * 0.05, 0.03, 0); g.add(f); return f; });
+      return { g, body, feet, kind: 'bear' };
+    }
+    function makeRobot() {
+      const g = new THREE.Group(), m = lam(0xb8c0d0);
+      const body = new THREE.Group(); g.add(body);
+      body.add(at(new THREE.Mesh(boxg(0.14, 0.16, 0.1), m), 0, 0.14, 0), at(new THREE.Mesh(boxg(0.1, 0.09, 0.09), m), 0, 0.28, 0));
+      const eyeM = new THREE.MeshBasicMaterial({ color: 0x4fc3f7 });
+      for (const sx of [-1, 1]) body.add(at(new THREE.Mesh(sph(0.015, 6, 5), eyeM), sx * 0.025, 0.29, -0.046));
+      body.add(at(new THREE.Mesh(cyl(0.005, 0.005, 0.06, 4), m), 0, 0.35, 0), at(new THREE.Mesh(sph(0.015, 6, 5), lam(0xe5453a)), 0, 0.385, 0));
+      const key = new THREE.Group(); key.position.set(0, 0.15, 0.06); body.add(key);
+      key.add(at(new THREE.Mesh(cyl(0.006, 0.006, 0.05, 4), lam(0xffc83a)), 0, 0, 0.02));
+      const kb = at(new THREE.Mesh(boxg(0.07, 0.03, 0.008), lam(0xffc83a)), 0, 0, 0.045); key.add(kb);
+      key.children[0].rotation.x = Math.PI / 2;
+      const feet = [-1, 1].map((sx) => { const f = at(new THREE.Mesh(boxg(0.05, 0.05, 0.08), lam(0x5a6070)), sx * 0.04, 0.025, 0); g.add(f); return f; });
+      return { g, body, feet, key, kind: 'robot' };
+    }
+    // a speech bubble over the robot
+    function makeBubble() {
+      const c = canvasTexture(512, 160);
+      const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: c.tex, depthWrite: false, transparent: true }));
+      s.scale.set(0.8, 0.25, 1); s.visible = false; s.renderOrder = 5; scene.add(s);
+      return { s, c, until: 0 };
+    }
+    function say(bub, text) {
+      const g = bub.c.g;
+      g.clearRect(0, 0, 512, 160);
+      rr(g, 6, 6, 500, 122, 26); g.fillStyle = 'rgba(255,255,255,0.95)'; g.fill(); g.lineWidth = 5; g.strokeStyle = '#4fc3f7'; g.stroke();
+      g.beginPath(); g.moveTo(240, 126); g.lineTo(256, 154); g.lineTo(276, 126); g.fillStyle = 'rgba(255,255,255,0.95)'; g.fill();
+      g.fillStyle = '#1b1932'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      // wrap to two lines
+      let size = 34; g.font = `700 ${size}px ${BODY}`;
+      const words = text.split(' '), lines = ['']; for (const w of words) { const t = lines[lines.length - 1] ? `${lines[lines.length - 1]} ${w}` : w; if (g.measureText(t).width > 470 && lines[lines.length - 1]) lines.push(w); else lines[lines.length - 1] = t; }
+      if (lines.length > 2) { size = 26; g.font = `700 ${size}px ${BODY}`; }
+      const show = lines.slice(0, 3), y0 = 67 - (show.length - 1) * size * 0.55;
+      show.forEach((ln, i) => g.fillText(ln, 256, y0 + i * size * 1.1, 480));
+      bub.c.tex.needsUpdate = true; bub.until = performance.now() + 6500;
+    }
+    // a pet that trots after a spot (someone's feet), a little behind and to one side
+    const _t = new V3(), _d = new V3();
+    function follow(pet, base, yaw, side, dt, now, floorY) {
+      const back = 0.55, out = 0.45 * side;
+      _t.set(base.x + Math.sin(yaw) * back + Math.cos(yaw) * out, floorY, base.z + Math.cos(yaw) * back - Math.sin(yaw) * out);
+      const g = pet.g;
+      if (!pet.placed || g.position.distanceTo(_t) > 6) { g.position.copy(_t); pet.placed = true; }
+      _d.subVectors(_t, g.position); _d.y = 0;
+      const d = _d.length(), sp = Math.min(d * 3.2, 4.5);
+      if (d > 0.08) { g.position.addScaledVector(_d, Math.min(1, sp * dt / d)); g.rotation.y = Math.atan2(-_d.x, -_d.z); }
+      g.position.y += (floorY - g.position.y) * Math.min(1, dt * 8);
+      const walking = d > 0.12; pet.ph = (pet.ph || 0) + dt * (walking ? 12 : 0);
+      pet.body.position.y = walking ? Math.abs(Math.sin(pet.ph)) * 0.03 : 0;
+      pet.body.rotation.z = walking ? Math.sin(pet.ph) * 0.12 : 0;
+      pet.feet.forEach((f, i) => { f.position.z = walking ? Math.sin(pet.ph + i * Math.PI) * 0.04 : 0; });
+      if (pet.key) pet.key.rotation.z = now * 0.004;
+    }
+
+    // ---------------------------------------------------------------- sparkles (the crown) and fireworks (the rocket)
+    const sparkM = new THREE.SpriteMaterial({ map: warmGlowTex, color: 0xffd23f, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true });
+    const SPARKS = []; for (let i = 0; i < 60; i++) { const s = new THREE.Sprite(sparkM.clone()); s.visible = false; scene.add(s); SPARKS.push({ s, life: 0, v: new V3() }); }
+    let sparkI = 0;
+    function spark(p, v, life, color, size) {
+      const k = SPARKS[sparkI++ % SPARKS.length]; k.s.position.copy(p); k.v.copy(v); k.life = k.max = life; k.s.material.color.setHex(color); k.size = size; k.s.visible = true;
+    }
+    const ROCKETS = [];
+    const rocketM = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    function fireworks() {
+      if (!isOn('rocket') || state.mode === 'menu') return;
+      const base = myHead.pos;
+      for (let i = 0; i < 3; i++) {
+        const m = new THREE.Mesh(sph(0.04, 6, 5), rocketM); m.visible = false; scene.add(m);
+        const a = Math.random() * Math.PI * 2;
+        ROCKETS.push({ m, p: new V3(base.x + Math.cos(a) * 1.2, base.y - 0.8, base.z + Math.sin(a) * 1.2), v: new V3((Math.random() - 0.5) * 1.2, 9 + Math.random() * 2, (Math.random() - 0.5) * 1.2), t: -i * 0.35, col: [0xff4d8a, 0x4fc3f7, 0xffd23f, 0x8bff6a][(i + Math.floor(Math.random() * 4)) % 4] });
+      }
+      sfx('whoosh', 0.5);
+    }
+
+    // ---------------------------------------------------------------- per frame
+    const mine = { bear: null, robot: null, bubble: null, lastLv: -1, tipT: 0 };
+    const theirs = new Map();   // peer -> { bear, robot, crownKey }
+    const _f = new V3(), _b = new V3();
+    function tipFor(L) {
+      const h = (L.hintsFor ? L.hintsFor() : L.hints) || [];
+      if (!h.length) return null;
+      const e = h[Math.floor(Math.random() * h.length)];
+      return Array.isArray(e) ? `${e[0]}: ${e[1]}` : String(e);
+    }
+    function tick(dt, now) {
+      const inGame = state.mode !== 'menu', L = curLevel();
+      // my pets: at my feet
+      _f.set(0, 0, -1).applyQuaternion(myHead.quat); const yaw = Math.atan2(-_f.x, -_f.z) + Math.PI;
+      const floorY = Math.max(0, dolly.position.y);
+      for (const [id, side] of [['bear', 1], ['robot', -1]]) {
+        const on = inGame && isOn(id);
+        if (on && !mine[id]) { mine[id] = id === 'bear' ? makeBear() : makeRobot(); scene.add(mine[id].g); }
+        if (!mine[id]) continue;
+        mine[id].g.visible = on;
+        if (on) follow(mine[id], myHead.pos, yaw, side, dt, now, floorY); else mine[id].placed = false;
+      }
+      // the robot's tips: one when you arrive in a game, then now and then
+      if (inGame && isOn('robot') && mine.robot) {
+        if (!mine.bubble) mine.bubble = makeBubble();
+        if (mine.lastLv !== state.level) { mine.lastLv = state.level; mine.tipT = now + 2500; }
+        if (now > mine.tipT) { const t = tipFor(L); if (t) { say(mine.bubble, t); tone(1200, 1600, 0.05, 'square', 0.05); tone(1600, 0, 0.05, 'square', 0.04, 0.07); } mine.tipT = now + 50000; }
+        mine.bubble.s.visible = now < mine.bubble.until;
+        if (mine.bubble.s.visible) mine.bubble.s.position.copy(mine.robot.g.position).add(_b.set(0, 0.62, 0));
+      } else if (mine.bubble) { mine.bubble.s.visible = false; mine.lastLv = -1; }
+      // my crown sparkles (only every so often, round my head, outside my own view)
+      if (inGame && isOn('crown') && Math.random() < dt * 10) { const a = Math.random() * Math.PI * 2; spark(_b.set(myHead.pos.x + Math.cos(a) * 0.45, myHead.pos.y - 0.3 - Math.random() * 0.9, myHead.pos.z + Math.sin(a) * 0.45), new V3(0, 0.25, 0), 0.9, 0xffd23f, 0.12); }
+      // friends' pets and sparkles
+      for (const [peer, o] of theirs) if (!remotes.has(peer)) { for (const k of ['bear', 'robot']) if (o[k]) scene.remove(o[k].g); theirs.delete(peer); }
+      for (const rec of remotes.values()) {
+        const m = Number.isInteger(rec.pz) ? rec.pz : 0, show = inMyLevel(rec) && rec.hasH;
+        let o = theirs.get(rec.peer); if (!o && !m) continue; if (!o) { o = {}; theirs.set(rec.peer, o); }
+        // a crown on their name tag
+        const ck = `${bit(m, 'crown')}|${rec.name}|${rec.colorIdx}`;
+        if (o.crownKey !== ck) { o.crownKey = ck; drawTag(rec.tagC.g, (bit(m, 'crown') ? '\u{1F451} ' : '') + rec.name, PLAYER_COLORS[rec.colorIdx] ? PLAYER_COLORS[rec.colorIdx].hex : '#ffffff'); rec.tagC.tex.needsUpdate = true; }
+        _f.set(0, 0, -1).applyQuaternion(rec.cur.h.quat); const ry = Math.atan2(-_f.x, -_f.z) + Math.PI;
+        for (const [id, side] of [['bear', 1], ['robot', -1]]) {
+          const on = show && bit(m, id);
+          if (on && !o[id]) { o[id] = id === 'bear' ? makeBear() : makeRobot(); scene.add(o[id].g); }
+          if (!o[id]) continue;
+          o[id].g.visible = on;
+          if (on) follow(o[id], rec.cur.h.pos, ry, side, dt, now, 0); else o[id].placed = false;
+        }
+        if (show && bit(m, 'crown') && Math.random() < dt * 10) { const a = Math.random() * Math.PI * 2, h = rec.cur.h.pos; spark(_b.set(h.x + Math.cos(a) * 0.4, h.y - Math.random() * 1.1, h.z + Math.sin(a) * 0.4), new V3(0, 0.25, 0), 0.9, 0xffd23f, 0.12); }
+      }
+      // fireworks
+      for (let i = ROCKETS.length - 1; i >= 0; i--) {
+        const r = ROCKETS[i]; r.t += dt;
+        if (r.t < 0) continue;
+        r.m.visible = true; r.v.y -= 9.8 * dt; r.p.addScaledVector(r.v, dt); r.m.position.copy(r.p);
+        if (Math.random() < 0.6) spark(r.p, new V3(0, -0.5, 0), 0.4, 0xffc890, 0.1);
+        if (r.v.y < 1.5) {
+          for (let k = 0; k < 26; k++) { const v = new V3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize().multiplyScalar(3 + Math.random() * 1.5); spark(r.p, v, 1.3, r.col, 0.35); }
+          tone(160, 60, 0.35, 'sawtooth', 0.12); sfx('poof', 0.5);
+          scene.remove(r.m); ROCKETS.splice(i, 1);
+        }
+      }
+      for (const k of SPARKS) {
+        if (!k.s.visible) continue;
+        k.life -= dt; if (k.life <= 0) { k.s.visible = false; continue; }
+        k.v.y -= (k.size > 0.2 ? 2.5 : 0) * dt; k.s.position.addScaledVector(k.v, dt);
+        const u = k.life / k.max; k.s.scale.setScalar(k.size * (0.4 + u * 0.6)); k.s.material.opacity = u;
+      }
+    }
+    return { IDS, DESC, isOn, owned, setOn, toggle, mask, tickets, fireworks, tick, mine, theirs };
+  })();
   // ================================================================ LEVEL: ROOFTOP HOOPS
   const hoops = (() => {
     const L = newLevel(0);
@@ -10832,11 +11022,38 @@ kbd {
     const putter = makePutter();
     putter.visible = false;
     L.overlay.add(putter);
-    const ballGeo = new THREE.SphereGeometry(BR, 16, 12);
-    const myBallMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
+    // the ball you see is a touch smaller than the one the physics rolls (it sits on the felt all the same),
+    // with dimples so you can watch it turn over as it rolls
+    const VBR = 0.027;
+    const ballGeo = new THREE.SphereGeometry(VBR, 22, 16);
+    const dimpleTex = canvasTexture(256, 128, (g) => {
+      g.fillStyle = '#ffffff'; g.fillRect(0, 0, 256, 128);
+      for (let row = 0; row < 9; row++) {
+        const y = 7 + row * 14.2, n = Math.max(4, Math.round(24 * Math.sin(Math.PI * (row + 0.5) / 9)));
+        for (let k = 0; k < n; k++) {
+          const x = (k + (row % 2) * 0.5) * 256 / n;
+          g.fillStyle = 'rgba(0,0,0,0.30)'; g.beginPath(); g.ellipse(x, y, 3.6, 3.6 * 256 / 128 / 2 * 1.0, 0, 0, Math.PI * 2); g.fill();
+          g.fillStyle = 'rgba(255,255,255,0.7)'; g.beginPath(); g.arc(x - 1, y - 1, 1.2, 0, Math.PI * 2); g.fill();
+        }
+      }
+      // a maker's line round the middle, so the roll shows even from a distance
+      g.fillStyle = 'rgba(30,30,40,0.55)'; g.fillRect(0, 62, 256, 4);
+    }).tex;
+    const ballMat = (hex) => new THREE.MeshLambertMaterial({ color: hex, map: dimpleTex });
+    const _rollAx = new V3();
+    // put a ball mesh at a physics ball centre: dropped onto the felt, and turned over by however far it went
+    function placeBall(m, p) {
+      const last = m.userData.last || (m.userData.last = p.clone());
+      const dx = p.x - last.x, dz = p.z - last.z, d = Math.hypot(dx, dz);
+      if (d > 1e-5 && d < 0.6) { _rollAx.set(dz / d, 0, -dx / d); m.rotateOnWorldAxis(_rollAx, d / VBR); }
+      last.copy(p);
+      m.position.set(p.x, p.y - (BR - VBR), p.z);
+    }
+    const myBallMat = ballMat(0xffffff);
     const ballMesh = new THREE.Mesh(ballGeo, myBallMat);
     G.add(ballMesh);
-    const ballShadow = makeShadow(G, 0.09);
+    const ballShadow = makeShadow(G, 0.075);
+    const _rb = new V3();
     const aim = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.004, 1), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.55, depthWrite: false }));
     aim.geometry.translate(0, 0, -0.5);
     aim.visible = false;
@@ -11262,7 +11479,7 @@ kbd {
         const show = inMyLevel(rec) && st && st.ballOk;
         if (!show) { if (rec.mgBall) rec.mgBall.visible = false; if (rec.putter) rec.putter.visible = false; continue; }
         if (!rec.mgBall) {
-          rec.mgBall = new THREE.Mesh(ballGeo, new THREE.MeshLambertMaterial({ color: 0xffffff }));
+          rec.mgBall = new THREE.Mesh(ballGeo, ballMat(0xffffff));
           rec.mgBall.userData.p = new V3(st.bx, 0, st.bz);
           G.add(rec.mgBall);
           rec.putter = makePutter();
@@ -11273,7 +11490,7 @@ kbd {
         if (Math.hypot(p.x - st.bx, p.z - st.bz) > 3) p.set(st.bx, 0, st.bz); else { p.x += (st.bx - p.x) * k; p.z += (st.bz - p.z) * k; }
         const H = HOLES[st.hole];
         rec.mgBall.visible = st.bphase !== 2;
-        rec.mgBall.position.set(p.x, height(H, p.x - H.x, p.z - H.z) + BR, p.z);
+        placeBall(rec.mgBall, _rb.set(p.x, height(H, p.x - H.x, p.z - H.z) + BR, p.z));
         const hp = remoteHandPose(rec.peer, st.hand);
         rec.putter.visible = !!hp;
         if (hp) { rec.putter.position.copy(hp.pos); rec.putter.quaternion.copy(hp.quat); }
@@ -11366,7 +11583,7 @@ kbd {
       const H = H0();
       if (me.phase === 'holed' || me.phase === 'between') B.sink = Math.min(1, B.sink + dt * 4);
       const bp = ballPos(B, H, now, _bp);
-      if (bp) { ballMesh.position.copy(bp); ballMesh.position.y -= B.sink * 0.09; ballShadow.position.set(bp.x, height(H, bp.x - H.x, bp.z - H.z) + 0.003, bp.z); }
+      if (bp) { placeBall(ballMesh, bp); ballMesh.position.y -= B.sink * 0.09; ballShadow.position.set(bp.x, height(H, bp.x - H.x, bp.z - H.z) + 0.003, bp.z); }
       ballMesh.visible = !!bp && B.sink < 1;
       ballShadow.visible = !!bp && B.sink < 0.5;
       remoteVisuals(dt);
@@ -11456,7 +11673,7 @@ kbd {
     const beaBall = { x: 0, z: 0, vx: 0, vz: 0, lipped: false, sink: 0, fromX: 0, fromZ: 0, vis: null };
     BEA.ball = beaBall;
     L.bea = BEA;
-    const beaMesh = new THREE.Mesh(new THREE.SphereGeometry(BR, 16, 12), new THREE.MeshLambertMaterial({ color: 0xffb36b }));
+    const beaMesh = new THREE.Mesh(ballGeo, ballMat(0xffb36b));
     G.add(beaMesh);
     const bea = buildAvatar(BEA.color, 3, 1, true, 4, 6);
     const beaLabel = new THREE.Sprite(new THREE.SpriteMaterial({ map: canvasTexture(256, 64, (g) => { rr(g, 4, 6, 248, 52, 26); g.fillStyle = 'rgba(20,16,32,0.8)'; g.fill(); g.fillStyle = '#ffffff'; g.font = `700 30px ${BODY}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('Birdie Bea', 128, 33); }).tex, transparent: true, depthWrite: false }));
@@ -11581,7 +11798,7 @@ kbd {
       beaMesh.visible = show && BEA.phase !== 'holed';
       if (!show) return;
       const bbp = ballPos(beaBall, H, now, _bp2);
-      if (bbp) beaMesh.position.copy(bbp); else beaMesh.visible = false;
+      if (bbp) placeBall(beaMesh, bbp); else beaMesh.visible = false;
       // she stands behind her ball, facing her line
       const ax = BEA.aim[0], az = BEA.aim[1];
       const standX = beaBall.x - ax * 0.45 - az * 0.25, standZ = beaBall.z - az * 0.45 + ax * 0.25;
@@ -27727,18 +27944,21 @@ kbd {
       { id: 'robot', name: 'Wind-up robot', cost: 400, make: () => { const g = new THREE.Group(), m = lam(0xb8c0d0); g.add(at(new THREE.Mesh(boxg(0.14, 0.16, 0.1), m), 0, 0.1, 0), at(new THREE.Mesh(boxg(0.1, 0.09, 0.09), m), 0, 0.24, 0)); for (const sx of [-1, 1]) g.add(at(new THREE.Mesh(sph(0.015, 6, 5), new THREE.MeshBasicMaterial({ color: 0x4fc3f7 })), sx * 0.025, 0.25, -0.046)); g.add(at(new THREE.Mesh(cyl(0.005, 0.005, 0.06, 4), m), 0, 0.31, 0), at(new THREE.Mesh(sph(0.015, 6, 5), lam(0xe5453a)), 0, 0.345, 0)); return g; } },
       { id: 'crown', name: 'Golden crown', cost: 800, make: () => { const g = new THREE.Group(), gold = new THREE.MeshLambertMaterial({ color: 0xffc83a, emissive: 0x4a3000 }); g.add(at(new THREE.Mesh(cyl(0.1, 0.1, 0.07, 16, true), gold), 0, 0.05, 0)); for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2; g.add(at(new THREE.Mesh(new THREE.ConeGeometry(0.025, 0.07, 5), gold), Math.cos(a) * 0.1, 0.12, Math.sin(a) * 0.1)); } return g; } },
     ];
+    const PRIZE_SHORT = { duck: 'Lucky: +25% tickets', bear: 'Follows you around', rocket: 'Record fireworks', robot: 'Follows you, gives tips', crown: 'Gold sparkles' };
     const SAVE = { tickets: 0, owned: [] };
     try { if (prefs.skee && typeof prefs.skee === 'object') { SAVE.tickets = Number.isInteger(prefs.skee.tickets) ? prefs.skee.tickets : 0; SAVE.owned = Array.isArray(prefs.skee.owned) ? prefs.skee.owned.filter((x) => PRIZES.some((p) => p.id === x)) : []; } } catch (e) { /* none saved */ }
-    const save = () => { prefs.skee = { tickets: SAVE.tickets, owned: SAVE.owned.slice() }; savePrefs(); };
+    const save = () => { const on = prefs.skee && Array.isArray(prefs.skee.on) ? prefs.skee.on : []; prefs.skee = { tickets: SAVE.tickets, owned: SAVE.owned.slice(), on }; savePrefs(); };
     {
       const cx = 6.2;
       addBox(G, 0.6, 1.0, 4.2, lam(0x4a2a6a), cx, 0.5, -0.4);
       addBox(G, 0.3, 1.6, 4.2, lam(0x3a2a5a), cx + 0.35, 1.8, -0.4);
+      makePlate(G, 'Own a prize? Press it to switch it on or off', 2.6, 0.16, new V3(cx - 0.31, 0.92, -0.4), -Math.PI / 2, { size: 0.55, bg: '#2a1a44', fg: '#ffffff' });
       makePlate(G, 'PRIZE COUNTER', 2.4, 0.35, new V3(cx + 0.18, 2.85, -0.4), -Math.PI / 2, { bg: '#ff4d8a', fg: '#ffffff', size: 0.65 });
       PRIZES.forEach((p, i) => {
         const z = -2.0 + i * 0.8;
         const m = p.make(); m.position.set(cx + 0.25, 1.6, z); m.scale.setScalar(1.8); G.add(m); p.mesh = m;
         addBox(G, 0.36, 0.04, 0.5, lam(0x2a1a44), cx + 0.25, 1.58, z);
+        makePlate(G, PRIZE_SHORT[p.id], 0.62, 0.11, new V3(cx - 0.29, 1.3, z), -Math.PI / 2, { size: 0.6, bg: '#ffd23f', fg: '#2a1a44' });
         makeButton(L, new V3(cx - 0.1, 1.05, z), 0xffd23f, `${p.name}: ${p.cost}`, () => buyPrize(p), { faceYaw: -Math.PI / 2, pedestal: false });
       });
     }
@@ -27747,21 +27967,26 @@ kbd {
     ticketBoard.position.set(6.15, 2.45, -0.4); ticketBoard.rotation.y = -Math.PI / 2; G.add(ticketBoard);
     let ticketKey = '';
     function drawTickets() {
-      const key = `${SAVE.tickets}|${SAVE.owned.join()}`;
+      const key = `${SAVE.tickets}|${SAVE.owned.join()}|${PRIZE_FX.mask()}`;
       if (key === ticketKey) return; ticketKey = key;
       const g = ticketC.g;
       g.fillStyle = '#14142a'; g.fillRect(0, 0, 512, 160);
       g.fillStyle = '#ffd23f'; g.font = `900 64px ${DISPLAY}`; g.textAlign = 'center'; g.textBaseline = 'middle';
       g.fillText(`\u{1F39F}️ ${SAVE.tickets} tickets`, 256, 62);
-      g.fillStyle = '#c8b8e8'; g.font = `600 30px ${BODY}`; g.fillText(`${SAVE.owned.length} of ${PRIZES.length} prizes on your shelf`, 256, 124);
+      g.fillStyle = '#c8b8e8'; g.font = `600 30px ${BODY}`; g.fillText(`${SAVE.owned.length} of ${PRIZES.length} prizes · ${PRIZE_FX.IDS.filter((id) => PRIZE_FX.isOn(id)).length} switched on`, 256, 124);
       ticketC.tex.needsUpdate = true;
-      for (const p of PRIZES) p.mesh.traverse((o) => { if (o.material) { o.material.transparent = true; o.material.opacity = SAVE.owned.includes(p.id) ? 1 : 0.35; } });
+      for (const p of PRIZES) p.mesh.traverse((o) => { if (o.material) { o.material.transparent = true; o.material.opacity = PRIZE_FX.isOn(p.id) ? 1 : SAVE.owned.includes(p.id) ? 0.75 : 0.35; } });
     }
     function buyPrize(p) {
-      if (SAVE.owned.includes(p.id)) { showToast(`You already have the ${p.name.toLowerCase()}`); return; }
+      // a prize you own: switch what it does on or off
+      if (SAVE.owned.includes(p.id)) {
+        const on = PRIZE_FX.toggle(p.id);
+        showToast(on ? `${p.name} on: ${PRIZE_FX.DESC[p.id]}` : `${p.name} off (press again to switch it back on)`);
+        sfx(on ? 'chime' : 'click', 0.6); ticketKey = ''; return;
+      }
       if (SAVE.tickets < p.cost) { showToast(`The ${p.name.toLowerCase()} costs ${p.cost} tickets. You have ${SAVE.tickets}`); sfx('buzzer', 0.4); return; }
-      SAVE.tickets -= p.cost; SAVE.owned.push(p.id); save();
-      showToast(`You got the ${p.name.toLowerCase()}!`); sfx('fanfare', 0.8);
+      SAVE.tickets -= p.cost; SAVE.owned.push(p.id); save(); PRIZE_FX.setOn(p.id, true);
+      showToast(`You got the ${p.name.toLowerCase()}! ${PRIZE_FX.DESC[p.id]} (press it again to switch it off)`); sfx('fanfare', 0.8);
       spawnFloat(p.name, p.mesh.position.clone().add(new V3(-0.3, 0.4, 0)), '#ffd23f');
       forcePresence(); state.dirtyBoard = true;
     }
@@ -27775,6 +28000,7 @@ kbd {
       const tc = canvasTexture(512, 128);
       const tb = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.35), new THREE.MeshBasicMaterial({ map: tc.tex })); tb.position.set(0, 2.4, -0.28); g.add(tb);
       const meshes = PRIZES.map((p, i) => { const m = p.make(); m.position.set(-1.0 + i * 0.5, 1.04, -0.12); m.scale.setScalar(1.2); g.add(m); return m; });
+      PRIZES.forEach((p, i) => makePlate(g, PRIZE_SHORT[p.id], 0.46, 0.09, new V3(-1.0 + i * 0.5, 0.82, 0.31), 0, { size: 0.55, bg: '#ffd23f', fg: '#2a1a44' }));
       PRIZES.forEach((p, i) => {
         const lx = -1.0 + i * 0.5, lz = 0.36;
         makeButton(TL, new V3(x + rx * lx + fx * lz, 1.05, z + rz * lx + fz * lz), 0xffd23f, `${p.name}: ${p.cost}`, () => buyPrize(p), { faceYaw: yaw, pedestal: false });
@@ -27782,20 +28008,21 @@ kbd {
       let key = '';
       return {
         tick() {
-          const k = `${SAVE.tickets}|${SAVE.owned.join()}`;
+          const k = `${SAVE.tickets}|${SAVE.owned.join()}|${PRIZE_FX.mask()}`;
           if (k === key) return; key = k;
           const c = tc.g;
           c.fillStyle = '#14142a'; c.fillRect(0, 0, 512, 128);
           c.fillStyle = '#ffd23f'; c.font = `900 56px ${DISPLAY}`; c.textAlign = 'center'; c.textBaseline = 'middle';
           c.fillText(`\u{1F39F}\uFE0F ${SAVE.tickets} tickets`, 256, 64);
           tc.tex.needsUpdate = true;
-          PRIZES.forEach((p, i) => meshes[i].traverse((o) => { if (o.material) { o.material.transparent = true; o.material.opacity = SAVE.owned.includes(p.id) ? 1 : 0.35; } }));
+          PRIZES.forEach((p, i) => meshes[i].traverse((o) => { if (o.material) { o.material.transparent = true; o.material.opacity = PRIZE_FX.isOn(p.id) ? 1 : SAVE.owned.includes(p.id) ? 0.75 : 0.35; } }));
         },
       };
     };
     // every carnival game pays out in these same tickets, spent at this prize counter
     L.addTickets = (n, at) => {
       if (!(n > 0)) return;
+      n = PRIZE_FX.tickets(n);
       SAVE.tickets += n; save(); ticketKey = '';
       if (at) spawnFloat(`+${n} \u{1F39F}\uFE0F`, at, '#ffd23f');
       for (let i = 0; i < Math.min(n, 20); i++) setTimeout(() => tone(1500 + (i % 3) * 120, 0, 0.03, 'square', 0.04), i * 45);
@@ -32776,9 +33003,11 @@ kbd {
         const body = new THREE.Mesh(sph(0.11, 12, 10), m); body.scale.set(1.3, 0.8, 0.5); g.add(body);
         g.add(at(new THREE.Mesh(sph(0.07, 10, 8), m), 0.08, 0.12, 0));
         const beak = new THREE.Mesh(new THREE.ConeGeometry(0.025, 0.08, 6), lam(0xf5821f)); beak.rotation.z = -Math.PI / 2; beak.position.set(0.17, 0.11, 0); g.add(beak);
-        g.add(at(new THREE.Mesh(sph(0.015, 6, 5), lam(0x111111)), 0.11, 0.14, 0.05));
-        // the target ring painted on its side
-        const ring = new THREE.Mesh(new THREE.RingGeometry(0.03, 0.05, 16), new THREE.MeshBasicMaterial({ color: 0xe5453a })); ring.position.set(-0.02, 0, 0.056); g.add(ring);
+        // an eye and a target ring on both sides (the ducks going left are turned round)
+        for (const sz of [-1, 1]) {
+          g.add(at(new THREE.Mesh(sph(0.015, 6, 5), lam(0x111111)), 0.11, 0.14, sz * 0.05));
+          const ring = new THREE.Mesh(new THREE.RingGeometry(0.03, 0.05, 16), new THREE.MeshBasicMaterial({ color: 0xe5453a, side: THREE.DoubleSide })); ring.position.set(-0.02, 0, sz * 0.056); g.add(ring);
+        }
       }
       G.add(g); return g;
     }
@@ -37672,7 +37901,7 @@ kbd {
       g.fillStyle = '#2a1a0a'; g.fillRect(0, 0, 512, 160); g.strokeStyle = '#ff8a1a'; g.lineWidth = 6; g.strokeRect(3, 3, 506, 154);
       g.textAlign = 'center'; g.textBaseline = 'middle';
       if (S.ph === 'play') { const t = Math.ceil(S.t); g.fillStyle = '#ffffff'; g.font = `900 70px ${DISPLAY}`; g.fillText(`${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`, 160, 82); g.fillStyle = '#ff8a1a'; g.font = `800 40px ${DISPLAY}`; g.fillText(`${nLava} lava`, 380, 60); g.fillStyle = '#8bd450'; g.fillText(`${S.ids.length - nLava} safe`, 380, 110); }
-      else { g.fillStyle = '#ff8a1a'; g.font = `800 50px ${DISPLAY}`; g.fillText(S.ph === 'done' ? 'Round over' : 'Gorilla Tag', 256, 62); g.fillStyle = '#ffffff'; g.font = `400 26px ${BODY}`; g.fillText(state.mode === 'vr' ? 'Press A or X to start' : 'Start a round from the buttons up top', 256, 116); }
+      else { g.fillStyle = '#ff8a1a'; g.font = `800 50px ${DISPLAY}`; g.fillText(S.ph === 'done' ? 'Round over' : 'Gorilla Tag', 256, 62); g.fillStyle = '#ffffff'; g.font = `400 26px ${BODY}`; g.fillText(state.mode === 'vr' ? 'Press A or X, or hit the orange button below' : 'Start a round up top, or the orange button below', 256, 116); }
       clk.tex.needsUpdate = true;
     }
     // ---------------------------------------------------------------- per frame
@@ -37737,7 +37966,12 @@ kbd {
     L.hints = [['Arms', 'push off the ground and trees to move'], ['Push down + back', 'to leap forward'], ['A / X', 'start a round']];
     L.hintsFor = () => (state.mode === 'flat' ? [['WASD', 'run'], ['Space', 'leap'], ['Lava?', 'run into people to tag them']] : L.hints);
     L.spawn = () => { const a = rand() * Math.PI * 2; dolly.position.set(Math.cos(a) * 6, -shift(), Math.sin(a) * 6); M.vel.set(0, 0, 0); if (state.mode !== 'vr') { state.yaw = Math.atan2(Math.cos(a), Math.sin(a)) + Math.PI / 2; state.pitch = 0; } };
-    L.onEnter = () => { M.vel.set(0, 0, 0); clkKey = ''; };
+    // big start buttons at the foot of the big tree, front and back, low enough for gorilla arms
+    for (const sz of [1, -1]) makeButton(L, new V3(0, 0.62, sz * 1.5), 0xff6a1a, 'Start round', () => { if (S.ph !== 'play') requestStart(); }, { faceYaw: sz > 0 ? 0 : Math.PI });
+    L.onEnter = () => {
+      M.vel.set(0, 0, 0); clkKey = '';
+      setTimeout(() => { if (state.level === L.idx && S.ph !== 'play') showToast(state.mode === 'vr' ? 'Press A or X (or slap an orange button by the big tree) to start a round' : 'Press the Start a round button up top, or E at an orange button by the big tree'); }, 1200);
+    };
     L.onExit = () => { if (ui.status) ui.status.hidden = true; dolly.position.y = 0; for (const s of SIDES) { M.hand[s].on = false; myLava[s].visible = false; } if (isHost() && S.ph === 'play') S.ph = 'lobby'; };
     L.attract = (now) => { const a = reduceMotion ? 0 : now * 0.00006; camera.position.set(Math.sin(a) * 12, 5, Math.cos(a) * 12); camera.lookAt(0, 2, 0); };
     L.gtInternals = { S, M, bots, BOXES, startRound, tag, endRound, hostStep, contact, support, pushOut, vrMove, settle, snapshot, applySnap, validSnap, myTags };
@@ -38403,7 +38637,7 @@ kbd {
   function buildPresence() {
     const L = curLevel();
     const inGame = state.mode !== 'menu';
-    const p = { n: state.name, c: state.colorIdx, a: [state.hat, state.face, state.shirt, state.shirtColor], p: inGame ? 1 : 0, lv: state.level, h: null, l: null, r: null, b: [], t: [], s: null, bb: null, dg: null, d: null, dq: null, hx: null, sh: null, pc: null, dr: null, dh: null, lq: null, ls: null, lh: null, sq: null, mq: null, mb: null, bo: null, bp: null, bw: null, ka: null };
+    const p = { n: state.name, c: state.colorIdx, a: [state.hat, state.face, state.shirt, state.shirtColor], p: inGame ? 1 : 0, lv: state.level, h: null, l: null, r: null, b: [], t: [], s: null, bb: null, dg: null, d: null, dq: null, hx: null, sh: null, pc: null, dr: null, dh: null, lq: null, ls: null, lh: null, sq: null, mq: null, mb: null, bo: null, bp: null, bw: null, ka: null, pz: PRIZE_FX.mask() };
     if (inGame) {
       const over = L.publishPose ? L.publishPose() : null;
       if (over) {
@@ -38478,6 +38712,7 @@ kbd {
       state.dirtyBoard = true;
     }
     rec.pres = pres;
+    rec.pz = Number.isInteger(pres.pz) && pres.pz >= 0 && pres.pz < 64 ? pres.pz : 0;
     const look = Array.isArray(pres.a) ? pres.a : [];
     const pick = (v, n) => (Number.isInteger(v) && v >= 0 && v < n ? v : 0);
     setLook(rec, pick(look[0], HATS.length), pick(look[1], FACES.length), pick(look[2], SHIRTS.length), pick(look[3], SHIRT_COLORS.length));
@@ -39060,6 +39295,7 @@ kbd {
       if (L.recBoard) RECORDS.draw(L);
       if (si < steps - 1) updateMyPose(t);
     }
+    PRIZE_FX.tick(dt * steps, now);
     if (L.picker) L.picker.tick();
     if (L.sitOut) L.sitOut.tick(dt * steps);
     updateButtons(L, now);

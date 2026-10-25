@@ -119,18 +119,21 @@
       { id: 'robot', name: 'Wind-up robot', cost: 400, make: () => { const g = new THREE.Group(), m = lam(0xb8c0d0); g.add(at(new THREE.Mesh(boxg(0.14, 0.16, 0.1), m), 0, 0.1, 0), at(new THREE.Mesh(boxg(0.1, 0.09, 0.09), m), 0, 0.24, 0)); for (const sx of [-1, 1]) g.add(at(new THREE.Mesh(sph(0.015, 6, 5), new THREE.MeshBasicMaterial({ color: 0x4fc3f7 })), sx * 0.025, 0.25, -0.046)); g.add(at(new THREE.Mesh(cyl(0.005, 0.005, 0.06, 4), m), 0, 0.31, 0), at(new THREE.Mesh(sph(0.015, 6, 5), lam(0xe5453a)), 0, 0.345, 0)); return g; } },
       { id: 'crown', name: 'Golden crown', cost: 800, make: () => { const g = new THREE.Group(), gold = new THREE.MeshLambertMaterial({ color: 0xffc83a, emissive: 0x4a3000 }); g.add(at(new THREE.Mesh(cyl(0.1, 0.1, 0.07, 16, true), gold), 0, 0.05, 0)); for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2; g.add(at(new THREE.Mesh(new THREE.ConeGeometry(0.025, 0.07, 5), gold), Math.cos(a) * 0.1, 0.12, Math.sin(a) * 0.1)); } return g; } },
     ];
+    const PRIZE_SHORT = { duck: 'Lucky: +25% tickets', bear: 'Follows you around', rocket: 'Record fireworks', robot: 'Follows you, gives tips', crown: 'Gold sparkles' };
     const SAVE = { tickets: 0, owned: [] };
     try { if (prefs.skee && typeof prefs.skee === 'object') { SAVE.tickets = Number.isInteger(prefs.skee.tickets) ? prefs.skee.tickets : 0; SAVE.owned = Array.isArray(prefs.skee.owned) ? prefs.skee.owned.filter((x) => PRIZES.some((p) => p.id === x)) : []; } } catch (e) { /* none saved */ }
-    const save = () => { prefs.skee = { tickets: SAVE.tickets, owned: SAVE.owned.slice() }; savePrefs(); };
+    const save = () => { const on = prefs.skee && Array.isArray(prefs.skee.on) ? prefs.skee.on : []; prefs.skee = { tickets: SAVE.tickets, owned: SAVE.owned.slice(), on }; savePrefs(); };
     {
       const cx = 6.2;
       addBox(G, 0.6, 1.0, 4.2, lam(0x4a2a6a), cx, 0.5, -0.4);
       addBox(G, 0.3, 1.6, 4.2, lam(0x3a2a5a), cx + 0.35, 1.8, -0.4);
+      makePlate(G, 'Own a prize? Press it to switch it on or off', 2.6, 0.16, new V3(cx - 0.31, 0.92, -0.4), -Math.PI / 2, { size: 0.55, bg: '#2a1a44', fg: '#ffffff' });
       makePlate(G, 'PRIZE COUNTER', 2.4, 0.35, new V3(cx + 0.18, 2.85, -0.4), -Math.PI / 2, { bg: '#ff4d8a', fg: '#ffffff', size: 0.65 });
       PRIZES.forEach((p, i) => {
         const z = -2.0 + i * 0.8;
         const m = p.make(); m.position.set(cx + 0.25, 1.6, z); m.scale.setScalar(1.8); G.add(m); p.mesh = m;
         addBox(G, 0.36, 0.04, 0.5, lam(0x2a1a44), cx + 0.25, 1.58, z);
+        makePlate(G, PRIZE_SHORT[p.id], 0.62, 0.11, new V3(cx - 0.29, 1.3, z), -Math.PI / 2, { size: 0.6, bg: '#ffd23f', fg: '#2a1a44' });
         makeButton(L, new V3(cx - 0.1, 1.05, z), 0xffd23f, `${p.name}: ${p.cost}`, () => buyPrize(p), { faceYaw: -Math.PI / 2, pedestal: false });
       });
     }
@@ -139,21 +142,26 @@
     ticketBoard.position.set(6.15, 2.45, -0.4); ticketBoard.rotation.y = -Math.PI / 2; G.add(ticketBoard);
     let ticketKey = '';
     function drawTickets() {
-      const key = `${SAVE.tickets}|${SAVE.owned.join()}`;
+      const key = `${SAVE.tickets}|${SAVE.owned.join()}|${PRIZE_FX.mask()}`;
       if (key === ticketKey) return; ticketKey = key;
       const g = ticketC.g;
       g.fillStyle = '#14142a'; g.fillRect(0, 0, 512, 160);
       g.fillStyle = '#ffd23f'; g.font = `900 64px ${DISPLAY}`; g.textAlign = 'center'; g.textBaseline = 'middle';
       g.fillText(`\u{1F39F}️ ${SAVE.tickets} tickets`, 256, 62);
-      g.fillStyle = '#c8b8e8'; g.font = `600 30px ${BODY}`; g.fillText(`${SAVE.owned.length} of ${PRIZES.length} prizes on your shelf`, 256, 124);
+      g.fillStyle = '#c8b8e8'; g.font = `600 30px ${BODY}`; g.fillText(`${SAVE.owned.length} of ${PRIZES.length} prizes · ${PRIZE_FX.IDS.filter((id) => PRIZE_FX.isOn(id)).length} switched on`, 256, 124);
       ticketC.tex.needsUpdate = true;
-      for (const p of PRIZES) p.mesh.traverse((o) => { if (o.material) { o.material.transparent = true; o.material.opacity = SAVE.owned.includes(p.id) ? 1 : 0.35; } });
+      for (const p of PRIZES) p.mesh.traverse((o) => { if (o.material) { o.material.transparent = true; o.material.opacity = PRIZE_FX.isOn(p.id) ? 1 : SAVE.owned.includes(p.id) ? 0.75 : 0.35; } });
     }
     function buyPrize(p) {
-      if (SAVE.owned.includes(p.id)) { showToast(`You already have the ${p.name.toLowerCase()}`); return; }
+      // a prize you own: switch what it does on or off
+      if (SAVE.owned.includes(p.id)) {
+        const on = PRIZE_FX.toggle(p.id);
+        showToast(on ? `${p.name} on: ${PRIZE_FX.DESC[p.id]}` : `${p.name} off (press again to switch it back on)`);
+        sfx(on ? 'chime' : 'click', 0.6); ticketKey = ''; return;
+      }
       if (SAVE.tickets < p.cost) { showToast(`The ${p.name.toLowerCase()} costs ${p.cost} tickets. You have ${SAVE.tickets}`); sfx('buzzer', 0.4); return; }
-      SAVE.tickets -= p.cost; SAVE.owned.push(p.id); save();
-      showToast(`You got the ${p.name.toLowerCase()}!`); sfx('fanfare', 0.8);
+      SAVE.tickets -= p.cost; SAVE.owned.push(p.id); save(); PRIZE_FX.setOn(p.id, true);
+      showToast(`You got the ${p.name.toLowerCase()}! ${PRIZE_FX.DESC[p.id]} (press it again to switch it off)`); sfx('fanfare', 0.8);
       spawnFloat(p.name, p.mesh.position.clone().add(new V3(-0.3, 0.4, 0)), '#ffd23f');
       forcePresence(); state.dirtyBoard = true;
     }
@@ -167,6 +175,7 @@
       const tc = canvasTexture(512, 128);
       const tb = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.35), new THREE.MeshBasicMaterial({ map: tc.tex })); tb.position.set(0, 2.4, -0.28); g.add(tb);
       const meshes = PRIZES.map((p, i) => { const m = p.make(); m.position.set(-1.0 + i * 0.5, 1.04, -0.12); m.scale.setScalar(1.2); g.add(m); return m; });
+      PRIZES.forEach((p, i) => makePlate(g, PRIZE_SHORT[p.id], 0.46, 0.09, new V3(-1.0 + i * 0.5, 0.82, 0.31), 0, { size: 0.55, bg: '#ffd23f', fg: '#2a1a44' }));
       PRIZES.forEach((p, i) => {
         const lx = -1.0 + i * 0.5, lz = 0.36;
         makeButton(TL, new V3(x + rx * lx + fx * lz, 1.05, z + rz * lx + fz * lz), 0xffd23f, `${p.name}: ${p.cost}`, () => buyPrize(p), { faceYaw: yaw, pedestal: false });
@@ -174,20 +183,21 @@
       let key = '';
       return {
         tick() {
-          const k = `${SAVE.tickets}|${SAVE.owned.join()}`;
+          const k = `${SAVE.tickets}|${SAVE.owned.join()}|${PRIZE_FX.mask()}`;
           if (k === key) return; key = k;
           const c = tc.g;
           c.fillStyle = '#14142a'; c.fillRect(0, 0, 512, 128);
           c.fillStyle = '#ffd23f'; c.font = `900 56px ${DISPLAY}`; c.textAlign = 'center'; c.textBaseline = 'middle';
           c.fillText(`\u{1F39F}\uFE0F ${SAVE.tickets} tickets`, 256, 64);
           tc.tex.needsUpdate = true;
-          PRIZES.forEach((p, i) => meshes[i].traverse((o) => { if (o.material) { o.material.transparent = true; o.material.opacity = SAVE.owned.includes(p.id) ? 1 : 0.35; } }));
+          PRIZES.forEach((p, i) => meshes[i].traverse((o) => { if (o.material) { o.material.transparent = true; o.material.opacity = PRIZE_FX.isOn(p.id) ? 1 : SAVE.owned.includes(p.id) ? 0.75 : 0.35; } }));
         },
       };
     };
     // every carnival game pays out in these same tickets, spent at this prize counter
     L.addTickets = (n, at) => {
       if (!(n > 0)) return;
+      n = PRIZE_FX.tickets(n);
       SAVE.tickets += n; save(); ticketKey = '';
       if (at) spawnFloat(`+${n} \u{1F39F}\uFE0F`, at, '#ffd23f');
       for (let i = 0; i < Math.min(n, 20); i++) setTimeout(() => tone(1500 + (i % 3) * 120, 0, 0.03, 'square', 0.04), i * 45);

@@ -38,9 +38,11 @@
         const body = new THREE.Mesh(sph(0.11, 12, 10), m); body.scale.set(1.3, 0.8, 0.5); g.add(body);
         g.add(at(new THREE.Mesh(sph(0.07, 10, 8), m), 0.08, 0.12, 0));
         const beak = new THREE.Mesh(new THREE.ConeGeometry(0.025, 0.08, 6), lam(0xf5821f)); beak.rotation.z = -Math.PI / 2; beak.position.set(0.17, 0.11, 0); g.add(beak);
-        g.add(at(new THREE.Mesh(sph(0.015, 6, 5), lam(0x111111)), 0.11, 0.14, 0.05));
-        // the target ring painted on its side
-        const ring = new THREE.Mesh(new THREE.RingGeometry(0.03, 0.05, 16), new THREE.MeshBasicMaterial({ color: 0xe5453a })); ring.position.set(-0.02, 0, 0.056); g.add(ring);
+        // an eye and a target ring on both sides (the ducks going left are turned round)
+        for (const sz of [-1, 1]) {
+          g.add(at(new THREE.Mesh(sph(0.015, 6, 5), lam(0x111111)), 0.11, 0.14, sz * 0.05));
+          const ring = new THREE.Mesh(new THREE.RingGeometry(0.03, 0.05, 16), new THREE.MeshBasicMaterial({ color: 0xe5453a, side: THREE.DoubleSide })); ring.position.set(-0.02, 0, sz * 0.056); g.add(ring);
+        }
       }
       G.add(g); return g;
     }

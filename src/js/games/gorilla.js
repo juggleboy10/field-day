@@ -325,7 +325,7 @@
       g.fillStyle = '#2a1a0a'; g.fillRect(0, 0, 512, 160); g.strokeStyle = '#ff8a1a'; g.lineWidth = 6; g.strokeRect(3, 3, 506, 154);
       g.textAlign = 'center'; g.textBaseline = 'middle';
       if (S.ph === 'play') { const t = Math.ceil(S.t); g.fillStyle = '#ffffff'; g.font = `900 70px ${DISPLAY}`; g.fillText(`${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`, 160, 82); g.fillStyle = '#ff8a1a'; g.font = `800 40px ${DISPLAY}`; g.fillText(`${nLava} lava`, 380, 60); g.fillStyle = '#8bd450'; g.fillText(`${S.ids.length - nLava} safe`, 380, 110); }
-      else { g.fillStyle = '#ff8a1a'; g.font = `800 50px ${DISPLAY}`; g.fillText(S.ph === 'done' ? 'Round over' : 'Gorilla Tag', 256, 62); g.fillStyle = '#ffffff'; g.font = `400 26px ${BODY}`; g.fillText(state.mode === 'vr' ? 'Press A or X to start' : 'Start a round from the buttons up top', 256, 116); }
+      else { g.fillStyle = '#ff8a1a'; g.font = `800 50px ${DISPLAY}`; g.fillText(S.ph === 'done' ? 'Round over' : 'Gorilla Tag', 256, 62); g.fillStyle = '#ffffff'; g.font = `400 26px ${BODY}`; g.fillText(state.mode === 'vr' ? 'Press A or X, or hit the orange button below' : 'Start a round up top, or the orange button below', 256, 116); }
       clk.tex.needsUpdate = true;
     }
     // ---------------------------------------------------------------- per frame
@@ -390,7 +390,12 @@
     L.hints = [['Arms', 'push off the ground and trees to move'], ['Push down + back', 'to leap forward'], ['A / X', 'start a round']];
     L.hintsFor = () => (state.mode === 'flat' ? [['WASD', 'run'], ['Space', 'leap'], ['Lava?', 'run into people to tag them']] : L.hints);
     L.spawn = () => { const a = rand() * Math.PI * 2; dolly.position.set(Math.cos(a) * 6, -shift(), Math.sin(a) * 6); M.vel.set(0, 0, 0); if (state.mode !== 'vr') { state.yaw = Math.atan2(Math.cos(a), Math.sin(a)) + Math.PI / 2; state.pitch = 0; } };
-    L.onEnter = () => { M.vel.set(0, 0, 0); clkKey = ''; };
+    // big start buttons at the foot of the big tree, front and back, low enough for gorilla arms
+    for (const sz of [1, -1]) makeButton(L, new V3(0, 0.62, sz * 1.5), 0xff6a1a, 'Start round', () => { if (S.ph !== 'play') requestStart(); }, { faceYaw: sz > 0 ? 0 : Math.PI });
+    L.onEnter = () => {
+      M.vel.set(0, 0, 0); clkKey = '';
+      setTimeout(() => { if (state.level === L.idx && S.ph !== 'play') showToast(state.mode === 'vr' ? 'Press A or X (or slap an orange button by the big tree) to start a round' : 'Press the Start a round button up top, or E at an orange button by the big tree'); }, 1200);
+    };
     L.onExit = () => { if (ui.status) ui.status.hidden = true; dolly.position.y = 0; for (const s of SIDES) { M.hand[s].on = false; myLava[s].visible = false; } if (isHost() && S.ph === 'play') S.ph = 'lobby'; };
     L.attract = (now) => { const a = reduceMotion ? 0 : now * 0.00006; camera.position.set(Math.sin(a) * 12, 5, Math.cos(a) * 12); camera.lookAt(0, 2, 0); };
     L.gtInternals = { S, M, bots, BOXES, startRound, tag, endRound, hostStep, contact, support, pushOut, vrMove, settle, snapshot, applySnap, validSnap, myTags };

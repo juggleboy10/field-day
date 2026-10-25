@@ -546,11 +546,38 @@
     const putter = makePutter();
     putter.visible = false;
     L.overlay.add(putter);
-    const ballGeo = new THREE.SphereGeometry(BR, 16, 12);
-    const myBallMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
+    // the ball you see is a touch smaller than the one the physics rolls (it sits on the felt all the same),
+    // with dimples so you can watch it turn over as it rolls
+    const VBR = 0.027;
+    const ballGeo = new THREE.SphereGeometry(VBR, 22, 16);
+    const dimpleTex = canvasTexture(256, 128, (g) => {
+      g.fillStyle = '#ffffff'; g.fillRect(0, 0, 256, 128);
+      for (let row = 0; row < 9; row++) {
+        const y = 7 + row * 14.2, n = Math.max(4, Math.round(24 * Math.sin(Math.PI * (row + 0.5) / 9)));
+        for (let k = 0; k < n; k++) {
+          const x = (k + (row % 2) * 0.5) * 256 / n;
+          g.fillStyle = 'rgba(0,0,0,0.30)'; g.beginPath(); g.ellipse(x, y, 3.6, 3.6 * 256 / 128 / 2 * 1.0, 0, 0, Math.PI * 2); g.fill();
+          g.fillStyle = 'rgba(255,255,255,0.7)'; g.beginPath(); g.arc(x - 1, y - 1, 1.2, 0, Math.PI * 2); g.fill();
+        }
+      }
+      // a maker's line round the middle, so the roll shows even from a distance
+      g.fillStyle = 'rgba(30,30,40,0.55)'; g.fillRect(0, 62, 256, 4);
+    }).tex;
+    const ballMat = (hex) => new THREE.MeshLambertMaterial({ color: hex, map: dimpleTex });
+    const _rollAx = new V3();
+    // put a ball mesh at a physics ball centre: dropped onto the felt, and turned over by however far it went
+    function placeBall(m, p) {
+      const last = m.userData.last || (m.userData.last = p.clone());
+      const dx = p.x - last.x, dz = p.z - last.z, d = Math.hypot(dx, dz);
+      if (d > 1e-5 && d < 0.6) { _rollAx.set(dz / d, 0, -dx / d); m.rotateOnWorldAxis(_rollAx, d / VBR); }
+      last.copy(p);
+      m.position.set(p.x, p.y - (BR - VBR), p.z);
+    }
+    const myBallMat = ballMat(0xffffff);
     const ballMesh = new THREE.Mesh(ballGeo, myBallMat);
     G.add(ballMesh);
-    const ballShadow = makeShadow(G, 0.09);
+    const ballShadow = makeShadow(G, 0.075);
+    const _rb = new V3();
     const aim = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.004, 1), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.55, depthWrite: false }));
     aim.geometry.translate(0, 0, -0.5);
     aim.visible = false;
@@ -976,7 +1003,7 @@
         const show = inMyLevel(rec) && st && st.ballOk;
         if (!show) { if (rec.mgBall) rec.mgBall.visible = false; if (rec.putter) rec.putter.visible = false; continue; }
         if (!rec.mgBall) {
-          rec.mgBall = new THREE.Mesh(ballGeo, new THREE.MeshLambertMaterial({ color: 0xffffff }));
+          rec.mgBall = new THREE.Mesh(ballGeo, ballMat(0xffffff));
           rec.mgBall.userData.p = new V3(st.bx, 0, st.bz);
           G.add(rec.mgBall);
           rec.putter = makePutter();
@@ -987,7 +1014,7 @@
         if (Math.hypot(p.x - st.bx, p.z - st.bz) > 3) p.set(st.bx, 0, st.bz); else { p.x += (st.bx - p.x) * k; p.z += (st.bz - p.z) * k; }
         const H = HOLES[st.hole];
         rec.mgBall.visible = st.bphase !== 2;
-        rec.mgBall.position.set(p.x, height(H, p.x - H.x, p.z - H.z) + BR, p.z);
+        placeBall(rec.mgBall, _rb.set(p.x, height(H, p.x - H.x, p.z - H.z) + BR, p.z));
         const hp = remoteHandPose(rec.peer, st.hand);
         rec.putter.visible = !!hp;
         if (hp) { rec.putter.position.copy(hp.pos); rec.putter.quaternion.copy(hp.quat); }
@@ -1080,7 +1107,7 @@
       const H = H0();
       if (me.phase === 'holed' || me.phase === 'between') B.sink = Math.min(1, B.sink + dt * 4);
       const bp = ballPos(B, H, now, _bp);
-      if (bp) { ballMesh.position.copy(bp); ballMesh.position.y -= B.sink * 0.09; ballShadow.position.set(bp.x, height(H, bp.x - H.x, bp.z - H.z) + 0.003, bp.z); }
+      if (bp) { placeBall(ballMesh, bp); ballMesh.position.y -= B.sink * 0.09; ballShadow.position.set(bp.x, height(H, bp.x - H.x, bp.z - H.z) + 0.003, bp.z); }
       ballMesh.visible = !!bp && B.sink < 1;
       ballShadow.visible = !!bp && B.sink < 0.5;
       remoteVisuals(dt);
@@ -1170,7 +1197,7 @@
     const beaBall = { x: 0, z: 0, vx: 0, vz: 0, lipped: false, sink: 0, fromX: 0, fromZ: 0, vis: null };
     BEA.ball = beaBall;
     L.bea = BEA;
-    const beaMesh = new THREE.Mesh(new THREE.SphereGeometry(BR, 16, 12), new THREE.MeshLambertMaterial({ color: 0xffb36b }));
+    const beaMesh = new THREE.Mesh(ballGeo, ballMat(0xffb36b));
     G.add(beaMesh);
     const bea = buildAvatar(BEA.color, 3, 1, true, 4, 6);
     const beaLabel = new THREE.Sprite(new THREE.SpriteMaterial({ map: canvasTexture(256, 64, (g) => { rr(g, 4, 6, 248, 52, 26); g.fillStyle = 'rgba(20,16,32,0.8)'; g.fill(); g.fillStyle = '#ffffff'; g.font = `700 30px ${BODY}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('Birdie Bea', 128, 33); }).tex, transparent: true, depthWrite: false }));
@@ -1295,7 +1322,7 @@
       beaMesh.visible = show && BEA.phase !== 'holed';
       if (!show) return;
       const bbp = ballPos(beaBall, H, now, _bp2);
-      if (bbp) beaMesh.position.copy(bbp); else beaMesh.visible = false;
+      if (bbp) placeBall(beaMesh, bbp); else beaMesh.visible = false;
       // she stands behind her ball, facing her line
       const ax = BEA.aim[0], az = BEA.aim[1];
       const standX = beaBall.x - ax * 0.45 - az * 0.25, standZ = beaBall.z - az * 0.45 + ax * 0.25;

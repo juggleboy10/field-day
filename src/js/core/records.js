@@ -40,6 +40,7 @@
       const place = kept.findIndex((e) => e[1] === String(name).slice(0, 24) && e[0] === Math.round(value * 100) / 100) + 1;
       if (!who && place === 1 && (!prev || better(d, value, prev[0]))) {
         showToast(`\u{1F3C6} New record! ${d.label}: ${fmtOf(d)(value)}`); sfx('fanfare', 0.7);
+        PRIZE_FX.fireworks();
       }
       if (L.recBoard) L.recBoard.key = '';
       if (!who && place > 0) SHARED.soon();
