@@ -380,7 +380,7 @@
         let blocked = false;
         let hands = 0;
         if (state.mode === 'vr') { for (const sd of SIDES) { const h = myHands[sd]; if (h.ok && h.pos.y > NET_H - 0.05 && Math.abs(h.pos.x) < 0.7 && h.pos.distanceTo(V.p) < BR + 0.13) hands++; } }
-        else { const hd = Math.hypot(V.p.x - myHead.pos.x, V.p.z - myHead.pos.z); if (Math.abs(myHead.pos.x) < 1.2 && hd < 0.6 && V.p.y > myHead.pos.y + 0.1 && V.p.y < myHead.pos.y + 0.65) hands = 1; }
+        else { const hd = Math.hypot(V.p.x - myHead.pos.x, V.p.z - myHead.pos.z); if (Math.abs(myHead.pos.x) < 1.2 && hd < 0.65 && V.p.y > myHead.pos.y + 0.03 && V.p.y < myHead.pos.y + 0.7) hands = 1; }
         if (hands) {
           // a clean stuff is the exception: mostly the spike just glances off and pops up on my side
           const b = V.p.clone(); b.x = s * 0.25; b.y = Math.max(b.y, NET_H + 0.25); V.p.copy(b);

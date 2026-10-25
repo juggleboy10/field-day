@@ -117,7 +117,7 @@ def main():
             page.evaluate("() => { const fd = window.__fd; fd.LEVELS[37].vbInternals.V.ph = 'idle'; fd.dolly.position.set(-0.7, 0, 0); }")
             page.wait_for_timeout(600)
             page.evaluate("""() => { const fd = window.__fd, I = fd.LEVELS[37].vbInternals, V = I.V; V.ph = 'rally'; V.lastTeam = 1; V.touches = 3; V.lastKind = 3; I.ME.cool = 0;
-              const h = fd.myHead.pos; V.p.set(0.2, h.y + 0.35, h.z); V.v.set(-3, -0.5, 0); }""")
+              const h = fd.myHead.pos; V.p.set(h.x + 0.3, h.y + 0.35, h.z); V.v.set(-3, 0.5, 0); }""")
             try:
                 page.wait_for_function("() => window.__fd.LEVELS[37].vbInternals.V.lastKind >= 5", timeout=5000)
             except Exception:
