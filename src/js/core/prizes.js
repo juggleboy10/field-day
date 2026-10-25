@@ -185,5 +185,5 @@
         const u = k.life / k.max; k.s.scale.setScalar(k.size * (0.4 + u * 0.6)); k.s.material.opacity = u;
       }
     }
-    return { IDS, DESC, isOn, owned, setOn, toggle, mask, tickets, fireworks, tick, mine, theirs };
+    return { IDS, DESC, isOn, owned, setOn, toggle, mask, tickets, fireworks, tick, mine, theirs, rockets: () => ROCKETS.length };
   })();

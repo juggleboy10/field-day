@@ -17,7 +17,7 @@ from playwright.sync_api import sync_playwright
 ROOT = Path(__file__).resolve().parent.parent
 THREE_JS = os.environ.get("THREE_JS")
 
-SETUP = """() => { const fd = window.__fd, L = fd.LEVELS[29]; window.__fbUpdate = L.update; L.update = () => {}; return L.fbInternals.PLAYS.map((p) => p.name); }"""
+SETUP = """() => { const fd = window.__fd, L = fd.LEVELS[29]; window.__fbUpdate = L.update; L.update = () => {}; L.fbInternals.S.runCatch = false; return L.fbInternals.PLAYS.map((p) => p.name); }"""
 
 # run plays: each throws to receiver `who` after `wait` seconds with charge c (0 = bullet, 1 = lob)
 PLAYS = """([runs]) => {

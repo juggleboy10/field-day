@@ -54,7 +54,7 @@ def main():
             page.wait_for_timeout(1500)
             shot("prizes")
             # buy the duck at the stand (there are tickets by now)
-            bought = page.evaluate("() => { const fd = window.__fd, L = fd.LEVELS[43]; const b = L.buttons.find((x) => /Rubber duck/.test(x.label)); const sk = fd.LEVELS[31].skeeSave; sk.owned = sk.owned.filter((x) => x !== 'duck'); sk.tickets = Math.max(sk.tickets, 50); b.onPress(b); return sk.owned.includes('duck'); }")
+            bought = page.evaluate("() => { const fd = window.__fd, L = fd.LEVELS[43]; const b = L.buttons.find((x) => /Rubber duck/.test(x.label)); const sk = fd.LEVELS[31].skeeSave; sk.owned = sk.owned.filter((x) => x !== 'duck'); sk.tickets = Math.max(sk.tickets, 50); b.onPress(b); const ok = sk.owned.includes('duck') && fd.prizeFx.isOn('duck'); fd.prizeFx.setOn('duck', false); return ok; }")
             check(bought, "strongman: the prize stand didn't sell the duck")
             sw = page.evaluate("() => window.__fd.LEVELS[43].strongInternals.S.swings")
             check(sw >= 4, f"strongman: a browser swing didn't strike ({sw})")

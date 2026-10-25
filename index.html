@@ -3290,7 +3290,7 @@ kbd {
         const u = k.life / k.max; k.s.scale.setScalar(k.size * (0.4 + u * 0.6)); k.s.material.opacity = u;
       }
     }
-    return { IDS, DESC, isOn, owned, setOn, toggle, mask, tickets, fireworks, tick, mine, theirs };
+    return { IDS, DESC, isOn, owned, setOn, toggle, mask, tickets, fireworks, tick, mine, theirs, rockets: () => ROCKETS.length };
   })();
   // ================================================================ LEVEL: ROOFTOP HOOPS
   const hoops = (() => {
@@ -26850,7 +26850,7 @@ kbd {
     const G = L.group;
     const rand = mulberry32(2929);
     L.chargeKick = true;
-    Object.defineProperty(L, 'walkSpeed', { get: () => (S && (S.phase === 'live' || S.phase === 'run' || S.phase === 'air' || S.phase === 'yac') ? (S.phase === 'run' ? (state.mode === 'vr' ? 5.0 : 3.9) : (state.mode === 'vr' ? 6.2 : 4.6)) : 3) });
+    Object.defineProperty(L, 'walkSpeed', { get: () => (S && S.phase === 'yac' && S.catcher && S.catcher.self ? (state.mode === 'vr' ? 7.2 : 5.2) : S && (S.phase === 'live' || S.phase === 'run' || S.phase === 'air' || S.phase === 'yac') ? (S.phase === 'run' ? (state.mode === 'vr' ? 5.0 : 3.9) : (state.mode === 'vr' ? 6.2 : 4.6)) : 3) });
     L.bounds = { minX: -26, maxX: 26, minZ: -60, maxZ: 22 };
     L.env = {
       sky: skyTexture([[0, '#0b1230'], [0.35, '#1d2a5a'], [0.48, '#3a4a7a'], [0.5, '#2a3a2a'], [1, '#101810']]),
@@ -26994,6 +26994,8 @@ kbd {
       t: 0, snapT: 0, resultT: 0, msg: '', thrown: false, target: null, catcher: null, yacT: 0, sackT: 0, drives: 0, best: [0, 0, 0],
       bp: new V3(), bv: new V3(), held: null, pending: null, fg: null, plays: 0, completions: 0, attempts: 0, passYds: 0, tds: 0, ints: 0,
     };
+    // after a catch you can take over the receiver and run it yourself (on by default), or watch him run
+    S.runCatch = prefs.fbRunCatch !== false;
     try { const b = prefs.fbBest; if (Array.isArray(b) && b.length === 3) S.best = b.map((x) => (Number.isFinite(x) ? x : 0)); } catch (e) { /* none yet */ }
     L.fb = S;
 
@@ -27038,7 +27040,7 @@ kbd {
     function setFormation() {
       for (const p of LINE) { p.x = p.hx; p.z = 0.7; p.yaw = 0; }
       for (const p of RUSH) { p.x = p.hx; p.z = -0.7; p.yaw = Math.PI; p.beatT = 1e9; p.free = false; }
-      for (const r of REC) { r.path = routePath(r); r.x = r.sx; r.z = 0.3; r.yaw = 0; r.caught = false; }
+      for (const r of REC) { r.path = routePath(r); r.x = r.sx; r.z = 0.3; r.yaw = 0; r.caught = false; r.self = false; }
       for (const c of COV) { c.x = c.man.sx + c.man.side * -0.6; c.z = -D().cushion * YD - 1.5; c.yaw = Math.PI; c.react = 0; c.tx = c.x; c.tz = c.z; }
       SAF.x = 0; SAF.z = -14; SAF.yaw = Math.PI;
       field.position.z = (100 - S.ballOn) * YD;
@@ -27292,7 +27294,7 @@ kbd {
     // ---------------------------------------------------------------- one step of the play
     const near = (a, x, z, d) => Math.hypot(a.x - x, a.z - z) < d;
     // where to run to cut off the ball carrier: ahead of him, by about the time it takes to get there
-    const cutOff = (d, v) => { const r = S.catcher, t = clamp(Math.hypot(d.x - r.x, d.z - r.z) / v, 0, 1.2); return [r.x + (r.svx !== undefined && r.human ? r.svx : r.vx || 0) * t, r.z + (r.svz !== undefined && r.human ? r.svz : r.vz || 0) * t]; };
+    const cutOff = (d, v) => { const r = S.catcher, t = clamp(Math.hypot(d.x - r.x, d.z - r.z) / v, 0, 1.2); return [r.x + (r.svx !== undefined && (r.human || r.self) ? r.svx : r.vx || 0) * t, r.z + (r.svz !== undefined && (r.human || r.self) ? r.svz : r.vz || 0) * t]; };
     const moveTo = (p, tx, tz, v, dt) => {
       if (!Number.isFinite(tx) || !Number.isFinite(tz)) return;   // (a bad target never turns a player into NaN)
       const dx = tx - p.x, dz = tz - p.z, d = Math.hypot(dx, dz);
@@ -27308,12 +27310,12 @@ kbd {
       if (S.phase === 'pre' && S.clock <= 0) { gameOver(); return; }
       if (live) S.snapT += dt;
       const qx = myHead.pos.x, qz = myHead.pos.z;
-      // friends playing a receiver or a defender: their spot follows them
+      // friends playing a receiver or a defender: their spot follows them (and so does the receiver I took over)
       for (const p of [...REC, ...COV]) {
-        if (!p.human) continue;
-        const rec = humanRec(p.human);
-        if (!rec) { p.human = null; continue; }
-        const hp = rec.tgt.h.pos, px = p.x, pz = p.z;
+        if (!p.human && !p.self) continue;
+        const rec = p.self ? null : humanRec(p.human);
+        if (!rec && !p.self) { p.human = null; continue; }
+        const hp = p.self ? myHead.pos : rec.tgt.h.pos, px = p.x, pz = p.z;
         p.x = hp.x; p.z = hp.z; p.hy = hp.y;
         p.vx = (p.x - px) / dt; p.vz = (p.z - pz) / dt;
         const k = Math.min(1, dt * 6); p.svx = (p.svx || 0) + (p.vx - (p.svx || 0)) * k; p.svz = (p.svz || 0) + (p.vz - (p.svz || 0)) * k;
@@ -27458,18 +27460,33 @@ kbd {
     function catchIt(r) {
       S.catcher = r; r.caught = true; S.phase = 'yac'; S.yacT = 0.4 + rand() * 1.6; MP.catchSeq = (MP.catchSeq || 0) + 1;
       sfx('mitt', 1);
+      // you take over the receiver: you're where he is, facing the end zone, with the ball
+      if (!r.human && S.runCatch && !following()) {
+        r.self = true;
+        camera.getWorldPosition(_v);
+        const mx = r.x - _v.x, mz = r.z - _v.z;
+        dolly.position.x += mx; dolly.position.z += mz; myHead.pos.x += mx; myHead.pos.z += mz;   // (my head moves now, not next frame)
+        for (const sd of SIDES) if (myHands[sd].ok) { myHands[sd].pos.x += mx; myHands[sd].pos.z += mz; }
+        if (state.mode !== 'vr') { state.yaw = 0; state.pitch = -0.05; }
+        r.svx = 0; r.svz = (r.vz || -V_REC) * 0.5;
+        S.graceT = 0.45;   // a moment to get going before anyone can bring you down
+        showToast(state.mode === 'vr' ? 'You’ve got it! Run for the end zone' : 'You’ve got it! Run for the end zone (Shift to sprint)');
+        if (state.mode === 'vr') for (const sd of SIDES) haptic(vrHands[sd], 0.7, 80);
+      }
       spawnFloat('Caught!', new V3(r.x, 2.6, r.z), '#8bd450');
       state.hudDirty = true;
     }
     function stepYac(dt) {
       const r = S.catcher;
       S.yacT -= dt;
-      if (r.human) {
-        // a friend with the ball: they run it themselves; bots chase and tackle, so can a friend on defense
-        S.bp.set(r.x + 0.2, Math.max(1.0, (r.hy || 1.6) - 0.5), r.z - 0.2);
+      if (r.human || r.self) {
+        // a friend with the ball (or me, after taking over): they run it themselves; bots chase and tackle, so can a friend on defense
+        if (r.self) S.bp.set(myHead.pos.x + 0.2, myHead.pos.y - 0.55, myHead.pos.z - 0.2);
+        else S.bp.set(r.x + 0.2, Math.max(1.0, (r.hy || 1.6) - 0.5), r.z - 0.2);
         if (r.z <= goalZ()) { endPlay('td'); return; }
         if (Math.abs(r.x) > HALF_W) { endPlay('oob', { z: r.z, name: recName(r) }); return; }
-        for (const d of DEFS) if (Math.hypot(d.x - r.x, d.z - r.z) < (d.human ? 0.9 : 0.8)) { endPlay('tackle', { z: r.z, name: recName(r) }); return; }
+        S.graceT = Math.max(0, (S.graceT || 0) - dt);
+        if (!(r.self && S.graceT > 0)) for (const d of DEFS) if (Math.hypot(d.x - r.x, d.z - r.z) < (d.human ? 0.9 : 0.8)) { endPlay('tackle', { z: r.z, name: recName(r) }); return; }
         if (S.yacT < -12) endPlay('tackle', { z: r.z, name: recName(r) });
         return;
       }
@@ -27485,7 +27502,7 @@ kbd {
       if ((nd && ndd < 0.8) || S.yacT <= 0 && nd && ndd < 2.2) { endPlay('tackle', { z: r.z, name: recName(r) }); }
       if (S.yacT < -6) endPlay('tackle', { z: r.z, name: recName(r) });
     }
-    const recName = (r) => (r.human && humanRec(r.human) ? humanRec(r.human).name : ['Left wideout', 'Slot', 'Right wideout'][r.i]);
+    const recName = (r) => (r.self ? 'You' : r.human && humanRec(r.human) ? humanRec(r.human).name : ['Left wideout', 'Slot', 'Right wideout'][r.i]);
     function stepKick(dt) {
       const k = S.fg; k.t += dt;
       const u = Math.min(1, k.t / k.T);
@@ -27512,7 +27529,7 @@ kbd {
     }
     function draw(now) {
       const live = S.phase === 'live' || S.phase === 'air' || S.phase === 'yac' || S.phase === 'run';
-      for (const p of [...LINE, ...RUSH, ...REC, ...DEFS]) { p.g.visible = !p.human && !p.mine; if (p.g.visible) drawPerson(p, now, live); }
+      for (const p of [...LINE, ...RUSH, ...REC, ...DEFS]) { p.g.visible = !p.human && !p.mine && !p.self; if (p.g.visible) drawPerson(p, now, live); }
       ball.position.copy(S.bp);
       if (S.phase === 'air' || S.phase === 'kick') {
         const v = S.phase === 'air' ? S.bv : _v.subVectors(S.fg.to, S.fg.from);
@@ -27560,13 +27577,14 @@ kbd {
     // a call sheet stand beside you: the plays, hike, spike, timeout, field goal (press them in VR, or use the HUD)
     {
       const x = -2.5, z0 = 3.0;
-      addBox(G, 0.5, 0.9, 3.4, lam(0x2b2d42), x - 0.15, 0.45, z0 + 1.6);
+      addBox(G, 0.5, 0.9, 4.4, lam(0x2b2d42), x - 0.15, 0.45, z0 + 1.3);
       PLAYS.forEach((P, i) => makeButton(L, new V3(x, 1.0, z0 - 0.4 + i * 0.4), [0xffd23f, 0x4fc3f7, 0x8bd450, 0xff7ac8, 0xff9a3a][i], P.name, () => choosePlay(i), { faceYaw: Math.PI / 2, pedestal: false }));
       makeButton(L, new V3(x, 1.0, z0 + 1.75), 0xff7a3a, 'Hike', () => hike(), { faceYaw: Math.PI / 2, pedestal: false });
       makeButton(L, new V3(x, 1.0, z0 + 2.15), 0xb388ff, 'Spike', () => spike(), { faceYaw: Math.PI / 2, pedestal: false });
       makeButton(L, new V3(x, 1.0, z0 + 2.55), 0xe8e4d8, 'Timeout', () => timeout(), { faceYaw: Math.PI / 2, pedestal: false });
       makeButton(L, new V3(x, 1.0, z0 + 2.95), 0xffd23f, 'Field goal', () => fieldGoal(), { faceYaw: Math.PI / 2, pedestal: false });
       makeButton(L, new V3(x, 1.0, z0 + 3.35), 0xe5453a, 'New game', () => startGame(), { faceYaw: Math.PI / 2, pedestal: false });
+      makeButton(L, new V3(x, 1.0, z0 + 0.0 - 0.8), 0x8bd450, 'Run after catch', () => toggleRunCatch(), { faceYaw: Math.PI / 2, pedestal: false });
     }
     makeKiosk(L, 3.6, 7.5, -Math.PI / 2);
     RECORDS.def(L, [...DIFFS.map((d, i) => ({ k: `score${i}`, label: `Most points: ${d.name}` })), { k: 'pass', label: 'Longest pass play', fmt: 'yd' }, { k: 'run', label: 'Longest QB run', fmt: 'yd' }]);
@@ -27601,7 +27619,7 @@ kbd {
       return {
         g: S.gid, ph: PH.indexOf(S.phase), c: Math.round(S.clock * 10), s: S.score, d: S.down, t: S.toGo, o: S.ballOn, to: S.tos, pl: S.play, df: S.diff,
         b: [q2(S.bp.x), q2(S.bp.y), q2(S.bp.z), q2(S.bv.x), q2(S.bv.y), q2(S.bv.z)], p, f: RUSH.reduce((m, q, i) => m | (q.free ? 1 << i : 0), 0),
-        h: [...REC, ...COV].map((q) => q.human || ''), m: [MP.msgSeq, S.msg || ''], k: [MP.catchSeq || 0, S.catcher ? S.catcher.i : -1], n: state.name || 'Player',
+        h: [...REC, ...COV].map((q) => q.human || (q.self ? state.myPeer || '' : '')), m: [MP.msgSeq, S.msg || ''], k: [MP.catchSeq || 0, S.catcher ? S.catcher.i : -1], n: state.name || 'Player',
       };
     }
 
@@ -27749,6 +27767,12 @@ kbd {
       if (code === 'KeyG') { fieldGoal(); return true; }
       return false;
     };
+    function toggleRunCatch() {
+      S.runCatch = !S.runCatch; prefs.fbRunCatch = S.runCatch; savePrefs();
+      showToast(S.runCatch ? 'After a catch, you take over the receiver and run it yourself' : 'After a catch, the receiver runs it on his own');
+      state.hudDirty = true;
+    }
+    L.toggleRunCatch = toggleRunCatch;
     const ROLE_NAMES = ['Watching', 'Receiver', 'Defense'];
     function cycleRole() {
       MP.want = (MP.want + 1) % 3;
@@ -27759,6 +27783,7 @@ kbd {
       { label: () => (S.phase === 'idle' || S.phase === 'over' ? 'Start drill' : 'New game'), run: () => startGame(), show: () => !following() },
       { label: () => `You: ${ROLE_NAMES[MP.want]} \u25B8`, run: () => cycleRole(), show: () => following() || [...remotes.values()].some((rec) => rec.lv === L.idx && rec.inGame) },
       { label: () => `Play: ${PLAYS[S.play].name} \u25B8`, run: () => choosePlay(S.play + 1), show: () => !following() },
+      { label: () => `After catch: ${S.runCatch ? 'you run' : 'auto'} \u25B8`, run: () => toggleRunCatch(), show: () => !following() },
       { label: () => 'Spike', run: () => spike(), show: () => !following() && S.phase === 'pre' && S.running },
       { label: () => `Timeout (${S.tos})`, run: () => timeout(), show: () => !following() && S.phase === 'pre' && S.running },
       { label: () => 'Field goal', run: () => fieldGoal(), show: () => !following() && S.phase === 'pre' && S.ballOn <= 40 },
@@ -39311,7 +39336,7 @@ kbd {
   // the tests in tests/ reach inside through this, only when the page is opened with ?test
   // the shared records board (the Claude page's database, or records.php on your own site), if there is one
   RECORDS.shared.start();
-  try { if (new URLSearchParams(location.search).has('test')) window.__fd = { LEVELS, state, dolly, camera, myHead, myHands, RECORDS, APLUS, switchLevel, startGame, voice: { VOICE, voiceWatch, voiceResend, remotes, buildPresence }, audio: { snd, tone, sfx, ensureAudio, MUSIC } }; } catch (e) { /* ignore */ }
+  try { if (new URLSearchParams(location.search).has('test')) window.__fd = { LEVELS, prizeFx: PRIZE_FX, state, dolly, camera, myHead, myHands, RECORDS, APLUS, switchLevel, startGame, voice: { VOICE, voiceWatch, voiceResend, remotes, buildPresence }, audio: { snd, tone, sfx, ensureAudio, MUSIC } }; } catch (e) { /* ignore */ }
 })();
 </script>
 </body>
