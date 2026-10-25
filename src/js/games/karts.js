@@ -1195,8 +1195,12 @@
     for (let f = 0.04; f < 0.97; f += 0.01) if (!nearF(f, AVOID, 0.045)) cand.push({ f, i: Math.round(f * N), b: bendMax(Math.round(f * N), Math.round(14 / DS)) });
     cand.sort((a, b) => a.b - b.b);
     const rampF = [];
-    for (const c of cand) if (rampF.length < 2 && !nearF(c.f, rampF, 0.22)) rampF.push(c.f);
-    const RAMPS = rampF.map((f) => ({ f, i: Math.round(f * N), len: 3.2, h: 0.75, hw: 2.7 }));
+    for (const c of cand) if (rampF.length < 4 && !nearF(c.f, rampF, 0.13)) rampF.push(c.f);
+    rampF.sort((a, b) => a - b);
+    // big ramps down the middle, and side kickers you have to steer onto (left or right of the line)
+    const RAMPS = rampF.map((f, k) => (k % 2 === 0
+      ? { f, i: Math.round(f * N), len: 3.8, h: 1.0, hw: 2.8, off: 0 }
+      : { f, i: Math.round(f * N), len: 3.0, h: 0.8, hw: 1.5, off: (k === 1 ? 1 : -1) * 2.7 }));
     const hazF = cand.find((c) => !nearF(c.f, [...rampF, ...AVOID], 0.07));
     const HAZ = hazF ? [0, 1].map((k) => ({ i: (Math.round(hazF.f * N) + (k ? Math.round(9 / DS) : 0)) % N, ph: k * 2.4, r: 1.1, x: 0, z: 0, roll: 0 })) : [];
     L.extras = { RAMPS, HAZ };
@@ -1205,12 +1209,17 @@
       const rampMat = new THREE.MeshLambertMaterial({ map: rampTex.tex }), sideMat = lam(0xffd23f);
       for (const R of RAMPS) {
         const slope = Math.hypot(R.len, R.h), tilt = Math.atan2(R.h, R.len);
-        const g = trackQuad(R.i, 0.01, 0.01, 0, 0, lam(0x000000));
+        const g = trackQuad(R.i, 0.01, 0.01, R.off, 0, lam(0x000000));
         g.clear();
         const deck = new THREE.Mesh(new THREE.BoxGeometry(R.hw * 2, 0.08, slope), rampMat);
         deck.position.set(0, R.h / 2, 0); deck.rotation.x = tilt; g.add(deck);
         for (const sx of [-1, 1]) { const side = new THREE.Mesh(new THREE.BoxGeometry(0.12, R.h, R.len), sideMat); side.position.set(sx * R.hw, R.h / 2 - 0.02, 0); side.scale.y = 1; g.add(side); }
         const lip = new THREE.Mesh(new THREE.BoxGeometry(R.hw * 2, R.h, 0.12), sideMat); lip.position.set(0, R.h / 2, -R.len / 2); g.add(lip);
+        // little flags on the lip, so you can see a ramp coming
+        for (const sx of [-1, 1]) {
+          const pole = new THREE.Mesh(cyl(0.03, 0.03, 1.1, 6), lam(0xffffff)); pole.position.set(sx * R.hw, R.h + 0.55, -R.len / 2); g.add(pole);
+          const flag = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.32), new THREE.MeshLambertMaterial({ color: 0xff4d5a, side: THREE.DoubleSide })); flag.position.set(sx * R.hw - sx * 0.25, R.h + 0.94, -R.len / 2); g.add(flag);
+        }
       }
     }
     // coins: little rows along the track, away from ramps, boxes and boost pads
@@ -1288,7 +1297,7 @@
       o.rampY = 0;
       if (!(o.airT > 0)) for (const R of RAMPS) {
         const along = ((((o.idx - R.i) % N) + N + N / 2) % N - N / 2) * DS;
-        if (Math.abs(lat) > R.hw || along < -R.len / 2 - 0.3 || along > R.len / 2 + 0.8) continue;
+        if (Math.abs(lat - (R.off || 0)) > R.hw || along < -R.len / 2 - 0.3 || along > R.len / 2 + 0.8) continue;
         if (along <= R.len / 2) o.rampY = clamp((along + R.len / 2) / R.len, 0, 1) * R.h;
         else if (o.speed > 6 && !(o.airCool > now)) {
           o.airDur = clamp(0.3 + o.speed * 0.035, 0.45, 1.15); o.airT = o.airDur; o.airPeak = 0.35 + o.speed * 0.05; o.airCool = now + 1500;

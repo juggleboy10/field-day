@@ -61,7 +61,7 @@ def main():
         print(res)
         browser.close()
     checks = [
-        ("two ramps, two beach balls, plenty of coins", res["counts"]["ramps"] == 2 and res["counts"]["balls"] == 2 and res["counts"]["coins"] >= 20),
+        ("four ramps, two beach balls, plenty of coins", res["counts"]["ramps"] == 4 and res["counts"]["balls"] == 2 and res["counts"]["coins"] >= 20),
         ("a ramp at speed sends you flying and lands with a boost", res["ramp"]["maxY"] > 1.0 and res["ramp"]["boosted"]),
         ("a two-second drift charges and fires a mini-turbo", res["drift"]["drifting"] == 1 and res["drift"]["charge"] > 1.8 and res["drift"]["boost"] > 1.0),
         ("driving through a coin collects it", res["coins"] == 1),

@@ -90,16 +90,21 @@
       return true;
     }
     L.press = press;
-    // VR: a hand on the lit button
-    const _p = new V3(), prevH = { left: new V3(), right: new V3() };
+    // VR: a real press. The hand has to come in over the button and push past its face (a few cm into it);
+    // brushing across the panel, or sliding sideways while already in close, doesn't count.
+    const PRESS_Z = 0.045, HOVER_Z = 0.09, OVER = BR + 0.045;
+    const over = (h, p) => Math.hypot(h.x - p.x, h.y - p.y) < OVER;
+    const pushed = (prev, cur, p) => over(cur, p) && over(prev, p) && cur.z < p.z + PRESS_Z && prev.z >= p.z + PRESS_Z;
+    const prevH = { left: new V3(0, 0, 9), right: new V3(0, 0, 9) }, depth = new Float32Array(COLS * ROWS);
     function vrHits() {
+      depth.fill(0);
       for (const s of SIDES) {
-        const h = myHands[s]; if (!h.ok) continue;
-        for (const l of S.lits.slice()) {
-          const p = panels[S.k].btns[l.i].p;
-          const close = Math.hypot(h.pos.x - p.x, h.pos.y - p.y) < BR + 0.05 && h.pos.z < p.z + 0.08;
-          if (close && press(l.i)) haptic(vrHands[s], 0.7, 30);
-        }
+        const h = myHands[s]; if (!h.ok) { prevH[s].set(0, 0, 9); continue; }
+        panels[S.k].btns.forEach((b, i) => {
+          if (!over(h.pos, b.p)) return;
+          depth[i] = Math.max(depth[i], clamp((b.p.z + HOVER_Z - h.pos.z) / (HOVER_Z - PRESS_Z + 0.02), 0, 1));   // the cap gives a little as you push
+          if (pushed(prevH[s], h.pos, b.p)) { if (press(i)) haptic(vrHands[s], 0.7, 30); else haptic(vrHands[s], 0.15, 15); }
+        });
         prevH[s].copy(h.pos);
       }
     }
@@ -139,7 +144,6 @@
         else {
           // too slow: that light goes out, another comes on
           for (const l of S.lits.slice()) if ((performance.now() - l.t) / 1000 > LIFE) { S.lits.splice(S.lits.indexOf(l), 1); S.misses += 1; tone(220, 160, 0.08, 'square', 0.06); lightNext(l.i); }
-          if (state.mode === 'vr') vrHits();
         }
       }
       // VR: A or X starts
@@ -148,6 +152,7 @@
         if (a && !S.aPrev && S.ph !== 'play') startRound();
         S.aPrev = a;
       }
+      if (state.mode === 'vr') vrHits();
       S.flashT = Math.max(0, S.flashT - dt);
       panels.forEach((pn) => {
         const mine = pn.k === S.k;
@@ -158,7 +163,7 @@
           const col = lit ? (fade < 0.3 && Math.floor(now / 90) % 2 ? 0xffffff : COLS_LIT[L1.c]) : flash ? 0xffffff : idleShow ? 0x4fc3f7 : 0x3a4a5a;
           b.mat.color.setHex(col); b.mat.emissive.setHex(lit || flash ? col : idleShow ? 0x1a3a4a : 0x000000);
           b.glow.visible = lit || flash; if (b.glow.visible) b.glow.material.color.setHex(col);
-          b.b.position.z = b.p.z - (flash ? 0.015 : 0);
+          b.b.position.z = b.p.z - (mine && state.mode === 'vr' ? depth[i] * 0.018 : 0) - (flash ? 0.012 : 0);
         });
         if (mine) drawScore(pn, S.hits, S.ph === 'play' ? Math.max(0, Math.ceil(ROUND - elapsed())) : 0);
       });
@@ -197,7 +202,7 @@
     L.onEnter = () => { S.ph = 'idle'; S.lits = []; for (const pn of panels) pn.key = ''; };
     L.onExit = () => { if (ui.status) ui.status.hidden = true; S.ph = 'idle'; S.lits = []; };
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 2, 1.8, 2.8); camera.lookAt(0, 1.4, -0.6); };
-    L.lightInternals = { S, panels, press, startRound, endRound, lightNext, btnPos, isLit };
+    L.lightInternals = { S, panels, press, pushed, startRound, endRound, lightNext, btnPos, isLit };
     MUSIC_THEMES.lightspeed = { gain: 0.7, bpm: 140, swing: 0, chords: ['Em', 'C', 'G', 'D'], comp: { inst: 'synth', at: [0, 2, 4, 6, 8, 10, 12, 14], dur: 0.08 }, bass: { at: [0, 4, 8, 12] }, drums: { k: 'x...x...x...x...', h: 'o.o.o.o.o.o.o.o.' }, cut: 5200 };
     return L;
   })();

@@ -6,6 +6,7 @@
   // host then tallies from where the bags are (their positions are shared like every ball in the game).
   const cornhole = (() => {
     const L = newLevel(20);
+    L.throwGain = 1.24;   // a VR toss carries a little further than the default
     const G = L.group;
     const rand = mulberry32(2020);
     L.gravityScale = 1; L.airDrag = 0; L.rollFriction = 7; L.bodyBounce = 0.1;
@@ -159,11 +160,11 @@
           impact(b, -vn, 'wood');
           b.vel.addScaledVector(B.n, -1.05 * vn);
           // a bean bag is floppy: a real landing soaks up most of its slide
-          if (vn < -1.5) { const keep = 0.48; const t = _b.copy(b.vel).addScaledVector(B.n, -b.vel.dot(B.n)); b.vel.addScaledVector(t, keep - 1); }
+          if (vn < -1.5) { const keep = 0.56; const t = _b.copy(b.vel).addScaledVector(B.n, -b.vel.dot(B.n)); b.vel.addScaledVector(t, keep - 1); }
         }
         // sliding: the board's grip slows it, and a slow bag sticks
         const vt = _b.copy(b.vel).addScaledVector(B.n, -b.vel.dot(B.n)), sp = vt.length();
-        const nsp = Math.max(0, sp - 3.9 * h);
+        const nsp = Math.max(0, sp - 3.3 * h);
         if (nsp < 0.05) b.vel.addScaledVector(vt, -1); else b.vel.addScaledVector(vt, -(1 - nsp / sp));
         sup = true;
       }

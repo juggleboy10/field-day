@@ -119,12 +119,12 @@ def main():
             page.evaluate("""() => { const fd = window.__fd, I = fd.LEVELS[37].vbInternals, V = I.V; V.ph = 'rally'; V.lastTeam = 1; V.touches = 3; V.lastKind = 3; I.ME.cool = 0;
               const h = fd.myHead.pos; V.p.set(0.2, h.y + 0.35, h.z); V.v.set(-3, -0.5, 0); }""")
             try:
-                page.wait_for_function("() => window.__fd.LEVELS[37].vbInternals.V.lastKind === 5", timeout=5000)
+                page.wait_for_function("() => window.__fd.LEVELS[37].vbInternals.V.lastKind >= 5", timeout=5000)
             except Exception:
                 pass
             blk = page.evaluate("() => { const V = window.__fd.LEVELS[37].vbInternals.V; return { kind: V.lastKind, team: V.lastTeam, vx: V.v.x }; }")
             print("  block:", blk)
-            check(blk["kind"] == 5 and blk["team"] == 0, f"volleyball: no block at the net {blk}")
+            check(blk["kind"] in (5, 6) and blk["team"] == 0, f"volleyball: no block at the net {blk}")
         # ---- Pillow Fight Castle
         if want("pillow"):
             go(38)

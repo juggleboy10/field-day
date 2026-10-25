@@ -154,7 +154,7 @@ def main():
                 for (let el = -0.05; el < 0.3 && !got; el += 0.002) {
                   const dir = new V(t.g.position.x - from.x, 0, t.g.position.z - from.z).normalize(); dir.y = Math.tan(el); dir.normalize();
                   S.left = 12; const s0 = S.score; const a = I.loose(from.clone(), dir, 62); let n = 0; while (a.st === 'fly' && n++ < 3000) I.arrowStep(a, 0.004);
-                  if (S.score - s0 >= 9) got = { d: t.dist, el: +el.toFixed(3), pts: S.score - s0 };
+                  if (S.score - s0 >= 9 * t.mult) got = { d: t.dist, el: +el.toFixed(3), pts: S.score - s0, mult: t.mult };
                 }
                 out.hits.push(got);
               }

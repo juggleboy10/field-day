@@ -11,7 +11,7 @@
     const rand = mulberry32(3737);
     L.grabless = true;
     L.chargeKick = true;
-    const HX = 8, HZ = 4, NET_H = 2.24, BR = 0.105, GRAV = 7.0, WIN = 15;
+    const HX = 8, HZ = 4, NET_H = 2.24, BR = 0.105, GRAV = 7.0, WIN = 15, BLOCK_STUFF = 0.35;
     L.bounds = { minX: -12, maxX: 12, minZ: -7, maxZ: 7 };
     L.walkSpeed = 4;
     L.canHop = true;
@@ -157,7 +157,7 @@
     L.overNet = overNet;
     // a spot in the court of the given team
     const inCourt = (team, x, z, m) => new V3(sgn(team) * clamp(Math.abs(x), 1.2, HX - (m || 0.5)), BR, clamp(z, -HZ + (m || 0.5), HZ - (m || 0.5)));
-    // shot kinds: 0 serve, 1 pass, 2 set, 3 spike, 4 free ball (over the net, soft), 5 block (straight back down on their side)
+    // shot kinds: 0 serve, 1 pass, 2 set, 3 spike, 4 free ball (over the net, soft), 5 block (back down on their side), 6 soft block (a touch that pops up on my own side)
     function shotVel(slot, kind, from, aim) {
       const t = teamOf(slot), s = sgn(t), o = 1 - t;
       if (kind === 1) { // pass to the setter's spot by the net
@@ -167,7 +167,8 @@
         const hz = from.z > 0 ? -1.8 : 1.8;
         return lob(from, new V3(s * 1.1, 2.6, hz), Math.max(4.2, from.y + 1.4));
       }
-      if (kind === 5) return overNet(from, flat(from, inCourt(o, 1.4 + rand() * 1.8, from.z + (rand() - 0.5) * 1.5, 0.4), 9));
+      if (kind === 5) return overNet(from, flat(from, inCourt(o, 2.2 + rand() * 2.4, from.z + (rand() - 0.5) * 2.5, 0.5), 7));   // a stuff, but slow enough to dig
+      if (kind === 6) return lob(from, inCourt(t, 2.2 + rand() * 1.8, from.z * 0.5, 0.8), Math.max(from.y + 0.7, 3.3));
       const to = aim || inCourt(o, 5 + rand() * 2, (rand() - 0.5) * 6);
       if (kind === 3) return overNet(from, flat(from, to, 13));
       if (kind === 0) return overNet(from, lob(from, to, 4.6));
@@ -179,6 +180,7 @@
       const t = teamOf(slot);
       if (V.ph === 'serve') { if (slot !== V.server) return; V.ph = 'rally'; V.lastTeam = t; V.touches = 3; V.lastSlot = slot; }
       else if (kind === 5) { if (V.ph !== 'rally') return; V.lastTeam = t; V.touches = 3; V.lastSlot = slot; }   // a block isn't one of the three touches
+      else if (kind === 6) { if (V.ph !== 'rally') return; V.lastTeam = t; V.touches = 0; V.lastSlot = slot; }   // nor is a soft block: three touches still to come
       else {
         if (V.ph !== 'rally') return;
         if (V.lastTeam !== t) { V.touches = 1; V.lastTeam = t; } else V.touches += 1;
@@ -189,6 +191,7 @@
       V.p.copy(p); V.v.copy(v); V.cool[slot] = 0.45; V.hitN = (V.hitN || 0) + 1; V.sinceHit = 0;
       V.spin = (rand() - 0.5) * 20; V.lastKind = kind;
       if (kind === 5) { sfx('slam', 0.9); spawnFloat('BLOCKED!', p.clone().add(new V3(0, 0.5, 0)), '#4fc3f7'); forcePresence(); return; }
+      if (kind === 6) { sfx('ball', 0.6); spawnFloat('Tipped', p.clone().add(new V3(0, 0.5, 0)), '#9fd8ff'); forcePresence(); return; }
       const loud = kind === 3 ? 1 : 0.6;
       sfx(kind === 3 ? 'slam' : 'ball', loud); tone(kind === 3 ? 160 : 260, 120, 0.06, 'square', 0.12);
       if (kind === 3) spawnFloat('SPIKE!', p.clone().add(new V3(0, 0.4, 0)), '#ffd23f');
@@ -283,7 +286,7 @@
           // a bot up at the net now and then blocks a spike
           if (V.ph === 'rally' && V.lastKind === 3 && V.lastTeam === 1 - t && Math.abs(V.p.x) < 0.8 && V.v.x * s > 0 && Math.abs(b.x) < 2.2 && Math.abs(V.p.z - b.z) < 1.0 && b.blockN !== V.hitN) {
             b.blockN = V.hitN;
-            if (rand() < 0.22) { b.jump = 0.5; const from = V.p.clone(); from.x = s * 0.25; from.y = Math.max(from.y, NET_H + 0.25); applyHit(sl, from, shotVel(sl, 5, from, null), 5); continue; }
+            if (rand() < 0.15) { b.jump = 0.5; const from = V.p.clone(); from.x = s * 0.25; from.y = Math.max(from.y, NET_H + 0.25); const k = rand() < BLOCK_STUFF ? 5 : 6; applyHit(sl, from, shotVel(sl, k, from, null), k); continue; }
           }
           if (V.ph !== 'rally' || V.cool[sl] > 0) continue;
           const onMySide = Math.sign(V.p.x) === s || Math.abs(V.p.x) < 0.3;
@@ -375,9 +378,15 @@
       // a block: their spike coming over the net, and my hands up in its way
       if (V.lastTeam === 1 - t && V.lastKind === 3 && Math.abs(V.p.x) < 1.4 && V.v.x * s > 0) {
         let blocked = false;
-        if (state.mode === 'vr') { for (const sd of SIDES) { const h = myHands[sd]; if (h.ok && h.pos.distanceTo(V.p) < BR + 0.2) blocked = true; } }
-        else { const hd = Math.hypot(V.p.x - myHead.pos.x, V.p.z - myHead.pos.z); if (Math.abs(myHead.pos.x) < 1.4 && hd < 0.85 && V.p.y > myHead.pos.y + 0.05 && V.p.y < myHead.pos.y + 0.75) blocked = true; }
-        if (blocked) { const b = V.p.clone(); b.x = s * 0.25; b.y = Math.max(b.y, NET_H + 0.25); V.p.copy(b); myTouch(5, null); return; }
+        let hands = 0;
+        if (state.mode === 'vr') { for (const sd of SIDES) { const h = myHands[sd]; if (h.ok && h.pos.y > NET_H - 0.05 && Math.abs(h.pos.x) < 0.7 && h.pos.distanceTo(V.p) < BR + 0.13) hands++; } }
+        else { const hd = Math.hypot(V.p.x - myHead.pos.x, V.p.z - myHead.pos.z); if (Math.abs(myHead.pos.x) < 1.2 && hd < 0.6 && V.p.y > myHead.pos.y + 0.1 && V.p.y < myHead.pos.y + 0.65) hands = 1; }
+        if (hands) {
+          // a clean stuff is the exception: mostly the spike just glances off and pops up on my side
+          const b = V.p.clone(); b.x = s * 0.25; b.y = Math.max(b.y, NET_H + 0.25); V.p.copy(b);
+          const stuff = L.blockRoll != null ? L.blockRoll : rand();
+          myTouch(stuff < BLOCK_STUFF + (hands > 1 ? 0.12 : 0) ? 5 : 6, null); return;
+        }
       }
       const onMySide = Math.sign(V.p.x) === s || Math.abs(V.p.x) < 0.4;
       if (!onMySide) return;

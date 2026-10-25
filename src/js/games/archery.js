@@ -1,6 +1,6 @@
   // ================================================================ LEVEL: ARCHERY RANGE (golf and lanes)
   // A meadow range: straw targets at 10, 20, 30 and 50 metres, one sliding target, and balloons drifting about.
-  // A round is 12 arrows at whatever you like: rings score 1 to 10 (the sliding target doubles), a balloon is 10.
+  // A round is 12 arrows at whatever you like: rings score 1 to 10, times the distance (x1 at 10 m up to x5 at 50 m; the sliding target x4), a balloon is 10.
   // VR: the bow's in your left hand. Bring your right hand to the string, squeeze the grip, draw back to your face and
   // let go. Arrows drop over distance, so aim a little high for the far ones. Swap hands with the button on the HUD.
   // Browser: hold Space to draw (the longer, the harder), aim with the view, let go to loose.
@@ -33,19 +33,20 @@
       g.strokeStyle = '#1a1a1a'; g.beginPath(); g.moveTo(124, 128); g.lineTo(132, 128); g.moveTo(128, 124); g.lineTo(128, 132); g.stroke();
     }).tex;
     const TG = [];
-    function target(x, z, R, moving) {
+    // farther targets are worth more: 10 m x1, 20 m x2, 30 m x3, 50 m x5, and the moving one x4
+    function target(x, z, R, moving, mult) {
       const g = new THREE.Group(); g.position.set(x, 1.3, z); G.add(g);
       const bale = new THREE.Mesh(new THREE.CylinderGeometry(R * 1.12, R * 1.12, 0.35, 24), lam(0xd8b860)); bale.rotation.x = Math.PI / 2; bale.position.z = -0.18; g.add(bale);
       const face = new THREE.Mesh(new THREE.CircleGeometry(R, 40), new THREE.MeshBasicMaterial({ map: faceTex })); face.position.z = 0.005; g.add(face);
       for (const sx of [-1, 1]) { const leg = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.6, 0.08), lam(0x5a3a1a)); leg.position.set(sx * R * 0.7, -0.85, -0.4); leg.rotation.x = -0.25; g.add(leg); }
-      if (!moving) makePlate(G, `${Math.round(-z)} m`, 0.7, 0.26, new V3(x, 0.25, z + 0.3), 0, { bg: '#fff4d8', fg: '#2e5a2e', size: 0.7 });
-      const t = { g, R, x0: x, z, moving: !!moving, dist: -z };
+      if (!moving) makePlate(G, `${Math.round(-z)} m  \u00d7${mult}`, 0.9, 0.26, new V3(x, 0.25, z + 0.3), 0, { bg: mult >= 5 ? '#ffd23f' : '#fff4d8', fg: '#2e5a2e', size: 0.7 });
+      const t = { g, R, x0: x, z, moving: !!moving, dist: -z, mult };
       TG.push(t); return t;
     }
-    target(-3, -10, 0.5); target(2.5, -20, 0.6); target(-2.5, -30, 0.7); target(0.5, -50, 0.9);
-    const mover = target(0, -25, 0.45, true);
+    target(-3, -10, 0.5, false, 1); target(2.5, -20, 0.6, false, 2); target(-2.5, -30, 0.7, false, 3); target(0.5, -50, 0.9, false, 5);
+    const mover = target(0, -25, 0.45, true, 4);
     addBox(G, 12, 0.08, 0.12, lam(0x5a3a1a), 0, 0.4, -25.3);
-    makePlate(G, 'Moving: double points', 1.6, 0.24, new V3(5.5, 0.6, -25.1), 0, { bg: '#d8302a', fg: '#ffffff', size: 0.55 });
+    makePlate(G, 'Moving: points \u00d74', 1.6, 0.24, new V3(5.5, 0.6, -25.1), 0, { bg: '#d8302a', fg: '#ffffff', size: 0.55 });
     // balloons
     const BAL = [];
     const balCols = [0xff4d6a, 0x4fc3f7, 0xffd23f, 0x8bd450, 0xb388ff];
@@ -106,11 +107,12 @@
       return a;
     }
     L.loose = loose;
-    function scoreArrow(pts, what, at) {
+    function scoreArrow(pts, what, at, bull, mult) {
       S.score += pts; S.last = { pts, what };
-      if (pts >= 10 && what !== 'balloon') S.bulls += 1;
-      spawnFloat(pts ? (pts >= 10 && what !== 'balloon' ? `${pts}! Bullseye` : `+${pts}`) : 'Miss', at.clone().add(new V3(0, 0.5, 0)), pts >= 10 ? '#ffd23f' : pts ? '#ffffff' : '#c8c8c8');
-      if (pts) sfx(pts >= 10 ? 'cheer' : 'board', pts >= 10 ? 0.5 : 0.6);
+      if (bull) S.bulls += 1;
+      const x = mult > 1 && pts ? `  (\u00d7${mult})` : '';
+      spawnFloat(pts ? (bull ? `${pts}! Bullseye${x}` : `+${pts}${x}`) : 'Miss', at.clone().add(new V3(0, 0.5, 0)), bull || pts >= 10 ? '#ffd23f' : pts ? '#ffffff' : '#c8c8c8');
+      if (pts) sfx(bull || pts >= 20 ? 'cheer' : 'board', bull ? 0.5 : 0.6);
       sbKey = ''; forcePresence(); state.dirtyBoard = true;
       if (S.left <= 0) setTimeout(() => endRound(), 900);
     }
@@ -139,9 +141,9 @@
           const d = Math.hypot(x - t.g.position.x, y - t.g.position.y);
           if (d < t.R * 1.12) {
             a.p.set(x, y, cz - 0.05); a.st = 'stuck'; a.on = t; a.off = new V3(x - t.g.position.x, y - t.g.position.y, 0);
-            const ring = Math.floor(d / (t.R / 10)), pts = d < t.R ? (10 - ring) * (t.moving ? 2 : 1) : 0;
+            const ring = Math.floor(d / (t.R / 10)), pts = d < t.R ? (10 - ring) * t.mult : 0;
             tone(140, 100, 0.08, 'square', 0.2);
-            scoreArrow(pts, 'target', a.p);
+            scoreArrow(pts, 'target', a.p, ring === 0, t.mult);
             if (pts) RECORDS.add(L, 'long', Math.round(t.dist));
             return;
           }
@@ -223,7 +225,7 @@
       g.font = `800 40px ${DISPLAY}`; g.fillText(S.ph === 'done' ? 'ROUND OVER' : 'ARCHERY', 256, 50);
       g.fillStyle = '#ffd23f'; g.font = `900 96px ${DISPLAY}`; g.fillText(String(S.score), 256, 150);
       g.fillStyle = '#fff4d8'; g.font = `700 28px ${BODY}`; g.fillText(`Arrows left: ${S.left}  ·  best ${S.best}`, 256, 200);
-      g.font = `400 22px ${BODY}`; g.fillText(S.last ? (S.last.what === 'balloon' ? 'Last: popped a balloon! +10' : S.last.pts ? `Last arrow: ${S.last.pts}` : 'Last arrow: missed') : 'Twelve arrows a round', 256, 236);
+      g.font = `400 22px ${BODY}`; g.fillText(S.last ? (S.last.what === 'balloon' ? 'Last: popped a balloon! +10' : S.last.pts ? `Last arrow: ${S.last.pts}` : 'Last arrow: missed') : 'Twelve arrows: far targets score more', 256, 236);
       sb.tex.needsUpdate = true;
     }
     // ---------------------------------------------------------------- per frame
@@ -283,8 +285,8 @@
       { label: () => (S.ph === 'play' ? 'New round' : S.ph === 'done' ? 'Play again' : 'Start a round'), run: () => newRound() },
       { label: () => (S.bowHand === 'left' ? 'Right-handed ▸' : 'Left-handed ▸'), run: () => swapHands() },
     ];
-    L.hints = [['Bow hand', 'points where you shoot'], ['Other hand', 'grip at the string, draw back, let go'], ['Far targets', 'aim a little high']];
-    L.hintsFor = () => (state.mode === 'flat' ? [['Space', 'hold to draw, let go to shoot'], ['Drag', 'aim'], ['Far targets', 'aim a little high']] : L.hints);
+    L.hints = [['Bow hand', 'points where you shoot'], ['Other hand', 'grip at the string, draw back, let go'], ['Far targets', 'aim a little high, and score up to x5']];
+    L.hintsFor = () => (state.mode === 'flat' ? [['Space', 'hold to draw, let go to shoot'], ['Drag', 'aim'], ['Far targets', 'aim a little high, and score up to x5']] : L.hints);
     L.spawn = () => { dolly.position.set(0, 0, 0); stand(); };
     L.onEnter = () => { sbKey = ''; };
     L.onExit = () => { if (ui.status) ui.status.hidden = true; S.drawing = false; };
