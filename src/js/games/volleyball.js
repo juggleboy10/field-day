@@ -1,5 +1,5 @@
   // ================================================================ LEVEL: BEACH VOLLEYBALL
-  // Two against two on the sand, first to 15 (win by 2). Each side gets three touches: a pass to the setter,
+  // Two against two on the sand (or one on one, on a smaller court), first to 15 (win by 2). Each side gets three touches: a pass to the setter,
   // a set up by the net, and a spike over. Your touches are helped along: a pass floats to your setter, a set
   // hangs by the net for the hitter. Hit it hard (or hold Space in a browser) to spike it where you like.
   // VR: your hands are your hands: bump, set and swing at the ball. Browser: walk under the ball and you'll
@@ -11,7 +11,9 @@
     const rand = mulberry32(3737);
     L.grabless = true;
     L.chargeKick = true;
-    const HX = 8, HZ = 4, NET_H = 2.24, BR = 0.105, GRAV = 7.0, WIN = 15, BLOCK_STUFF = 0.35;
+    // the court's half length and half width: 8 x 4 for doubles, smaller for one on one (see setCourt)
+    let HX = 8, HZ = 4;
+    const NET_H = 2.24, BR = 0.105, GRAV = 7.0, WIN = 15, BLOCK_STUFF = 0.35;
     L.bounds = { minX: -12, maxX: 12, minZ: -7, maxZ: 7 };
     L.walkSpeed = 4;
     L.canHop = true;
@@ -35,7 +37,8 @@
     const surf = new THREE.Mesh(new THREE.PlaneGeometry(400, 1.2), new THREE.MeshBasicMaterial({ color: 0xf4fbff })); surf.rotation.x = -Math.PI / 2; surf.position.set(0, 0.01, -29.6); G.add(surf);
     // court lines (blue tape), the net, posts and antennas
     const tape = new THREE.MeshBasicMaterial({ color: 0x2a5ad8 });
-    for (const [x, z, w, d] of [[0, -HZ, HX * 2, 0.05], [0, HZ, HX * 2, 0.05], [-HX, 0, 0.05, HZ * 2], [HX, 0, 0.05, HZ * 2]]) addBox(G, w, 0.01, d, tape, x, 0.006, z);
+    const lines = [[0, -HZ, HX * 2, 0.05], [0, HZ, HX * 2, 0.05], [-HX, 0, 0.05, HZ * 2], [HX, 0, 0.05, HZ * 2]].map(([x, z, w, d]) => addBox(G, w, 0.01, d, tape, x, 0.006, z));
+    const antennas = [];
     const netTex = canvasTexture(64, 64, (g) => { g.clearRect(0, 0, 64, 64); g.strokeStyle = '#1a1a2a'; g.lineWidth = 3; g.strokeRect(0, 0, 64, 64); }).tex;
     netTex.wrapS = netTex.wrapT = THREE.RepeatWrapping; netTex.repeat.set(36, 4);
     const net = new THREE.Mesh(new THREE.PlaneGeometry(HZ * 2 + 1, 1.0), new THREE.MeshLambertMaterial({ map: netTex, transparent: true, side: THREE.DoubleSide, alphaTest: 0.3 }));
@@ -43,7 +46,14 @@
     addBox(G, 0.05, 0.07, HZ * 2 + 1, new THREE.MeshLambertMaterial({ color: 0xffffff }), 0, NET_H - 0.03, 0);
     for (const sz of [-1, 1]) {
       addCyl(G, 0.06, 0.06, NET_H + 0.3, 10, lam(0xd8d8e0), 0, (NET_H + 0.3) / 2, sz * (HZ + 0.6));
-      const ant = new THREE.Mesh(cyl(0.01, 0.01, 1.4, 6), lam(0xe5453a)); ant.position.set(0, NET_H + 0.3, sz * HZ); G.add(ant);
+      const ant = new THREE.Mesh(cyl(0.01, 0.01, 1.4, 6), lam(0xe5453a)); ant.position.set(0, NET_H + 0.3, sz * HZ); G.add(ant); antennas.push(ant);
+    }
+    // one on one plays on a smaller court (6.5 x 3 a side, like the king-of-the-court games): move the tape and antennas
+    function setCourt(solo) {
+      HX = solo ? 6.5 : 8; HZ = solo ? 3 : 4;
+      lines[0].position.z = -HZ; lines[1].position.z = HZ; lines[0].scale.x = lines[1].scale.x = HX / 8;
+      lines[2].position.x = -HX; lines[3].position.x = HX; lines[2].scale.z = lines[3].scale.z = HZ / 4;
+      antennas.forEach((a, i) => { a.position.z = (i ? 1 : -1) * HZ; });
     }
     // palms, a lifeguard tower, towels and an umbrella
     function palm(x, z, h, lean) {
@@ -79,8 +89,11 @@
     // ph: idle, serve, rally, dead (a point was just won), over
     const V = {
       g: 0, ph: 'idle', p: new V3(0, 1, 0), v: new V3(), score: [0, 0], serveTeam: 0, server: 0, touches: 0, lastTeam: -1, lastSlot: -1,
-      t: 0, msg: '', msgSeq: 0, winner: -1, lv: 1, people: ['', '', '', ''], hitSeq: {}, cool: [0, 0, 0, 0], serveIdx: [0, 0], spin: 0,
+      t: 0, msg: '', msgSeq: 0, winner: -1, lv: 1, people: ['', '', '', ''], hitSeq: {}, cool: [0, 0, 0, 0], serveIdx: [0, 0], spin: 0, solo: false,
     };
+    // the spots in play: all four, or one a side (spots 0 and 2) one on one
+    const teamSlots = (t) => (V.solo ? [t * 2] : [t * 2, t * 2 + 1]);
+    const inPlay = (sl) => !V.solo || sl % 2 === 0;
     L.vb = V;
     const P = [0, 1, 2, 3].map((s) => ({ x: sgn(teamOf(s)) * 4, z: s % 2 ? 2 : -2 }));   // where each spot's player is
     const humansHere = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort(); };
@@ -88,8 +101,8 @@
     // the people fill the spots in turn: one on each side, then the second on each side
     function assignPeople() {
       const ids = humansHere().filter((id) => { if (id === state.myPeer) return !(L.sitOut && L.sitOut.on); const st = remotes.get(id).lvState[L.id]; return !(st && st.sitOut); });
-      const order = [0, 2, 1, 3], people = ['', '', '', ''];
-      ids.slice(0, 4).forEach((id, i) => { people[order[i]] = id; });
+      const order = V.solo ? [0, 2] : [0, 2, 1, 3], people = ['', '', '', ''];
+      ids.slice(0, order.length).forEach((id, i) => { people[order[i]] = id; });
       V.people = people;
     }
     const mySlot = () => V.people.indexOf(state.myPeer);
@@ -107,7 +120,7 @@
     function startMatch() {
       assignPeople();
       Object.assign(V, { g: Date.now() % 1000000, score: [0, 0], serveTeam: 0, winner: -1, serveIdx: [0, 0] });
-      for (let s = 0; s < 4; s++) { P[s].x = sgn(teamOf(s)) * 4; P[s].z = s % 2 ? 2 : -2; }
+      for (let s = 0; s < 4; s++) { P[s].x = sgn(teamOf(s)) * (V.solo ? 3.5 : 4); P[s].z = V.solo ? 0 : s % 2 ? 2 : -2; }
       newServe();
       sfx('whistle', 1);
       say(myTeam() >= 0 ? `First to ${WIN}. ${myTeam() === 0 ? 'You serve first' : 'They serve first'}` : `First to ${WIN}`);
@@ -116,9 +129,9 @@
     L.startMatch = startMatch;
     function newServe() {
       const t = V.serveTeam;
-      V.server = t * 2 + (V.serveIdx[t] % 2);
+      V.server = t * 2 + (V.solo ? 0 : V.serveIdx[t] % 2);
       V.ph = 'serve'; V.t = 0; V.touches = 0; V.lastTeam = -1; V.lastSlot = -1; V.rallyN = 0;
-      P[V.server].x = sgn(t) * (HX + 0.7); P[V.server].z = V.server % 2 ? 1.2 : -1.2;
+      P[V.server].x = sgn(t) * (HX + 0.7); P[V.server].z = V.solo ? 0 : V.server % 2 ? 1.2 : -1.2;
       // my serve: step back behind the line
       if (V.people[V.server] === state.myPeer) { const c = new V3(); camera.getWorldPosition(c); dolly.position.x += P[V.server].x - c.x; dolly.position.z += P[V.server].z - c.z; if (state.mode !== 'vr') { state.yaw = t === 0 ? -Math.PI / 2 : Math.PI / 2; state.pitch = 0.1; } showToast(state.mode === 'vr' ? 'Your serve: hit the ball in front of you' : 'Your serve: look where you want it and press Space'); }
       tossBall();
@@ -236,7 +249,7 @@
       V.v.y -= GRAV * dt;
       V.p.addScaledVector(V.v, dt);
       // the net
-      if (Math.sign(px) !== Math.sign(V.p.x) && V.p.y < NET_H + BR * 0.5 && V.p.y > NET_H - 1.05 && Math.abs(V.p.z) < HZ + 0.5) {
+      if (Math.sign(px) !== Math.sign(V.p.x) && V.p.y < NET_H + BR * 0.5 && V.p.y > NET_H - 1.05 && Math.abs(V.p.z) < 4.5) {   // (the net is full width whatever the court)
         V.p.x = Math.sign(px) * BR; V.v.x *= -0.25; V.v.z *= 0.5; V.v.y *= 0.3; sfx('net', 0.6);
       }
       if (V.p.y <= BR) {
@@ -259,7 +272,7 @@
         let chaser = -1;
         if (side === t && V.ph === 'rally') {
           let best = 1e9;
-          for (const sl of [s0, s0 + 1]) {
+          for (const sl of teamSlots(t)) {
             const id = V.people[sl];
             const pos = id ? humanPos(id, _h) : _h.set(P[sl].x, 0, P[sl].z);
             if (!pos) continue;
@@ -267,16 +280,17 @@
             if (d < best) { best = d; chaser = sl; }
           }
         }
-        for (const sl of [s0, s0 + 1]) {
+        for (const sl of teamSlots(t)) {
           if (V.people[sl]) continue;
           const b = P[sl];
           if (b.rolled === undefined) { b.rolled = -1; b.whiff = -1; }
           let tx, tz;
           if (V.ph === 'serve' && sl === V.server) { tx = b.x; tz = b.z; }
-          else if (V.ph === 'serve' || V.ph === 'dead' || V.ph === 'idle' || V.ph === 'over') { tx = s * 4.2; tz = sl % 2 ? 2 : -2; }
+          else if (V.ph === 'serve' || V.ph === 'dead' || V.ph === 'idle' || V.ph === 'over') { tx = s * (V.solo ? 3.5 : 4.2); tz = V.solo ? 0 : sl % 2 ? 2 : -2; }
           else if (sl === chaser) { tx = land.x - s * 0.25; tz = land.z; }
           else if (side === t) { const next = V.lastTeam === t ? V.touches + 1 : 1; if (next === 1) { tx = s * 1.6; tz = 0; } else { tx = s * 3.2; tz = V.p.z > 0 ? -1.8 : 1.8; } }
-          else if (V.ph === 'rally' && V.lastTeam === 1 - t && V.touches >= 2 && sl === s0) { tx = s * 0.9; tz = clamp(V.p.z, -3, 3); }   // up to the net to block
+          else if (V.ph === 'rally' && V.lastTeam === 1 - t && V.touches >= 2 && sl === s0 && !V.solo) { tx = s * 0.9; tz = clamp(V.p.z, -3, 3); }   // up to the net to block
+          else if (V.solo) { tx = s * HX * 0.5; tz = clamp(V.p.z * 0.4, -1.5, 1.5); }   // one on one: the middle of the court, leaning toward the ball
           else { tx = s * 4.5; tz = sl % 2 ? 2.2 : -2.2; }
           tx = clamp(tx, s < 0 ? -HX - 1 : 0.4, s < 0 ? -0.4 : HX + 1); tz = clamp(tz, -HZ - 1, HZ + 1);
           const dx = tx - b.x, dz = tz - b.z, d = Math.hypot(dx, dz), step = (V.ph === 'rally' && V.sinceHit < lv.react && V.lastTeam !== t) ? 0 : Math.min(d, lv.speed * dt);
@@ -297,7 +311,8 @@
           const hard = V.v.length() > 10;
           if (b.whiff === V.hitN) continue;
           if (b.rolled !== V.hitN) { b.rolled = V.hitN; if (rand() < (hard ? lv.spikeMiss : lv.miss)) { b.whiff = V.hitN; continue; } }   // a whiff
-          let kind = next === 1 ? 1 : next === 2 ? 2 : V.p.y > 2.2 && nearNet ? 3 : 4;
+          // (one on one there's no setter: a pass up to the net, then the attack)
+          let kind = next === 1 ? 1 : next === 2 && !V.solo ? 2 : V.p.y > 2.2 && nearNet ? 3 : 4;
           // a teammate who's a person: set it up for them, unless they're nowhere near
           const aim = inCourt(1 - t, 3 + rand() * 4.5, (rand() - 0.5) * 7 * lv.err, 0.3 + 0.3 * (1 - lv.err));
           if (kind >= 3 && rand() < 0.08 * lv.err) aim.x += sgn(1 - t) * 1.6;   // long
@@ -341,8 +356,9 @@
       forcePresence();
     }
     L.myTouch = myTouch;
-    // which touch I'd be making
+    // which touch I'd be making, and what it does: a pass, a set, then over (one on one: a pass, then over)
     const nextTouch = () => (V.lastTeam === myTeam() ? V.touches + 1 : 1);
+    const touchKind = (next) => (next === 1 ? 1 : next === 2 && !V.solo ? 2 : 4);
     // a spot to spike or serve at: where I'm looking, in their court
     function lookAim() {
       const t = myTeam(); if (t < 0) return null;
@@ -403,7 +419,7 @@
             aim.x = sgn(1 - t) * clamp(1.5 + sp * 0.9, 2, HX - 0.5);
             myTouch(3, aim); return;
           }
-          myTouch(next === 1 ? 1 : next === 2 ? 2 : 4, next >= 3 ? lookAim() : null); return;
+          myTouch(touchKind(next), touchKind(next) === 4 ? lookAim() : null); return;
         }
       } else {
         const hd = Math.hypot(V.p.x - myHead.pos.x, V.p.z - myHead.pos.z), top = myHead.pos.y + (HOP.air ? 1.4 : 1.2);
@@ -411,7 +427,7 @@
         if (V.v.y > 1.5 && V.p.y < 2.0) return;
         const next = nextTouch(), spike = state.charge !== null && (next >= 2 || Math.abs(V.p.x) < 4) && V.p.y > 1.4;
         if (spike) { state.charge = null; ui.power.hidden = true; myTouch(3, lookAim()); return; }
-        myTouch(next === 1 ? 1 : next === 2 ? 2 : 4, next >= 3 ? lookAim() : null);
+        myTouch(touchKind(next), touchKind(next) === 4 ? lookAim() : null);
       }
     }
     // browser: Space serves (when it's yours), starts a match, or (held) spikes as the ball reaches you
@@ -431,7 +447,7 @@
     const PH = ['idle', 'serve', 'rally', 'dead', 'over'];
     const r2 = (x) => Math.round(x * 100) / 100;
     function snapshot() {
-      return { g: V.g, ph: PH.indexOf(V.ph), b: [V.p.x, V.p.y, V.p.z, V.v.x, V.v.y, V.v.z].map(r2), s: V.score.slice(), sv: V.server, t: V.touches, lt: V.lastTeam, ls: V.lastSlot, pl: P.flatMap((p) => [r2(p.x), r2(p.z)]), h: V.people.slice(), m: [V.msgSeq, V.msg], w: V.winner, lv: V.lv, lk: V.lastKind === undefined ? -1 : V.lastKind };
+      return { g: V.g, ph: PH.indexOf(V.ph), b: [V.p.x, V.p.y, V.p.z, V.v.x, V.v.y, V.v.z].map(r2), s: V.score.slice(), sv: V.server, t: V.touches, lt: V.lastTeam, ls: V.lastSlot, pl: P.flatMap((p) => [r2(p.x), r2(p.z)]), h: V.people.slice(), m: [V.msgSeq, V.msg], w: V.winner, lv: V.lv, lk: V.lastKind === undefined ? -1 : V.lastKind, so: V.solo ? 1 : 0 };
     }
     const fin = (x, m) => typeof x === 'number' && Number.isFinite(x) && Math.abs(x) < m;
     function validSnap(q) {
@@ -444,6 +460,7 @@
     let seenMsg = -1, lastSnapB = '';
     function applySnap(q) {
       V.g = q.g; V.ph = PH[q.ph]; V.score = q.s.slice(); V.server = q.sv; V.touches = q.t; V.lastTeam = q.lt; V.lastSlot = q.ls; V.people = q.h.slice(); V.winner = q.w; V.lv = q.lv; if (Number.isInteger(q.lk)) V.lastKind = q.lk;
+      if ((q.so === 1) !== V.solo) { V.solo = q.so === 1; setCourt(V.solo); drawScore.key = ''; }
       for (let s = 0; s < 4; s++) { P[s].tx = q.pl[s * 2]; P[s].tz = q.pl[s * 2 + 1]; }
       // the ball: take the host's, unless I've just hit it myself (mine is newer)
       const key = q.b.join();
@@ -529,7 +546,7 @@
       // the bots
       for (const b of bots) {
         const s = b.slot;
-        b.g.visible = V.ph !== 'idle' && !V.people[s];
+        b.g.visible = V.ph !== 'idle' && !V.people[s] && inPlay(s);
         if (!b.g.visible) continue;
         const face = new V3(V.p.x - P[s].x, 0, V.p.z - P[s].z);
         const yaw = Math.atan2(-face.x, -face.z);
@@ -539,7 +556,7 @@
       if (ui.status && state.mode === 'flat') {
         ui.status.hidden = false;
         const sl = mySlot();
-        const txt = V.ph === 'idle' ? `Beach volleyball, 2 v 2 (bots: ${LEVELS[V.lv].name})  ·  press Space to start` : V.ph === 'over' ? `${V.score[0]}-${V.score[1]}  ·  press Space for a rematch`
+        const txt = V.ph === 'idle' ? `Beach volleyball, ${V.solo ? '1 v 1' : '2 v 2'} (bots: ${LEVELS[V.lv].name})  ·  press Space to start` : V.ph === 'over' ? `${V.score[0]}-${V.score[1]}  ·  press Space for a rematch`
           : `${V.score[myTeam() === 1 ? 1 : 0]}-${V.score[myTeam() === 1 ? 0 : 1]}  ·  ${V.ph === 'serve' ? (V.server === sl ? 'your serve: look and press Space' : `${nameOfSlot(V.server)} to serve`) : sl < 0 ? 'watching' : `walk under the ball to play it  ·  hold Space to spike`}`;
         if (ui.status.textContent !== txt) ui.status.textContent = txt;
       }
@@ -571,15 +588,31 @@
     RECORDS.def(L, [{ k: 'rally', label: 'Longest rally (touches)' }, { k: 'margin', label: 'Biggest win (points)' }]);
     L.hudActions = [
       { label: () => (V.ph === 'idle' || V.ph === 'over' ? 'Start match' : 'Restart'), run: () => { if (isHost()) startMatch(); else requestStart(); } },
+      { label: () => `Teams: ${V.solo ? '1 v 1' : '2 v 2'} ▸`, run: () => setSolo(!V.solo) },
       { label: () => `Bots: ${LEVELS[V.lv].name} ▸`, run: () => { if (!isHost()) { showToast('The first player in the room picks the bots'); return; } V.lv = (V.lv + 1) % LEVELS.length; forcePresence(); state.hudDirty = true; } },
     ];
+    // one on one or two on two: the first player in the room picks, between matches
+    function setSolo(on) {
+      if (!isHost()) { showToast('The first player in the room picks 1 v 1 or 2 v 2'); return; }
+      if (V.ph !== 'idle' && V.ph !== 'over') { showToast('Switch between matches (or Restart first)'); return; }
+      V.solo = on; setCourt(on); assignPeople();
+      for (let s = 0; s < 4; s++) { P[s].x = sgn(teamOf(s)) * (on ? 3.5 : 4); P[s].z = on ? 0 : s % 2 ? 2 : -2; }
+      drawScore.key = ''; state.hudDirty = true; forcePresence();
+      showToast(on ? 'One on one: a smaller court, and you play every touch (a pass up to the net, then over)' : 'Two on two');
+      sfx('click', 0.7);
+    }
+    L.setSolo = setSolo;
+    // buttons on the sand beside the court (for VR): 1 v 1 or 2 v 2, the bots, and start
+    makeButton(L, new V3(-3.2, 1.0, 5.4), 0x4fc3f7, '1 v 1 / 2 v 2', () => setSolo(!V.solo), { faceYaw: Math.PI });
+    makeButton(L, new V3(-2.2, 1.0, 5.4), 0xffd23f, 'Start match', () => { if (V.ph === 'idle' || V.ph === 'over') requestStart(); else if (isHost()) startMatch(); }, { faceYaw: Math.PI });
+    makeButton(L, new V3(-1.2, 1.0, 5.4), 0xff9a5a, 'Bots: easy / pro', () => { if (!isHost()) { showToast('The first player in the room picks the bots'); return; } V.lv = (V.lv + 1) % LEVELS.length; showToast(`Bots: ${LEVELS[V.lv].name}`); forcePresence(); state.hudDirty = true; }, { faceYaw: Math.PI });
     L.hints = [['A / X', 'start a match, then jump'], ['Jump at the net', 'hands up to block their spike'], ['Bump or set', 'just get your hands to the ball'], ['Spike', 'swing hard at a high ball by the net'], ['White ring', 'where the ball is coming down']];
     L.hintsFor = () => (state.mode === 'flat' ? [['WASD', 'move (Shift runs)'], ['Walk under the ball', 'to play it'], ['Hold Space', 'to spike, aimed where you look'], ['J at the net', 'jump to block their spike']] : L.hints);
     L.spawn = () => { dolly.position.set(-4, 0, 1); if (state.mode !== 'vr') { state.yaw = -Math.PI / 2; state.pitch = 0; } };
     L.onEnter = () => { drawScore.key = ''; ME.claim = null; seenMsg = -1; };
     L.onExit = () => { if (ui.status) ui.status.hidden = true; marker.visible = false; if (isHost() && V.ph !== 'over') V.ph = 'idle'; };
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.4; camera.position.set(Math.sin(a) * 6, 4, 11); camera.lookAt(0, 1.5, 0); };
-    L.vbInternals = { V, P, ME, startMatch, newServe, applyHit, shotVel, ballStep, botStep, hostStep, myTouch, predict, overNet, inCourt, snapshot, applySnap, validSnap, assignPeople, LEVELS };
+    L.vbInternals = { V, P, ME, setSolo, setCourt, teamSlots, touchKind, court: () => [HX, HZ], startMatch, newServe, applyHit, shotVel, ballStep, botStep, hostStep, myTouch, predict, overNet, inCourt, snapshot, applySnap, validSnap, assignPeople, LEVELS };
     MUSIC_THEMES.volleyball = { gain: 0.7, bpm: 112, swing: 0.15, chords: ['C', 'F', 'G', 'F'], comp: { inst: 'guitar', at: [0, 3, 6, 10, 12], dur: 0.15 }, bass: { at: [0, 6, 8, 14] }, drums: { k: 'x.....x...x.....', s: '....x.......x...', h: '..o...o...o...o.' }, lead: { inst: 'vibes', p: 0.25, up: 12 }, cut: 4200 };
     return L;
   })();
