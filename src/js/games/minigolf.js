@@ -1193,6 +1193,7 @@
     // She plays the hole you're on with her own ball and the same physics as yours. Before each putt she
     // test-rolls about a hundred shots in silence and picks the one that finishes nearest the cup, then
     // adds a little human error. The host runs her; everyone sees her.
+    BOTLV.on(L);
     const BEA = { name: 'Birdie Bea', color: '#ffb36b', on: prefs.golfBot !== false, active: false, hole: -1, phase: 'wait', strokes: 0, scores: HOLES.map(() => 0), t0: 0, aim: [0, -1], swingT: 0, req: null, reqSeq: 0 };
     const beaBall = { x: 0, z: 0, vx: 0, vz: 0, lipped: false, sink: 0, fromX: 0, fromZ: 0, vis: null };
     BEA.ball = beaBall;
@@ -1284,7 +1285,8 @@
         }
         if (BEA.plan && now - BEA.t0 > 1100) {
           const p = BEA.plan;
-          const a = p.a + (gauss() * 2.2 * Math.PI) / 180, sp = p.sp * (1 + gauss() * 0.07);
+          // her human error: a few degrees and a few percent off (easy: more; hard: hardly any)
+          const lv = BOTLV.get(L), a = p.a + (gauss() * [5, 2.2, 0.9][lv] * Math.PI) / 180, sp = p.sp * (1 + gauss() * [0.15, 0.07, 0.03][lv]);
           beaBall.fromX = beaBall.x; beaBall.fromZ = beaBall.z;
           beaBall.vx = Math.cos(a) * sp; beaBall.vz = Math.sin(a) * sp;
           BEA.strokes += 1; BEA.phase = 'moving'; BEA.swingT = now;

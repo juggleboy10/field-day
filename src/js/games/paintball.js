@@ -1,6 +1,7 @@
   // ================================================================ LEVEL: PAINTBALL PARK
   const paintball = (() => {
     const L = newLevel(14);
+    BOTLV.on(L);   // the bots: aim, how often they shoot, how fast they move
     const G = L.group;
     const rand = mulberry32(4242);
     const F = { minX: -14, maxX: 14, minZ: -20, maxZ: 20 };
@@ -371,7 +372,7 @@
           const pick = mine[Math.floor(Math.random() * mine.length)] || COVER[0];
           b.tx = pick.x; b.tz = pick.z; b.until = now + 9000;
         }
-        if (moveBot(b, b.tx, b.tz, 3.6, dt) || now > b.until) { b.ph = 'hold'; b.until = now + 3000 + Math.random() * 4000; }
+        if (moveBot(b, b.tx, b.tz, 3.6 * BOTLV.pick(L, [0.85, 1, 1.12]), dt) || now > b.until) { b.ph = 'hold'; b.until = now + 3000 + Math.random() * 4000; }
       } else if (b.ph === 'hold') {
         b.yaw = Math.atan2(0, enemyZ - b.z) + Math.PI;
         // shoot at someone it can see
@@ -382,7 +383,7 @@
             const from = b.head.clone().add(new V3(0, -0.25, 0)), d = tg.head.clone().add(new V3(0, -0.35, 0)).sub(from), dist = d.length();
             const tof = dist / gun.speed;
             d.y += 0.5 * 9.8 * gun.grav * tof * tof;   // aim a little high for the drop
-            const err = (2.2 + dist * 0.12) * Math.PI / 180;
+            const err = (2.2 + dist * 0.12) * BOTLV.pick(L, [1.8, 1, 0.55]) * Math.PI / 180;   // (the Bots level: their aim)
             d.normalize().applyAxisAngle(new V3(0, 1, 0), (Math.random() - 0.5) * 2 * err);
             d.y += (Math.random() - 0.5) * err * 1.4;
             const vel = d.normalize().multiplyScalar(gun.speed);
@@ -391,7 +392,7 @@
             if (me.shots.length > 14) me.shots.splice(0, me.shots.length - 14);
             b.yaw = Math.atan2(-d.x, -d.z);
             b.burst += 1;
-            b.cool = now + (b.gun === 'pb_auto' ? (b.burst % 3 ? 160 : 1300 + Math.random() * 900) : 1100 + Math.random() * 900);
+            b.cool = now + (b.gun === 'pb_auto' ? (b.burst % 3 ? 160 : (1300 + Math.random() * 900) * BOTLV.pick(L, [1.4, 1, 0.7])) : (1100 + Math.random() * 900) * BOTLV.pick(L, [1.4, 1, 0.7]));
             forcePresence();
           } else b.cool = now + 500;
         }

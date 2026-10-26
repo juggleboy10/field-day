@@ -895,6 +895,7 @@
     // everyone else sees them through the host's presence.
     const BOT_NAMES = ['Turbo Tess', 'Pebble Pete', 'Captain Drift', 'Zoom Zara', 'Skid Sid'];
     const BOT_COLORS = ['#ff8a3a', '#8bd450', '#b388ff', '#4fc3f7', '#ffd23f'];
+    BOTLV.on(L);
     const BOT_SKILL = [{ vmax: 17.4, line: -1.2 }, { vmax: 16.9, line: 1.4 }, { vmax: 16.4, line: 0.2 }, { vmax: 16.7, line: -0.6 }, { vmax: 17.1, line: 0.9 }];
     const bots = [];
     const botState = { on: true, req: null, reqSeq: 0 };
@@ -966,7 +967,7 @@
       const steerCmd = spun ? 0 : clamp(-dy * 2.4, -1, 1);
       b.steer += (steerCmd - b.steer) * Math.min(1, dt * 8);
       // slow for tight bends; a little catch-up so races stay close
-      let target = b.vmax * (1 - clamp(Math.abs(BEND[(b.idx + Math.round(10 / DS)) % N]) * 0.42, 0, 0.26));
+      let target = b.vmax * BOTLV.pick(L, [0.88, 1, 1.07]) * (1 - clamp(Math.abs(BEND[(b.idx + Math.round(10 / DS)) % N]) * 0.42, 0, 0.26));
       if (race.phase === 'run' && b.phase === 'run') {
         const gap = (b.lap * TLEN + b.s) - leaderProgress();
         if (gap > 50) target *= 0.95; else if (gap < -30) target *= 1.13;

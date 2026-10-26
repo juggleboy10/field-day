@@ -141,6 +141,7 @@
       return Object.assign({ i, sled, s: START_S, lat: 0, v: 0, air: 0, airV: 0, done: 0, steer: 0, ice: -1, jump: -1, bonkT: 0, line: 0 }, d);
     });
     L.sledBots = BOTS;
+    BOTLV.on(L);
 
     // ---------------------------------------------------------------- my sled and the race
     const K = { s: START_S, lat: 0, v: 0, air: 0, airV: 0, steer: 0, tuck: false, brake: 0, ice: -1, jump: -1, bonkT: 0, done: 0 };
@@ -213,7 +214,7 @@
       for (const ic of ICE) if (ic.s > b.s && ic.s - b.s < 25) want = ic.lat;
       b.steer = clamp((want - b.lat) * 0.9, -1, 1);
       sledStep(b, dt, b.steer, false, 0, false);
-      b.v *= Math.pow(b.f, dt * 0.6);
+      b.v *= Math.pow(b.f * BOTLV.pick(L, [0.955, 1, 1.03]), dt * 0.6);   // (the Bots level: more drag on easy, less on hard)
     }
 
     // ---------------------------------------------------------------- input: lean in VR, keys in a browser

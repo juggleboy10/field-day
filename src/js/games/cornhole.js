@@ -6,6 +6,7 @@
   // host then tallies from where the bags are (their positions are shared like every ball in the game).
   const cornhole = (() => {
     const L = newLevel(20);
+    BOTLV.on(L);   // Corny Carl: easy, normal or hard
     L.throwGain = 1.24;   // a VR toss carries a little further than the default
     const G = L.group;
     const rand = mulberry32(2020);
@@ -287,7 +288,8 @@
         const s = spotOf(1, RS.end, _a), from = new V3(s.x + (RS.end === 0 ? 0.25 : -0.25), 0.95, s.z);
         bag.v += 1; bag.owner = state.myPeer; bag.held = null; bag.pos.copy(from); bag.sleeping = false; bag.restT = 0; bag.data = { thrownAt: now };
         const g = () => { let x = 0; for (let i = 0; i < 4; i++) x += Math.random(); return (x - 2) / 1.15; };
-        bag.vel.copy(throwFor(from, RS.end, 0.6 + g() * 0.14, g() * 0.045));     // good, but beatable
+        const sp = BOTLV.pick(L, [1.9, 1, 0.5]);   // how much his throws scatter
+        bag.vel.copy(throwFor(from, RS.end, 0.6 + g() * 0.14 * sp, g() * 0.045 * sp));     // good, but beatable
         bag.throwFrom.copy(from);
         sfx('whoosh', 0.5);
         forcePresence();

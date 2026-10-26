@@ -438,6 +438,9 @@
     });
     const LANES = [-0.9, 0, 0.9, -1.8, 1.8];
     bots.forEach((b, i) => { b.bi = i; b.lane = LANES[i % LANES.length]; });
+    // the Bots level: everyone's pace (and so their finish time) a little slower or faster
+    BOTLV.on(L, { note: 'The racers run at that pace from now' });
+    bots.forEach((b) => { const f0 = b.f; delete b.f; delete b.finishT; Object.defineProperty(b, 'f', { get: () => f0 * BOTLV.pick(L, [0.85, 1, 1.12]), enumerable: true }); Object.defineProperty(b, 'finishT', { get: () => FIN_T / b.f, set: () => {}, enumerable: true }); });
     const raceNow = () => (RACE.state === 'idle' ? 0 : Date.now() - RACE.startAt);
     const myProgress = () => { const [, bz] = bodyXZ(); return clamp(2 - bz, 0, 99.5); };
     function standings() {

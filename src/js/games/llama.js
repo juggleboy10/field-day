@@ -152,6 +152,7 @@
       return Object.assign({ i, m, s: 0, lat: 0, v: 0, air: 0, airV: 0, done: 0, steer: 0, stumble: 0, gait: 0, carrots: [], boost: 0, line: 0, late: false }, d);
     });
     L.llamaBots = BOTS;
+    BOTLV.on(L);
 
     // ---------------------------------------------------------------- my llama and the race
     const K = { s: 0, lat: 0, v: 0, air: 0, airV: 0, steer: 0, done: 0, stumble: 0, gait: 0, carrots: [], boost: 0, giddy: 0 };
@@ -228,9 +229,10 @@
     L.standings = standings;
     function botRide(b, dt) {
       // keep giddying up toward its top speed; jump bales (now and then a bit late); steer for carrots, round mud
-      if (b.v < b.top && rand() < dt * 5) giddy(b, 1.5);
+      const lv = BOTLV.get(L), top = b.top * [0.88, 1, 1.08][lv];   // (the Bots level: their top speed, and how often they're late for a bale)
+      if (b.v < top && rand() < dt * [4, 5, 7][lv]) giddy(b, 1.5);
       const sl = ((b.s % TLEN) + TLEN) % TLEN;
-      for (const bl of BALES) { const ahead = bl.s - sl; if (ahead > 0 && ahead < (b.late ? 0.3 : Math.max(0.9, b.v * 0.3))) { jump(b, false); b.late = rand() < 0.12; } }
+      for (const bl of BALES) { const ahead = bl.s - sl; if (ahead > 0 && ahead < (b.late ? 0.3 : Math.max(0.9, b.v * 0.3))) { jump(b, false); b.late = rand() < [0.25, 0.12, 0.04][lv]; } }
       let want = b.line;
       for (const c of CARROTS) { const ahead = c.s - sl; if (ahead > 0 && ahead < 20) { want = c.lat; break; } }
       for (const m of MUD) { const ahead = m.s - sl; if (ahead > -2 && ahead < 14 && Math.abs(want - m.lat) < m.r + 0.4) want = m.lat + (m.lat > 0 ? -m.r - 0.6 : m.r + 0.6); }

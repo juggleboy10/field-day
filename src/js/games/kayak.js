@@ -317,12 +317,15 @@
       const tag = new THREE.Sprite(new THREE.SpriteMaterial({ map: canvasTexture(256, 64, (c) => { rr(c, 4, 6, 248, 52, 26); c.fillStyle = 'rgba(20,16,32,0.8)'; c.fill(); c.fillStyle = '#fff'; c.font = `700 28px ${BODY}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(d.name, 128, 33, 230); }).tex, transparent: true, depthWrite: false }));
       tag.scale.set(0.9, 0.225, 1); tag.position.set(0, SEAT_Y + 0.45, 0.12); kay.g.add(tag);
       kay.g.visible = false;
-      const finishT = tAt[Math.round(FINISH_S / DS)] * 1000;
-      return Object.assign({ line, tAt, i0, kay, finishT, s: 0, lat: 0, bi }, d);
+      const finishT0 = tAt[Math.round(FINISH_S / DS)] * 1000;
+      // (the Bots level makes everyone paddle a little slower or faster: their finish time moves with it)
+      return Object.defineProperty(Object.assign({ line, tAt, i0, kay, s: 0, lat: 0, bi }, d), 'finishT', { get: () => finishT0 / botPace(), enumerable: true });
     });
+    const botPace = () => BOTLV.pick(L, [0.88, 1, 1.1]);
+    BOTLV.on(L, { note: 'The bots paddle at that pace from now' });
     function botAt(b, tMs) {
-      // where a bot is, t ms into the race
-      const t = tMs / 1000;
+      // where a bot is, t ms into the race (at the Bots level's pace)
+      const t = tMs * botPace() / 1000;
       if (t <= 0) return { s: b.i0 * DS, lat: b.line[b.i0] };
       let lo = b.i0, hi = N - 1;
       if (t >= b.tAt[hi]) return { s: (N - 1) * DS - 9, lat: b.line[hi] };

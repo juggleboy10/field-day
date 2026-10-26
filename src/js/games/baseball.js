@@ -1,6 +1,7 @@
   // ================================================================ LEVEL: SANDLOT BASEBALL
   const baseball = (() => {
     const L = newLevel(1);
+    BOTLV.on(L, { note: 'For the Sandlot Sluggers in a full game' });
     const G = L.group;
     const rand = mulberry32(4242);
     const BR = 0.045;
@@ -708,7 +709,8 @@
     }
     // the Sluggers' turn at bat plays out quickly
     function cpuPA() {
-      const x = rand();
+      // (the Bots level: easy Sluggers mostly make outs, hard ones hit more)
+      const x = Math.pow(rand(), BOTLV.pick(L, [1.35, 1, 0.75]));
       const code = x < 0.2 ? EV.K : x < 0.45 ? EV.OUT_GROUND : x < 0.66 ? EV.OUT_FLY : x < 0.73 ? EV.WALK : x < 0.89 ? EV.SINGLE : x < 0.95 ? EV.DOUBLE : x < 0.96 ? EV.TRIPLE : EV.HR;
       if (code === EV.WALK) announce(code, 1, walk(1));
       else if (HIT_BASES[code]) announce(code, 1, hit(1, HIT_BASES[code]));
@@ -762,7 +764,8 @@
       else { atBat.list.push([++atBat.seq, code]); if (atBat.list.length > 4) atBat.list.shift(); forcePresence(); }
     }
     function gamePitchTarget() {
-      if (rand() < 0.6) return new V3((rand() - 0.5) * 0.36, 0.62 + rand() * 0.42, 0.15);
+      // (and their pitcher: easy throws more strikes, hard works the corners)
+      if (rand() < BOTLV.pick(L, [0.75, 0.6, 0.48])) return new V3((rand() - 0.5) * 0.36, 0.62 + rand() * 0.42, 0.15);
       const k = rand();
       if (k < 0.5) return new V3((rand() < 0.5 ? -1 : 1) * (0.36 + rand() * 0.16), 0.6 + rand() * 0.4, 0.15);
       if (k < 0.8) return new V3((rand() - 0.5) * 0.3, 0.22 + rand() * 0.14, 0.15);

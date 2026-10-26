@@ -513,7 +513,7 @@
     { id: 'hideseek', name: 'Sunset Backyards', short: 'Hide & seek', glyph: '\u{1F648}', blurb: 'Hide-and-seek at golden hour, with friends or bots.' },
     { id: 'charades', name: 'Charades Lounge', short: 'Charades', glyph: '\u{1F3AD}', blurb: 'Act it out or draw it in the air with a 3D pen. Best with friends.' },
     { id: 'paintball', name: 'Paintball Park', short: 'Paintball', glyph: '\u{1F3A8}', blurb: 'Red against blue among inflatable bunkers. Five markers, real paint.' },
-    { id: 'pickleball', name: 'Sunny Pickleball Courts', short: 'Pickleball', glyph: '\u{1F3D3}', blurb: 'Singles pickleball with the kitchen and the two-bounce rule, against a friend or Dink Daisy.' },
+    { id: 'pickleball', name: 'Sunny Pickleball Courts', short: 'Pickleball', glyph: '\u{1F3D3}', blurb: 'Pickleball, singles or doubles, with the kitchen and the two-bounce rule. Friends or the court bots fill the spots.' },
     { id: 'parkour', name: 'Skyline Sprint', short: 'Parkour', glyph: '\u{1F9D7}', blurb: 'A parkour race on three courses: grab, climb, slide, bounce and leap to the finish, with power-up drinks.' },
     { id: 'dodgeball', name: 'Gym Class Dodgeball', short: 'Dodgeball', glyph: '\u{1F534}', blurb: 'Red against blue in a school gym. Hit them, catch to bring a teammate back. Friends or bots.' },
     { id: 'potato', name: 'Harvest Hot Potato', short: 'Hot potato', glyph: '\u{1F954}', blurb: 'Pass the ticking potato before it pops. Last one standing wins. Friends or bots.' },

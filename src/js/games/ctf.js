@@ -6,6 +6,7 @@
   // tag someone asks for. Events (tags, pickups, captures) go out in its presence for everyone to show.
   const ctf = (() => {
     const L = newLevel(21);
+    BOTLV.on(L);   // the bots: pace, how far defenders look, how well runners dodge
     const G = L.group;
     const rand = mulberry32(2121);
     L.grabless = true;
@@ -235,7 +236,7 @@
         if (c) { tx = c.pos.x; tz = c.pos.z; } else { tx = HOME[b.team].x; tz = HOME[b.team].z; }
       } else {
         // defend: go for the nearest intruder near our flag, otherwise patrol round it
-        let best = null, bd = 12;
+        let best = null, bd = BOTLV.pick(L, [8, 12, 16]);
         for (const q of enemies) { if (!ownHalf(b.team, q.pos.z)) continue; const d = Math.hypot(q.pos.x - HOME[b.team].x, q.pos.z - HOME[b.team].z); if (d < bd) { bd = d; best = q; } }
         if (best) { tx = best.pos.x; tz = best.pos.z; }
         else { const a = now * 0.0004 + b.patrol; tx = HOME[b.team].x + Math.cos(a) * 5; tz = HOME[b.team].z + (b.team === 0 ? -1 : 1) * (3 + Math.abs(Math.sin(a)) * 3); }
@@ -248,11 +249,11 @@
         for (const q of enemies) {
           if (!ownHalf(enemy, q.pos.z) && mine < 0) continue;
           const ex = b.x - q.pos.x, ez = b.z - q.pos.z, ed = Math.hypot(ex, ez);
-          if (ed < 4.5 && ed > 0.01) { const w = (4.5 - ed) / 4.5 * 1.4; dx += (ex / ed) * w; dz += (ez / ed) * w; }
+          if (ed < 4.5 && ed > 0.01) { const w = (4.5 - ed) / 4.5 * BOTLV.pick(L, [0.7, 1.4, 2.1]); dx += (ex / ed) * w; dz += (ez / ed) * w; }
         }
         const l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l;
       }
-      const step = Math.min(d, speed * dt);
+      const step = Math.min(d, speed * BOTLV.pick(L, [0.84, 1, 1.1]) * dt);
       const ox = b.x, oz = b.z;
       [b.x, b.z] = pushOut(b.x + dx * step, b.z + dz * step, 0.3);
       // stuck on a hay bale: slide sideways round it

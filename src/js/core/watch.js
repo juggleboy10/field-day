@@ -1,6 +1,7 @@
   // ================================================================ THE WRIST WATCH (VR)
-  // A watch on your right wrist. Raise it and look at it, and a little panel wakes up with a Clubhouse button:
-  // poke it with your left hand, or point at it and pull the left trigger. Look away and it goes back to sleep.
+  // A watch on your right wrist. Raise it and look at it, and a little panel wakes up with a Clubhouse button (and, in
+  // a game with bots, a Bots button for how good they are): poke a button with your other hand, or point at it and
+  // pull that hand's trigger. Look away and it goes back to sleep.
   const HUB_IDX = 8;
   const WATCH = { awake: false, lookT: 0, awayT: 0, cool: 0, trigPrev: false, hover: false, minute: -1, pressed: 0 };
   const watchG = new THREE.Group();
@@ -23,6 +24,9 @@
   drawWatchFace(false);
   // the panel that pops up above it
   const PW = 0.15, PH = 0.08, BTN = { x: 0, y: -0.012, w: 0.12, h: 0.034 };
+  // the buttons: just the Clubhouse, or the Clubhouse and the Bots side by side
+  const BTN_HUB = { id: 'hub', x: -0.034, y: -0.012, w: 0.064, h: 0.034 }, BTN_BOTS = { id: 'bots', x: 0.034, y: -0.012, w: 0.064, h: 0.034 };
+  const watchBtns = () => (curLevel() && curLevel().botLv ? [BTN_HUB, BTN_BOTS] : [{ ...BTN, id: 'hub' }]);
   const panelC = canvasTexture(480, 256);
   const panel = new THREE.Mesh(new THREE.PlaneGeometry(PW, PH), new THREE.MeshBasicMaterial({ map: panelC.tex, transparent: true, depthTest: false }));
   panel.renderOrder = 20;
@@ -30,7 +34,7 @@
   scene.add(panel);
   let panelKey = '';
   function drawPanel() {
-    const atHub = state.level === HUB_IDX, key = `${atHub}|${WATCH.hover}`;
+    const atHub = state.level === HUB_IDX, bots = curLevel() && curLevel().botLv ? BOTLV.name(curLevel()) : '', key = `${atHub}|${WATCH.hover}|${bots}`;
     if (key === panelKey) return;
     panelKey = key;
     const g = panelC.g;
@@ -38,17 +42,31 @@
     rr(g, 4, 4, 472, 248, 34); g.fillStyle = 'rgba(20,16,32,0.92)'; g.fill();
     g.textAlign = 'center'; g.textBaseline = 'middle';
     g.fillStyle = '#ffd23f'; g.font = `800 44px ${DISPLAY}`; g.fillText('Field Day', 240, 58);
-    // the button: drawn where BTN says it is
-    const bx = 240 + (BTN.x / PW) * 480, by = 128 - (BTN.y / PH) * 256, bw = (BTN.w / PW) * 480, bh = (BTN.h / PH) * 256;
-    rr(g, bx - bw / 2, by - bh / 2, bw, bh, 26);
-    g.fillStyle = atHub ? '#4a4660' : WATCH.hover ? '#8be0ff' : '#4fc3f7'; g.fill();
-    g.fillStyle = atHub ? '#a9a3cf' : '#10223a'; g.font = `800 40px ${BODY}`;
-    g.fillText(atHub ? 'You\u2019re in the clubhouse' : 'Clubhouse', bx, by + 2, bw - 30);
+    // the buttons: drawn where they say they are
+    for (const B of watchBtns()) {
+      const bx = 240 + (B.x / PW) * 480, by = 128 - (B.y / PH) * 256, bw = (B.w / PW) * 480, bh = (B.h / PH) * 256, hov = WATCH.hover === B.id;
+      rr(g, bx - bw / 2, by - bh / 2, bw, bh, 26);
+      if (B.id === 'hub') {
+        g.fillStyle = atHub ? '#4a4660' : hov ? '#8be0ff' : '#4fc3f7'; g.fill();
+        g.fillStyle = atHub ? '#a9a3cf' : '#10223a'; g.font = `800 ${bots ? 34 : 40}px ${BODY}`;
+        g.fillText(atHub ? 'You\u2019re in the clubhouse' : 'Clubhouse', bx, by + 2, bw - 24);
+      } else {
+        g.fillStyle = hov ? '#ffe680' : '#ffd23f'; g.fill();
+        g.fillStyle = '#1b1932'; g.font = `800 34px ${BODY}`; g.fillText(`Bots: ${bots}`, bx, by + 2, bw - 24);
+      }
+    }
     panelC.tex.needsUpdate = true;
   }
   drawPanel();
-  function watchPress() {
+  function watchPress(id) {
     const now = performance.now();
+    if (id === 'bots') {
+      if (now < WATCH.cool) return;
+      WATCH.cool = now + 700;
+      haptic(vrHands[WATCH.side === 'left' ? 'right' : 'left'], 0.4, 30);
+      BOTLV.cycle(curLevel()); panelKey = '';
+      return;
+    }
     if (now < WATCH.cool || state.level === HUB_IDX) return;
     WATCH.cool = now + 1500;
     WATCH.pressed += 1;
@@ -58,7 +76,8 @@
     switchLevel(HUB_IDX);
   }
   const _watchWp = new V3(), _watchWn = new V3(), _watchEye = new V3(), _watchGaze = new V3(), _watchCq = new Q4(), _watchTip = new V3(), _watchInv = new THREE.Matrix4(), _watchLoc = new V3(), _watchRd = new V3();
-  function onButton(local) { return Math.abs(local.x - BTN.x) < BTN.w / 2 && Math.abs(local.y - BTN.y) < BTN.h / 2; }
+  // which button a point on the panel is over (or null)
+  function onButton(local) { const B = watchBtns().find((b) => Math.abs(local.x - b.x) < b.w / 2 && Math.abs(local.y - b.y) < b.h / 2); return B ? B.id : null; }
   // which wrist the watch is on: the right, unless that hand's busy holding something (a bow, a bat, a tool), when it
   // hops to the left for the time being. If both hands are busy it sleeps, so it can't wake in your face mid-shot.
   function watchSide() {
@@ -100,23 +119,23 @@
     panel.quaternion.copy(_watchCq);
     panel.updateMatrixWorld(true);
     _watchInv.copy(panel.matrixWorld).invert();
-    let hover = false;
+    let hover = null;
     if (rh.ok) {
       // poke it with the tip of your right controller
       _watchTip.set(0, 0, -0.06).applyQuaternion(rh.quat).add(rh.pos);
       _watchLoc.copy(_watchTip).applyMatrix4(_watchInv);
-      if (Math.abs(_watchLoc.z) < 0.03 && onButton(_watchLoc)) { hover = true; watchPress(); }
+      if (Math.abs(_watchLoc.z) < 0.03 && onButton(_watchLoc)) { hover = onButton(_watchLoc); watchPress(hover); }
       // or point at it and pull the trigger
       _watchRd.set(0, 0, -1).applyQuaternion(rh.quat);
       const n = new V3(0, 0, 1).applyQuaternion(panel.quaternion);
       const den = _watchRd.dot(n);
       if (Math.abs(den) > 1e-3) {
         const t = panel.position.clone().sub(rh.pos).dot(n) / den;
-        if (t > 0 && t < 1.2) { _watchLoc.copy(rh.pos).addScaledVector(_watchRd, t).applyMatrix4(_watchInv); if (onButton(_watchLoc)) hover = true; }
+        if (t > 0 && t < 1.2) { _watchLoc.copy(rh.pos).addScaledVector(_watchRd, t).applyMatrix4(_watchInv); if (onButton(_watchLoc)) hover = onButton(_watchLoc); }
       }
       const gp = vrHands[other].source && vrHands[other].source.gamepad;
       const trig = !!(gp && gp.buttons && gp.buttons[0] && gp.buttons[0].pressed);
-      if (trig && !WATCH.trigPrev && hover) watchPress();
+      if (trig && !WATCH.trigPrev && hover) watchPress(hover);
       WATCH.trigPrev = trig;
     }
     if (hover !== WATCH.hover) { WATCH.hover = hover; }

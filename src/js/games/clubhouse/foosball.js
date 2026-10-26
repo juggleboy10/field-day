@@ -180,7 +180,7 @@
           // everyone else's (a friend's, the bot's) eases toward where it was told to go
           const ka = bot ? kickAngle(r, now) : null;
           const tth = ka !== null ? ka : r.tth;
-          const lim = bot ? 0.55 : MAX_VS;
+          const lim = bot ? [0.38, 0.55, 0.78][BOTLV.get(L)] : MAX_VS;   // (the bot's hands: slower on easy, quicker on hard)
           r.cs = r.s + clamp(clamp(r.ts, -RANGE[r.type], RANGE[r.type]) - r.s, -lim * dt, lim * dt);
           r.cth = r.th + clamp(clamp(tth, -1.7, 1.7) - r.th, -MAX_OM * dt, MAX_OM * dt);
         }
@@ -199,10 +199,11 @@
         const r = rods[TEAM_ROD[s][ty]], n = MEN[ty];
         let bestS = r.ts, bd = 9;
         for (let i = 0; i < n; i++) { const want = b.v - (i - (n - 1) / 2) * SPACE[ty], d = Math.abs(want - r.s); if (d < bd) { bd = d; bestS = want; } }
-        if (now > r.botErr) { r.botErr = now + 600; r.errV = (Math.random() - 0.5) * 0.07; }
+        const lv = BOTLV.get(L);
+        if (now > r.botErr) { r.botErr = now + 600; r.errV = (Math.random() - 0.5) * [0.12, 0.07, 0.03][lv]; }
         r.ts = clamp(bestS + (r.errV || 0), -RANGE[ty], RANGE[ty]);
         const ahead = (b.u - RU(r.k)) * dir;
-        if (!r.kick && now > r.botCool && FB.ph === 'play' && ahead > 0.015 && ahead < 0.085 && bd < 0.03 && Math.random() < 0.09) { r.kick = { t0: now, dir }; r.botCool = now + 650 + Math.random() * 500; }
+        if (!r.kick && now > r.botCool && FB.ph === 'play' && ahead > 0.015 && ahead < 0.085 && bd < 0.03 && Math.random() < [0.05, 0.09, 0.16][lv]) { r.kick = { t0: now, dir }; r.botCool = now + [900, 650, 420][lv] + Math.random() * 500; }
       }
     }
 

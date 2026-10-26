@@ -5,6 +5,7 @@
   // clock, plays the bots and scores everyone's answers (each player reports their own pick and how fast they were).
   const trivia = (() => {
     const L = newLevel(23);
+    BOTLV.on(L);
     const G = L.group;
     const rand = mulberry32(2323);
     L.grabless = true;
@@ -325,10 +326,11 @@
       // each bot decides when it'll buzz in and whether it'll be right
       H.plan = RS.order.map((id) => {
         if (!isBot(id)) return null;
-        const b = botOf(id), right = Math.random() < BOT_ACC[b.k];
+        // (the Bots level: how often they know it, and how quick they are to buzz)
+        const lv = BOTLV.get(L), b = botOf(id), right = Math.random() < clamp(BOT_ACC[b.k] + [-0.2, 0, 0.16][lv], 0.2, 0.95);
         let c = rightSlot();
         if (!right) { const wrong = [0, 1, 2, 3].filter((x) => x !== c); c = wrong[Math.floor(Math.random() * 3)]; }
-        return { t: T.ASK * (0.18 + Math.random() * (right ? 0.4 : 0.5)), c };
+        return { t: T.ASK * ([0.3, 0.18, 0.12][lv] + Math.random() * (right ? 0.4 : 0.5) * [1.2, 1, 0.75][lv]), c };
       });
       H.planKey = `${RS.game}:${RS.qn}`;
     }

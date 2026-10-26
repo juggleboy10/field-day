@@ -6,6 +6,7 @@
   // count; the others tell it who they bonked.
   const pillow = (() => {
     const L = newLevel(38);
+    BOTLV.on(L);
     const G = L.group;
     const rand = mulberry32(3838);
     L.grabless = true;
@@ -171,7 +172,7 @@
         b.yaw = Math.atan2(-dx, -dz);
         b.strafe -= dt; if (b.strafe <= 0) { b.side = rand() < 0.5 ? -1 : 1; b.strafe = 0.8 + rand() * 1.5; }
         const want = d > 1.05 ? 1 : d < 0.75 ? -0.6 : 0;
-        const sp = 2.4 * dt;
+        const sp = 2.4 * BOTLV.pick(L, [0.82, 1, 1.15]) * dt;   // (the Bots level: their pace, how often they swing, how often it lands)
         b.x += (dx / d * want + (-dz / d) * b.side * 0.4) * sp; b.z += (dz / d * want + (dx / d) * b.side * 0.4) * sp;
         b.x = clamp(b.x, -HALF + 0.3, HALF - 0.3); b.z = clamp(b.z, -HALF + 0.3, HALF - 0.3);
         // a swing landing
@@ -179,8 +180,8 @@
         // swing when close
         b.cool -= dt; b.swing = Math.max(0, b.swing - dt);
         if (b.cool <= 0 && d < 1.35) {
-          b.cool = 1.2 + rand() * 1.0; b.swing = 0.35; sfx('whoosh', 0.2);
-          if (rand() < 0.45) b.pend = { t: 0.18, target: best };
+          b.cool = (1.2 + rand() * 1.0) * BOTLV.pick(L, [1.45, 1, 0.7]); b.swing = 0.35; sfx('whoosh', 0.2);
+          if (rand() < BOTLV.pick(L, [0.28, 0.45, 0.62])) b.pend = { t: 0.18, target: best };
         }
       });
       // keep bots apart a little

@@ -1,6 +1,7 @@
   // ================================================================ LEVEL: NEON LASER TAG
   const lasertag = (() => {
     const L = newLevel(4);
+    BOTLV.on(L);   // the bots: aim, how often they shoot, how fast they move
     const G = L.group;
     const rand = mulberry32(5150);
     L.teams = true;
@@ -677,7 +678,7 @@
       botHead(b, _bh); _bh.y = 1.25;
       _th.copy(target.head); _th.y -= 0.35;
       const d = _bh.distanceTo(_th);
-      const p = clamp((0.82 - d * 0.03) * b.skill, 0.2, 0.8);
+      const p = clamp((0.82 - d * 0.03) * b.skill * BOTLV.pick(L, [0.62, 1, 1.25]), 0.12, BOTLV.pick(L, [0.6, 0.8, 0.9]));   // (the Bots level: their aim)
       const hit = Math.random() < p;
       // a miss goes a little wide
       if (!hit) { _th.x += (Math.random() - 0.5) * 1.6; _th.y += (Math.random() - 0.3) * 0.8; _th.z += (Math.random() - 0.5) * 1.6; }
@@ -696,7 +697,7 @@
       }
       LB.shots.push([++LB.seq, r3(_bh.x), r3(_bh.y), r3(_bh.z), r3(end.x), r3(end.y), r3(end.z), victim, b.k]);
       if (LB.shots.length > 6) LB.shots.shift();
-      b.cool = now + 1100 + Math.random() * 800;
+      b.cool = now + (1100 + Math.random() * 800) * BOTLV.pick(L, [1.4, 1, 0.75]);
       state.dirtyBoard = true;
       forcePresence();
     }
@@ -730,7 +731,8 @@
         else { mx /= ml; mz /= ml; }
         const l2 = Math.hypot(mx, mz) || 1;
         const k = 1 - Math.exp(-dt * 6);
-        b.vx += (mx / l2 * sp * b.skill - b.vx) * k; b.vz += (mz / l2 * sp * b.skill - b.vz) * k;
+        const bs = b.skill * BOTLV.pick(L, [0.85, 1, 1.12]);
+        b.vx += (mx / l2 * sp * bs - b.vx) * k; b.vz += (mz / l2 * sp * bs - b.vz) * k;
         b.x += b.vx * dt; b.z += b.vz * dt;
         pushOutOfBoxes(b);
         b.yaw = tgt ? Math.atan2(-(tgt.head.x - b.x), -(tgt.head.z - b.z)) : Math.hypot(b.vx, b.vz) > 0.3 ? Math.atan2(-b.vx, -b.vz) : b.yaw;

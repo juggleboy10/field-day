@@ -660,6 +660,7 @@
     // ================================================================ STRIKE SALLY: a bowling rival on a free lane
     // She bowls a frame each time you (or the host, with friends) finish one. Her results come from a skill
     // profile (about a 26% strike rate and 40% spares); her ball and pins play out on her lane for everyone.
+    BOTLV.on(L);   // Strike Sally: easy, normal or hard
     const BOT = { name: 'Strike Sally', color: '#ff9ad0', on: prefs.bowlBot !== false, lane: -1, rolls: [], phase: 'idle', t0: 0, ballX: 0, ballZ: 0, ballOn: false, aim: 0, knock: [], pins: null, done: false, toldResult: false, req: null, reqSeq: 0 };
     L.bowlBot = BOT;
     const freshPins = () => SPOTS.flatMap(([x, z]) => [x, z, 0]);
@@ -699,9 +700,10 @@
       const up = standing(), fresh = up.length === 10;
       let n;
       if (fresh) {
-        const r = rand();
-        n = r < 0.26 ? 10 : r < 0.29 ? Math.floor(rand() * 3) : r < 0.45 ? 9 : r < 0.72 ? 8 : r < 0.9 ? 7 : 6;
-      } else n = rand() < 0.4 ? up.length : Math.floor(rand() * up.length * 0.8);
+        // her first ball: how often it's a strike, a near-gutter, a 9, an 8, a 7 (else 6), by the Bots level
+        const r = rand(), c = BOTLV.pick(L, [[0.1, 0.18, 0.32, 0.58, 0.8], [0.26, 0.29, 0.45, 0.72, 0.9], [0.48, 0.49, 0.72, 0.9, 0.97]]);
+        n = r < c[0] ? 10 : r < c[1] ? Math.floor(rand() * 3) : r < c[2] ? 9 : r < c[3] ? 8 : r < c[4] ? 7 : 6;
+      } else n = rand() < BOTLV.pick(L, [0.2, 0.4, 0.68]) ? up.length : Math.floor(rand() * up.length * 0.8);   // the spare
       n = Math.min(n, up.length);
       // pins near the head pin and the pocket go first
       const ranked = up.map((k) => ({ k, w: rand() + (3 - Math.floor(k === 0 ? 0 : k < 3 ? 1 : k < 6 ? 2 : 3)) * 0.35 + (Math.abs(SPOTS[k][0] - BOT.aim) < 0.2 ? 0.3 : 0) })).sort((a, b) => b.w - a.w);

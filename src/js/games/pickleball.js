@@ -12,6 +12,7 @@
     const SIDE_AIR = 0.3, SIDE_KICK = 1.8, TOP_AIR = 0.55;   // spin only bends it a little in the air; it mostly shows when it bounces
     const R = { minX: -11, maxX: 11, minZ: -7, maxZ: 7 };
     L.bounds = R;
+    BOTLV.on(L);   // the court bots: easy, normal (how they always played) or hard
     L.env = {
       sky: skyTexture([[0, '#5aa8e8'], [0.6, '#a8d8f8'], [1, '#f4f8e8']]),
       bg: 0xa8d8f8, fog: [0xc8e4f0, 40, 140], hemi: [0xffffff, 0x6a8a5a, 0.75],
@@ -455,11 +456,12 @@
       // fast or spinning shots), getting better as it comes
       const hk = `${PB.pointSeq}:${PB.hits}`;
       if (coming && hk !== bt.hitKey) {
-        bt.hitKey = hk; bt.reactAt = now + 210 + rand() * 160;
-        const hard = Math.hypot(b.vx, b.vz) / 10 + Math.hypot(b.wx || 0, b.wy || 0, b.wz || 0) * 0.6;
-        bt.ex = (rand() - 0.5) * (1.0 + hard * 1.4); bt.ez = (rand() - 0.5) * (1.0 + hard * 1.4); bt.err0 = Math.abs(b.x) + 0.5;
+        const lv = BOTLV.get(L);
+        bt.hitKey = hk; bt.reactAt = now + [300, 210, 140][lv] + rand() * 160;
+        const hard = Math.hypot(b.vx, b.vz) / 10 + Math.hypot(b.wx || 0, b.wy || 0, b.wz || 0) * 0.6, e = [1.4, 1, 0.55][lv];
+        bt.ex = (rand() - 0.5) * (1.0 + hard * 1.4) * e; bt.ez = (rand() - 0.5) * (1.0 + hard * 1.4) * e; bt.err0 = Math.abs(b.x) + 0.5;
       }
-      let speedCap = 3.5;
+      let speedCap = BOTLV.pick(L, [2.9, 3.5, 4.2]);
       if (coming) {
         if (now < bt.reactAt) { tx = bt.x; tz = bt.z; }
         else {
@@ -484,7 +486,8 @@
       if (!bt.decided) {
         // harder to get back: fast balls, spin, and ones she had to run for
         bt.decided = true;
-        bt.missing = rand() < 0.09 + Math.max(0, Math.hypot(b.vx, b.vz) - 5) * 0.07 + Math.hypot(b.wx || 0, b.wy || 0, b.wz || 0) * 0.12 + Math.min(0.2, Math.abs(bt.z - b.z) * 0.06);
+        const k = BOTLV.pick(L, [1.7, 1, 0.45]);
+        bt.missing = rand() < (0.09 + Math.max(0, Math.hypot(b.vx, b.vz) - 5) * 0.07 + Math.hypot(b.wx || 0, b.wy || 0, b.wz || 0) * 0.12 + Math.min(0.2, Math.abs(bt.z - b.z) * 0.06)) * k;
       }
       if (bt.missing) return;
       if (Math.hypot(b.x - bt.x, b.z - bt.z) < 1.2 && b.y > 0.25 && b.y < 1.6 && b.vy < 1.5) botHit(bt, false);
@@ -503,10 +506,11 @@
       bt.paddle.rotation.set(0, (s === 0 ? -Math.PI / 2 : Math.PI / 2) + ang * 0.9, 0);
     }
     function botHit(bt, serve) {
-      // softer and less precise than a person, with the odd one long
-      const s = sideOf(bt.sl), wild = !serve && rand() < 0.08;
-      const tg = target(s, HL * (wild ? 1.08 + rand() * 0.15 : 0.5 + rand() * 0.4), (rand() - 0.5) * (HW * 2 - 1));
-      hitBall(s, aimed(PB.b, tg.x + (rand() - 0.5) * 0.6, tg.z + (rand() - 0.5) * 0.6, serve ? 7 : 7 + rand() * 3), bt.sl);
+      // softer and less precise than a person, with the odd one long (hard: deeper, faster, wider, and hardly ever long)
+      const lv = BOTLV.get(L), s = sideOf(bt.sl), wild = !serve && rand() < [0.12, 0.08, 0.03][lv];
+      const tg = target(s, HL * (wild ? 1.08 + rand() * 0.15 : [0.42, 0.5, 0.62][lv] + rand() * [0.35, 0.4, 0.3][lv]), (rand() - 0.5) * (HW * 2 - [1.4, 1, 0.7][lv]));
+      const sc = [0.8, 0.6, 0.3][lv];
+      hitBall(s, aimed(PB.b, tg.x + (rand() - 0.5) * sc, tg.z + (rand() - 0.5) * sc, serve ? [6.3, 7, 7.8][lv] : [6, 7, 8.4][lv] + rand() * 3), bt.sl);
       bt.swingT = performance.now(); for (const o of BOTS) o.decided = false;
     }
 

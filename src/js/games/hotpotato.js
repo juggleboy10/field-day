@@ -5,6 +5,7 @@
   // page; the flight is the same arc on every page, so nobody needs the potato's physics.
   const hotpotato = (() => {
     const L = newLevel(18);
+    BOTLV.on(L);   // the bots: how fast they pass it on, and (hard) who they pass it to
     const G = L.group;
     const rand = mulberry32(1818);
     L.grabless = true;
@@ -242,6 +243,12 @@
       RS.fseq += 1; RS.holder = '';
       forcePresence();
     }
+    // hard bots like to send it to a person (they know who's slow to pass it on); easy ones pick anyone
+    function botTarget(from) {
+      const lv = BOTLV.get(L), others = RS.alive.filter((id) => id !== from), people = others.filter((id) => !isBot(id));
+      if (lv === 2 && people.length && Math.random() < 0.6) return people[Math.floor(Math.random() * people.length)];
+      return pickRandomTarget(from);
+    }
     function pickRandomTarget(from) {
       const others = RS.alive.filter((id) => id !== from);
       return others[Math.floor(Math.random() * others.length)];
@@ -275,7 +282,8 @@
         // a potato in the air lands in the hands it was thrown to
         if (RS.fl && now - RS.fl.t0 >= RS.fl.T) {
           RS.holder = RS.fl.to; RS.fl = null; H.catchT = now;
-          H.botHoldUntil = now + (RS.heat > 0.7 ? 250 + Math.random() * 450 : 450 + Math.random() * 1000);
+          // (the Bots level: how long they hang on to it; hard bots get rid of it fast)
+          H.botHoldUntil = now + (RS.heat > 0.7 ? 250 + Math.random() * 450 : 450 + Math.random() * 1000) * BOTLV.pick(L, [1.6, 1, 0.55]);
           forcePresence();
         }
         if (now >= H.fuseEnd) {
@@ -287,7 +295,7 @@
           return;
         }
         // a bot holding it throws it on
-        if (RS.holder && isBot(RS.holder) && !RS.fl && now > H.botHoldUntil) hostThrow(RS.holder, pickRandomTarget(RS.holder), now);
+        if (RS.holder && isBot(RS.holder) && !RS.fl && now > H.botHoldUntil) hostThrow(RS.holder, botTarget(RS.holder), now);
         return;
       }
       if (RS.ph === 'pop') {

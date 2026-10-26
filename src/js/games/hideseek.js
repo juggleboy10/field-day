@@ -1,6 +1,7 @@
   // ================================================================ LEVEL: SUNSET BACKYARDS (hide-and-seek)
   const hideseek = (() => {
     const L = newLevel(12);
+    BOTLV.on(L);   // bot seekers: how fast they walk, how far they see, how quickly they spot you
     const G = L.group;
     const rand = mulberry32(9090);
     const YARD = { x0: -20, x1: 20, z0: -30, z1: 6 };
@@ -348,7 +349,7 @@
       if (!h) return false;
       const dx = h.x - b.x, dz = h.z - b.z, d = Math.hypot(dx, dz);
       if (d < 1.1) return true;
-      if (d > 18) return false;
+      if (d > BOTLV.pick(L, [13, 18, 22])) return false;   // (the Bots level: how far a seeker can see)
       let da = Math.atan2(-dx, -dz) - b.yaw; while (da > Math.PI) da -= Math.PI * 2; while (da < -Math.PI) da += Math.PI * 2;
       // looking right into a hiding place
       for (const s of SPOTS) if (s.peek && Math.hypot(b.x - s.peek[0], b.z - s.peek[1]) < 1.4 && Math.hypot(h.x - s.x, h.z - s.z) < 1.3) return true;
@@ -366,7 +367,7 @@
       } else if (b.lookT > 0) {
         b.lookT -= dt;
         b.yaw += Math.sin(performance.now() * 0.003 + b.n) * dt * 1.4;
-      } else if (walk(b, dt, 2.5)) {
+      } else if (walk(b, dt, BOTLV.pick(L, [2.1, 2.5, 3.0]))) {
         // arrived somewhere: plan the next hiding place to check
         if (b.target) { b.lookT = 1.1; const s = b.target; b.yaw = Math.atan2(-(s.x - b.x), -(s.z - b.z)); b.target = null; return; }
         if (!b.plan.length) b.plan = shuffle(SPOTS.slice());
@@ -380,7 +381,7 @@
         if (botSees(b, id)) {
           const nk = k + dt;
           b.spotT.set(id, nk);
-          if (nk > 0.6) found(id, b.id);
+          if (nk > BOTLV.pick(L, [1.0, 0.6, 0.35])) found(id, b.id);   // (and how quickly they're sure it's you)
         } else b.spotT.set(id, Math.max(0, k - dt));
       }
     }

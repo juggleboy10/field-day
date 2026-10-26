@@ -280,16 +280,20 @@
       if (!coming) { bt.decided = false; return; }
       if (!hittable(s) || !PP.bounced || sideOfU(b.u) !== s) return;
       // sometimes it can't handle a fast one
-      if (!bt.decided) { bt.decided = true; bt.missing = rand() < 0.13 + Math.max(0, Math.hypot(b.vu, b.vv) - 5) * 0.06; }
+      // (easy misses a lot more, and fast ones especially; hard hardly ever)
+      const lv = BOTLV.get(L);
+      if (!bt.decided) { bt.decided = true; bt.missing = rand() < [0.26, 0.13, 0.04][lv] + Math.max(0, Math.hypot(b.vu, b.vv) - 5) * [0.1, 0.06, 0.025][lv]; }
       if (bt.missing) return;
       if (b.vy < 0.5 && b.y > Y + 0.05 && b.y < Y + 0.45) botHit(s, false);
     }
     function botHit(s, serve) {
       const b = PP.b;
-      // a friendly opponent: softer, less precise, and now and then it overcooks one
-      const wild = !serve && rand() < 0.08;
-      const tu = -endU(s) * (wild ? 1.1 + rand() * 0.2 : 0.3 + rand() * 0.55), tv = (rand() - 0.5) * (WID - 0.35);
-      const v = aimedVelocity(b.u, b.y, b.v, tu + (rand() - 0.5) * 0.35, tv + (rand() - 0.5) * 0.3, serve ? 5.5 : 5 + rand() * 2.5);
+      // a friendly opponent: softer, less precise, and now and then it overcooks one (easy: gentler and loopier;
+      // hard: quicker, deeper, out toward the corners, and rarely long)
+      const lv = BOTLV.get(L), wild = !serve && rand() < [0.12, 0.08, 0.03][lv];
+      const tu = -endU(s) * (wild ? 1.1 + rand() * 0.2 : [0.25, 0.3, 0.55][lv] + rand() * [0.45, 0.55, 0.38][lv]);
+      const tv = lv === 2 ? (rand() < 0.5 ? -1 : 1) * (0.2 + rand() * (WID / 2 - 0.35)) : (rand() - 0.5) * (WID - 0.35);
+      const v = aimedVelocity(b.u, b.y, b.v, tu + (rand() - 0.5) * [0.45, 0.35, 0.18][lv], tv + (rand() - 0.5) * [0.4, 0.3, 0.12][lv], serve ? [4.6, 5.5, 6.2][lv] : [4.2, 5, 6.4][lv] + rand() * [1.8, 2.5, 2.4][lv]);
       hitBall(s, v.vu, v.vy, v.vv);
       PP.bot.decided = false; PP.bot.swingT = performance.now();
     }

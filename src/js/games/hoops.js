@@ -414,6 +414,7 @@
     // one right behind. Score before the person in front of you and they're out. First shot from the line;
     // after a miss, rebound and shoot from anywhere. Last one standing wins. Computer shooters fill the line.
     const FT_D = 3.9, FT = new V3(RIM.x, 0, RIM.z + FT_D);
+    BOTLV.on(L, { note: 'For the Lightning shooters' });
     const LT_BOTS = [{ name: 'Swish Sam', color: '#ffb36b', skill: 1.0 }, { name: 'Bricky Bo', color: '#8bd450', skill: 1.35 }, { name: 'Net Nadia', color: '#b388ff', skill: 0.85 },
       { name: 'Hoop Hana', color: '#4fc3f7', skill: 0.95 }, { name: 'Dunk Dex', color: '#ff6a9a', skill: 1.15 }, { name: 'Rim Rosa', color: '#ffd23f', skill: 1.05 }, { name: 'Layup Lou', color: '#5ad8b0', skill: 1.25 }];
     const LT = { ph: 0, gid: 0, order: [], line: [], front: '', chaser: '', out: [], winner: '', ballOf: {}, giveSeq: {}, frontShot: false, ev: [0, 0, '', ''] };
@@ -540,7 +541,7 @@
       const c = Math.cos(th);
       const v = Math.sqrt((GRAVITY * d * d) / Math.max(0.05, 2 * c * c * (d * Math.tan(th) - dh)));
       // shakier on the first shot from the line; rebounds are as before
-      const sk = bt.cfg.skill * (1 + Math.max(0, d - FT_D) * 0.12) * (bt.shots ? 1 : 1.6);
+      const sk = bt.cfg.skill * (1 + Math.max(0, d - FT_D) * 0.12) * (bt.shots ? 1 : 1.6) * BOTLV.pick(L, [1.45, 1, 0.62]);   // (shakier on easy, steadier on hard)
       const a = th + ltGauss() * (0.011 + 0.0035 * d) * sk, sp = v * (1 + ltGauss() * (0.007 + 0.0028 * d) * sk), yaw = ltGauss() * (0.008 + 0.0028 * d) * sk;
       const hx = dx / d, hz = dz / d, cy = Math.cos(yaw), sy = Math.sin(yaw);
       const ux = hx * cy - hz * sy, uz = hx * sy + hz * cy;

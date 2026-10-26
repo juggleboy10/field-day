@@ -4,6 +4,8 @@
   const airhockey = ((L) => {
     const G = L.group;
     const rand = mulberry32(5150);
+    // (the clubhouse is one place, so its three tables share one Bots level: easy, normal or hard)
+    if (!L.botLv) BOTLV.on(L);
     const C = new V3(6.5, 0, 10.6);        // table center; its length runs along x
     const LEN = 2.2, WID = 1.15, Y = 0.82; // playing surface
     const PR = 0.04, MR = 0.055, GOAL = 0.36, WIN = 7, RC = 0.13;
@@ -192,12 +194,25 @@
       return [_hit.x - C.x, _hit.z - C.z];
     }
     // the bot: defends its goal, and strikes when the puck is on its side
+    // Easy: slower, and it guards a wobbly spot. Hard: quicker, and it reads where the puck is going
     function botStep(m, side, dt) {
       const p = AH.p, dir = side === 0 ? -1 : 1, onMySide = side === 0 ? p.u <= 0 : p.u > 0;
+      const lv = BOTLV.get(L), sp = [0.62, 1, 1.4][lv];
       let tu, tv;
       if (onMySide && (Math.abs(p.vu) < 2.2 || Math.sign(p.vu) === dir)) { tu = p.u + dir * 0.09; tv = p.v * 1.05; }
-      else { tu = dir * (LEN / 2 - 0.22); tv = clamp(p.v * 0.7, -GOAL / 2, GOAL / 2); }
-      steerMallet(m, side, tu, tv, dt, onMySide ? 2.6 : 2.0);
+      else {
+        tu = dir * (LEN / 2 - 0.22);
+        // where the puck will cross my guard line (hard reads the bank off the rails too)
+        let gv = p.v * 0.7;
+        if (lv === 2 && Math.sign(p.vu) === dir && Math.abs(p.vu) > 0.2) {
+          const t = (tu - p.u) / p.vu, w = WID / 2 - PR; let v = p.v + p.vv * t;
+          for (let k = 0; k < 4 && Math.abs(v) > w; k++) v = Math.sign(v) * 2 * w - v;
+          gv = v;
+        }
+        if (lv === 0) gv += Math.sin(performance.now() * 0.0021) * 0.12;
+        tv = clamp(gv, -GOAL / 2, GOAL / 2);
+      }
+      steerMallet(m, side, tu, tv, dt, (onMySide ? 2.6 : 2.0) * sp);
     }
 
     // ---------------------------------------------------------------- puck physics (run by whoever has the puck)

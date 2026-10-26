@@ -654,6 +654,7 @@
       return ids.sort();
     };
     const finnHost = () => herePeersDG()[0] === state.myPeer;
+    BOTLV.on(L);
     const finnGauss = () => (rand() + rand() + rand() - 1.5) / 0.5;
     const _fv = new V3(), _fh = new V3(), _fq = new Q4(), _fqs = new Q4();
 
@@ -736,7 +737,8 @@
           const p = FINN.plan;
           const to = _fv.copy(H.basket).sub(FINN.lie).setY(0).normalize();
           finnDisc.x = to.x; finnDisc.z = to.z;
-          finnLaunch(finnDisc, p.sp * (1 + finnGauss() * 0.09), p.pitch + finnGauss() * 0.035, p.yaw + finnGauss() * 0.06, FINN.lie.clone().setY(1.2));
+          const e = BOTLV.pick(L, [2.1, 1, 0.45]);   // his human error: more on easy, less on hard
+          finnLaunch(finnDisc, p.sp * (1 + finnGauss() * 0.09 * e), p.pitch + finnGauss() * 0.035 * e, p.yaw + finnGauss() * 0.06 * e, FINN.lie.clone().setY(1.2));
           FINN.strokes += 1; FINN.phase = 'flying'; FINN.throwT = now;
           sfx('whoosh', 0.6 / (1 + FINN.lie.distanceTo(myHead.pos) * 0.1));
           forcePresence();

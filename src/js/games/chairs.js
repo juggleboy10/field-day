@@ -5,6 +5,7 @@
   // decides who got each chair; everyone else follows. The tune is the game's own, so it really stops.
   const chairs = (() => {
     const L = newLevel(32);
+    BOTLV.on(L);   // the bots: how quick they react to the music stopping, and how fast they dash
     const G = L.group;
     const rand = mulberry32(3232);
     L.grabless = true;
@@ -82,7 +83,7 @@
       S.round += 1; S.n = n - 1; S.seats = Array(S.n).fill(''); S.ph = 'walk'; S.t = Date.now();
       S.stopAt = S.t + 6000 + rand() * 9000; S.tempo = 1 + (S.round - 1) * 0.08;
       // the bots spread out round the walking ring
-      aliveIds().forEach((id, k) => { const b = botOf(id); if (b) { b.ang = (k / n) * Math.PI * 2 + 0.3; b.target = -1; b.reactT = BOT_REACT[b.i] * (0.7 + rand() * 0.6); } });
+      aliveIds().forEach((id, k) => { const b = botOf(id); if (b) { b.ang = (k / n) * Math.PI * 2 + 0.3; b.target = -1; b.reactT = BOT_REACT[b.i] * (0.7 + rand() * 0.6) * BOTLV.pick(L, [1.6, 1, 0.6]); } });   // (the Bots level: how quick they react)
     }
     const botOf = (id) => (id[0] === 'b' && id.length <= 2 ? bots[Number(id.slice(1))] : null);
     function claim(id, chair) {
@@ -115,7 +116,7 @@
           let best = -1, bd = 1e9;
           for (let c = 0; c < n; c++) { if (S.seats[c]) continue; const p = chairPos(c, n), d = Math.hypot(p.x - b.x, p.z - b.z); if (d < bd) { bd = d; best = c; } }
           if (best < 0) continue;
-          const p = chairPos(best, n), dx = p.x - b.x, dz = p.z - b.z, d = Math.hypot(dx, dz), s = BOT_SPEED[b.i] * dt;
+          const p = chairPos(best, n), dx = p.x - b.x, dz = p.z - b.z, d = Math.hypot(dx, dz), s = BOT_SPEED[b.i] * BOTLV.pick(L, [0.82, 1, 1.15]) * dt;
           if (d <= 0.25) { claim(id, best); continue; }
           b.x += dx / d * Math.min(d, s); b.z += dz / d * Math.min(d, s);
         }

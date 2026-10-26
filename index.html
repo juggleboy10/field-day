@@ -1179,7 +1179,7 @@ kbd {
     { id: 'hideseek', name: 'Sunset Backyards', short: 'Hide & seek', glyph: '\u{1F648}', blurb: 'Hide-and-seek at golden hour, with friends or bots.' },
     { id: 'charades', name: 'Charades Lounge', short: 'Charades', glyph: '\u{1F3AD}', blurb: 'Act it out or draw it in the air with a 3D pen. Best with friends.' },
     { id: 'paintball', name: 'Paintball Park', short: 'Paintball', glyph: '\u{1F3A8}', blurb: 'Red against blue among inflatable bunkers. Five markers, real paint.' },
-    { id: 'pickleball', name: 'Sunny Pickleball Courts', short: 'Pickleball', glyph: '\u{1F3D3}', blurb: 'Singles pickleball with the kitchen and the two-bounce rule, against a friend or Dink Daisy.' },
+    { id: 'pickleball', name: 'Sunny Pickleball Courts', short: 'Pickleball', glyph: '\u{1F3D3}', blurb: 'Pickleball, singles or doubles, with the kitchen and the two-bounce rule. Friends or the court bots fill the spots.' },
     { id: 'parkour', name: 'Skyline Sprint', short: 'Parkour', glyph: '\u{1F9D7}', blurb: 'A parkour race on three courses: grab, climb, slide, bounce and leap to the finish, with power-up drinks.' },
     { id: 'dodgeball', name: 'Gym Class Dodgeball', short: 'Dodgeball', glyph: '\u{1F534}', blurb: 'Red against blue in a school gym. Hit them, catch to bring a teammate back. Friends or bots.' },
     { id: 'potato', name: 'Harvest Hot Potato', short: 'Hot potato', glyph: '\u{1F954}', blurb: 'Pass the ticking potato before it pops. Last one standing wins. Friends or bots.' },
@@ -1573,6 +1573,50 @@ kbd {
       return { start, soon, pull, push, absorb, myBests, get mode() { return S.mode; }, S };
     })();
     return { def, add, mine, merge, build, draw, hidePanel, list: listOf, fmtTime, shared: SHARED };
+  })();
+  // ================================================================ BOTLV: how good the bots are, game by game
+  // A game with bots calls BOTLV.on(L) and reads its bots' skill with BOTLV.pick(L, [easy, normal, hard]) (or
+  // BOTLV.get(L): 0 easy, 1 normal, 2 hard). Normal is how the bots always played. Each game remembers its own level
+  // (prefs.botLv[game id] = { v, t }), changed with the "Bots:" button (in a browser) or on the watch (VR). Friends in
+  // the same game share it: whoever changed it last wins, so everyone's bots (and whoever runs them) agree.
+  const BOTLV = (() => {
+    const NAMES = ['Easy', 'Normal', 'Hard'];
+    const store = () => (prefs.botLv && typeof prefs.botLv === 'object' ? prefs.botLv : (prefs.botLv = {}));
+    const ok = (v) => Number.isInteger(v) && v >= 0 && v <= 2;
+    function on(L, opts) {
+      const o = opts || {};
+      L.botLv = { def: ok(o.def) ? o.def : 1, onChange: o.onChange || null, note: o.note || '' };
+      L.botHud = { label: () => `Bots: ${NAMES[get(L)]} ▸`, run: () => cycle(L) };
+    }
+    function get(L) {
+      if (!L || !L.botLv) return 1;
+      const e = store()[L.id];
+      return e && ok(e.v) ? e.v : L.botLv.def;
+    }
+    const pick = (L, arr) => arr[get(L)];
+    // a number between the three: easy at 0, normal at 1, hard at 2 (for blending)
+    const name = (L) => NAMES[get(L)];
+    function set(L, v, t, who) {
+      if (!L.botLv || !ok(v)) return;
+      const before = get(L);
+      store()[L.id] = { v, t: t || Date.now() };
+      savePrefs();
+      if (L.botLv.onChange && before !== v) L.botLv.onChange(v);
+      state.hudDirty = true; forcePresence();
+      if (state.level === L.idx) showToast(`Bots: ${NAMES[v]}${who ? ` (${who} changed it)` : ''}${!who && L.botLv.note ? `. ${L.botLv.note}` : ''}`);
+    }
+    function cycle(L) { set(L, (get(L) + 1) % 3); sfx('click', 0.6); }
+    // what I tell friends here: my level for this game, and when I set it
+    function mine(L) { const e = store()[L.id]; return L.botLv ? [get(L), e && Number.isFinite(e.t) ? e.t : 0] : null; }
+    // a friend's: theirs wins if they set it more recently than I did
+    function read(rec, a) {
+      const L = curLevel();
+      if (!L.botLv || rec.lv !== state.level || !Array.isArray(a) || a.length !== 2 || !ok(a[0]) || !Number.isFinite(a[1]) || a[1] <= 0) return;
+      const e = store()[L.id], t = e && Number.isFinite(e.t) ? e.t : 0;
+      if (a[1] > t && a[0] !== get(L)) set(L, a[0], a[1], rec.name);
+      else if (a[1] > t) store()[L.id] = { v: a[0], t: a[1] };
+    }
+    return { NAMES, on, get, pick, name, set, cycle, mine, read };
   })();
   // ================================================================ LO-FI MUSIC: a quiet, generative soundtrack themed to each place
   // Every place has a recipe: tempo, swing, four chords, and which instruments play chords, arpeggios, a lead,
@@ -2113,8 +2157,9 @@ kbd {
   }
 
   // ================================================================ THE WRIST WATCH (VR)
-  // A watch on your right wrist. Raise it and look at it, and a little panel wakes up with a Clubhouse button:
-  // poke it with your left hand, or point at it and pull the left trigger. Look away and it goes back to sleep.
+  // A watch on your right wrist. Raise it and look at it, and a little panel wakes up with a Clubhouse button (and, in
+  // a game with bots, a Bots button for how good they are): poke a button with your other hand, or point at it and
+  // pull that hand's trigger. Look away and it goes back to sleep.
   const HUB_IDX = 8;
   const WATCH = { awake: false, lookT: 0, awayT: 0, cool: 0, trigPrev: false, hover: false, minute: -1, pressed: 0 };
   const watchG = new THREE.Group();
@@ -2137,6 +2182,9 @@ kbd {
   drawWatchFace(false);
   // the panel that pops up above it
   const PW = 0.15, PH = 0.08, BTN = { x: 0, y: -0.012, w: 0.12, h: 0.034 };
+  // the buttons: just the Clubhouse, or the Clubhouse and the Bots side by side
+  const BTN_HUB = { id: 'hub', x: -0.034, y: -0.012, w: 0.064, h: 0.034 }, BTN_BOTS = { id: 'bots', x: 0.034, y: -0.012, w: 0.064, h: 0.034 };
+  const watchBtns = () => (curLevel() && curLevel().botLv ? [BTN_HUB, BTN_BOTS] : [{ ...BTN, id: 'hub' }]);
   const panelC = canvasTexture(480, 256);
   const panel = new THREE.Mesh(new THREE.PlaneGeometry(PW, PH), new THREE.MeshBasicMaterial({ map: panelC.tex, transparent: true, depthTest: false }));
   panel.renderOrder = 20;
@@ -2144,7 +2192,7 @@ kbd {
   scene.add(panel);
   let panelKey = '';
   function drawPanel() {
-    const atHub = state.level === HUB_IDX, key = `${atHub}|${WATCH.hover}`;
+    const atHub = state.level === HUB_IDX, bots = curLevel() && curLevel().botLv ? BOTLV.name(curLevel()) : '', key = `${atHub}|${WATCH.hover}|${bots}`;
     if (key === panelKey) return;
     panelKey = key;
     const g = panelC.g;
@@ -2152,17 +2200,31 @@ kbd {
     rr(g, 4, 4, 472, 248, 34); g.fillStyle = 'rgba(20,16,32,0.92)'; g.fill();
     g.textAlign = 'center'; g.textBaseline = 'middle';
     g.fillStyle = '#ffd23f'; g.font = `800 44px ${DISPLAY}`; g.fillText('Field Day', 240, 58);
-    // the button: drawn where BTN says it is
-    const bx = 240 + (BTN.x / PW) * 480, by = 128 - (BTN.y / PH) * 256, bw = (BTN.w / PW) * 480, bh = (BTN.h / PH) * 256;
-    rr(g, bx - bw / 2, by - bh / 2, bw, bh, 26);
-    g.fillStyle = atHub ? '#4a4660' : WATCH.hover ? '#8be0ff' : '#4fc3f7'; g.fill();
-    g.fillStyle = atHub ? '#a9a3cf' : '#10223a'; g.font = `800 40px ${BODY}`;
-    g.fillText(atHub ? 'You\u2019re in the clubhouse' : 'Clubhouse', bx, by + 2, bw - 30);
+    // the buttons: drawn where they say they are
+    for (const B of watchBtns()) {
+      const bx = 240 + (B.x / PW) * 480, by = 128 - (B.y / PH) * 256, bw = (B.w / PW) * 480, bh = (B.h / PH) * 256, hov = WATCH.hover === B.id;
+      rr(g, bx - bw / 2, by - bh / 2, bw, bh, 26);
+      if (B.id === 'hub') {
+        g.fillStyle = atHub ? '#4a4660' : hov ? '#8be0ff' : '#4fc3f7'; g.fill();
+        g.fillStyle = atHub ? '#a9a3cf' : '#10223a'; g.font = `800 ${bots ? 34 : 40}px ${BODY}`;
+        g.fillText(atHub ? 'You\u2019re in the clubhouse' : 'Clubhouse', bx, by + 2, bw - 24);
+      } else {
+        g.fillStyle = hov ? '#ffe680' : '#ffd23f'; g.fill();
+        g.fillStyle = '#1b1932'; g.font = `800 34px ${BODY}`; g.fillText(`Bots: ${bots}`, bx, by + 2, bw - 24);
+      }
+    }
     panelC.tex.needsUpdate = true;
   }
   drawPanel();
-  function watchPress() {
+  function watchPress(id) {
     const now = performance.now();
+    if (id === 'bots') {
+      if (now < WATCH.cool) return;
+      WATCH.cool = now + 700;
+      haptic(vrHands[WATCH.side === 'left' ? 'right' : 'left'], 0.4, 30);
+      BOTLV.cycle(curLevel()); panelKey = '';
+      return;
+    }
     if (now < WATCH.cool || state.level === HUB_IDX) return;
     WATCH.cool = now + 1500;
     WATCH.pressed += 1;
@@ -2172,7 +2234,8 @@ kbd {
     switchLevel(HUB_IDX);
   }
   const _watchWp = new V3(), _watchWn = new V3(), _watchEye = new V3(), _watchGaze = new V3(), _watchCq = new Q4(), _watchTip = new V3(), _watchInv = new THREE.Matrix4(), _watchLoc = new V3(), _watchRd = new V3();
-  function onButton(local) { return Math.abs(local.x - BTN.x) < BTN.w / 2 && Math.abs(local.y - BTN.y) < BTN.h / 2; }
+  // which button a point on the panel is over (or null)
+  function onButton(local) { const B = watchBtns().find((b) => Math.abs(local.x - b.x) < b.w / 2 && Math.abs(local.y - b.y) < b.h / 2); return B ? B.id : null; }
   // which wrist the watch is on: the right, unless that hand's busy holding something (a bow, a bat, a tool), when it
   // hops to the left for the time being. If both hands are busy it sleeps, so it can't wake in your face mid-shot.
   function watchSide() {
@@ -2214,23 +2277,23 @@ kbd {
     panel.quaternion.copy(_watchCq);
     panel.updateMatrixWorld(true);
     _watchInv.copy(panel.matrixWorld).invert();
-    let hover = false;
+    let hover = null;
     if (rh.ok) {
       // poke it with the tip of your right controller
       _watchTip.set(0, 0, -0.06).applyQuaternion(rh.quat).add(rh.pos);
       _watchLoc.copy(_watchTip).applyMatrix4(_watchInv);
-      if (Math.abs(_watchLoc.z) < 0.03 && onButton(_watchLoc)) { hover = true; watchPress(); }
+      if (Math.abs(_watchLoc.z) < 0.03 && onButton(_watchLoc)) { hover = onButton(_watchLoc); watchPress(hover); }
       // or point at it and pull the trigger
       _watchRd.set(0, 0, -1).applyQuaternion(rh.quat);
       const n = new V3(0, 0, 1).applyQuaternion(panel.quaternion);
       const den = _watchRd.dot(n);
       if (Math.abs(den) > 1e-3) {
         const t = panel.position.clone().sub(rh.pos).dot(n) / den;
-        if (t > 0 && t < 1.2) { _watchLoc.copy(rh.pos).addScaledVector(_watchRd, t).applyMatrix4(_watchInv); if (onButton(_watchLoc)) hover = true; }
+        if (t > 0 && t < 1.2) { _watchLoc.copy(rh.pos).addScaledVector(_watchRd, t).applyMatrix4(_watchInv); if (onButton(_watchLoc)) hover = onButton(_watchLoc); }
       }
       const gp = vrHands[other].source && vrHands[other].source.gamepad;
       const trig = !!(gp && gp.buttons && gp.buttons[0] && gp.buttons[0].pressed);
-      if (trig && !WATCH.trigPrev && hover) watchPress();
+      if (trig && !WATCH.trigPrev && hover) watchPress(hover);
       WATCH.trigPrev = trig;
     }
     if (hover !== WATCH.hover) { WATCH.hover = hover; }
@@ -3708,6 +3771,7 @@ kbd {
     // one right behind. Score before the person in front of you and they're out. First shot from the line;
     // after a miss, rebound and shoot from anywhere. Last one standing wins. Computer shooters fill the line.
     const FT_D = 3.9, FT = new V3(RIM.x, 0, RIM.z + FT_D);
+    BOTLV.on(L, { note: 'For the Lightning shooters' });
     const LT_BOTS = [{ name: 'Swish Sam', color: '#ffb36b', skill: 1.0 }, { name: 'Bricky Bo', color: '#8bd450', skill: 1.35 }, { name: 'Net Nadia', color: '#b388ff', skill: 0.85 },
       { name: 'Hoop Hana', color: '#4fc3f7', skill: 0.95 }, { name: 'Dunk Dex', color: '#ff6a9a', skill: 1.15 }, { name: 'Rim Rosa', color: '#ffd23f', skill: 1.05 }, { name: 'Layup Lou', color: '#5ad8b0', skill: 1.25 }];
     const LT = { ph: 0, gid: 0, order: [], line: [], front: '', chaser: '', out: [], winner: '', ballOf: {}, giveSeq: {}, frontShot: false, ev: [0, 0, '', ''] };
@@ -3834,7 +3898,7 @@ kbd {
       const c = Math.cos(th);
       const v = Math.sqrt((GRAVITY * d * d) / Math.max(0.05, 2 * c * c * (d * Math.tan(th) - dh)));
       // shakier on the first shot from the line; rebounds are as before
-      const sk = bt.cfg.skill * (1 + Math.max(0, d - FT_D) * 0.12) * (bt.shots ? 1 : 1.6);
+      const sk = bt.cfg.skill * (1 + Math.max(0, d - FT_D) * 0.12) * (bt.shots ? 1 : 1.6) * BOTLV.pick(L, [1.45, 1, 0.62]);   // (shakier on easy, steadier on hard)
       const a = th + ltGauss() * (0.011 + 0.0035 * d) * sk, sp = v * (1 + ltGauss() * (0.007 + 0.0028 * d) * sk), yaw = ltGauss() * (0.008 + 0.0028 * d) * sk;
       const hx = dx / d, hz = dz / d, cy = Math.cos(yaw), sy = Math.sin(yaw);
       const ux = hx * cy - hz * sy, uz = hx * sy + hz * cy;
@@ -4068,6 +4132,7 @@ kbd {
   // ================================================================ LEVEL: SANDLOT BASEBALL
   const baseball = (() => {
     const L = newLevel(1);
+    BOTLV.on(L, { note: 'For the Sandlot Sluggers in a full game' });
     const G = L.group;
     const rand = mulberry32(4242);
     const BR = 0.045;
@@ -4775,7 +4840,8 @@ kbd {
     }
     // the Sluggers' turn at bat plays out quickly
     function cpuPA() {
-      const x = rand();
+      // (the Bots level: easy Sluggers mostly make outs, hard ones hit more)
+      const x = Math.pow(rand(), BOTLV.pick(L, [1.35, 1, 0.75]));
       const code = x < 0.2 ? EV.K : x < 0.45 ? EV.OUT_GROUND : x < 0.66 ? EV.OUT_FLY : x < 0.73 ? EV.WALK : x < 0.89 ? EV.SINGLE : x < 0.95 ? EV.DOUBLE : x < 0.96 ? EV.TRIPLE : EV.HR;
       if (code === EV.WALK) announce(code, 1, walk(1));
       else if (HIT_BASES[code]) announce(code, 1, hit(1, HIT_BASES[code]));
@@ -4829,7 +4895,8 @@ kbd {
       else { atBat.list.push([++atBat.seq, code]); if (atBat.list.length > 4) atBat.list.shift(); forcePresence(); }
     }
     function gamePitchTarget() {
-      if (rand() < 0.6) return new V3((rand() - 0.5) * 0.36, 0.62 + rand() * 0.42, 0.15);
+      // (and their pitcher: easy throws more strikes, hard works the corners)
+      if (rand() < BOTLV.pick(L, [0.75, 0.6, 0.48])) return new V3((rand() - 0.5) * 0.36, 0.62 + rand() * 0.42, 0.15);
       const k = rand();
       if (k < 0.5) return new V3((rand() < 0.5 ? -1 : 1) * (0.36 + rand() * 0.16), 0.6 + rand() * 0.4, 0.15);
       if (k < 0.8) return new V3((rand() - 0.5) * 0.3, 0.22 + rand() * 0.14, 0.15);
@@ -6107,6 +6174,7 @@ kbd {
       return ids.sort();
     };
     const finnHost = () => herePeersDG()[0] === state.myPeer;
+    BOTLV.on(L);
     const finnGauss = () => (rand() + rand() + rand() - 1.5) / 0.5;
     const _fv = new V3(), _fh = new V3(), _fq = new Q4(), _fqs = new Q4();
 
@@ -6189,7 +6257,8 @@ kbd {
           const p = FINN.plan;
           const to = _fv.copy(H.basket).sub(FINN.lie).setY(0).normalize();
           finnDisc.x = to.x; finnDisc.z = to.z;
-          finnLaunch(finnDisc, p.sp * (1 + finnGauss() * 0.09), p.pitch + finnGauss() * 0.035, p.yaw + finnGauss() * 0.06, FINN.lie.clone().setY(1.2));
+          const e = BOTLV.pick(L, [2.1, 1, 0.45]);   // his human error: more on easy, less on hard
+          finnLaunch(finnDisc, p.sp * (1 + finnGauss() * 0.09 * e), p.pitch + finnGauss() * 0.035 * e, p.yaw + finnGauss() * 0.06 * e, FINN.lie.clone().setY(1.2));
           FINN.strokes += 1; FINN.phase = 'flying'; FINN.throwT = now;
           sfx('whoosh', 0.6 / (1 + FINN.lie.distanceTo(myHead.pos) * 0.1));
           forcePresence();
@@ -8977,6 +9046,7 @@ kbd {
   // ================================================================ LEVEL: NEON LASER TAG
   const lasertag = (() => {
     const L = newLevel(4);
+    BOTLV.on(L);   // the bots: aim, how often they shoot, how fast they move
     const G = L.group;
     const rand = mulberry32(5150);
     L.teams = true;
@@ -9653,7 +9723,7 @@ kbd {
       botHead(b, _bh); _bh.y = 1.25;
       _th.copy(target.head); _th.y -= 0.35;
       const d = _bh.distanceTo(_th);
-      const p = clamp((0.82 - d * 0.03) * b.skill, 0.2, 0.8);
+      const p = clamp((0.82 - d * 0.03) * b.skill * BOTLV.pick(L, [0.62, 1, 1.25]), 0.12, BOTLV.pick(L, [0.6, 0.8, 0.9]));   // (the Bots level: their aim)
       const hit = Math.random() < p;
       // a miss goes a little wide
       if (!hit) { _th.x += (Math.random() - 0.5) * 1.6; _th.y += (Math.random() - 0.3) * 0.8; _th.z += (Math.random() - 0.5) * 1.6; }
@@ -9672,7 +9742,7 @@ kbd {
       }
       LB.shots.push([++LB.seq, r3(_bh.x), r3(_bh.y), r3(_bh.z), r3(end.x), r3(end.y), r3(end.z), victim, b.k]);
       if (LB.shots.length > 6) LB.shots.shift();
-      b.cool = now + 1100 + Math.random() * 800;
+      b.cool = now + (1100 + Math.random() * 800) * BOTLV.pick(L, [1.4, 1, 0.75]);
       state.dirtyBoard = true;
       forcePresence();
     }
@@ -9706,7 +9776,8 @@ kbd {
         else { mx /= ml; mz /= ml; }
         const l2 = Math.hypot(mx, mz) || 1;
         const k = 1 - Math.exp(-dt * 6);
-        b.vx += (mx / l2 * sp * b.skill - b.vx) * k; b.vz += (mz / l2 * sp * b.skill - b.vz) * k;
+        const bs = b.skill * BOTLV.pick(L, [0.85, 1, 1.12]);
+        b.vx += (mx / l2 * sp * bs - b.vx) * k; b.vz += (mz / l2 * sp * bs - b.vz) * k;
         b.x += b.vx * dt; b.z += b.vz * dt;
         pushOutOfBoxes(b);
         b.yaw = tgt ? Math.atan2(-(tgt.head.x - b.x), -(tgt.head.z - b.z)) : Math.hypot(b.vx, b.vz) > 0.3 ? Math.atan2(-b.vx, -b.vz) : b.yaw;
@@ -9813,6 +9884,7 @@ kbd {
   // ================================================================ LEVEL: SUNDAY SOCCER
   const soccer = (() => {
     const L = newLevel(5);
+    BOTLV.on(L);   // the bots: pace and accuracy
     const G = L.group;
     const rand = mulberry32(777001);
     L.teams = true;
@@ -10344,7 +10416,7 @@ kbd {
     function botKick(b, tx, tz, power, spread, now, loft) {
       let dx = tx - ball.pos.x, dz = tz - ball.pos.z;
       const l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l;
-      const a = (Math.random() - 0.5) * spread, c = Math.cos(a), s2 = Math.sin(a);
+      const a = (Math.random() - 0.5) * spread * BOTLV.pick(L, [1.8, 1, 0.55]), c = Math.cos(a), s2 = Math.sin(a);   // (and their accuracy)
       const kx = dx * c - dz * s2, kz = dx * s2 + dz * c;
       const up = loft !== undefined ? loft : SOC.big ? 0.12 + power * 0.34 : 0.12 + power * 0.12;
       _bt.set(kx, up, kz).normalize();
@@ -10362,7 +10434,7 @@ kbd {
       for (const b of sbots) {
         if (!b.active) continue;
         const atk = attackZ(b.team), own = ownZ(b.team), dirZ = Math.sign(atk);
-        let speed = 3.4 * b.skill;
+        let speed = 3.4 * b.skill * BOTLV.pick(L, [0.82, 1, 1.12]);   // (the Bots level: their pace)
         // where to go
         if (!live) homeSpot(b, _tg);
         else if (b.role === 'keep') {
@@ -11669,6 +11741,7 @@ kbd {
     // She plays the hole you're on with her own ball and the same physics as yours. Before each putt she
     // test-rolls about a hundred shots in silence and picks the one that finishes nearest the cup, then
     // adds a little human error. The host runs her; everyone sees her.
+    BOTLV.on(L);
     const BEA = { name: 'Birdie Bea', color: '#ffb36b', on: prefs.golfBot !== false, active: false, hole: -1, phase: 'wait', strokes: 0, scores: HOLES.map(() => 0), t0: 0, aim: [0, -1], swingT: 0, req: null, reqSeq: 0 };
     const beaBall = { x: 0, z: 0, vx: 0, vz: 0, lipped: false, sink: 0, fromX: 0, fromZ: 0, vis: null };
     BEA.ball = beaBall;
@@ -11760,7 +11833,8 @@ kbd {
         }
         if (BEA.plan && now - BEA.t0 > 1100) {
           const p = BEA.plan;
-          const a = p.a + (gauss() * 2.2 * Math.PI) / 180, sp = p.sp * (1 + gauss() * 0.07);
+          // her human error: a few degrees and a few percent off (easy: more; hard: hardly any)
+          const lv = BOTLV.get(L), a = p.a + (gauss() * [5, 2.2, 0.9][lv] * Math.PI) / 180, sp = p.sp * (1 + gauss() * [0.15, 0.07, 0.03][lv]);
           beaBall.fromX = beaBall.x; beaBall.fromZ = beaBall.z;
           beaBall.vx = Math.cos(a) * sp; beaBall.vz = Math.sin(a) * sp;
           BEA.strokes += 1; BEA.phase = 'moving'; BEA.swingT = now;
@@ -12754,6 +12828,7 @@ kbd {
     // ================================================================ STRIKE SALLY: a bowling rival on a free lane
     // She bowls a frame each time you (or the host, with friends) finish one. Her results come from a skill
     // profile (about a 26% strike rate and 40% spares); her ball and pins play out on her lane for everyone.
+    BOTLV.on(L);   // Strike Sally: easy, normal or hard
     const BOT = { name: 'Strike Sally', color: '#ff9ad0', on: prefs.bowlBot !== false, lane: -1, rolls: [], phase: 'idle', t0: 0, ballX: 0, ballZ: 0, ballOn: false, aim: 0, knock: [], pins: null, done: false, toldResult: false, req: null, reqSeq: 0 };
     L.bowlBot = BOT;
     const freshPins = () => SPOTS.flatMap(([x, z]) => [x, z, 0]);
@@ -12793,9 +12868,10 @@ kbd {
       const up = standing(), fresh = up.length === 10;
       let n;
       if (fresh) {
-        const r = rand();
-        n = r < 0.26 ? 10 : r < 0.29 ? Math.floor(rand() * 3) : r < 0.45 ? 9 : r < 0.72 ? 8 : r < 0.9 ? 7 : 6;
-      } else n = rand() < 0.4 ? up.length : Math.floor(rand() * up.length * 0.8);
+        // her first ball: how often it's a strike, a near-gutter, a 9, an 8, a 7 (else 6), by the Bots level
+        const r = rand(), c = BOTLV.pick(L, [[0.1, 0.18, 0.32, 0.58, 0.8], [0.26, 0.29, 0.45, 0.72, 0.9], [0.48, 0.49, 0.72, 0.9, 0.97]]);
+        n = r < c[0] ? 10 : r < c[1] ? Math.floor(rand() * 3) : r < c[2] ? 9 : r < c[3] ? 8 : r < c[4] ? 7 : 6;
+      } else n = rand() < BOTLV.pick(L, [0.2, 0.4, 0.68]) ? up.length : Math.floor(rand() * up.length * 0.8);   // the spare
       n = Math.min(n, up.length);
       // pins near the head pin and the pocket go first
       const ranked = up.map((k) => ({ k, w: rand() + (3 - Math.floor(k === 0 ? 0 : k < 3 ? 1 : k < 6 ? 2 : 3)) * 0.35 + (Math.abs(SPOTS[k][0] - BOT.aim) < 0.2 ? 0.3 : 0) })).sort((a, b) => b.w - a.w);
@@ -13391,6 +13467,8 @@ kbd {
   const airhockey = ((L) => {
     const G = L.group;
     const rand = mulberry32(5150);
+    // (the clubhouse is one place, so its three tables share one Bots level: easy, normal or hard)
+    if (!L.botLv) BOTLV.on(L);
     const C = new V3(6.5, 0, 10.6);        // table center; its length runs along x
     const LEN = 2.2, WID = 1.15, Y = 0.82; // playing surface
     const PR = 0.04, MR = 0.055, GOAL = 0.36, WIN = 7, RC = 0.13;
@@ -13579,12 +13657,25 @@ kbd {
       return [_hit.x - C.x, _hit.z - C.z];
     }
     // the bot: defends its goal, and strikes when the puck is on its side
+    // Easy: slower, and it guards a wobbly spot. Hard: quicker, and it reads where the puck is going
     function botStep(m, side, dt) {
       const p = AH.p, dir = side === 0 ? -1 : 1, onMySide = side === 0 ? p.u <= 0 : p.u > 0;
+      const lv = BOTLV.get(L), sp = [0.62, 1, 1.4][lv];
       let tu, tv;
       if (onMySide && (Math.abs(p.vu) < 2.2 || Math.sign(p.vu) === dir)) { tu = p.u + dir * 0.09; tv = p.v * 1.05; }
-      else { tu = dir * (LEN / 2 - 0.22); tv = clamp(p.v * 0.7, -GOAL / 2, GOAL / 2); }
-      steerMallet(m, side, tu, tv, dt, onMySide ? 2.6 : 2.0);
+      else {
+        tu = dir * (LEN / 2 - 0.22);
+        // where the puck will cross my guard line (hard reads the bank off the rails too)
+        let gv = p.v * 0.7;
+        if (lv === 2 && Math.sign(p.vu) === dir && Math.abs(p.vu) > 0.2) {
+          const t = (tu - p.u) / p.vu, w = WID / 2 - PR; let v = p.v + p.vv * t;
+          for (let k = 0; k < 4 && Math.abs(v) > w; k++) v = Math.sign(v) * 2 * w - v;
+          gv = v;
+        }
+        if (lv === 0) gv += Math.sin(performance.now() * 0.0021) * 0.12;
+        tv = clamp(gv, -GOAL / 2, GOAL / 2);
+      }
+      steerMallet(m, side, tu, tv, dt, (onMySide ? 2.6 : 2.0) * sp);
     }
 
     // ---------------------------------------------------------------- puck physics (run by whoever has the puck)
@@ -14041,16 +14132,20 @@ kbd {
       if (!coming) { bt.decided = false; return; }
       if (!hittable(s) || !PP.bounced || sideOfU(b.u) !== s) return;
       // sometimes it can't handle a fast one
-      if (!bt.decided) { bt.decided = true; bt.missing = rand() < 0.13 + Math.max(0, Math.hypot(b.vu, b.vv) - 5) * 0.06; }
+      // (easy misses a lot more, and fast ones especially; hard hardly ever)
+      const lv = BOTLV.get(L);
+      if (!bt.decided) { bt.decided = true; bt.missing = rand() < [0.26, 0.13, 0.04][lv] + Math.max(0, Math.hypot(b.vu, b.vv) - 5) * [0.1, 0.06, 0.025][lv]; }
       if (bt.missing) return;
       if (b.vy < 0.5 && b.y > Y + 0.05 && b.y < Y + 0.45) botHit(s, false);
     }
     function botHit(s, serve) {
       const b = PP.b;
-      // a friendly opponent: softer, less precise, and now and then it overcooks one
-      const wild = !serve && rand() < 0.08;
-      const tu = -endU(s) * (wild ? 1.1 + rand() * 0.2 : 0.3 + rand() * 0.55), tv = (rand() - 0.5) * (WID - 0.35);
-      const v = aimedVelocity(b.u, b.y, b.v, tu + (rand() - 0.5) * 0.35, tv + (rand() - 0.5) * 0.3, serve ? 5.5 : 5 + rand() * 2.5);
+      // a friendly opponent: softer, less precise, and now and then it overcooks one (easy: gentler and loopier;
+      // hard: quicker, deeper, out toward the corners, and rarely long)
+      const lv = BOTLV.get(L), wild = !serve && rand() < [0.12, 0.08, 0.03][lv];
+      const tu = -endU(s) * (wild ? 1.1 + rand() * 0.2 : [0.25, 0.3, 0.55][lv] + rand() * [0.45, 0.55, 0.38][lv]);
+      const tv = lv === 2 ? (rand() < 0.5 ? -1 : 1) * (0.2 + rand() * (WID / 2 - 0.35)) : (rand() - 0.5) * (WID - 0.35);
+      const v = aimedVelocity(b.u, b.y, b.v, tu + (rand() - 0.5) * [0.45, 0.35, 0.18][lv], tv + (rand() - 0.5) * [0.4, 0.3, 0.12][lv], serve ? [4.6, 5.5, 6.2][lv] : [4.2, 5, 6.4][lv] + rand() * [1.8, 2.5, 2.4][lv]);
       hitBall(s, v.vu, v.vy, v.vv);
       PP.bot.decided = false; PP.bot.swingT = performance.now();
     }
@@ -14444,7 +14539,7 @@ kbd {
           // everyone else's (a friend's, the bot's) eases toward where it was told to go
           const ka = bot ? kickAngle(r, now) : null;
           const tth = ka !== null ? ka : r.tth;
-          const lim = bot ? 0.55 : MAX_VS;
+          const lim = bot ? [0.38, 0.55, 0.78][BOTLV.get(L)] : MAX_VS;   // (the bot's hands: slower on easy, quicker on hard)
           r.cs = r.s + clamp(clamp(r.ts, -RANGE[r.type], RANGE[r.type]) - r.s, -lim * dt, lim * dt);
           r.cth = r.th + clamp(clamp(tth, -1.7, 1.7) - r.th, -MAX_OM * dt, MAX_OM * dt);
         }
@@ -14463,10 +14558,11 @@ kbd {
         const r = rods[TEAM_ROD[s][ty]], n = MEN[ty];
         let bestS = r.ts, bd = 9;
         for (let i = 0; i < n; i++) { const want = b.v - (i - (n - 1) / 2) * SPACE[ty], d = Math.abs(want - r.s); if (d < bd) { bd = d; bestS = want; } }
-        if (now > r.botErr) { r.botErr = now + 600; r.errV = (Math.random() - 0.5) * 0.07; }
+        const lv = BOTLV.get(L);
+        if (now > r.botErr) { r.botErr = now + 600; r.errV = (Math.random() - 0.5) * [0.12, 0.07, 0.03][lv]; }
         r.ts = clamp(bestS + (r.errV || 0), -RANGE[ty], RANGE[ty]);
         const ahead = (b.u - RU(r.k)) * dir;
-        if (!r.kick && now > r.botCool && FB.ph === 'play' && ahead > 0.015 && ahead < 0.085 && bd < 0.03 && Math.random() < 0.09) { r.kick = { t0: now, dir }; r.botCool = now + 650 + Math.random() * 500; }
+        if (!r.kick && now > r.botCool && FB.ph === 'play' && ahead > 0.015 && ahead < 0.085 && bd < 0.03 && Math.random() < [0.05, 0.09, 0.16][lv]) { r.kick = { t0: now, dir }; r.botCool = now + [900, 650, 420][lv] + Math.random() * 500; }
       }
     }
 
@@ -16068,6 +16164,7 @@ kbd {
     // everyone else sees them through the host's presence.
     const BOT_NAMES = ['Turbo Tess', 'Pebble Pete', 'Captain Drift', 'Zoom Zara', 'Skid Sid'];
     const BOT_COLORS = ['#ff8a3a', '#8bd450', '#b388ff', '#4fc3f7', '#ffd23f'];
+    BOTLV.on(L);
     const BOT_SKILL = [{ vmax: 17.4, line: -1.2 }, { vmax: 16.9, line: 1.4 }, { vmax: 16.4, line: 0.2 }, { vmax: 16.7, line: -0.6 }, { vmax: 17.1, line: 0.9 }];
     const bots = [];
     const botState = { on: true, req: null, reqSeq: 0 };
@@ -16139,7 +16236,7 @@ kbd {
       const steerCmd = spun ? 0 : clamp(-dy * 2.4, -1, 1);
       b.steer += (steerCmd - b.steer) * Math.min(1, dt * 8);
       // slow for tight bends; a little catch-up so races stay close
-      let target = b.vmax * (1 - clamp(Math.abs(BEND[(b.idx + Math.round(10 / DS)) % N]) * 0.42, 0, 0.26));
+      let target = b.vmax * BOTLV.pick(L, [0.88, 1, 1.07]) * (1 - clamp(Math.abs(BEND[(b.idx + Math.round(10 / DS)) % N]) * 0.42, 0, 0.26));
       if (race.phase === 'run' && b.phase === 'run') {
         const gap = (b.lap * TLEN + b.s) - leaderProgress();
         if (gap > 50) target *= 0.95; else if (gap < -30) target *= 1.13;
@@ -16539,6 +16636,7 @@ kbd {
   // ================================================================ LEVEL: SUNSET BACKYARDS (hide-and-seek)
   const hideseek = (() => {
     const L = newLevel(12);
+    BOTLV.on(L);   // bot seekers: how fast they walk, how far they see, how quickly they spot you
     const G = L.group;
     const rand = mulberry32(9090);
     const YARD = { x0: -20, x1: 20, z0: -30, z1: 6 };
@@ -16886,7 +16984,7 @@ kbd {
       if (!h) return false;
       const dx = h.x - b.x, dz = h.z - b.z, d = Math.hypot(dx, dz);
       if (d < 1.1) return true;
-      if (d > 18) return false;
+      if (d > BOTLV.pick(L, [13, 18, 22])) return false;   // (the Bots level: how far a seeker can see)
       let da = Math.atan2(-dx, -dz) - b.yaw; while (da > Math.PI) da -= Math.PI * 2; while (da < -Math.PI) da += Math.PI * 2;
       // looking right into a hiding place
       for (const s of SPOTS) if (s.peek && Math.hypot(b.x - s.peek[0], b.z - s.peek[1]) < 1.4 && Math.hypot(h.x - s.x, h.z - s.z) < 1.3) return true;
@@ -16904,7 +17002,7 @@ kbd {
       } else if (b.lookT > 0) {
         b.lookT -= dt;
         b.yaw += Math.sin(performance.now() * 0.003 + b.n) * dt * 1.4;
-      } else if (walk(b, dt, 2.5)) {
+      } else if (walk(b, dt, BOTLV.pick(L, [2.1, 2.5, 3.0]))) {
         // arrived somewhere: plan the next hiding place to check
         if (b.target) { b.lookT = 1.1; const s = b.target; b.yaw = Math.atan2(-(s.x - b.x), -(s.z - b.z)); b.target = null; return; }
         if (!b.plan.length) b.plan = shuffle(SPOTS.slice());
@@ -16918,7 +17016,7 @@ kbd {
         if (botSees(b, id)) {
           const nk = k + dt;
           b.spotT.set(id, nk);
-          if (nk > 0.6) found(id, b.id);
+          if (nk > BOTLV.pick(L, [1.0, 0.6, 0.35])) found(id, b.id);   // (and how quickly they're sure it's you)
         } else b.spotT.set(id, Math.max(0, k - dt));
       }
     }
@@ -18057,6 +18155,7 @@ kbd {
   // ================================================================ LEVEL: PAINTBALL PARK
   const paintball = (() => {
     const L = newLevel(14);
+    BOTLV.on(L);   // the bots: aim, how often they shoot, how fast they move
     const G = L.group;
     const rand = mulberry32(4242);
     const F = { minX: -14, maxX: 14, minZ: -20, maxZ: 20 };
@@ -18427,7 +18526,7 @@ kbd {
           const pick = mine[Math.floor(Math.random() * mine.length)] || COVER[0];
           b.tx = pick.x; b.tz = pick.z; b.until = now + 9000;
         }
-        if (moveBot(b, b.tx, b.tz, 3.6, dt) || now > b.until) { b.ph = 'hold'; b.until = now + 3000 + Math.random() * 4000; }
+        if (moveBot(b, b.tx, b.tz, 3.6 * BOTLV.pick(L, [0.85, 1, 1.12]), dt) || now > b.until) { b.ph = 'hold'; b.until = now + 3000 + Math.random() * 4000; }
       } else if (b.ph === 'hold') {
         b.yaw = Math.atan2(0, enemyZ - b.z) + Math.PI;
         // shoot at someone it can see
@@ -18438,7 +18537,7 @@ kbd {
             const from = b.head.clone().add(new V3(0, -0.25, 0)), d = tg.head.clone().add(new V3(0, -0.35, 0)).sub(from), dist = d.length();
             const tof = dist / gun.speed;
             d.y += 0.5 * 9.8 * gun.grav * tof * tof;   // aim a little high for the drop
-            const err = (2.2 + dist * 0.12) * Math.PI / 180;
+            const err = (2.2 + dist * 0.12) * BOTLV.pick(L, [1.8, 1, 0.55]) * Math.PI / 180;   // (the Bots level: their aim)
             d.normalize().applyAxisAngle(new V3(0, 1, 0), (Math.random() - 0.5) * 2 * err);
             d.y += (Math.random() - 0.5) * err * 1.4;
             const vel = d.normalize().multiplyScalar(gun.speed);
@@ -18447,7 +18546,7 @@ kbd {
             if (me.shots.length > 14) me.shots.splice(0, me.shots.length - 14);
             b.yaw = Math.atan2(-d.x, -d.z);
             b.burst += 1;
-            b.cool = now + (b.gun === 'pb_auto' ? (b.burst % 3 ? 160 : 1300 + Math.random() * 900) : 1100 + Math.random() * 900);
+            b.cool = now + (b.gun === 'pb_auto' ? (b.burst % 3 ? 160 : (1300 + Math.random() * 900) * BOTLV.pick(L, [1.4, 1, 0.7])) : (1100 + Math.random() * 900) * BOTLV.pick(L, [1.4, 1, 0.7]));
             forcePresence();
           } else b.cool = now + 500;
         }
@@ -18617,6 +18716,7 @@ kbd {
     const SIDE_AIR = 0.3, SIDE_KICK = 1.8, TOP_AIR = 0.55;   // spin only bends it a little in the air; it mostly shows when it bounces
     const R = { minX: -11, maxX: 11, minZ: -7, maxZ: 7 };
     L.bounds = R;
+    BOTLV.on(L);   // the court bots: easy, normal (how they always played) or hard
     L.env = {
       sky: skyTexture([[0, '#5aa8e8'], [0.6, '#a8d8f8'], [1, '#f4f8e8']]),
       bg: 0xa8d8f8, fog: [0xc8e4f0, 40, 140], hemi: [0xffffff, 0x6a8a5a, 0.75],
@@ -19060,11 +19160,12 @@ kbd {
       // fast or spinning shots), getting better as it comes
       const hk = `${PB.pointSeq}:${PB.hits}`;
       if (coming && hk !== bt.hitKey) {
-        bt.hitKey = hk; bt.reactAt = now + 210 + rand() * 160;
-        const hard = Math.hypot(b.vx, b.vz) / 10 + Math.hypot(b.wx || 0, b.wy || 0, b.wz || 0) * 0.6;
-        bt.ex = (rand() - 0.5) * (1.0 + hard * 1.4); bt.ez = (rand() - 0.5) * (1.0 + hard * 1.4); bt.err0 = Math.abs(b.x) + 0.5;
+        const lv = BOTLV.get(L);
+        bt.hitKey = hk; bt.reactAt = now + [300, 210, 140][lv] + rand() * 160;
+        const hard = Math.hypot(b.vx, b.vz) / 10 + Math.hypot(b.wx || 0, b.wy || 0, b.wz || 0) * 0.6, e = [1.4, 1, 0.55][lv];
+        bt.ex = (rand() - 0.5) * (1.0 + hard * 1.4) * e; bt.ez = (rand() - 0.5) * (1.0 + hard * 1.4) * e; bt.err0 = Math.abs(b.x) + 0.5;
       }
-      let speedCap = 3.5;
+      let speedCap = BOTLV.pick(L, [2.9, 3.5, 4.2]);
       if (coming) {
         if (now < bt.reactAt) { tx = bt.x; tz = bt.z; }
         else {
@@ -19089,7 +19190,8 @@ kbd {
       if (!bt.decided) {
         // harder to get back: fast balls, spin, and ones she had to run for
         bt.decided = true;
-        bt.missing = rand() < 0.09 + Math.max(0, Math.hypot(b.vx, b.vz) - 5) * 0.07 + Math.hypot(b.wx || 0, b.wy || 0, b.wz || 0) * 0.12 + Math.min(0.2, Math.abs(bt.z - b.z) * 0.06);
+        const k = BOTLV.pick(L, [1.7, 1, 0.45]);
+        bt.missing = rand() < (0.09 + Math.max(0, Math.hypot(b.vx, b.vz) - 5) * 0.07 + Math.hypot(b.wx || 0, b.wy || 0, b.wz || 0) * 0.12 + Math.min(0.2, Math.abs(bt.z - b.z) * 0.06)) * k;
       }
       if (bt.missing) return;
       if (Math.hypot(b.x - bt.x, b.z - bt.z) < 1.2 && b.y > 0.25 && b.y < 1.6 && b.vy < 1.5) botHit(bt, false);
@@ -19108,10 +19210,11 @@ kbd {
       bt.paddle.rotation.set(0, (s === 0 ? -Math.PI / 2 : Math.PI / 2) + ang * 0.9, 0);
     }
     function botHit(bt, serve) {
-      // softer and less precise than a person, with the odd one long
-      const s = sideOf(bt.sl), wild = !serve && rand() < 0.08;
-      const tg = target(s, HL * (wild ? 1.08 + rand() * 0.15 : 0.5 + rand() * 0.4), (rand() - 0.5) * (HW * 2 - 1));
-      hitBall(s, aimed(PB.b, tg.x + (rand() - 0.5) * 0.6, tg.z + (rand() - 0.5) * 0.6, serve ? 7 : 7 + rand() * 3), bt.sl);
+      // softer and less precise than a person, with the odd one long (hard: deeper, faster, wider, and hardly ever long)
+      const lv = BOTLV.get(L), s = sideOf(bt.sl), wild = !serve && rand() < [0.12, 0.08, 0.03][lv];
+      const tg = target(s, HL * (wild ? 1.08 + rand() * 0.15 : [0.42, 0.5, 0.62][lv] + rand() * [0.35, 0.4, 0.3][lv]), (rand() - 0.5) * (HW * 2 - [1.4, 1, 0.7][lv]));
+      const sc = [0.8, 0.6, 0.3][lv];
+      hitBall(s, aimed(PB.b, tg.x + (rand() - 0.5) * sc, tg.z + (rand() - 0.5) * sc, serve ? [6.3, 7, 7.8][lv] : [6, 7, 8.4][lv] + rand() * 3), bt.sl);
       bt.swingT = performance.now(); for (const o of BOTS) o.decided = false;
     }
 
@@ -19688,6 +19791,9 @@ kbd {
       tag.scale.set(0.9, 0.225, 1); tag.position.y = 0.42; g.add(tag); g.visible = false; G.add(g);
       return Object.assign({ g, bi, finishT: ROUTE_T[ROUTE_T.length - 1] / d.f, pos: new V3() }, d);
     });
+    // the Bots level: everyone's pace (and so their finish time) a little slower or faster
+    BOTLV.on(L, { note: 'The racers run at that pace from now' });
+    bots.forEach((b) => { const f0 = b.f; delete b.f; delete b.finishT; Object.defineProperty(b, 'f', { get: () => f0 * BOTLV.pick(L, [0.86, 1, 1.14]), enumerable: true }); Object.defineProperty(b, 'finishT', { get: () => ROUTE_T[ROUTE_T.length - 1] / b.f, set: () => {}, enumerable: true }); });
     L.pkBots = bots;
     const raceNow = () => (RACE.state === 'idle' ? 0 : Date.now() - RACE.startAt);
     const myProgress = () => { const [, bz] = bodyXZ(); return clamp((3 - bz) / CLEN * 180, 0, 180) + Math.max(0, dolly.position.y) * 0.4; };
@@ -20179,6 +20285,7 @@ kbd {
     const teamOf = (peer) => { if (peer === state.myPeer) return me.team; if (typeof peer === 'string' && peer.startsWith('bot:')) { const b = bots[Number(peer.slice(4))]; return b ? b.team : -1; } const rec = remotes.get(peer), st = rec && rec.lvState[L.id]; return st && (st.team === 0 || st.team === 1) ? st.team : -1; };
 
     // ---------------------------------------------------------------- the bots (run by the host, drawn by everyone)
+    BOTLV.on(L);   // how well the bots throw, dodge and catch
     const bots = [];
     for (let k = 0; k < 2 * TEAM_SIZE; k++) {
       const team = k < TEAM_SIZE ? 0 : 1, j = k % TEAM_SIZE;
@@ -20246,7 +20353,7 @@ kbd {
       const fx = bt.team === 0 ? 0 : 0, fz = bt.team === 0 ? -1 : 1;
       const from = new V3(bt.x + 0.25, 1.3, bt.z + fz * 0.35), to = new V3(tgt.x, 1.15, tgt.z);
       const dx = to.x - from.x, dz = to.z - from.z, dist = Math.max(1, Math.hypot(dx, dz)), speed = 12 + Math.random() * 3.5, tt = dist / speed;
-      const err = (Math.random() - 0.5) * 0.3 * (1.3 - bt.skill), c = Math.cos(err), s = Math.sin(err), hx = dx / dist, hz = dz / dist;
+      const err = (Math.random() - 0.5) * 0.3 * (1.3 - bt.skill) * BOTLV.pick(L, [1.7, 1, 0.45]), c = Math.cos(err), s = Math.sin(err), hx = dx / dist, hz = dz / dist;
       b.pos.copy(from); b.vel.set((hx * c - hz * s) * speed, (to.y - from.y + 0.5 * GRAVITY * tt * tt) / tt, (hx * s + hz * c) * speed);
       b.v += 1; b.owner = state.myPeer; b.held = null; b.sleeping = false; b.restT = 0; b.data = {}; b.throwFrom.copy(from);
       b.dbLive = true; b.dbWho = 'bot:' + bt.k; b.dbTeam = bt.team; b.dbCarrier = null; b.dbHolder = null;
@@ -20265,7 +20372,7 @@ kbd {
           for (const b of balls) {
             if (!b.dbLive || b.dbTeam === bt.team || b.held) continue;
             const rx = bt.x - b.pos.x, rz = bt.z - b.pos.z, d = Math.hypot(rx, rz);
-            if (d < 7 && (rx * b.vel.x + rz * b.vel.z) > 0.6 * d * Math.hypot(b.vel.x, b.vel.z) && Math.random() < 0.55 * dt * 10) { bt.dodgeUntil = now + 450; bt.dodgeDir = Math.random() < 0.5 ? -1 : 1; break; }
+            if (d < 7 && (rx * b.vel.x + rz * b.vel.z) > 0.6 * d * Math.hypot(b.vel.x, b.vel.z) && Math.random() < 0.55 * BOTLV.pick(L, [0.45, 1, 1.6]) * dt * 10) { bt.dodgeUntil = now + 450; bt.dodgeDir = Math.random() < 0.5 ? -1 : 1; break; }
           }
         }
         if (now < bt.dodgeUntil) goalX = bt.x + bt.dodgeDir * 3;
@@ -20275,13 +20382,13 @@ kbd {
           for (const b of balls) { if (b.held || b.dbCarrier != null || b.dbLive) continue; if (bt.team === 0 ? b.pos.z < -0.8 : b.pos.z > 0.8) continue; const d = Math.hypot(b.pos.x - bt.x, b.pos.z - bt.z); if (d < bd) { bd = d; best = b; } }
           if (best) {
             goalX = best.pos.x; goalZ = clamp(best.pos.z, own[0], own[1]);
-            if (bd < 0.9 && now > bt.cool) { bt.ball = best; best.dbCarrier = bt.k; best.owner = state.myPeer; best.v += 1; bt.thrAt = now + 700 + Math.random() * 1300; }
+            if (bd < 0.9 && now > bt.cool) { bt.ball = best; best.dbCarrier = bt.k; best.owner = state.myPeer; best.v += 1; bt.thrAt = now + (700 + Math.random() * 1300) * BOTLV.pick(L, [1.5, 1, 0.65]); }
           } else { goalZ = bt.team === 0 ? 7 : -7; goalX = bt.x + Math.sin(now * 0.001 + bt.k) * 2; }
         } else if (RS.st === 'play' && now > bt.thrAt) {
           const tgt = nearestEnemy(bt, bt.team); if (tgt) throwBall(bt, tgt, now); else bt.thrAt = now + 500;
         } else { goalX = bt.x + Math.sin(now * 0.002 + bt.k) * 2; goalZ = bt.team === 0 ? 4.5 : -4.5; }
         // move
-        const dx = goalX - bt.x, dz = goalZ - bt.z, d = Math.hypot(dx, dz), sp = (now < bt.dodgeUntil ? 5 : 3.2) * dt;
+        const dx = goalX - bt.x, dz = goalZ - bt.z, d = Math.hypot(dx, dz), sp = (now < bt.dodgeUntil ? 5 : 3.2) * BOTLV.pick(L, [0.85, 1, 1.15]) * dt;
         if (RS.st === 'play' && d > 0.05) { bt.x += (dx / d) * Math.min(d, sp); bt.z += (dz / d) * Math.min(d, sp); }
         bt.x = clamp(bt.x, -5.7, 5.7); bt.z = clamp(bt.z, own[0], own[1]);
         if (bt.ball) { bt.ball.pos.set(bt.x + 0.25, 1.1, bt.z + (bt.team === 0 ? -0.35 : 0.35)); bt.ball.vel.set(0, 0, 0); bt.ball.sleeping = false; }
@@ -20294,7 +20401,7 @@ kbd {
           if (!bt.active || bt.out || bt.team === b.dbTeam) continue;
           if (Math.hypot(b.pos.x - bt.x, b.pos.z - bt.z) < b.r + 0.3 && b.pos.y > 0.1 && b.pos.y < 1.85) {
             b.v += 1; b.owner = state.myPeer; b.vel.multiplyScalar(-0.25); b.vel.y = 2; b.dbLive = false;
-            if (!bt.ball && Math.random() < (bt.catchP === undefined ? 0.08 : bt.catchP)) { sfx('clang', 0.7); showToast(`${bt.name} caught it!`); sendOut(b.dbWho); reviveFor(bt.team); }
+            if (!bt.ball && Math.random() < (bt.catchP === undefined ? BOTLV.pick(L, [0.03, 0.08, 0.16]) : bt.catchP)) { sfx('clang', 0.7); showToast(`${bt.name} caught it!`); sendOut(b.dbWho); reviveFor(bt.team); }
             else { bt.out = true; sfx('hurt', 0.4 / (1 + b.pos.distanceTo(myHead.pos) * 0.2)); if (bt.ball) { bt.ball.dbCarrier = null; bt.ball = null; } }
             break;
           }
@@ -20514,6 +20621,7 @@ kbd {
   // page; the flight is the same arc on every page, so nobody needs the potato's physics.
   const hotpotato = (() => {
     const L = newLevel(18);
+    BOTLV.on(L);   // the bots: how fast they pass it on, and (hard) who they pass it to
     const G = L.group;
     const rand = mulberry32(1818);
     L.grabless = true;
@@ -20751,6 +20859,12 @@ kbd {
       RS.fseq += 1; RS.holder = '';
       forcePresence();
     }
+    // hard bots like to send it to a person (they know who's slow to pass it on); easy ones pick anyone
+    function botTarget(from) {
+      const lv = BOTLV.get(L), others = RS.alive.filter((id) => id !== from), people = others.filter((id) => !isBot(id));
+      if (lv === 2 && people.length && Math.random() < 0.6) return people[Math.floor(Math.random() * people.length)];
+      return pickRandomTarget(from);
+    }
     function pickRandomTarget(from) {
       const others = RS.alive.filter((id) => id !== from);
       return others[Math.floor(Math.random() * others.length)];
@@ -20784,7 +20898,8 @@ kbd {
         // a potato in the air lands in the hands it was thrown to
         if (RS.fl && now - RS.fl.t0 >= RS.fl.T) {
           RS.holder = RS.fl.to; RS.fl = null; H.catchT = now;
-          H.botHoldUntil = now + (RS.heat > 0.7 ? 250 + Math.random() * 450 : 450 + Math.random() * 1000);
+          // (the Bots level: how long they hang on to it; hard bots get rid of it fast)
+          H.botHoldUntil = now + (RS.heat > 0.7 ? 250 + Math.random() * 450 : 450 + Math.random() * 1000) * BOTLV.pick(L, [1.6, 1, 0.55]);
           forcePresence();
         }
         if (now >= H.fuseEnd) {
@@ -20796,7 +20911,7 @@ kbd {
           return;
         }
         // a bot holding it throws it on
-        if (RS.holder && isBot(RS.holder) && !RS.fl && now > H.botHoldUntil) hostThrow(RS.holder, pickRandomTarget(RS.holder), now);
+        if (RS.holder && isBot(RS.holder) && !RS.fl && now > H.botHoldUntil) hostThrow(RS.holder, botTarget(RS.holder), now);
         return;
       }
       if (RS.ph === 'pop') {
@@ -21477,12 +21592,15 @@ kbd {
       const tag = new THREE.Sprite(new THREE.SpriteMaterial({ map: canvasTexture(256, 64, (c) => { rr(c, 4, 6, 248, 52, 26); c.fillStyle = 'rgba(20,16,32,0.8)'; c.fill(); c.fillStyle = '#fff'; c.font = `700 28px ${BODY}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(d.name, 128, 33, 230); }).tex, transparent: true, depthWrite: false }));
       tag.scale.set(0.9, 0.225, 1); tag.position.set(0, SEAT_Y + 0.45, 0.12); kay.g.add(tag);
       kay.g.visible = false;
-      const finishT = tAt[Math.round(FINISH_S / DS)] * 1000;
-      return Object.assign({ line, tAt, i0, kay, finishT, s: 0, lat: 0, bi }, d);
+      const finishT0 = tAt[Math.round(FINISH_S / DS)] * 1000;
+      // (the Bots level makes everyone paddle a little slower or faster: their finish time moves with it)
+      return Object.defineProperty(Object.assign({ line, tAt, i0, kay, s: 0, lat: 0, bi }, d), 'finishT', { get: () => finishT0 / botPace(), enumerable: true });
     });
+    const botPace = () => BOTLV.pick(L, [0.88, 1, 1.1]);
+    BOTLV.on(L, { note: 'The bots paddle at that pace from now' });
     function botAt(b, tMs) {
-      // where a bot is, t ms into the race
-      const t = tMs / 1000;
+      // where a bot is, t ms into the race (at the Bots level's pace)
+      const t = tMs * botPace() / 1000;
       if (t <= 0) return { s: b.i0 * DS, lat: b.line[b.i0] };
       let lo = b.i0, hi = N - 1;
       if (t >= b.tAt[hi]) return { s: (N - 1) * DS - 9, lat: b.line[hi] };
@@ -21862,6 +21980,7 @@ kbd {
   // host then tallies from where the bags are (their positions are shared like every ball in the game).
   const cornhole = (() => {
     const L = newLevel(20);
+    BOTLV.on(L);   // Corny Carl: easy, normal or hard
     L.throwGain = 1.24;   // a VR toss carries a little further than the default
     const G = L.group;
     const rand = mulberry32(2020);
@@ -22143,7 +22262,8 @@ kbd {
         const s = spotOf(1, RS.end, _a), from = new V3(s.x + (RS.end === 0 ? 0.25 : -0.25), 0.95, s.z);
         bag.v += 1; bag.owner = state.myPeer; bag.held = null; bag.pos.copy(from); bag.sleeping = false; bag.restT = 0; bag.data = { thrownAt: now };
         const g = () => { let x = 0; for (let i = 0; i < 4; i++) x += Math.random(); return (x - 2) / 1.15; };
-        bag.vel.copy(throwFor(from, RS.end, 0.6 + g() * 0.14, g() * 0.045));     // good, but beatable
+        const sp = BOTLV.pick(L, [1.9, 1, 0.5]);   // how much his throws scatter
+        bag.vel.copy(throwFor(from, RS.end, 0.6 + g() * 0.14 * sp, g() * 0.045 * sp));     // good, but beatable
         bag.throwFrom.copy(from);
         sfx('whoosh', 0.5);
         forcePresence();
@@ -22350,6 +22470,7 @@ kbd {
   // tag someone asks for. Events (tags, pickups, captures) go out in its presence for everyone to show.
   const ctf = (() => {
     const L = newLevel(21);
+    BOTLV.on(L);   // the bots: pace, how far defenders look, how well runners dodge
     const G = L.group;
     const rand = mulberry32(2121);
     L.grabless = true;
@@ -22579,7 +22700,7 @@ kbd {
         if (c) { tx = c.pos.x; tz = c.pos.z; } else { tx = HOME[b.team].x; tz = HOME[b.team].z; }
       } else {
         // defend: go for the nearest intruder near our flag, otherwise patrol round it
-        let best = null, bd = 12;
+        let best = null, bd = BOTLV.pick(L, [8, 12, 16]);
         for (const q of enemies) { if (!ownHalf(b.team, q.pos.z)) continue; const d = Math.hypot(q.pos.x - HOME[b.team].x, q.pos.z - HOME[b.team].z); if (d < bd) { bd = d; best = q; } }
         if (best) { tx = best.pos.x; tz = best.pos.z; }
         else { const a = now * 0.0004 + b.patrol; tx = HOME[b.team].x + Math.cos(a) * 5; tz = HOME[b.team].z + (b.team === 0 ? -1 : 1) * (3 + Math.abs(Math.sin(a)) * 3); }
@@ -22592,11 +22713,11 @@ kbd {
         for (const q of enemies) {
           if (!ownHalf(enemy, q.pos.z) && mine < 0) continue;
           const ex = b.x - q.pos.x, ez = b.z - q.pos.z, ed = Math.hypot(ex, ez);
-          if (ed < 4.5 && ed > 0.01) { const w = (4.5 - ed) / 4.5 * 1.4; dx += (ex / ed) * w; dz += (ez / ed) * w; }
+          if (ed < 4.5 && ed > 0.01) { const w = (4.5 - ed) / 4.5 * BOTLV.pick(L, [0.7, 1.4, 2.1]); dx += (ex / ed) * w; dz += (ez / ed) * w; }
         }
         const l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l;
       }
-      const step = Math.min(d, speed * dt);
+      const step = Math.min(d, speed * BOTLV.pick(L, [0.84, 1, 1.1]) * dt);
       const ox = b.x, oz = b.z;
       [b.x, b.z] = pushOut(b.x + dx * step, b.z + dz * step, 0.3);
       // stuck on a hay bale: slide sideways round it
@@ -23068,6 +23189,7 @@ kbd {
   // clock, plays the bots and scores everyone's answers (each player reports their own pick and how fast they were).
   const trivia = (() => {
     const L = newLevel(23);
+    BOTLV.on(L);
     const G = L.group;
     const rand = mulberry32(2323);
     L.grabless = true;
@@ -23388,10 +23510,11 @@ kbd {
       // each bot decides when it'll buzz in and whether it'll be right
       H.plan = RS.order.map((id) => {
         if (!isBot(id)) return null;
-        const b = botOf(id), right = Math.random() < BOT_ACC[b.k];
+        // (the Bots level: how often they know it, and how quick they are to buzz)
+        const lv = BOTLV.get(L), b = botOf(id), right = Math.random() < clamp(BOT_ACC[b.k] + [-0.2, 0, 0.16][lv], 0.2, 0.95);
         let c = rightSlot();
         if (!right) { const wrong = [0, 1, 2, 3].filter((x) => x !== c); c = wrong[Math.floor(Math.random() * 3)]; }
-        return { t: T.ASK * (0.18 + Math.random() * (right ? 0.4 : 0.5)), c };
+        return { t: T.ASK * ([0.3, 0.18, 0.12][lv] + Math.random() * (right ? 0.4 : 0.5) * [1.2, 1, 0.75][lv]), c };
       });
       H.planKey = `${RS.game}:${RS.qn}`;
     }
@@ -24275,6 +24398,9 @@ kbd {
     });
     const LANES = [-0.9, 0, 0.9, -1.8, 1.8];
     bots.forEach((b, i) => { b.bi = i; b.lane = LANES[i % LANES.length]; });
+    // the Bots level: everyone's pace (and so their finish time) a little slower or faster
+    BOTLV.on(L, { note: 'The racers run at that pace from now' });
+    bots.forEach((b) => { const f0 = b.f; delete b.f; delete b.finishT; Object.defineProperty(b, 'f', { get: () => f0 * BOTLV.pick(L, [0.85, 1, 1.12]), enumerable: true }); Object.defineProperty(b, 'finishT', { get: () => FIN_T / b.f, set: () => {}, enumerable: true }); });
     const raceNow = () => (RACE.state === 'idle' ? 0 : Date.now() - RACE.startAt);
     const myProgress = () => { const [, bz] = bodyXZ(); return clamp(2 - bz, 0, 99.5); };
     function standings() {
@@ -28408,6 +28534,7 @@ kbd {
   // decides who got each chair; everyone else follows. The tune is the game's own, so it really stops.
   const chairs = (() => {
     const L = newLevel(32);
+    BOTLV.on(L);   // the bots: how quick they react to the music stopping, and how fast they dash
     const G = L.group;
     const rand = mulberry32(3232);
     L.grabless = true;
@@ -28485,7 +28612,7 @@ kbd {
       S.round += 1; S.n = n - 1; S.seats = Array(S.n).fill(''); S.ph = 'walk'; S.t = Date.now();
       S.stopAt = S.t + 6000 + rand() * 9000; S.tempo = 1 + (S.round - 1) * 0.08;
       // the bots spread out round the walking ring
-      aliveIds().forEach((id, k) => { const b = botOf(id); if (b) { b.ang = (k / n) * Math.PI * 2 + 0.3; b.target = -1; b.reactT = BOT_REACT[b.i] * (0.7 + rand() * 0.6); } });
+      aliveIds().forEach((id, k) => { const b = botOf(id); if (b) { b.ang = (k / n) * Math.PI * 2 + 0.3; b.target = -1; b.reactT = BOT_REACT[b.i] * (0.7 + rand() * 0.6) * BOTLV.pick(L, [1.6, 1, 0.6]); } });   // (the Bots level: how quick they react)
     }
     const botOf = (id) => (id[0] === 'b' && id.length <= 2 ? bots[Number(id.slice(1))] : null);
     function claim(id, chair) {
@@ -28518,7 +28645,7 @@ kbd {
           let best = -1, bd = 1e9;
           for (let c = 0; c < n; c++) { if (S.seats[c]) continue; const p = chairPos(c, n), d = Math.hypot(p.x - b.x, p.z - b.z); if (d < bd) { bd = d; best = c; } }
           if (best < 0) continue;
-          const p = chairPos(best, n), dx = p.x - b.x, dz = p.z - b.z, d = Math.hypot(dx, dz), s = BOT_SPEED[b.i] * dt;
+          const p = chairPos(best, n), dx = p.x - b.x, dz = p.z - b.z, d = Math.hypot(dx, dz), s = BOT_SPEED[b.i] * BOTLV.pick(L, [0.82, 1, 1.15]) * dt;
           if (d <= 0.25) { claim(id, best); continue; }
           b.x += dx / d * Math.min(d, s); b.z += dz / d * Math.min(d, s);
         }
@@ -29098,6 +29225,7 @@ kbd {
     const teamOf = (peer) => { if (peer === state.myPeer) return me.team; if (typeof peer === 'string' && peer.startsWith('bot:')) { const b = bots[Number(peer.slice(4))]; return b ? b.team : -1; } const rec = remotes.get(peer), st = rec && rec.lvState[L.id]; return st && (st.team === 0 || st.team === 1) ? st.team : -1; };
 
     // ---------------------------------------------------------------- the bots (run by the host, drawn by everyone)
+    BOTLV.on(L);   // how well the bots throw, dodge and catch
     const bots = [];
     for (let k = 0; k < 2 * TEAM_SIZE; k++) {
       const team = k < TEAM_SIZE ? 0 : 1, j = k % TEAM_SIZE;
@@ -29167,7 +29295,7 @@ kbd {
       const fx = bt.team === 0 ? 0 : 0, fz = bt.team === 0 ? -1 : 1;
       const from = new V3(bt.x + 0.25, 1.75, bt.z + fz * 0.35), to = new V3(tgt.x, 1.2, tgt.z);
       const dx = to.x - from.x, dz = to.z - from.z, dist = Math.max(1, Math.hypot(dx, dz)), speed = 9 + Math.random() * 3, tt = dist / speed;
-      const err = (Math.random() - 0.5) * 0.3 * (1.3 - bt.skill), c = Math.cos(err), s = Math.sin(err), hx = dx / dist, hz = dz / dist;
+      const err = (Math.random() - 0.5) * 0.3 * (1.3 - bt.skill) * BOTLV.pick(L, [1.7, 1, 0.45]), c = Math.cos(err), s = Math.sin(err), hx = dx / dist, hz = dz / dist;
       b.pos.copy(from); b.vel.set((hx * c - hz * s) * speed, (to.y - from.y + 0.5 * GRAVITY * tt * tt) / tt, (hx * s + hz * c) * speed);
       b.v += 1; b.owner = state.myPeer; b.held = null; b.sleeping = false; b.restT = 0; b.data = {}; b.throwFrom.copy(from);
       b.dbLive = true; b.dbWho = 'bot:' + bt.k; b.dbTeam = bt.team; b.dbCarrier = null; b.dbHolder = null;
@@ -29188,7 +29316,7 @@ kbd {
           for (const b of balls) {
             if (!b.dbLive || b.dbTeam === bt.team || b.held) continue;
             const rx = bt.x - b.pos.x, rz = bt.z - b.pos.z, d = Math.hypot(rx, rz);
-            if (d < 7 && (rx * b.vel.x + rz * b.vel.z) > 0.6 * d * Math.hypot(b.vel.x, b.vel.z) && Math.random() < 0.55 * dt * 10) { bt.dodgeUntil = now + 450; bt.dodgeDir = Math.random() < 0.5 ? -1 : 1; break; }
+            if (d < 7 && (rx * b.vel.x + rz * b.vel.z) > 0.6 * d * Math.hypot(b.vel.x, b.vel.z) && Math.random() < 0.55 * BOTLV.pick(L, [0.45, 1, 1.6]) * dt * 10) { bt.dodgeUntil = now + 450; bt.dodgeDir = Math.random() < 0.5 ? -1 : 1; break; }
           }
         }
         if (now < bt.dodgeUntil) goalX = bt.x + bt.dodgeDir * 3;
@@ -29198,13 +29326,13 @@ kbd {
           for (const b of balls) { if (b.held || b.dbCarrier != null || b.dbLive) continue; if (bt.team === 0 ? b.pos.z < -0.8 : b.pos.z > 0.8) continue; const d = Math.hypot(b.pos.x - bt.x, b.pos.z - bt.z); if (d < bd) { bd = d; best = b; } }
           if (best) {
             goalX = best.pos.x; goalZ = clamp(best.pos.z, own[0], own[1]);
-            if (bd < 0.9 && now > bt.cool) { bt.ball = best; best.dbCarrier = bt.k; best.owner = state.myPeer; best.v += 1; bt.thrAt = now + 700 + Math.random() * 1300; }
+            if (bd < 0.9 && now > bt.cool) { bt.ball = best; best.dbCarrier = bt.k; best.owner = state.myPeer; best.v += 1; bt.thrAt = now + (700 + Math.random() * 1300) * BOTLV.pick(L, [1.5, 1, 0.65]); }
           } else { goalZ = bt.team === 0 ? 7 : -7; goalX = bt.x + Math.sin(now * 0.001 + bt.k) * 2; }
         } else if (RS.st === 'play' && now > bt.thrAt) {
           const tgt = nearestEnemy(bt, bt.team); if (tgt) throwBall(bt, tgt, now); else bt.thrAt = now + 500;
         } else { const c = coverFor(bt); goalX = c.x + (now > bt.thrAt - 500 ? (bt.j % 2 ? 1.5 : -1.5) : 0); goalZ = c.z; }
         // move
-        const dx = goalX - bt.x, dz = goalZ - bt.z, d = Math.hypot(dx, dz), sp = (now < bt.dodgeUntil ? 5 : 3.2) * dt;
+        const dx = goalX - bt.x, dz = goalZ - bt.z, d = Math.hypot(dx, dz), sp = (now < bt.dodgeUntil ? 5 : 3.2) * BOTLV.pick(L, [0.85, 1, 1.15]) * dt;
         if (RS.st === 'play' && d > 0.05) { const nx = bt.x + (dx / d) * Math.min(d, sp), nz = bt.z + (dz / d) * Math.min(d, sp); if (!blocked(nx, nz)) { bt.x = nx; bt.z = nz; } else if (!blocked(nx, bt.z)) bt.x = nx; else if (!blocked(bt.x, nz)) bt.z = nz; }
         bt.x = clamp(bt.x, -5.7, 5.7); bt.z = clamp(bt.z, own[0], own[1]);
         if (bt.ball) { bt.ball.pos.set(bt.x + 0.25, 1.1, bt.z + (bt.team === 0 ? -0.35 : 0.35)); bt.ball.vel.set(0, 0, 0); bt.ball.sleeping = false; }
@@ -29600,6 +29728,7 @@ kbd {
       return Object.assign({ i, sled, s: START_S, lat: 0, v: 0, air: 0, airV: 0, done: 0, steer: 0, ice: -1, jump: -1, bonkT: 0, line: 0 }, d);
     });
     L.sledBots = BOTS;
+    BOTLV.on(L);
 
     // ---------------------------------------------------------------- my sled and the race
     const K = { s: START_S, lat: 0, v: 0, air: 0, airV: 0, steer: 0, tuck: false, brake: 0, ice: -1, jump: -1, bonkT: 0, done: 0 };
@@ -29672,7 +29801,7 @@ kbd {
       for (const ic of ICE) if (ic.s > b.s && ic.s - b.s < 25) want = ic.lat;
       b.steer = clamp((want - b.lat) * 0.9, -1, 1);
       sledStep(b, dt, b.steer, false, 0, false);
-      b.v *= Math.pow(b.f, dt * 0.6);
+      b.v *= Math.pow(b.f * BOTLV.pick(L, [0.955, 1, 1.03]), dt * 0.6);   // (the Bots level: more drag on easy, less on hard)
     }
 
     // ---------------------------------------------------------------- input: lean in VR, keys in a browser
@@ -30261,7 +30390,10 @@ kbd {
     const teamOf = (slot) => (slot < 2 ? 0 : 1);
     const BOT_NAMES = ['Sandy', 'Kai', 'Coral', 'Spike'];
     const BOT_COLS = ['#4fc3f7', '#2ec4b6', '#ff7a5a', '#ffb03a'];
-    const LEVELS = [{ name: 'Easy', speed: 3.4, miss: 0.12, spikeMiss: 0.5, err: 1.2, react: 0.45 }, { name: 'Pro', speed: 4.4, miss: 0.04, spikeMiss: 0.3, err: 0.6, react: 0.3 }];
+    // the bots' level is the shared Bots setting (easy, normal, hard); normal is how the old "Pro" bots played
+    const LEVELS = [{ name: 'Easy', speed: 3.4, miss: 0.12, spikeMiss: 0.5, err: 1.2, react: 0.45 }, { name: 'Normal', speed: 4.4, miss: 0.04, spikeMiss: 0.3, err: 0.6, react: 0.3 },
+      { name: 'Hard', speed: 5.1, miss: 0.015, spikeMiss: 0.16, err: 0.35, react: 0.2 }];
+    BOTLV.on(L);
 
     // ---------------------------------------------------------------- the beach
     const sandTex = canvasTexture(256, 256, (g) => { g.fillStyle = '#e8d098'; g.fillRect(0, 0, 256, 256); for (let i = 0; i < 1600; i++) { const v = 190 + Math.floor(rand() * 50); g.fillStyle = `rgba(${v},${v - 30},${v - 90},0.5)`; g.fillRect(rand() * 256, rand() * 256, 2, 2); } });
@@ -30689,7 +30821,7 @@ kbd {
         && Array.isArray(q.s) && q.s.length === 2 && q.s.every((x) => Number.isInteger(x) && x >= 0 && x < 100) && Number.isInteger(q.sv) && q.sv >= 0 && q.sv < 4
         && Number.isInteger(q.t) && Number.isInteger(q.lt) && Number.isInteger(q.ls) && Array.isArray(q.pl) && q.pl.length === 8 && q.pl.every((x) => fin(x, 100))
         && Array.isArray(q.h) && q.h.length === 4 && q.h.every((x) => typeof x === 'string' && x.length < 64) && Array.isArray(q.m) && q.m.length === 2 && Number.isInteger(q.m[0]) && typeof q.m[1] === 'string' && q.m[1].length < 200
-        && Number.isInteger(q.w) && (q.lv === 0 || q.lv === 1);
+        && Number.isInteger(q.w) && (q.lv === 0 || q.lv === 1 || q.lv === 2);
     }
     let seenMsg = -1, lastSnapB = '';
     function applySnap(q) {
@@ -30753,6 +30885,7 @@ kbd {
       // my hand speeds (VR)
       for (const sd of SIDES) { const h = myHands[sd]; ME.hv[sd].subVectors(h.pos, ME.prevH[sd]).divideScalar(Math.max(dt, 1e-3)); ME.prevH[sd].copy(h.pos); }
       if (isHost()) {
+        V.lv = BOTLV.get(L);
         if (V.ph === 'idle' || V.ph === 'over') { const before = V.people.join(); assignPeople(); if (V.people.join() !== before) forcePresence(); }
         else { const here2 = humansHere(); V.people = V.people.map((id) => (id && here2.includes(id) ? id : '')); }   // someone left: a bot takes over
         hostStep(dt);
@@ -30823,7 +30956,6 @@ kbd {
     L.hudActions = [
       { label: () => (V.ph === 'idle' || V.ph === 'over' ? 'Start match' : 'Restart'), run: () => { if (isHost()) startMatch(); else requestStart(); } },
       { label: () => `Teams: ${V.solo ? '1 v 1' : '2 v 2'} ▸`, run: () => setSolo(!V.solo) },
-      { label: () => `Bots: ${LEVELS[V.lv].name} ▸`, run: () => { if (!isHost()) { showToast('The first player in the room picks the bots'); return; } V.lv = (V.lv + 1) % LEVELS.length; forcePresence(); state.hudDirty = true; } },
     ];
     // one on one or two on two: the first player in the room picks, between matches
     function setSolo(on) {
@@ -30839,7 +30971,7 @@ kbd {
     // buttons on the sand beside the court (for VR): 1 v 1 or 2 v 2, the bots, and start
     makeButton(L, new V3(-3.2, 1.0, 5.4), 0x4fc3f7, '1 v 1 / 2 v 2', () => setSolo(!V.solo), { faceYaw: Math.PI });
     makeButton(L, new V3(-2.2, 1.0, 5.4), 0xffd23f, 'Start match', () => { if (V.ph === 'idle' || V.ph === 'over') requestStart(); else if (isHost()) startMatch(); }, { faceYaw: Math.PI });
-    makeButton(L, new V3(-1.2, 1.0, 5.4), 0xff9a5a, 'Bots: easy / pro', () => { if (!isHost()) { showToast('The first player in the room picks the bots'); return; } V.lv = (V.lv + 1) % LEVELS.length; showToast(`Bots: ${LEVELS[V.lv].name}`); forcePresence(); state.hudDirty = true; }, { faceYaw: Math.PI });
+    makeButton(L, new V3(-1.2, 1.0, 5.4), 0xff9a5a, 'Bots: easy / normal / hard', () => BOTLV.cycle(L), { faceYaw: Math.PI });
     L.hints = [['A / X', 'start a match, then jump'], ['Jump at the net', 'hands up to block their spike'], ['Bump or set', 'just get your hands to the ball'], ['Spike', 'swing hard at a high ball by the net'], ['White ring', 'where the ball is coming down']];
     L.hintsFor = () => (state.mode === 'flat' ? [['WASD', 'move (Shift runs)'], ['Walk under the ball', 'to play it'], ['Hold Space', 'to spike, aimed where you look'], ['J at the net', 'jump to block their spike']] : L.hints);
     L.spawn = () => { dolly.position.set(-4, 0, 1); if (state.mode !== 'vr') { state.yaw = -Math.PI / 2; state.pitch = 0; } };
@@ -30858,6 +30990,7 @@ kbd {
   // count; the others tell it who they bonked.
   const pillow = (() => {
     const L = newLevel(38);
+    BOTLV.on(L);
     const G = L.group;
     const rand = mulberry32(3838);
     L.grabless = true;
@@ -31023,7 +31156,7 @@ kbd {
         b.yaw = Math.atan2(-dx, -dz);
         b.strafe -= dt; if (b.strafe <= 0) { b.side = rand() < 0.5 ? -1 : 1; b.strafe = 0.8 + rand() * 1.5; }
         const want = d > 1.05 ? 1 : d < 0.75 ? -0.6 : 0;
-        const sp = 2.4 * dt;
+        const sp = 2.4 * BOTLV.pick(L, [0.82, 1, 1.15]) * dt;   // (the Bots level: their pace, how often they swing, how often it lands)
         b.x += (dx / d * want + (-dz / d) * b.side * 0.4) * sp; b.z += (dz / d * want + (dx / d) * b.side * 0.4) * sp;
         b.x = clamp(b.x, -HALF + 0.3, HALF - 0.3); b.z = clamp(b.z, -HALF + 0.3, HALF - 0.3);
         // a swing landing
@@ -31031,8 +31164,8 @@ kbd {
         // swing when close
         b.cool -= dt; b.swing = Math.max(0, b.swing - dt);
         if (b.cool <= 0 && d < 1.35) {
-          b.cool = 1.2 + rand() * 1.0; b.swing = 0.35; sfx('whoosh', 0.2);
-          if (rand() < 0.45) b.pend = { t: 0.18, target: best };
+          b.cool = (1.2 + rand() * 1.0) * BOTLV.pick(L, [1.45, 1, 0.7]); b.swing = 0.35; sfx('whoosh', 0.2);
+          if (rand() < BOTLV.pick(L, [0.28, 0.45, 0.62])) b.pend = { t: 0.18, target: best };
         }
       });
       // keep bots apart a little
@@ -31873,6 +32006,7 @@ kbd {
       return Object.assign({ i, m, s: 0, lat: 0, v: 0, air: 0, airV: 0, done: 0, steer: 0, stumble: 0, gait: 0, carrots: [], boost: 0, line: 0, late: false }, d);
     });
     L.llamaBots = BOTS;
+    BOTLV.on(L);
 
     // ---------------------------------------------------------------- my llama and the race
     const K = { s: 0, lat: 0, v: 0, air: 0, airV: 0, steer: 0, done: 0, stumble: 0, gait: 0, carrots: [], boost: 0, giddy: 0 };
@@ -31949,9 +32083,10 @@ kbd {
     L.standings = standings;
     function botRide(b, dt) {
       // keep giddying up toward its top speed; jump bales (now and then a bit late); steer for carrots, round mud
-      if (b.v < b.top && rand() < dt * 5) giddy(b, 1.5);
+      const lv = BOTLV.get(L), top = b.top * [0.88, 1, 1.08][lv];   // (the Bots level: their top speed, and how often they're late for a bale)
+      if (b.v < top && rand() < dt * [4, 5, 7][lv]) giddy(b, 1.5);
       const sl = ((b.s % TLEN) + TLEN) % TLEN;
-      for (const bl of BALES) { const ahead = bl.s - sl; if (ahead > 0 && ahead < (b.late ? 0.3 : Math.max(0.9, b.v * 0.3))) { jump(b, false); b.late = rand() < 0.12; } }
+      for (const bl of BALES) { const ahead = bl.s - sl; if (ahead > 0 && ahead < (b.late ? 0.3 : Math.max(0.9, b.v * 0.3))) { jump(b, false); b.late = rand() < [0.25, 0.12, 0.04][lv]; } }
       let want = b.line;
       for (const c of CARROTS) { const ahead = c.s - sl; if (ahead > 0 && ahead < 20) { want = c.lat; break; } }
       for (const m of MUD) { const ahead = m.s - sl; if (ahead > -2 && ahead < 14 && Math.abs(want - m.lat) < m.r + 0.4) want = m.lat + (m.lat > 0 ? -m.r - 0.6 : m.r + 0.6); }
@@ -32156,6 +32291,7 @@ kbd {
   // One player's device (the first in the room) runs the tournament.
   const rps = (() => {
     const L = newLevel(41);
+    BOTLV.on(L);
     const G = L.group;
     const rand = mulberry32(4141);
     L.grabless = true;
@@ -32251,8 +32387,13 @@ kbd {
       S.seq += 1; S.ph = 'count'; S.shootAt = Date.now() + COUNT; S.got = {};
       forcePresence();
     }
+    // the Bots level. Easy: they often throw the same thing again (watch for it). Hard: they keep count of what each
+    // person throws, and more often than not play whatever beats your favourite
+    const FREQ = {};
     function botPick(id, opp) {
-      const b = BOTS[botOf(id)];
+      const b = BOTS[botOf(id)], lv = BOTLV.get(L);
+      if (lv === 2 && botOf(opp) < 0 && FREQ[opp]) { const f = FREQ[opp], n = f[0] + f[1] + f[2]; if (n >= 2 && rand() < 0.55) { const fav = f.indexOf(Math.max(...f)); return (fav + 1) % 3; } }
+      if (lv === 0 && S.prev[id] !== undefined && rand() < 0.5) return S.prev[id];
       if (b.copy && S.prev[opp] !== undefined) return S.prev[opp];
       const r = rand(), w = b.bias || [1 / 3, 1 / 3, 1 / 3];
       return r < w[0] ? 0 : r < w[0] + w[1] ? 1 : 2;
@@ -32264,6 +32405,7 @@ kbd {
         const pickOf = (id, opp) => (botOf(id) >= 0 ? botPick(id, opp) : S.got[id] !== undefined ? S.got[id] : Math.floor(rand() * 3));
         const a = pickOf(m[0], m[1]), b = pickOf(m[1], m[0]);
         m[4] = a; m[5] = b; S.prev[m[0]] = a; S.prev[m[1]] = b;
+        for (const [who, t] of [[m[0], a], [m[1], b]]) if (botOf(who) < 0 && t >= 0 && t <= 2) { const f = FREQ[who] || (FREQ[who] = [0, 0, 0]); f[t] += 1; }
         if (beats(a, b)) m[2] += 1; else if (beats(b, a)) m[3] += 1;
         if (m[2] >= 2) m[6] = m[0]; else if (m[3] >= 2) m[6] = m[1];
       }
@@ -37742,6 +37884,7 @@ kbd {
   // Browser: WASD to run, Space to leap; if you're lava, run into people to tag them.
   const gorilla = (() => {
     const L = newLevel(58);
+    BOTLV.on(L);
     const G = L.group;
     const rand = mulberry32(5858);
     L.grabless = true;
@@ -37907,7 +38050,7 @@ kbd {
         if (best >= 0) { const p = P[best]; dx = p.x - b.x; dz = p.z - b.z; const d = Math.hypot(dx, dz) || 1; dx /= d; dz /= d; if (!lava) { dx = -dx; dz = -dz; if (bd > 9) { dx = Math.sin(b.hop * 0.3); dz = Math.cos(b.hop * 0.3); } } }
         // keep off the edges
         dx -= clamp((b.x) / ARENA, -1, 1) ** 3 * 1.5; dz -= clamp((b.z) / ARENA, -1, 1) ** 3 * 1.5;
-        const sp = lava ? 3.9 : 3.5, l = Math.hypot(dx, dz) || 1;
+        const sp = (lava ? 3.9 : 3.5) * BOTLV.pick(L, [0.78, 1, 1.18]), l = Math.hypot(dx, dz) || 1;   // (the Bots level: their pace)
         b.x += dx / l * sp * dt; b.z += dz / l * sp * dt; b.hop += dt * 7;
         b.yaw = Math.atan2(-dx, -dz);
         const push = pushOut(new V3(b.x, 0.8, b.z), 0.45); b.x += push.x; b.z += push.z;
@@ -38797,7 +38940,7 @@ kbd {
   function buildPresence() {
     const L = curLevel();
     const inGame = state.mode !== 'menu';
-    const p = { n: state.name, c: state.colorIdx, a: [state.hat, state.face, state.shirt, state.shirtColor], p: inGame ? 1 : 0, lv: state.level, h: null, l: null, r: null, b: [], t: [], s: null, bb: null, dg: null, d: null, dq: null, hx: null, sh: null, pc: null, dr: null, dh: null, lq: null, ls: null, lh: null, sq: null, mq: null, mb: null, bo: null, bp: null, bw: null, ka: null, pz: PRIZE_FX.mask() };
+    const p = { n: state.name, c: state.colorIdx, a: [state.hat, state.face, state.shirt, state.shirtColor], p: inGame ? 1 : 0, lv: state.level, h: null, l: null, r: null, b: [], t: [], s: null, bb: null, dg: null, d: null, dq: null, hx: null, sh: null, pc: null, dr: null, dh: null, lq: null, ls: null, lh: null, sq: null, mq: null, mb: null, bo: null, bp: null, bw: null, ka: null, pz: PRIZE_FX.mask(), bl: BOTLV.mine(L) };
     if (inGame) {
       const over = L.publishPose ? L.publishPose() : null;
       if (over) {
@@ -38892,6 +39035,7 @@ kbd {
     if (rec.lv !== state.level) return;
     const L = curLevel();
     const st = rec.lvState[L.id] || (rec.lvState[L.id] = {});
+    if (pres.bl && rec.inGame) BOTLV.read(rec, pres.bl);
     if (L.picker && pres.pc) L.picker.merge(pres.pc);
     if (L.sitOut) { if (pres.so === 1 !== !!st.sitOut) state.dirtyBoard = true; st.sitOut = pres.so === 1; }
     if (pres.rcd && rec.name) RECORDS.merge(L, rec.name, pres.rcd);
@@ -39351,7 +39495,7 @@ kbd {
     if (ui.micBtn) { ui.micBtn.hidden = !VOICE.stream; ui.micBtn.textContent = VOICE.muted ? 'Mic: muted' : 'Mic: on'; }
     syncVoiceToggle();
     if (ui.musicToggle) ui.musicToggle.checked = MUSIC.on;
-    const actionBtns = L.hudActions.concat(L.picker ? [L.picker.hud] : [], L.sitOut ? [L.sitOut.hud] : [], L.recHud ? [L.recHud] : []).filter((a) => !a.show || a.show()).map((a) => {
+    const actionBtns = L.hudActions.concat(L.picker ? [L.picker.hud] : [], L.sitOut ? [L.sitOut.hud] : [], L.botHud ? [L.botHud] : [], L.recHud ? [L.recHud] : []).filter((a) => !a.show || a.show()).map((a) => {
       const b = document.createElement('button');
       b.className = 'hud-btn';
       b.type = 'button';
@@ -39471,7 +39615,7 @@ kbd {
   // the tests in tests/ reach inside through this, only when the page is opened with ?test
   // the shared records board (the Claude page's database, or records.php on your own site), if there is one
   RECORDS.shared.start();
-  try { if (new URLSearchParams(location.search).has('test')) window.__fd = { LEVELS, prizeFx: PRIZE_FX, state, dolly, camera, myHead, myHands, RECORDS, APLUS, switchLevel, startGame, voice: { VOICE, voiceWatch, voiceResend, remotes, buildPresence }, audio: { snd, tone, sfx, ensureAudio, MUSIC } }; } catch (e) { /* ignore */ }
+  try { if (new URLSearchParams(location.search).has('test')) window.__fd = { LEVELS, prizeFx: PRIZE_FX, BOTLV, watch: { press: watchPress, btns: watchBtns }, state, dolly, camera, myHead, myHands, RECORDS, APLUS, switchLevel, startGame, voice: { VOICE, voiceWatch, voiceResend, remotes, buildPresence }, audio: { snd, tone, sfx, ensureAudio, MUSIC } }; } catch (e) { /* ignore */ }
 })();
 </script>
 </body>

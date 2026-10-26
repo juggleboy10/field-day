@@ -7,6 +7,7 @@
   // One player's device (the first in the room) runs the tournament.
   const rps = (() => {
     const L = newLevel(41);
+    BOTLV.on(L);
     const G = L.group;
     const rand = mulberry32(4141);
     L.grabless = true;
@@ -102,8 +103,13 @@
       S.seq += 1; S.ph = 'count'; S.shootAt = Date.now() + COUNT; S.got = {};
       forcePresence();
     }
+    // the Bots level. Easy: they often throw the same thing again (watch for it). Hard: they keep count of what each
+    // person throws, and more often than not play whatever beats your favourite
+    const FREQ = {};
     function botPick(id, opp) {
-      const b = BOTS[botOf(id)];
+      const b = BOTS[botOf(id)], lv = BOTLV.get(L);
+      if (lv === 2 && botOf(opp) < 0 && FREQ[opp]) { const f = FREQ[opp], n = f[0] + f[1] + f[2]; if (n >= 2 && rand() < 0.55) { const fav = f.indexOf(Math.max(...f)); return (fav + 1) % 3; } }
+      if (lv === 0 && S.prev[id] !== undefined && rand() < 0.5) return S.prev[id];
       if (b.copy && S.prev[opp] !== undefined) return S.prev[opp];
       const r = rand(), w = b.bias || [1 / 3, 1 / 3, 1 / 3];
       return r < w[0] ? 0 : r < w[0] + w[1] ? 1 : 2;
@@ -115,6 +121,7 @@
         const pickOf = (id, opp) => (botOf(id) >= 0 ? botPick(id, opp) : S.got[id] !== undefined ? S.got[id] : Math.floor(rand() * 3));
         const a = pickOf(m[0], m[1]), b = pickOf(m[1], m[0]);
         m[4] = a; m[5] = b; S.prev[m[0]] = a; S.prev[m[1]] = b;
+        for (const [who, t] of [[m[0], a], [m[1], b]]) if (botOf(who) < 0 && t >= 0 && t <= 2) { const f = FREQ[who] || (FREQ[who] = [0, 0, 0]); f[t] += 1; }
         if (beats(a, b)) m[2] += 1; else if (beats(b, a)) m[3] += 1;
         if (m[2] >= 2) m[6] = m[0]; else if (m[3] >= 2) m[6] = m[1];
       }

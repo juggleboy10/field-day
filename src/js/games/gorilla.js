@@ -6,6 +6,7 @@
   // Browser: WASD to run, Space to leap; if you're lava, run into people to tag them.
   const gorilla = (() => {
     const L = newLevel(58);
+    BOTLV.on(L);
     const G = L.group;
     const rand = mulberry32(5858);
     L.grabless = true;
@@ -171,7 +172,7 @@
         if (best >= 0) { const p = P[best]; dx = p.x - b.x; dz = p.z - b.z; const d = Math.hypot(dx, dz) || 1; dx /= d; dz /= d; if (!lava) { dx = -dx; dz = -dz; if (bd > 9) { dx = Math.sin(b.hop * 0.3); dz = Math.cos(b.hop * 0.3); } } }
         // keep off the edges
         dx -= clamp((b.x) / ARENA, -1, 1) ** 3 * 1.5; dz -= clamp((b.z) / ARENA, -1, 1) ** 3 * 1.5;
-        const sp = lava ? 3.9 : 3.5, l = Math.hypot(dx, dz) || 1;
+        const sp = (lava ? 3.9 : 3.5) * BOTLV.pick(L, [0.78, 1, 1.18]), l = Math.hypot(dx, dz) || 1;   // (the Bots level: their pace)
         b.x += dx / l * sp * dt; b.z += dz / l * sp * dt; b.hop += dt * 7;
         b.yaw = Math.atan2(-dx, -dz);
         const push = pushOut(new V3(b.x, 0.8, b.z), 0.45); b.x += push.x; b.z += push.z;

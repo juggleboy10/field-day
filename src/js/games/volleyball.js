@@ -27,7 +27,10 @@
     const teamOf = (slot) => (slot < 2 ? 0 : 1);
     const BOT_NAMES = ['Sandy', 'Kai', 'Coral', 'Spike'];
     const BOT_COLS = ['#4fc3f7', '#2ec4b6', '#ff7a5a', '#ffb03a'];
-    const LEVELS = [{ name: 'Easy', speed: 3.4, miss: 0.12, spikeMiss: 0.5, err: 1.2, react: 0.45 }, { name: 'Pro', speed: 4.4, miss: 0.04, spikeMiss: 0.3, err: 0.6, react: 0.3 }];
+    // the bots' level is the shared Bots setting (easy, normal, hard); normal is how the old "Pro" bots played
+    const LEVELS = [{ name: 'Easy', speed: 3.4, miss: 0.12, spikeMiss: 0.5, err: 1.2, react: 0.45 }, { name: 'Normal', speed: 4.4, miss: 0.04, spikeMiss: 0.3, err: 0.6, react: 0.3 },
+      { name: 'Hard', speed: 5.1, miss: 0.015, spikeMiss: 0.16, err: 0.35, react: 0.2 }];
+    BOTLV.on(L);
 
     // ---------------------------------------------------------------- the beach
     const sandTex = canvasTexture(256, 256, (g) => { g.fillStyle = '#e8d098'; g.fillRect(0, 0, 256, 256); for (let i = 0; i < 1600; i++) { const v = 190 + Math.floor(rand() * 50); g.fillStyle = `rgba(${v},${v - 30},${v - 90},0.5)`; g.fillRect(rand() * 256, rand() * 256, 2, 2); } });
@@ -455,7 +458,7 @@
         && Array.isArray(q.s) && q.s.length === 2 && q.s.every((x) => Number.isInteger(x) && x >= 0 && x < 100) && Number.isInteger(q.sv) && q.sv >= 0 && q.sv < 4
         && Number.isInteger(q.t) && Number.isInteger(q.lt) && Number.isInteger(q.ls) && Array.isArray(q.pl) && q.pl.length === 8 && q.pl.every((x) => fin(x, 100))
         && Array.isArray(q.h) && q.h.length === 4 && q.h.every((x) => typeof x === 'string' && x.length < 64) && Array.isArray(q.m) && q.m.length === 2 && Number.isInteger(q.m[0]) && typeof q.m[1] === 'string' && q.m[1].length < 200
-        && Number.isInteger(q.w) && (q.lv === 0 || q.lv === 1);
+        && Number.isInteger(q.w) && (q.lv === 0 || q.lv === 1 || q.lv === 2);
     }
     let seenMsg = -1, lastSnapB = '';
     function applySnap(q) {
@@ -519,6 +522,7 @@
       // my hand speeds (VR)
       for (const sd of SIDES) { const h = myHands[sd]; ME.hv[sd].subVectors(h.pos, ME.prevH[sd]).divideScalar(Math.max(dt, 1e-3)); ME.prevH[sd].copy(h.pos); }
       if (isHost()) {
+        V.lv = BOTLV.get(L);
         if (V.ph === 'idle' || V.ph === 'over') { const before = V.people.join(); assignPeople(); if (V.people.join() !== before) forcePresence(); }
         else { const here2 = humansHere(); V.people = V.people.map((id) => (id && here2.includes(id) ? id : '')); }   // someone left: a bot takes over
         hostStep(dt);
@@ -589,7 +593,6 @@
     L.hudActions = [
       { label: () => (V.ph === 'idle' || V.ph === 'over' ? 'Start match' : 'Restart'), run: () => { if (isHost()) startMatch(); else requestStart(); } },
       { label: () => `Teams: ${V.solo ? '1 v 1' : '2 v 2'} ▸`, run: () => setSolo(!V.solo) },
-      { label: () => `Bots: ${LEVELS[V.lv].name} ▸`, run: () => { if (!isHost()) { showToast('The first player in the room picks the bots'); return; } V.lv = (V.lv + 1) % LEVELS.length; forcePresence(); state.hudDirty = true; } },
     ];
     // one on one or two on two: the first player in the room picks, between matches
     function setSolo(on) {
@@ -605,7 +608,7 @@
     // buttons on the sand beside the court (for VR): 1 v 1 or 2 v 2, the bots, and start
     makeButton(L, new V3(-3.2, 1.0, 5.4), 0x4fc3f7, '1 v 1 / 2 v 2', () => setSolo(!V.solo), { faceYaw: Math.PI });
     makeButton(L, new V3(-2.2, 1.0, 5.4), 0xffd23f, 'Start match', () => { if (V.ph === 'idle' || V.ph === 'over') requestStart(); else if (isHost()) startMatch(); }, { faceYaw: Math.PI });
-    makeButton(L, new V3(-1.2, 1.0, 5.4), 0xff9a5a, 'Bots: easy / pro', () => { if (!isHost()) { showToast('The first player in the room picks the bots'); return; } V.lv = (V.lv + 1) % LEVELS.length; showToast(`Bots: ${LEVELS[V.lv].name}`); forcePresence(); state.hudDirty = true; }, { faceYaw: Math.PI });
+    makeButton(L, new V3(-1.2, 1.0, 5.4), 0xff9a5a, 'Bots: easy / normal / hard', () => BOTLV.cycle(L), { faceYaw: Math.PI });
     L.hints = [['A / X', 'start a match, then jump'], ['Jump at the net', 'hands up to block their spike'], ['Bump or set', 'just get your hands to the ball'], ['Spike', 'swing hard at a high ball by the net'], ['White ring', 'where the ball is coming down']];
     L.hintsFor = () => (state.mode === 'flat' ? [['WASD', 'move (Shift runs)'], ['Walk under the ball', 'to play it'], ['Hold Space', 'to spike, aimed where you look'], ['J at the net', 'jump to block their spike']] : L.hints);
     L.spawn = () => { dolly.position.set(-4, 0, 1); if (state.mode !== 'vr') { state.yaw = -Math.PI / 2; state.pitch = 0; } };

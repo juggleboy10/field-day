@@ -374,6 +374,9 @@
       tag.scale.set(0.9, 0.225, 1); tag.position.y = 0.42; g.add(tag); g.visible = false; G.add(g);
       return Object.assign({ g, bi, finishT: ROUTE_T[ROUTE_T.length - 1] / d.f, pos: new V3() }, d);
     });
+    // the Bots level: everyone's pace (and so their finish time) a little slower or faster
+    BOTLV.on(L, { note: 'The racers run at that pace from now' });
+    bots.forEach((b) => { const f0 = b.f; delete b.f; delete b.finishT; Object.defineProperty(b, 'f', { get: () => f0 * BOTLV.pick(L, [0.86, 1, 1.14]), enumerable: true }); Object.defineProperty(b, 'finishT', { get: () => ROUTE_T[ROUTE_T.length - 1] / b.f, set: () => {}, enumerable: true }); });
     L.pkBots = bots;
     const raceNow = () => (RACE.state === 'idle' ? 0 : Date.now() - RACE.startAt);
     const myProgress = () => { const [, bz] = bodyXZ(); return clamp((3 - bz) / CLEN * 180, 0, 180) + Math.max(0, dolly.position.y) * 0.4; };

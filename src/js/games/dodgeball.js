@@ -84,6 +84,7 @@
     const teamOf = (peer) => { if (peer === state.myPeer) return me.team; if (typeof peer === 'string' && peer.startsWith('bot:')) { const b = bots[Number(peer.slice(4))]; return b ? b.team : -1; } const rec = remotes.get(peer), st = rec && rec.lvState[L.id]; return st && (st.team === 0 || st.team === 1) ? st.team : -1; };
 
     // ---------------------------------------------------------------- the bots (run by the host, drawn by everyone)
+    BOTLV.on(L);   // how well the bots throw, dodge and catch
     const bots = [];
     for (let k = 0; k < 2 * TEAM_SIZE; k++) {
       const team = k < TEAM_SIZE ? 0 : 1, j = k % TEAM_SIZE;
@@ -151,7 +152,7 @@
       const fx = bt.team === 0 ? 0 : 0, fz = bt.team === 0 ? -1 : 1;
       const from = new V3(bt.x + 0.25, 1.3, bt.z + fz * 0.35), to = new V3(tgt.x, 1.15, tgt.z);
       const dx = to.x - from.x, dz = to.z - from.z, dist = Math.max(1, Math.hypot(dx, dz)), speed = 12 + Math.random() * 3.5, tt = dist / speed;
-      const err = (Math.random() - 0.5) * 0.3 * (1.3 - bt.skill), c = Math.cos(err), s = Math.sin(err), hx = dx / dist, hz = dz / dist;
+      const err = (Math.random() - 0.5) * 0.3 * (1.3 - bt.skill) * BOTLV.pick(L, [1.7, 1, 0.45]), c = Math.cos(err), s = Math.sin(err), hx = dx / dist, hz = dz / dist;
       b.pos.copy(from); b.vel.set((hx * c - hz * s) * speed, (to.y - from.y + 0.5 * GRAVITY * tt * tt) / tt, (hx * s + hz * c) * speed);
       b.v += 1; b.owner = state.myPeer; b.held = null; b.sleeping = false; b.restT = 0; b.data = {}; b.throwFrom.copy(from);
       b.dbLive = true; b.dbWho = 'bot:' + bt.k; b.dbTeam = bt.team; b.dbCarrier = null; b.dbHolder = null;
@@ -170,7 +171,7 @@
           for (const b of balls) {
             if (!b.dbLive || b.dbTeam === bt.team || b.held) continue;
             const rx = bt.x - b.pos.x, rz = bt.z - b.pos.z, d = Math.hypot(rx, rz);
-            if (d < 7 && (rx * b.vel.x + rz * b.vel.z) > 0.6 * d * Math.hypot(b.vel.x, b.vel.z) && Math.random() < 0.55 * dt * 10) { bt.dodgeUntil = now + 450; bt.dodgeDir = Math.random() < 0.5 ? -1 : 1; break; }
+            if (d < 7 && (rx * b.vel.x + rz * b.vel.z) > 0.6 * d * Math.hypot(b.vel.x, b.vel.z) && Math.random() < 0.55 * BOTLV.pick(L, [0.45, 1, 1.6]) * dt * 10) { bt.dodgeUntil = now + 450; bt.dodgeDir = Math.random() < 0.5 ? -1 : 1; break; }
           }
         }
         if (now < bt.dodgeUntil) goalX = bt.x + bt.dodgeDir * 3;
@@ -180,13 +181,13 @@
           for (const b of balls) { if (b.held || b.dbCarrier != null || b.dbLive) continue; if (bt.team === 0 ? b.pos.z < -0.8 : b.pos.z > 0.8) continue; const d = Math.hypot(b.pos.x - bt.x, b.pos.z - bt.z); if (d < bd) { bd = d; best = b; } }
           if (best) {
             goalX = best.pos.x; goalZ = clamp(best.pos.z, own[0], own[1]);
-            if (bd < 0.9 && now > bt.cool) { bt.ball = best; best.dbCarrier = bt.k; best.owner = state.myPeer; best.v += 1; bt.thrAt = now + 700 + Math.random() * 1300; }
+            if (bd < 0.9 && now > bt.cool) { bt.ball = best; best.dbCarrier = bt.k; best.owner = state.myPeer; best.v += 1; bt.thrAt = now + (700 + Math.random() * 1300) * BOTLV.pick(L, [1.5, 1, 0.65]); }
           } else { goalZ = bt.team === 0 ? 7 : -7; goalX = bt.x + Math.sin(now * 0.001 + bt.k) * 2; }
         } else if (RS.st === 'play' && now > bt.thrAt) {
           const tgt = nearestEnemy(bt, bt.team); if (tgt) throwBall(bt, tgt, now); else bt.thrAt = now + 500;
         } else { goalX = bt.x + Math.sin(now * 0.002 + bt.k) * 2; goalZ = bt.team === 0 ? 4.5 : -4.5; }
         // move
-        const dx = goalX - bt.x, dz = goalZ - bt.z, d = Math.hypot(dx, dz), sp = (now < bt.dodgeUntil ? 5 : 3.2) * dt;
+        const dx = goalX - bt.x, dz = goalZ - bt.z, d = Math.hypot(dx, dz), sp = (now < bt.dodgeUntil ? 5 : 3.2) * BOTLV.pick(L, [0.85, 1, 1.15]) * dt;
         if (RS.st === 'play' && d > 0.05) { bt.x += (dx / d) * Math.min(d, sp); bt.z += (dz / d) * Math.min(d, sp); }
         bt.x = clamp(bt.x, -5.7, 5.7); bt.z = clamp(bt.z, own[0], own[1]);
         if (bt.ball) { bt.ball.pos.set(bt.x + 0.25, 1.1, bt.z + (bt.team === 0 ? -0.35 : 0.35)); bt.ball.vel.set(0, 0, 0); bt.ball.sleeping = false; }
@@ -199,7 +200,7 @@
           if (!bt.active || bt.out || bt.team === b.dbTeam) continue;
           if (Math.hypot(b.pos.x - bt.x, b.pos.z - bt.z) < b.r + 0.3 && b.pos.y > 0.1 && b.pos.y < 1.85) {
             b.v += 1; b.owner = state.myPeer; b.vel.multiplyScalar(-0.25); b.vel.y = 2; b.dbLive = false;
-            if (!bt.ball && Math.random() < (bt.catchP === undefined ? 0.08 : bt.catchP)) { sfx('clang', 0.7); showToast(`${bt.name} caught it!`); sendOut(b.dbWho); reviveFor(bt.team); }
+            if (!bt.ball && Math.random() < (bt.catchP === undefined ? BOTLV.pick(L, [0.03, 0.08, 0.16]) : bt.catchP)) { sfx('clang', 0.7); showToast(`${bt.name} caught it!`); sendOut(b.dbWho); reviveFor(bt.team); }
             else { bt.out = true; sfx('hurt', 0.4 / (1 + b.pos.distanceTo(myHead.pos) * 0.2)); if (bt.ball) { bt.ball.dbCarrier = null; bt.ball = null; } }
             break;
           }

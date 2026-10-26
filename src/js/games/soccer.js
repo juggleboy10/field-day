@@ -1,6 +1,7 @@
   // ================================================================ LEVEL: SUNDAY SOCCER
   const soccer = (() => {
     const L = newLevel(5);
+    BOTLV.on(L);   // the bots: pace and accuracy
     const G = L.group;
     const rand = mulberry32(777001);
     L.teams = true;
@@ -532,7 +533,7 @@
     function botKick(b, tx, tz, power, spread, now, loft) {
       let dx = tx - ball.pos.x, dz = tz - ball.pos.z;
       const l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l;
-      const a = (Math.random() - 0.5) * spread, c = Math.cos(a), s2 = Math.sin(a);
+      const a = (Math.random() - 0.5) * spread * BOTLV.pick(L, [1.8, 1, 0.55]), c = Math.cos(a), s2 = Math.sin(a);   // (and their accuracy)
       const kx = dx * c - dz * s2, kz = dx * s2 + dz * c;
       const up = loft !== undefined ? loft : SOC.big ? 0.12 + power * 0.34 : 0.12 + power * 0.12;
       _bt.set(kx, up, kz).normalize();
@@ -550,7 +551,7 @@
       for (const b of sbots) {
         if (!b.active) continue;
         const atk = attackZ(b.team), own = ownZ(b.team), dirZ = Math.sign(atk);
-        let speed = 3.4 * b.skill;
+        let speed = 3.4 * b.skill * BOTLV.pick(L, [0.82, 1, 1.12]);   // (the Bots level: their pace)
         // where to go
         if (!live) homeSpot(b, _tg);
         else if (b.role === 'keep') {
