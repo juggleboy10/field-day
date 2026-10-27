@@ -26,11 +26,15 @@
   // (the panel's top part has the title and a row of buttons; an End game button goes underneath when a game's going)
   const PW = 0.15, PH = 0.115, WCW = 480, WCH = 368, ROW1 = 0.008, ROW2 = -0.034, BH = 0.032;
   // the buttons: the Clubhouse, the Bots (in a game with bots) side by side, and End game below (while a game's going)
+  // (the camera's defined later in the page: until then, it's simply not out)
+  const camOn = () => { try { return CAMERA.isOn(); } catch (e) { return false; } };
   function watchBtns() {
     const L = curLevel(), out = [];
     if (L && L.botLv) out.push({ id: 'hub', x: -0.034, y: ROW1, w: 0.064, h: BH }, { id: 'bots', x: 0.034, y: ROW1, w: 0.064, h: BH });
     else out.push({ id: 'hub', x: 0, y: ROW1, w: 0.12, h: BH });
-    if (L && ENDGAME.isOn(L)) out.push({ id: 'end', x: 0, y: ROW2, w: 0.12, h: BH });
+    // the second row: the camera, and End game while a game's going
+    if (L && ENDGAME.isOn(L)) out.push({ id: 'cam', x: -0.034, y: ROW2, w: 0.064, h: BH }, { id: 'end', x: 0.034, y: ROW2, w: 0.064, h: BH });
+    else out.push({ id: 'cam', x: 0, y: ROW2, w: 0.12, h: BH });
     return out;
   }
   const panelC = canvasTexture(WCW, WCH);
@@ -42,12 +46,12 @@
   const toCanvasY = (y) => (PH / 2 - y) / PH * WCH;
   function drawPanel() {
     const L = curLevel(), atHub = state.level === HUB_IDX, bots = L && L.botLv ? BOTLV.name(L) : '', btns = watchBtns();
-    const key = `${atHub}|${WATCH.hover}|${bots}|${btns.length}|${ENDGAME.armed()}`;
+    const key = `${atHub}|${WATCH.hover}|${bots}|${btns.length}|${ENDGAME.armed()}|${camOn()}`;
     if (key === panelKey) return;
     panelKey = key;
     const g = panelC.g;
     g.clearRect(0, 0, WCW, WCH);
-    const end = btns.some((B) => B.id === 'end'), bottom = end ? WCH - 4 : toCanvasY(ROW1 - BH / 2) + 22;
+    const bottom = WCH - 4;
     rr(g, 4, 4, WCW - 8, bottom - 4, 34); g.fillStyle = 'rgba(20,16,32,0.92)'; g.fill();
     g.textAlign = 'center'; g.textBaseline = 'middle';
     g.fillStyle = '#ffd23f'; g.font = `800 44px ${DISPLAY}`; g.fillText('Field Day', WCW / 2, toCanvasY(0.042));
@@ -62,10 +66,13 @@
       } else if (B.id === 'bots') {
         g.fillStyle = hov ? '#ffe680' : '#ffd23f'; g.fill();
         g.fillStyle = '#1b1932'; g.font = `800 34px ${BODY}`; g.fillText(`Bots: ${bots}`, bx, by + 2, bw - 24);
+      } else if (B.id === 'cam') {
+        g.fillStyle = hov ? '#c8f0a8' : '#a8e08a'; g.fill();
+        g.fillStyle = '#14240e'; g.font = `800 ${btns.length > 3 ? 32 : 36}px ${BODY}`; g.fillText(camOn() ? '\u{1F4F7} Put away' : '\u{1F4F7} Camera', bx, by + 2, bw - 24);
       } else {
         const arm = ENDGAME.armed();
         g.fillStyle = arm ? '#ff4d5a' : hov ? '#ff9a9a' : '#ff7a7a'; g.fill();
-        g.fillStyle = arm ? '#ffffff' : '#2a0a10'; g.font = `800 36px ${BODY}`; g.fillText(arm ? 'Press again to end' : 'End game', bx, by + 2, bw - 24);
+        g.fillStyle = arm ? '#ffffff' : '#2a0a10'; g.font = `800 ${bw < 300 ? 32 : 36}px ${BODY}`; g.fillText(arm ? (bw < 300 ? 'Again to end' : 'Press again to end') : 'End game', bx, by + 2, bw - 24);
       }
     }
     panelC.tex.needsUpdate = true;
@@ -73,6 +80,15 @@
   drawPanel();
   function watchPress(id) {
     const now = performance.now();
+    if (id === 'cam') {
+      if (now < WATCH.cool) return;
+      WATCH.cool = now + 700;
+      const other = WATCH.side === 'left' ? 'right' : 'left';   // (it goes in the hand that pressed it)
+      haptic(vrHands[other], 0.4, 30);
+      CAMERA.toggle(other); panelKey = '';
+      WATCH.awake = false; panel.visible = false;
+      return;
+    }
     if (id === 'end') {
       if (now < WATCH.cool) return;
       WATCH.cool = now + 700;

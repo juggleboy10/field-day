@@ -211,6 +211,7 @@
   ui.throwBtn.addEventListener('pointerdown', (e) => {
     e.preventDefault();
     ensureAudio();
+    if (CAMERA.isOn()) { CAMERA.snap(); return; }   // (the camera's out: this button is the shutter)
     try { ui.throwBtn.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
     startCharge();
   });
@@ -226,6 +227,10 @@
     if (GAME_KEYS.includes(e.code)) e.preventDefault();
     state.keys[e.code] = true;
     if (e.repeat) return;
+    // the camera: P takes it out or puts it away; while it's out, Space takes a picture and V flips to a selfie
+    if (e.code === 'KeyP') { CAMERA.toggle(); return; }
+    if (CAMERA.isOn() && e.code === 'Space') { CAMERA.snap(); return; }
+    if (CAMERA.isOn() && e.code === 'KeyV') { CAMERA.flipSelfie(); return; }
     if (e.code === 'KeyE') pressE();
     else if (e.code === 'Space') startCharge();
     else if (e.code === 'Escape') toMenu();
@@ -235,7 +240,7 @@
   });
   window.addEventListener('keyup', (e) => {
     state.keys[e.code] = false;
-    if (e.code === 'Space' && state.mode === 'flat') { e.preventDefault(); finishCharge(); }
+    if (e.code === 'Space' && state.mode === 'flat' && !CAMERA.isOn()) { e.preventDefault(); finishCharge(); }
   });
   window.addEventListener('blur', () => {
     state.keys = Object.create(null);

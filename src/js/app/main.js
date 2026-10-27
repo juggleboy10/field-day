@@ -43,13 +43,15 @@
       if (si < steps - 1) updateMyPose(t);
     }
     PRIZE_FX.tick(dt * steps, now);
+    CAMERA.tick(dt * steps, now);
     if (L.picker) L.picker.tick();
     if (L.sitOut) L.sitOut.tick(dt * steps);
     updateButtons(L, now);
     updateFloats(now);
     updateUi(now);
     netTick(now);
-    renderer.render(scene, camera);
+    renderer.render(scene, CAMERA.viewCam() || camera);   // (a browser selfie shows what the camera sees)
+    CAMERA.afterRender();
   });
 
   checkVR();
@@ -58,5 +60,5 @@
   // the tests in tests/ reach inside through this, only when the page is opened with ?test
   // the shared records board (the Claude page's database, or records.php on your own site), if there is one
   RECORDS.shared.start();
-  try { if (new URLSearchParams(location.search).has('test')) window.__fd = { LEVELS, vrHands, prizeFx: PRIZE_FX, BOTLV, watch: { press: watchPress, btns: watchBtns, draw: () => { panelKey = ''; drawPanel(); return panelC.g.canvas.toDataURL(); } }, state, dolly, camera, myHead, myHands, RECORDS, APLUS, switchLevel, startGame, voice: { VOICE, voiceWatch, voiceResend, remotes, buildPresence }, audio: { snd, tone, sfx, ensureAudio, MUSIC } }; } catch (e) { /* ignore */ }
+  try { if (new URLSearchParams(location.search).has('test')) window.__fd = { LEVELS, vrHands, CAMERA, prizeFx: PRIZE_FX, BOTLV, watch: { press: watchPress, btns: watchBtns, draw: () => { panelKey = ''; drawPanel(); return panelC.g.canvas.toDataURL(); } }, state, dolly, camera, myHead, myHands, RECORDS, APLUS, switchLevel, startGame, voice: { VOICE, voiceWatch, voiceResend, remotes, buildPresence }, audio: { snd, tone, sfx, ensureAudio, MUSIC } }; } catch (e) { /* ignore */ }
 })();

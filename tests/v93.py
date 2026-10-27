@@ -92,6 +92,47 @@ def main():
             print("ping pong:", pp)
             check(pp.get("hit") and pp["vu"] * (1 if pp else 1) != 0, f"ping pong fast ball through a still paddle {pp}")
 
+        if want("camera"):
+            go(37)
+            page.evaluate("() => { try { localStorage.removeItem('fd_photos'); } catch (e) {} window.__fd.CAMERA.photos.length = 0; }")
+            # browser: P, Space, V, Space
+            page.keyboard.press("KeyP"); page.wait_for_timeout(300)
+            on = page.evaluate("() => window.__fd.CAMERA.isOn()")
+            page.keyboard.press("Space"); page.wait_for_timeout(900)
+            page.keyboard.press("KeyV"); page.wait_for_timeout(300)
+            selfie = page.evaluate("() => { const C = window.__fd.CAMERA; return { selfie: C.C.selfie, view: !!C.viewCam() }; }")
+            page.keyboard.press("Space"); page.wait_for_timeout(900)
+            fl = page.evaluate("() => { const C = window.__fd.CAMERA; return { n: C.photos.length, jpeg: C.photos.every((u) => u.startsWith('data:image/jpeg') && u.length > 20000), kept: (JSON.parse(localStorage.getItem('fd_photos') || '[]')).length }; }")
+            page.keyboard.press("KeyP"); page.wait_for_timeout(300)
+            off = page.evaluate("() => window.__fd.CAMERA.isOn()")
+            print("browser camera:", on, selfie, fl, off)
+            check(on and selfie == {"selfie": True, "view": True} and fl == {"n": 2, "jpeg": True, "kept": 2} and not off, f"browser camera {on} {selfie} {fl} {off}")
+            # the same keys don't fire the game while the camera's out (Space didn't start a volleyball charge)
+            # VR: the camera in the hand that pressed the watch; the trigger takes a picture; turned to face you, a selfie
+            vr = page.evaluate("""() => { const fd = window.__fd, C = fd.CAMERA, h = fd.myHands.right, vh = fd.vrHands.right, src0 = vh.source;
+              fd.state.mode = 'vr'; const head = fd.myHead.pos.clone();
+              const ids = fd.watch.btns().map((b) => b.id); fd.watch.press('cam'); const hand = C.C.hand;
+              const hh = fd.myHands[hand], vhh = fd.vrHands[hand], srcH = vhh.source; hh.ok = true;
+              const btn = { pressed: false }; vhh.source = { gamepad: { buttons: [btn, { pressed: false }, {}, {}, { pressed: false }, { pressed: false }] } };
+              // held out in front, the lens pointing away from me
+              hh.pos.set(head.x, head.y - 0.2, head.z - 0.4); hh.quat.set(0, 0, 0, 1);
+              let now = performance.now() + 2000; C.tick(1 / 72, now); now += 14; C.tick(1 / 72, now);
+              btn.pressed = true; now += 14; C.tick(1 / 72, now); const n1 = C.photos.length, s1 = C.C.selfie;
+              btn.pressed = false; now += 900; C.tick(1 / 72, now);
+              // turned round to face me
+              hh.quat.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI); now += 14; C.tick(1 / 72, now);
+              btn.pressed = true; now += 14; C.tick(1 / 72, now); const n2 = C.photos.length, s2 = C.C.selfie;
+              btn.pressed = false; C.toggle(); fd.state.mode = 'flat'; vh.source = src0; vhh.source = srcH;
+              return { ids, hand, n1, s1, n2, s2 }; }""")
+            print("VR camera:", vr)
+            check("cam" in vr["ids"] and vr["n1"] == 3 and vr["s1"] is False and vr["n2"] == 4 and vr["s2"] is True, f"VR camera {vr}")
+            # the photo wall in the clubhouse
+            go(8)
+            page.wait_for_timeout(800)
+            wall = page.evaluate("() => { let n = 0; window.__fd.LEVELS[8].group.traverse((o) => { if (o.isMesh && o.material && o.material.map && o.material.map.image && o.material.map.image.src && o.material.map.image.src.startsWith('data:image/jpeg')) n++; }); return n; }")
+            print("photo wall pictures:", wall)
+            check(wall == 4, f"photo wall {wall}")
+
         check(not errors, f"page errors {errors}")
         browser.close()
     print("\n".join(fails) if fails else "\nv93 checks passed")
