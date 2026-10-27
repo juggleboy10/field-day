@@ -370,5 +370,6 @@
     L.attract = (now) => { const a = reduceMotion ? 0 : now * 0.00004; const p = posAt(60 + (a * 400) % 200, 0, new V3()); camera.position.set(p.x + 12, p.y + 8, p.z + 14); camera.lookAt(p); };
     L.sledInternals = { K, RACE, BOTS, sledStep, botDrive, startRace, toGrid, standings, posAt, SNOWMEN, ICE, JUMPS, FINISH_S, START_S };
     MUSIC_THEMES.toboggan = { gain: 0.8, bpm: 132, swing: 0.05, chords: ['D', 'G', 'A', 'D'], comp: { inst: 'vibes', at: [0, 4, 8, 12], dur: 0.2 }, bass: { at: [0, 8, 10] }, drums: { k: 'x...x...x...x...', sh: '-.-.-.-.-.-.-.-.' }, lead: { inst: 'musicbox', p: 0.3, up: 12 }, cut: 5000 };
+    ENDGAME.on(L, { shared: true, active: () => RACE.st === 'count' || RACE.st === 'run', end: () => { RACE.st = 'idle'; toGrid(); state.dirtyBoard = true; forcePresence(); return 'Start a race when everyone’s ready.'; } });
     return L;
   })();

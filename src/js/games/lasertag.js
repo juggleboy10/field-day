@@ -833,6 +833,8 @@
     }
     L.onExit = ((base) => () => { base(); for (const b of lbots) b.g.visible = false; })(L.onExit);
     L.ltInternals = { AR, BASE_Z, startGame, counting: (now) => counting(now), beams, lbots, fillLtBots, stepLtBots, rayHitsBot, botFire, ltHost, LB, me, scores, fire: (now) => fire(now), clearLine };
+    // End game: a new game for everyone (the newer round reaches everyone's page by itself)
+    ENDGAME.on(L, { active: () => me.round > 0, end: () => { startGame(); return 'New game: everyone back to base.'; } });
     return L;
   })();
 

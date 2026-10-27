@@ -450,6 +450,7 @@
       }
     };
     L.swInternals = { FORTS, splat, snowStep, RS, H, bots, balls, me, humans, isHost, hostStep, botStep, beginCount, endRound, aliveCount, checkMyHit, trackBall, reviveFor, sendOut, throwBall, toSpot, goOut, switchTeam, onCatch, teamOf, nearestEnemy };
+    ENDGAME.on(L, { shared: true, active: () => RS.st !== 'idle', end: () => { if (isHost()) { RS.st = 'idle'; startMatchLocal(); } forcePresence(); return 'Starting over with everyone here.'; } });
     return L;
   })();
 

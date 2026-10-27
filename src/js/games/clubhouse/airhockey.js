@@ -137,6 +137,7 @@
       state.hudDirty = true;
       forcePresence();
     }
+    L.subEnds.push({ active: () => AH.mySide >= 0, end: () => { newGame(false); forcePresence(); return 'Air hockey: starting over at 0-0.'; } });
     function newGame(announce) {
       AH.score = [0, 0]; AH.goalSeq += 1; AH.gid += 1; AH.overT = 0;
       serve(AH.mySide >= 0 ? AH.mySide : 0);

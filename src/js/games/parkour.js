@@ -779,6 +779,7 @@
     L.parkourInternals = { P, RACE, DRINK, startRace, step, grabFlat, releaseFlat, drinkNow, findHold, rampAt, supportAt, standings, bots, respawn, finishRace, routeAt, tryMantle, useCourse, COURSES };
     // the course's own pieces, whichever course is chosen
     for (const [k, get] of Object.entries({ SOL: () => SOL, RAMPS: () => RAMPS, HOLDS: () => HOLDS, ZONES: () => ZONES, CPS: () => CPS, bottles: () => bottles, ROUTE_T: () => ROUTE_T, C: () => C })) Object.defineProperty(L.parkourInternals, k, { get, enumerable: true });
+    ENDGAME.on(L, { shared: true, active: () => RACE.state !== 'idle', end: () => { RACE.state = 'idle'; RACE.myFinish = 0; resetDrinks(); toStart(); hudKey = ''; boardKey = ''; state.dirtyBoard = true; forcePresence(); return 'Start a race when everyone’s ready.'; } });
     return L;
   })();
 

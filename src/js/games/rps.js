@@ -341,5 +341,6 @@
     Object.defineProperty(L, 'walkSpeed', { get: () => { const m = myMatch(); return m && !m[6] && S.ph !== 'lobby' && S.ph !== 'done' ? 0.0001 : 2.5; } });
     L.rpsInternals = { S, ME, startTournament, newRound, nextThrow, resolve, hostStep, pick, beats, snapshot, applySnap, validSnap, BOTS };
     MUSIC_THEMES.rps = { gain: 0.7, bpm: 120, swing: 0, chords: ['Am', 'F', 'C', 'G'], comp: { inst: 'synth', at: [0, 3, 6, 8, 11, 14], dur: 0.12 }, bass: { at: [0, 3, 6, 8] }, drums: { k: 'x..x..x.x..x..x.', s: '....x.......x...', h: 'o.o.o.o.o.o.o.o.' }, cut: 4600 };
+    ENDGAME.on(L, { shared: true, active: () => S.ph !== 'lobby' && S.ph !== 'done', end: () => { if (isHost()) S.ph = 'lobby'; forcePresence(); return 'Start a new tournament when everyone’s ready.'; } });
     return L;
   })();

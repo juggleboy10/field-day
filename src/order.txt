@@ -8,6 +8,7 @@ js/core/sound.js
 js/core/shared.js
 js/core/records.js
 js/core/botlevel.js
+js/core/endgame.js
 js/core/music.js
 js/core/voice.js
 js/core/watch.js

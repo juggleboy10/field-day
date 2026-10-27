@@ -437,5 +437,6 @@
     L.sortRows = (a, b) => (b.score || 0) - (a.score || 0);
     L.drawBoard = () => { boardKey = ''; };
     L.woInternals = { W, SESSIONS, MOVES, makePlan, start, stop, step, pads, bars, walls, stars, HZ };
+    ENDGAME.on(L, { active: () => W.st === 'go', end: () => { stop('quit'); return ''; } });
     return L;
   })();

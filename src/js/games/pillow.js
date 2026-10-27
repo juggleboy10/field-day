@@ -408,5 +408,6 @@
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.5; camera.position.set(Math.sin(a) * 7, 4.5, 9); camera.lookAt(0, 1, 0); };
     L.pfInternals = { S, startRound, hostStep, bonk, myBonk, bots, snapshot, applySnap, validSnap, deskSwing };
     MUSIC_THEMES.pillow = { gain: 0.7, bpm: 132, swing: 0, chords: ['F', 'C', 'Dm', 'Bb'], comp: { inst: 'synth', at: [0, 4, 8, 12], dur: 0.12 }, bass: { at: [0, 4, 8, 12] }, drums: { k: 'x...x...x...x...', s: '....x.......x...', h: 'oooooooooooooooo' }, lead: { inst: 'musicbox', p: 0.35, up: 12 }, cut: 5000 };
+    ENDGAME.on(L, { shared: true, active: () => S.ph !== 'lobby', end: () => { if (isHost()) S.ph = 'lobby'; forcePresence(); return 'Start a new round when everyone’s ready.'; } });
     return L;
   })();

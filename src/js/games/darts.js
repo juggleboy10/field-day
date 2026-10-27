@@ -398,5 +398,7 @@
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 1.5, 1.8, 2.4); camera.lookAt(0, 1.6, BZ); };
     L.dartInternals = { S, F, newLeg, nextTurn, land, launch, flightStep, velTo, daveThrow, scoreAt, spotFor, aimPoint, myDarts, daveDarts, laneX, BZ, BY };
     MUSIC_THEMES.darts = { gain: 0.6, bpm: 100, swing: 0.2, chords: ['G', 'C', 'D', 'G'], comp: { inst: 'guitar', at: [0, 4, 8, 12], dur: 0.25 }, bass: { at: [0, 8] }, drums: { k: 'x.......x.......', h: '....o.......o...' }, lead: { inst: 'musicbox', p: 0.2, up: 12 }, cut: 3600 };
+    // End game: back to before a leg starts
+    ENDGAME.on(L, { active: () => S.phase === 'play', end: () => { S.phase = 'idle'; S.thrown = 0; S.wait = 0; forcePresence(); state.hudDirty = true; return 'Throw to start a new leg.'; } });
     return L;
   })();

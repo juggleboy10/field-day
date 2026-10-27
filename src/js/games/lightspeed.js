@@ -204,5 +204,6 @@
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 2, 1.8, 2.8); camera.lookAt(0, 1.4, -0.6); };
     L.lightInternals = { S, panels, press, pushed, startRound, endRound, lightNext, btnPos, isLit };
     MUSIC_THEMES.lightspeed = { gain: 0.7, bpm: 140, swing: 0, chords: ['Em', 'C', 'G', 'D'], comp: { inst: 'synth', at: [0, 2, 4, 6, 8, 10, 12, 14], dur: 0.08 }, bass: { at: [0, 4, 8, 12] }, drums: { k: 'x...x...x...x...', h: 'o.o.o.o.o.o.o.o.' }, cut: 5200 };
+    ENDGAME.on(L, { active: () => S.ph === 'play', end: () => { S.ph = 'idle'; S.lits = []; forcePresence(); state.dirtyBoard = true; return 'Press a button to start a new round.'; } });
     return L;
   })();

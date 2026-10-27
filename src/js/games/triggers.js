@@ -281,5 +281,7 @@
     showMenu();
     L.trigInternals = { S, deck, onPick, start, finish, reveal, judge, grade, nextDue, rec, mastered, mem, pool };
     MUSIC_THEMES.triggers = { gain: 0.5, bpm: 104, swing: 0.15, chords: ['Bbmaj7', 'Gm7', 'Cm7', 'F7'], comp: { inst: 'ep', at: [0, 6, 10], dur: 0.5 }, bass: { walk: true }, drums: { k: 'x.......x.......', s: '....x.......x...', h: 'o-o-o-o-o-o-o-o-' }, cut: 3400 };
+    // End game: back to the menu
+    ENDGAME.on(L, { active: () => S.ph !== 'menu', end: () => { L.onEnter(); return 'Pick a mode to start again.'; } });
     return L;
   })();

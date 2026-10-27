@@ -1361,6 +1361,8 @@
       else if (starWas) { starWas = false; mine.body.color.set(PLAYER_COLORS[state.colorIdx].hex); }
     }
     L.botInternals = { BOT_NAMES, botDrive, placeBot, hitBot, BEND };
+    // End game: the race stops for everyone here, back on the grid (free driving until someone starts another)
+    ENDGAME.on(L, { shared: true, active: () => race.phase === 'count' || race.phase === 'run', end: () => { race.phase = 'free'; race.finish = 0; for (const b of botKarts()) { b.phase = 'free'; b.lap = 0; } placeOnGrid(); state.dirtyBoard = true; forcePresence(); return 'Start a race when everyone’s ready.'; } });
     return L;
   })();
 

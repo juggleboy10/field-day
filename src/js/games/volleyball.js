@@ -617,5 +617,7 @@
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.4; camera.position.set(Math.sin(a) * 6, 4, 11); camera.lookAt(0, 1.5, 0); };
     L.vbInternals = { V, P, ME, setSolo, setCourt, teamSlots, touchKind, court: () => [HX, HZ], startMatch, newServe, applyHit, shotVel, ballStep, botStep, hostStep, myTouch, predict, overNet, inCourt, snapshot, applySnap, validSnap, assignPeople, LEVELS };
     MUSIC_THEMES.volleyball = { gain: 0.7, bpm: 112, swing: 0.15, chords: ['C', 'F', 'G', 'F'], comp: { inst: 'guitar', at: [0, 3, 6, 10, 12], dur: 0.15 }, bass: { at: [0, 6, 8, 14] }, drums: { k: 'x.....x...x.....', s: '....x.......x...', h: '..o...o...o...o.' }, lead: { inst: 'vibes', p: 0.25, up: 12 }, cut: 4200 };
+    // End game: back to before a match (whoever's here gets a spot when the next one starts)
+    ENDGAME.on(L, { shared: true, active: () => V.ph !== 'idle' && V.ph !== 'over', end: () => { V.ph = 'idle'; V.score = [0, 0]; V.winner = -1; drawScore.key = ''; forcePresence(); return 'Press Start (or A / X) for a new match with everyone here.'; } });
     return L;
   })();

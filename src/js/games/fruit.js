@@ -339,5 +339,6 @@
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 2, 1.7, 2.4); camera.lookAt(0, 1.5, -2); };
     L.fruitInternals = { S, items, launch, slice, start, end, edge, sweepHit, KINDS, spawnWave };
     MUSIC_THEMES.fruit = { gain: 0.6, bpm: 120, swing: 0.05, chords: ['Am', 'Em', 'F', 'G'], arp: { inst: 'pluck', every: 1, order: [1, 3, 2, 4, 3, 2, 1, 2], up: 12 }, bass: { at: [0, 6, 10] }, drums: { k: 'x.....x...x.....', s: '....x.......x...', sh: '-o-o-o-o-o-o-o-o' }, cut: 4200 };
+    ENDGAME.on(L, { active: () => S.ph === 'play', end: () => { S.ph = 'idle'; for (const it of items) { it.on = false; it.g.visible = false; for (const h of it.halves) h.visible = false; } forcePresence(); return ''; } });
     return L;
   })();

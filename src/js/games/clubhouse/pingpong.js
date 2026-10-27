@@ -86,6 +86,7 @@
 
     // ---------------------------------------------------------------- the rules (run by whoever has the ball)
     function serveSpot() { Object.assign(PP.b, { u: endU(PP.server) * 0.9, y: Y + 0.28, v: PP.server === 0 ? 0.25 : -0.25, vu: 0, vy: 0, vv: 0 }); }
+    L.subEnds.push({ active: () => PP.mySide >= 0 && PP.ph !== 'idle', end: () => { newGame(); PP.ver += 20; forcePresence(); return 'Ping pong: starting over at 0-0.'; } });
     function newGame() {
       PP.first = rand() < 0.5 ? 0 : 1;
       Object.assign(PP, { score: [0, 0], server: PP.first, overT: 0, winner: -1 });

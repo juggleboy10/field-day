@@ -750,6 +750,8 @@
       L.board.tex.needsUpdate = true;
     };
     L.ltInternals = { startLightning, shooterMade, botShoot, give, FT, FT_D, LT_BOTS };
+    // End game: Lightning stops (shoot-around carries on)
+    ENDGAME.on(L, { active: () => LT.ph === 1, end: () => { requestLT(2); return 'Start Lightning again when everyone’s ready.'; } });
     return L;
   })();
 

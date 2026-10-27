@@ -294,5 +294,6 @@
     L.archInternals = { S, TG, BAL, ARROWS, loose, arrowStep, newRound, endRound, mover };
     for (const n of ['G', 'Em', 'C', 'D']) if (!CH[n]) CH[n] = genChord(n);
     MUSIC_THEMES.archery = { gain: 0.55, bpm: 84, swing: 0.1, chords: ['G', 'Em', 'C', 'D'], arp: { inst: 'harp', every: 2, order: [1, 2, 3, 4, 3, 2, 3, 4] }, pad: { inst: 'flute' }, bass: { at: [0, 8] }, drums: { k: 'x.......x.......', sh: '--o---o---o---o-' }, cut: 3400 };
+    ENDGAME.on(L, { active: () => S.ph === 'play', end: () => { S.ph = 'idle'; S.left = ROUND; S.score = 0; S.bulls = 0; S.last = null; sbKey = ''; forcePresence(); state.hudDirty = true; return 'Draw the bow to start a new round.'; } });
     return L;
   })();

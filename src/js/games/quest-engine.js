@@ -1925,6 +1925,8 @@
       };
     }
     L.resetRun = resetRun;
+    // End game: restart the quest for everyone here (the same as the Restart quest button)
+    ENDGAME.on(L, { active: () => !!L.q && (L.q.pg > 0 || !!L.q.done), end: () => { request(1); return 'The quest starts again from the beginning.'; } });
     return L;
   }
 

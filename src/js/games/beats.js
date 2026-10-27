@@ -678,5 +678,6 @@
     L.sortRows = (a, b) => (b.score || 0) - (a.score || 0);
     L.drawBoard = () => { boardKey = ''; };
     L.bbInternals = { playStep, BB, SONGS, DIFFS, makeChart, start, stop, stepSong, blocks, bombs, walls, blade, sweepHit, HZ, COLS, ROWS, DIRV, lanes };
+    ENDGAME.on(L, { active: () => BB.st === 'play', end: () => { stop('quit'); return ''; } });
     return L;
   })();

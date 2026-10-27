@@ -401,5 +401,6 @@
     L.attract = (now) => { const a = reduceMotion ? 0 : now * 0.00006; camera.position.set(Math.sin(a) * 12, 5, Math.cos(a) * 12); camera.lookAt(0, 2, 0); };
     L.gtInternals = { S, M, bots, BOXES, startRound, tag, endRound, hostStep, contact, support, pushOut, vrMove, settle, snapshot, applySnap, validSnap, myTags };
     MUSIC_THEMES.gorilla = { gain: 0.6, bpm: 118, swing: 0.15, chords: ['Am', 'G', 'F', 'G'], arp: { inst: 'marimba', every: 1, order: [1, 0, 3, 2, 0, 4, 3, 0] }, bass: { at: [0, 3, 6, 10] }, drums: { k: 'x..x..x...x..x..', c: '....x.......x...', sh: 'o-o-o-o-o-o-o-o-' }, cut: 4000 };
+    ENDGAME.on(L, { shared: true, active: () => S.ph === 'play', end: () => { if (isHost()) S.ph = 'lobby'; forcePresence(); clkKey = ''; return 'Start a new round when everyone’s ready.'; } });
     return L;
   })();

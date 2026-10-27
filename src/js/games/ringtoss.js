@@ -215,5 +215,6 @@
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 3, 2.2, 4); camera.lookAt(0, 1.2, -2); };
     L.ringInternals = { T, rings, bottles, launch, ringStep, lobTo, aimPoint, newGame, NECK_Y, CATCH };
     MUSIC_THEMES.ringtoss = { gain: 0.7, bpm: 104, swing: 0.25, chords: ['G', 'Em', 'C', 'D'], comp: { inst: 'vibes', at: [0, 4, 8, 12], dur: 0.2 }, bass: { at: [0, 6, 8, 14] }, drums: { k: 'x.......x.......', h: '..o...o...o...o.' }, lead: { inst: 'musicbox', p: 0.3, up: 12 }, cut: 4000 };
+    ENDGAME.on(L, { active: () => T.ph === 'play', end: () => { T.ph = 'idle'; T.thrown = 0; T.ringers = 0; forcePresence(); return ''; } });
     return L;
   })();

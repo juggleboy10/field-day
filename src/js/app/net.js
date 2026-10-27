@@ -3,7 +3,7 @@
   function buildPresence() {
     const L = curLevel();
     const inGame = state.mode !== 'menu';
-    const p = { n: state.name, c: state.colorIdx, a: [state.hat, state.face, state.shirt, state.shirtColor], p: inGame ? 1 : 0, lv: state.level, h: null, l: null, r: null, b: [], t: [], s: null, bb: null, dg: null, d: null, dq: null, hx: null, sh: null, pc: null, dr: null, dh: null, lq: null, ls: null, lh: null, sq: null, mq: null, mb: null, bo: null, bp: null, bw: null, ka: null, pz: PRIZE_FX.mask(), bl: BOTLV.mine(L) };
+    const p = { n: state.name, c: state.colorIdx, a: [state.hat, state.face, state.shirt, state.shirtColor], p: inGame ? 1 : 0, lv: state.level, h: null, l: null, r: null, b: [], t: [], s: null, bb: null, dg: null, d: null, dq: null, hx: null, sh: null, pc: null, dr: null, dh: null, lq: null, ls: null, lh: null, sq: null, mq: null, mb: null, bo: null, bp: null, bw: null, ka: null, pz: PRIZE_FX.mask(), bl: BOTLV.mine(L), eg: ENDGAME.mine(L) };
     if (inGame) {
       const over = L.publishPose ? L.publishPose() : null;
       if (over) {
@@ -99,6 +99,7 @@
     const L = curLevel();
     const st = rec.lvState[L.id] || (rec.lvState[L.id] = {});
     if (pres.bl && rec.inGame) BOTLV.read(rec, pres.bl);
+    if (rec.inGame) ENDGAME.read(rec, pres.eg);
     if (L.picker && pres.pc) L.picker.merge(pres.pc);
     if (L.sitOut) { if (pres.so === 1 !== !!st.sitOut) state.dirtyBoard = true; st.sitOut = pres.so === 1; }
     if (pres.rcd && rec.name) RECORDS.merge(L, rec.name, pres.rcd);

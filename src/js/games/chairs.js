@@ -265,5 +265,6 @@
     L.attract = (now) => { const a = reduceMotion ? 0 : now * 0.0001; camera.position.set(Math.sin(a) * 6, 3.5, Math.cos(a) * 6); camera.lookAt(0, 0.6, 0); };
     MUSIC_THEMES.chairs = { gain: 0.0001, bpm: 100, chords: ['C'], drums: {} };
     void _c;
+    ENDGAME.on(L, { shared: true, active: () => S.ph !== 'lobby', end: () => { if (isHost()) S.ph = 'lobby'; tuneNext = 0; forcePresence(); return 'Start a new game when everyone’s ready.'; } });
     return L;
   })();

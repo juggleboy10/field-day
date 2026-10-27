@@ -841,6 +841,7 @@
       baseDrawDG(all);
     };
     L.finnInternals = { finnPlanGen, finnStep, finnToHole };
+    ENDGAME.on(L, { active: () => true, end: () => { restartRound(); return 'Back to the first tee.'; } });
     return L;
   })();
 

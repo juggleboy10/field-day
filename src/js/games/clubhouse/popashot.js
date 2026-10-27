@@ -81,6 +81,7 @@
     };
     const myRound = () => CABS.find((c) => c.round && c.round.player === me());
     const roundOf = (cab) => (cab.round ? { player: me(), name: state.name, score: cab.round.score, left: Math.max(0, cab.round.end - performance.now()) } : remoteRound(cab.i));
+    L.subEnds.push({ active: () => !!myRound(), end: () => { const c = myRound(); if (c) { c.round = null; c.finalT = 0; state.hudDirty = true; forcePresence(); } return 'Press START for a new round.'; } });
     function startRound(cab) {
       const now = performance.now();
       if (roundOf(cab)) { showToast('That one\u2019s in use'); return; }

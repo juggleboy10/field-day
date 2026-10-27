@@ -212,5 +212,7 @@
     showMenu();
     L.mathInternals = { S, deck, answer, next, startRound, endRound, problem, MODES };
     MUSIC_THEMES.mathsprint = { gain: 0.6, bpm: 132, swing: 0, chords: ['C', 'G', 'Am', 'F'], arp: { inst: 'marimba', every: 1, order: [1, 2, 3, 4, 3, 2, 1, 2] }, bass: { at: [0, 4, 8, 12] }, drums: { k: 'x...x...x...x...', h: 'o.o.o.o.o.o.o.o.' }, cut: 4800 };
+    // End game: back to the menu
+    ENDGAME.on(L, { active: () => S.ph !== 'menu', end: () => { L.onEnter(); return 'Pick a mode to start again.'; } });
     return L;
   })();

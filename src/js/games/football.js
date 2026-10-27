@@ -1009,5 +1009,7 @@
       drums: { k: 'x.......x.......', s: 'x.o.x.oox.o.xoxo', c: '....x.......x...', h: '..-...-...-...-.' } };
     L.fbInternals = { MP, assignSpots, snapshot, applySnap, pickQB, cycleRole, S, PLAYS, DIFFS, REC, COV, SAF, RUSH, LINE, routeAt, passTo, hike, startGame, choosePlay, step, endPlay, release, throwFlat, lookTarget, fieldGoal, spike, timeout, setFormation, YD };
     setFormation();
+    // End game: the drive stops (only the quarterback's game is the real one; a receiver's press ends it there too)
+    ENDGAME.on(L, { shared: true, active: () => !following() && S.phase !== 'idle' && S.phase !== 'over', end: () => { if (following()) return ''; S.phase = 'idle'; S.running = false; setFormation(); standQB(); forcePresence(); state.dirtyBoard = true; return 'Hike to start a new drill.'; } });
     return L;
   })();

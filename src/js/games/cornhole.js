@@ -486,5 +486,7 @@
     L.onExit = () => { hudPlate.visible = false; botBody.visible = false; if (ui.status) ui.status.hidden = true; statusKey = ''; };
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0001) * 0.5; camera.position.set(3 + Math.sin(a) * 2, 2.2, 7.5); camera.lookAt(0, 0.3, -4); };
     L.cornholeInternals = { RS, H, me, bags, BOARDS, bagPoints, throwFor, lob, hostStep, isHost, turnBag, myTurn, setSlots, local };
+    // End game: the host starts a fresh game straight away with whoever's here (a newcomer takes Corny Carl's place)
+    ENDGAME.on(L, { shared: true, active: () => RS.ph !== 'idle', end: () => { if (hostId() === state.myPeer) RS.ph = 'idle'; forcePresence(); return 'Starting a fresh game with everyone here.'; } });
     return L;
   })();

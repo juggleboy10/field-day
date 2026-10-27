@@ -326,5 +326,7 @@
     L.climbInternals = { P, HOLDS, BASE, FACE, mantle, ringBell, backToStart, holdNear, flatReach, support, crumble, LANES };
     for (const n of ['D', 'Bm', 'G', 'A']) if (!CH[n]) CH[n] = genChord(n);
     MUSIC_THEMES.climb = { gain: 0.6, bpm: 92, swing: 0.1, chords: ['D', 'Bm', 'G', 'A'], arp: { inst: 'guitar', every: 2, order: [1, 2, 3, 4, 3, 2, 3, 4] }, pad: { inst: 'pad' }, bass: { at: [0, 10] }, drums: { k: 'x.......x.x.....', s: '....x.......x...', sh: '-o-o-o-o-o-o-o-o' }, cut: 3600 };
+    // End game: back down to the bottom, clock stopped
+    ENDGAME.on(L, { active: () => P.ph !== 'ground', end: () => { backToStart(); return ''; } });
     return L;
   })();

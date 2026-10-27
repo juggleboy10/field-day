@@ -23,36 +23,49 @@
   }
   drawWatchFace(false);
   // the panel that pops up above it
-  const PW = 0.15, PH = 0.08, BTN = { x: 0, y: -0.012, w: 0.12, h: 0.034 };
-  // the buttons: just the Clubhouse, or the Clubhouse and the Bots side by side
-  const BTN_HUB = { id: 'hub', x: -0.034, y: -0.012, w: 0.064, h: 0.034 }, BTN_BOTS = { id: 'bots', x: 0.034, y: -0.012, w: 0.064, h: 0.034 };
-  const watchBtns = () => (curLevel() && curLevel().botLv ? [BTN_HUB, BTN_BOTS] : [{ ...BTN, id: 'hub' }]);
-  const panelC = canvasTexture(480, 256);
+  // (the panel's top part has the title and a row of buttons; an End game button goes underneath when a game's going)
+  const PW = 0.15, PH = 0.115, WCW = 480, WCH = 368, ROW1 = 0.008, ROW2 = -0.034, BH = 0.032;
+  // the buttons: the Clubhouse, the Bots (in a game with bots) side by side, and End game below (while a game's going)
+  function watchBtns() {
+    const L = curLevel(), out = [];
+    if (L && L.botLv) out.push({ id: 'hub', x: -0.034, y: ROW1, w: 0.064, h: BH }, { id: 'bots', x: 0.034, y: ROW1, w: 0.064, h: BH });
+    else out.push({ id: 'hub', x: 0, y: ROW1, w: 0.12, h: BH });
+    if (L && ENDGAME.isOn(L)) out.push({ id: 'end', x: 0, y: ROW2, w: 0.12, h: BH });
+    return out;
+  }
+  const panelC = canvasTexture(WCW, WCH);
   const panel = new THREE.Mesh(new THREE.PlaneGeometry(PW, PH), new THREE.MeshBasicMaterial({ map: panelC.tex, transparent: true, depthTest: false }));
   panel.renderOrder = 20;
   panel.visible = false;
   scene.add(panel);
   let panelKey = '';
+  const toCanvasY = (y) => (PH / 2 - y) / PH * WCH;
   function drawPanel() {
-    const atHub = state.level === HUB_IDX, bots = curLevel() && curLevel().botLv ? BOTLV.name(curLevel()) : '', key = `${atHub}|${WATCH.hover}|${bots}`;
+    const L = curLevel(), atHub = state.level === HUB_IDX, bots = L && L.botLv ? BOTLV.name(L) : '', btns = watchBtns();
+    const key = `${atHub}|${WATCH.hover}|${bots}|${btns.length}|${ENDGAME.armed()}`;
     if (key === panelKey) return;
     panelKey = key;
     const g = panelC.g;
-    g.clearRect(0, 0, 480, 256);
-    rr(g, 4, 4, 472, 248, 34); g.fillStyle = 'rgba(20,16,32,0.92)'; g.fill();
+    g.clearRect(0, 0, WCW, WCH);
+    const end = btns.some((B) => B.id === 'end'), bottom = end ? WCH - 4 : toCanvasY(ROW1 - BH / 2) + 22;
+    rr(g, 4, 4, WCW - 8, bottom - 4, 34); g.fillStyle = 'rgba(20,16,32,0.92)'; g.fill();
     g.textAlign = 'center'; g.textBaseline = 'middle';
-    g.fillStyle = '#ffd23f'; g.font = `800 44px ${DISPLAY}`; g.fillText('Field Day', 240, 58);
+    g.fillStyle = '#ffd23f'; g.font = `800 44px ${DISPLAY}`; g.fillText('Field Day', WCW / 2, toCanvasY(0.042));
     // the buttons: drawn where they say they are
-    for (const B of watchBtns()) {
-      const bx = 240 + (B.x / PW) * 480, by = 128 - (B.y / PH) * 256, bw = (B.w / PW) * 480, bh = (B.h / PH) * 256, hov = WATCH.hover === B.id;
+    for (const B of btns) {
+      const bx = WCW / 2 + (B.x / PW) * WCW, by = toCanvasY(B.y), bw = (B.w / PW) * WCW, bh = (B.h / PH) * WCH, hov = WATCH.hover === B.id;
       rr(g, bx - bw / 2, by - bh / 2, bw, bh, 26);
       if (B.id === 'hub') {
         g.fillStyle = atHub ? '#4a4660' : hov ? '#8be0ff' : '#4fc3f7'; g.fill();
         g.fillStyle = atHub ? '#a9a3cf' : '#10223a'; g.font = `800 ${bots ? 34 : 40}px ${BODY}`;
         g.fillText(atHub ? 'You\u2019re in the clubhouse' : 'Clubhouse', bx, by + 2, bw - 24);
-      } else {
+      } else if (B.id === 'bots') {
         g.fillStyle = hov ? '#ffe680' : '#ffd23f'; g.fill();
         g.fillStyle = '#1b1932'; g.font = `800 34px ${BODY}`; g.fillText(`Bots: ${bots}`, bx, by + 2, bw - 24);
+      } else {
+        const arm = ENDGAME.armed();
+        g.fillStyle = arm ? '#ff4d5a' : hov ? '#ff9a9a' : '#ff7a7a'; g.fill();
+        g.fillStyle = arm ? '#ffffff' : '#2a0a10'; g.font = `800 36px ${BODY}`; g.fillText(arm ? 'Press again to end' : 'End game', bx, by + 2, bw - 24);
       }
     }
     panelC.tex.needsUpdate = true;
@@ -60,6 +73,14 @@
   drawPanel();
   function watchPress(id) {
     const now = performance.now();
+    if (id === 'end') {
+      if (now < WATCH.cool) return;
+      WATCH.cool = now + 700;
+      haptic(vrHands[WATCH.side === 'left' ? 'right' : 'left'], 0.4, 30);
+      if (ENDGAME.press(curLevel())) { WATCH.awake = false; panel.visible = false; }
+      panelKey = '';
+      return;
+    }
     if (id === 'bots') {
       if (now < WATCH.cool) return;
       WATCH.cool = now + 700;
@@ -115,7 +136,7 @@
     const rh = myHands[other];   // you press it with your other hand
     if (!WATCH.awake) { WATCH.trigPrev = false; return; }
     // the panel floats just above the watch, facing you
-    panel.position.copy(_watchWp).addScaledVector(toEye, 0.03).addScaledVector(_watchRd.set(0, 1, 0).applyQuaternion(_watchCq), 0.075);
+    panel.position.copy(_watchWp).addScaledVector(toEye, 0.03).addScaledVector(_watchRd.set(0, 1, 0).applyQuaternion(_watchCq), 0.092);   // (above the watch: the panel is taller now)
     panel.quaternion.copy(_watchCq);
     panel.updateMatrixWorld(true);
     _watchInv.copy(panel.matrixWorld).invert();

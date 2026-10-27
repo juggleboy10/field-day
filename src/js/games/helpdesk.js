@@ -340,5 +340,6 @@
     menuCards();
     L.deskInternals = { S, TICKETS, deck, answer, advance, startShift, endShift, onPick, cust, ask };
     MUSIC_THEMES.helpdesk = { gain: 0.5, bpm: 88, swing: 0.2, chords: ['Fmaj7', 'Em7', 'Dm7', 'Cmaj7'], comp: { inst: 'ep', at: [0, 6, 11], dur: 0.8 }, bass: { at: [0, 8, 10] }, drums: { k: 'x.......x.......', s: '....x.......x...', h: 'o-o-o-o-o-o-o-o-' }, cut: 3200, crackle: 0.6 };
+    ENDGAME.on(L, { active: () => S.ph !== 'idle', end: () => { L.onEnter(); return 'Pick a mode to start a new shift.'; } });
     return L;
   })();

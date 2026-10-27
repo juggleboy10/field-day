@@ -454,5 +454,6 @@
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 2, 1.8, ROOMS[0].z + 4.5); camera.lookAt(0, 1.4, ROOMS[0].z - 4); };
     L.hauntInternals = { H, ME, startHunt, hostStep, fillRoom, beams, lit, snapshot, applySnap, validSnap, ROOMS, roomOfZ };
     MUSIC_THEMES.haunted = { gain: 0.55, bpm: 72, swing: 0, chords: ['Am', 'Dm', 'E', 'Am'], comp: { inst: 'musicbox', at: [0, 3, 6, 9, 12], dur: 0.3 }, bass: { at: [0, 8] }, drums: {}, cut: 2400 };
+    ENDGAME.on(L, { shared: true, active: () => H.ph !== 'idle', end: () => { if (isHost()) H.ph = 'idle'; forcePresence(); return 'Start a new hunt when everyone’s ready.'; } });
     return L;
   })();

@@ -719,6 +719,7 @@
     L.onExit = () => { guessBox.style.display = 'none'; myCard.visible = false; if (ui.status) ui.status.hidden = true; statusKeyCH = ''; };
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0001) * 0.3; camera.position.set(Math.sin(a) * 4, 2.6, 6.5); camera.lookAt(0, 1.4, -5); };
     L.chInternals = { CH, hostTickCH, startGameCH, guessMatches, drawCard, gotIt, sendGuess, EVC };
+    ENDGAME.on(L, { active: () => CH.ph === 1 || CH.ph === 2 || CH.ph === 3, end: () => { request(2); return 'Start a new game when everyone’s ready.'; } });
     return L;
   })();
 

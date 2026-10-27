@@ -263,5 +263,7 @@
     showMenu();
     L.qbInternals = { S, deck, answer, nextQuestion, startRound, endRound, onPick, drawReport, MODES };
     MUSIC_THEMES.quizblaster = { gain: 0.55, bpm: 112, swing: 0.1, chords: ['C', 'Am', 'F', 'G'], comp: { inst: 'piano', at: [0, 3, 6, 8, 11, 14], dur: 0.2 }, bass: { at: [0, 6, 8, 14] }, drums: { k: 'x.....x.x.......', h: '..o...o...o...o.' }, cut: 3600 };
+    // End game: back to the menu
+    ENDGAME.on(L, { active: () => S.ph !== 'menu', end: () => { L.onEnter(); return 'Pick a mode to start again.'; } });
     return L;
   })();

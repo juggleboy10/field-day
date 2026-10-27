@@ -447,5 +447,6 @@
     L.onExit = () => { if (ui.status) ui.status.hidden = true; if (B.st === 'held') B.st = 'tray'; };
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 2, 2.2, 3.2); camera.lookAt(0, 1, -3); };
     MUSIC_THEMES.skeeball = { gain: 0.8, bpm: 118, swing: 0.1, chords: ['C', 'Am', 'F', 'G'], comp: { inst: 'synth', at: [0, 4, 8, 12], dur: 0.15 }, bass: { at: [0, 8] }, drums: { k: 'x...x...x...x...', h: '..o...o...o...o.' }, lead: { inst: 'musicbox', p: 0.3, up: 12 }, cut: 4800 };
+    ENDGAME.on(L, { active: () => me.phase === 'play', end: () => { me.phase = 'idle'; me.score = 0; me.left = BALLS; forcePresence(); state.dirtyBoard = true; return ''; } });
     return L;
   })();

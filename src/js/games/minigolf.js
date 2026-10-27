@@ -1379,6 +1379,8 @@
     };
     L.beaInternals = { planPutt, beaStep, beaToHole };
     L.mgInternals = { ballStep, ballPos, millBlocked, moleUp, HOLES, B, me, placeOnTee, goToHole, strike, walkerAt, ufoAt, erupting, nudgeResting };
+    // End game: start the round again from the first hole
+    ENDGAME.on(L, { active: () => true, end: () => { restartRound(); return 'Back to the first hole.'; } });
     return L;
   })();
 

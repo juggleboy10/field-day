@@ -426,5 +426,6 @@
     L.attract = (now) => { const a = reduceMotion ? 0 : now * 0.00004; const p = posAt((a * 400) % TLEN, 0, new V3()); camera.position.set(p.x + 10, 6, p.z + 12); camera.lookAt(p.x, 1, p.z); };
     L.llInternals = { K, RACE, BOTS, llamaStep, botRide, startRace, toGrid, standings, posAt, giddy, jump, BALES, CARROTS, MUD, TLEN, FINISH };
     MUSIC_THEMES.llama = { gain: 0.75, bpm: 140, swing: 0.1, chords: ['G', 'C', 'G', 'D'], comp: { inst: 'guitar', at: [0, 2, 4, 6, 8, 10, 12, 14], dur: 0.1 }, bass: { at: [0, 4, 8, 12] }, drums: { k: 'x.......x.......', s: '....x.......x...', sh: '-.-.-.-.-.-.-.-.' }, lead: { inst: 'vibes', p: 0.3, up: 12 }, cut: 4600 };
+    ENDGAME.on(L, { shared: true, active: () => RACE.st === 'count' || RACE.st === 'run', end: () => { RACE.st = 'idle'; toGrid(); state.dirtyBoard = true; forcePresence(); return 'Start a race when everyone’s ready.'; } });
     return L;
   })();

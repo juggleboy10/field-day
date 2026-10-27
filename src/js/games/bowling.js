@@ -824,6 +824,8 @@
       baseDraw(all);
     };
     L.bowlBotInternals = { botStep, decideKnock };
+    // End game: a fresh scorecard on your lane
+    ENDGAME.on(L, { active: () => me.rolls.length > 0, end: () => { newGame(); return 'A fresh game on your lane.'; } });
     return L;
   })();
 

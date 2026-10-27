@@ -225,5 +225,6 @@
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 2, 2.0, 2.5); camera.lookAt(0, 0.9, -0.4); };
     L.whackInternals = { W, moles, bop, roundStep, startRound, endRound, holePos, KEYS };
     MUSIC_THEMES.whack = { gain: 0.7, bpm: 138, swing: 0.1, chords: ['C', 'F', 'G', 'C'], comp: { inst: 'synth', at: [0, 2, 4, 6, 8, 10, 12, 14], dur: 0.08 }, bass: { at: [0, 4, 8, 12] }, drums: { k: 'x...x...x...x...', s: '....x.......x...', h: 'o.o.o.o.o.o.o.o.' }, cut: 5000 };
+    ENDGAME.on(L, { active: () => W.ph === 'play', end: () => { W.ph = 'idle'; for (const c of moles) for (const m of c.list) m.want = 0; forcePresence(); return ''; } });
     return L;
   })();

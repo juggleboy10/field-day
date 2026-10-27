@@ -772,5 +772,6 @@
     L.onExit = () => { if (ui.status) ui.status.hidden = true; statusKey = ''; for (const b of bots) b.g.visible = false; };
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.00012) * 0.5; camera.position.set(Math.sin(a) * 7, 3.2, 4 + Math.cos(a) * 2); camera.lookAt(0, 2.4, -7); };
     L.triviaInternals = { RS, H, me, T, bots, podiums, hostStep, answer, isHost, seatAt, mySeat, rightSlot, ansText, QN, SEAT_ORDER, kOf, bank: TRIVIA_Q };
+    ENDGAME.on(L, { shared: true, active: () => RS.ph !== 'idle', end: () => { if (isHost()) RS.ph = 'idle'; forcePresence(); return 'Starting a new game with everyone here.'; } });
     return L;
   })();

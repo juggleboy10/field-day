@@ -655,5 +655,6 @@
     L.onExit = () => { hudPlate.visible = false; potato.visible = false; if (ui.status) ui.status.hidden = true; statusKey = ''; for (const b of bots) b.g.visible = false; };
     L.attract = (now) => { const a = reduceMotion ? 0 : now * 0.00006; camera.position.set(Math.sin(a) * 11, 4.2, Math.cos(a) * 11); camera.lookAt(0, 1, 0); };
     L.potatoInternals = { RS, H, me, FUSE, bots, hostStep, hostThrow, throwAt, pickTarget, spotPos, ringR, handPos, isHost };
+    ENDGAME.on(L, { shared: true, active: () => RS.ph !== 'idle', end: () => { if (isHost()) { RS.ph = 'idle'; RS.holder = ''; RS.fl = null; } forcePresence(); return 'Starting over with everyone here.'; } });
     return L;
   })();

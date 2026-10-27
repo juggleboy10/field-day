@@ -1618,6 +1618,51 @@ kbd {
     }
     return { NAMES, on, get, pick, name, set, cycle, mine, read };
   })();
+  // ================================================================ ENDGAME: stop the game that's going, any game
+  // A game says how to tell it's running and how to stop it: ENDGAME.on(L, { active, end, shared }). Then there's an
+  // "End game" button (in a browser, up top; in VR, on the watch). Press it twice (the first press asks) and the
+  // game goes back to how it is before anyone starts one, so you can start afresh: when a friend turns up, say.
+  // A shared game (one everyone here plays together) ends for everyone; a personal one (your own lane or booth)
+  // only for you. Who ended a shared game travels in presence (eg: [seq, time]); every page in that game ends it.
+  const ENDGAME = (() => {
+    const S = { armT: 0, seq: 0, seen: {} };
+    function on(L, o) {
+      L.endGame = { active: o.active, end: o.end, shared: !!o.shared };
+      L.endHud = { label: () => (armed() ? 'Press again to end' : 'End game'), show: () => isOn(L), run: () => press(L) };
+    }
+    const isOn = (L) => { try { return !!(L && L.endGame && L.endGame.active()); } catch (e) { return false; } };
+    const armed = () => performance.now() < S.armT;
+    // the first press asks; a second within 3 s ends it
+    function press(L) {
+      if (!isOn(L)) { showToast('No game going right now'); return false; }
+      const now = performance.now();
+      if (now > S.armT) { S.armT = now + 3000; showToast(L.endGame.shared ? 'Press End game again to stop this game for everyone here' : 'Press End game again to stop your game'); sfx('click', 0.5); state.hudDirty = true; setTimeout(() => { state.hudDirty = true; }, 3100); return false; }
+      S.armT = 0;
+      endNow(L, '');
+      if (L.endGame.shared) { S.seq += 1; S.t = Date.now(); forcePresence(); }
+      return true;
+    }
+    function endNow(L, who) {
+      // (a game can say what happens next, e.g. "Starting over at 0-0")
+      let msg = '';
+      try { msg = L.endGame.end(!!who) || ''; } catch (e) { console.warn('end game', e); }
+      showToast(`${who ? `${who} ended the game` : 'Game ended'}. ${msg || 'Start a new one when you’re ready'}`);
+      sfx('whistle', 0.6);
+      state.hudDirty = true; state.dirtyBoard = true; forcePresence();
+    }
+    // what I send: my latest "end" (in this game), so friends' pages end it too
+    const mine = (L) => (L.endGame && L.endGame.shared && S.seq ? [S.seq, S.t, L.idx] : null);
+    function read(rec, a) {
+      const L = curLevel(), was = S.seen[rec.peer];
+      if (!Array.isArray(a) || a.length !== 3 || !Number.isInteger(a[0]) || !Number.isFinite(a[1])) { if (was === undefined) S.seen[rec.peer] = 0; return; }
+      if (!L.endGame || !L.endGame.shared || a[2] !== L.idx) { S.seen[rec.peer] = a[0]; return; }
+      S.seen[rec.peer] = a[0];
+      // a new one (not one I've already seen, and not an old one I'm only hearing about because I just arrived)
+      if (was === undefined) return;
+      if (a[0] !== was && Date.now() - a[1] < 15000) endNow(L, rec.name || 'A friend');
+    }
+    return { on, isOn, armed, press, endNow, mine, read };
+  })();
   // ================================================================ LO-FI MUSIC: a quiet, generative soundtrack themed to each place
   // Every place has a recipe: tempo, swing, four chords, and which instruments play chords, arpeggios, a lead,
   // bass and drums. Notes are scheduled a moment ahead on the audio clock and run through a soft lo-fi chain
@@ -2181,36 +2226,49 @@ kbd {
   }
   drawWatchFace(false);
   // the panel that pops up above it
-  const PW = 0.15, PH = 0.08, BTN = { x: 0, y: -0.012, w: 0.12, h: 0.034 };
-  // the buttons: just the Clubhouse, or the Clubhouse and the Bots side by side
-  const BTN_HUB = { id: 'hub', x: -0.034, y: -0.012, w: 0.064, h: 0.034 }, BTN_BOTS = { id: 'bots', x: 0.034, y: -0.012, w: 0.064, h: 0.034 };
-  const watchBtns = () => (curLevel() && curLevel().botLv ? [BTN_HUB, BTN_BOTS] : [{ ...BTN, id: 'hub' }]);
-  const panelC = canvasTexture(480, 256);
+  // (the panel's top part has the title and a row of buttons; an End game button goes underneath when a game's going)
+  const PW = 0.15, PH = 0.115, WCW = 480, WCH = 368, ROW1 = 0.008, ROW2 = -0.034, BH = 0.032;
+  // the buttons: the Clubhouse, the Bots (in a game with bots) side by side, and End game below (while a game's going)
+  function watchBtns() {
+    const L = curLevel(), out = [];
+    if (L && L.botLv) out.push({ id: 'hub', x: -0.034, y: ROW1, w: 0.064, h: BH }, { id: 'bots', x: 0.034, y: ROW1, w: 0.064, h: BH });
+    else out.push({ id: 'hub', x: 0, y: ROW1, w: 0.12, h: BH });
+    if (L && ENDGAME.isOn(L)) out.push({ id: 'end', x: 0, y: ROW2, w: 0.12, h: BH });
+    return out;
+  }
+  const panelC = canvasTexture(WCW, WCH);
   const panel = new THREE.Mesh(new THREE.PlaneGeometry(PW, PH), new THREE.MeshBasicMaterial({ map: panelC.tex, transparent: true, depthTest: false }));
   panel.renderOrder = 20;
   panel.visible = false;
   scene.add(panel);
   let panelKey = '';
+  const toCanvasY = (y) => (PH / 2 - y) / PH * WCH;
   function drawPanel() {
-    const atHub = state.level === HUB_IDX, bots = curLevel() && curLevel().botLv ? BOTLV.name(curLevel()) : '', key = `${atHub}|${WATCH.hover}|${bots}`;
+    const L = curLevel(), atHub = state.level === HUB_IDX, bots = L && L.botLv ? BOTLV.name(L) : '', btns = watchBtns();
+    const key = `${atHub}|${WATCH.hover}|${bots}|${btns.length}|${ENDGAME.armed()}`;
     if (key === panelKey) return;
     panelKey = key;
     const g = panelC.g;
-    g.clearRect(0, 0, 480, 256);
-    rr(g, 4, 4, 472, 248, 34); g.fillStyle = 'rgba(20,16,32,0.92)'; g.fill();
+    g.clearRect(0, 0, WCW, WCH);
+    const end = btns.some((B) => B.id === 'end'), bottom = end ? WCH - 4 : toCanvasY(ROW1 - BH / 2) + 22;
+    rr(g, 4, 4, WCW - 8, bottom - 4, 34); g.fillStyle = 'rgba(20,16,32,0.92)'; g.fill();
     g.textAlign = 'center'; g.textBaseline = 'middle';
-    g.fillStyle = '#ffd23f'; g.font = `800 44px ${DISPLAY}`; g.fillText('Field Day', 240, 58);
+    g.fillStyle = '#ffd23f'; g.font = `800 44px ${DISPLAY}`; g.fillText('Field Day', WCW / 2, toCanvasY(0.042));
     // the buttons: drawn where they say they are
-    for (const B of watchBtns()) {
-      const bx = 240 + (B.x / PW) * 480, by = 128 - (B.y / PH) * 256, bw = (B.w / PW) * 480, bh = (B.h / PH) * 256, hov = WATCH.hover === B.id;
+    for (const B of btns) {
+      const bx = WCW / 2 + (B.x / PW) * WCW, by = toCanvasY(B.y), bw = (B.w / PW) * WCW, bh = (B.h / PH) * WCH, hov = WATCH.hover === B.id;
       rr(g, bx - bw / 2, by - bh / 2, bw, bh, 26);
       if (B.id === 'hub') {
         g.fillStyle = atHub ? '#4a4660' : hov ? '#8be0ff' : '#4fc3f7'; g.fill();
         g.fillStyle = atHub ? '#a9a3cf' : '#10223a'; g.font = `800 ${bots ? 34 : 40}px ${BODY}`;
         g.fillText(atHub ? 'You\u2019re in the clubhouse' : 'Clubhouse', bx, by + 2, bw - 24);
-      } else {
+      } else if (B.id === 'bots') {
         g.fillStyle = hov ? '#ffe680' : '#ffd23f'; g.fill();
         g.fillStyle = '#1b1932'; g.font = `800 34px ${BODY}`; g.fillText(`Bots: ${bots}`, bx, by + 2, bw - 24);
+      } else {
+        const arm = ENDGAME.armed();
+        g.fillStyle = arm ? '#ff4d5a' : hov ? '#ff9a9a' : '#ff7a7a'; g.fill();
+        g.fillStyle = arm ? '#ffffff' : '#2a0a10'; g.font = `800 36px ${BODY}`; g.fillText(arm ? 'Press again to end' : 'End game', bx, by + 2, bw - 24);
       }
     }
     panelC.tex.needsUpdate = true;
@@ -2218,6 +2276,14 @@ kbd {
   drawPanel();
   function watchPress(id) {
     const now = performance.now();
+    if (id === 'end') {
+      if (now < WATCH.cool) return;
+      WATCH.cool = now + 700;
+      haptic(vrHands[WATCH.side === 'left' ? 'right' : 'left'], 0.4, 30);
+      if (ENDGAME.press(curLevel())) { WATCH.awake = false; panel.visible = false; }
+      panelKey = '';
+      return;
+    }
     if (id === 'bots') {
       if (now < WATCH.cool) return;
       WATCH.cool = now + 700;
@@ -2273,7 +2339,7 @@ kbd {
     const rh = myHands[other];   // you press it with your other hand
     if (!WATCH.awake) { WATCH.trigPrev = false; return; }
     // the panel floats just above the watch, facing you
-    panel.position.copy(_watchWp).addScaledVector(toEye, 0.03).addScaledVector(_watchRd.set(0, 1, 0).applyQuaternion(_watchCq), 0.075);
+    panel.position.copy(_watchWp).addScaledVector(toEye, 0.03).addScaledVector(_watchRd.set(0, 1, 0).applyQuaternion(_watchCq), 0.092);   // (above the watch: the panel is taller now)
     panel.quaternion.copy(_watchCq);
     panel.updateMatrixWorld(true);
     _watchInv.copy(panel.matrixWorld).invert();
@@ -4107,6 +4173,8 @@ kbd {
       L.board.tex.needsUpdate = true;
     };
     L.ltInternals = { startLightning, shooterMade, botShoot, give, FT, FT_D, LT_BOTS };
+    // End game: Lightning stops (shoot-around carries on)
+    ENDGAME.on(L, { active: () => LT.ph === 1, end: () => { requestLT(2); return 'Start Lightning again when everyone’s ready.'; } });
     return L;
   })();
 
@@ -5515,6 +5583,8 @@ kbd {
     L.hudActions.splice(1, 0, { label: () => (GM.def ? 'Defense: on' : 'Defense: off'), run: () => gameRequest(GM.def ? 4 : 3) });
     L.defInternals = { hostCpuEvent, swingAt, defensePitch, HUMAN_SPOTS, FIRST_GLOVE };
 
+    // End game: the full game against the Sluggers stops (batting practice carries on)
+    ENDGAME.on(L, { active: () => gameOn(), end: () => { gameRequest(2); return 'Start a new game when everyone’s ready.'; } });
     return L;
   })();
 
@@ -6361,6 +6431,7 @@ kbd {
       baseDrawDG(all);
     };
     L.finnInternals = { finnPlanGen, finnStep, finnToHole };
+    ENDGAME.on(L, { active: () => true, end: () => { restartRound(); return 'Back to the first tee.'; } });
     return L;
   })();
 
@@ -8291,6 +8362,8 @@ kbd {
       };
     }
     L.resetRun = resetRun;
+    // End game: restart the quest for everyone here (the same as the Restart quest button)
+    ENDGAME.on(L, { active: () => !!L.q && (L.q.pg > 0 || !!L.q.done), end: () => { request(1); return 'The quest starts again from the beginning.'; } });
     return L;
   }
 
@@ -9878,6 +9951,8 @@ kbd {
     }
     L.onExit = ((base) => () => { base(); for (const b of lbots) b.g.visible = false; })(L.onExit);
     L.ltInternals = { AR, BASE_Z, startGame, counting: (now) => counting(now), beams, lbots, fillLtBots, stepLtBots, rayHitsBot, botFire, ltHost, LB, me, scores, fire: (now) => fire(now), clearLine };
+    // End game: a new game for everyone (the newer round reaches everyone's page by itself)
+    ENDGAME.on(L, { active: () => me.round > 0, end: () => { startGame(); return 'New game: everyone back to base.'; } });
     return L;
   })();
 
@@ -10544,6 +10619,8 @@ kbd {
     }
     L.onExit = ((base) => () => { base(); for (const b of sbots) b.g.visible = false; })(L.onExit);
     L.socInternals = { physics: (dt, now) => updateBodies(L, dt, now), me, scores, sbots, fillSocBots, stepSocBots, assignRoles, botKick, socHost, SOC, ball, HW, HL, GW };
+    // End game: a new match, 0-0 (the newer round reaches everyone's page by itself)
+    ENDGAME.on(L, { active: () => me.team >= 0, end: () => { me.round += 1; me.goals = [0, 0]; me.scoredBy = 0; me.winT = 0; if (ball.owner === state.myPeer || ball.owner === null) { reclaimToSlot(ball); ball.sleeping = false; } state.dirtyBoard = true; forcePresence(); return 'A new match: 0-0.'; } });
     return L;
   })();
   // ================================================================ LEVEL: SEASIDE MINI GOLF
@@ -11927,6 +12004,8 @@ kbd {
     };
     L.beaInternals = { planPutt, beaStep, beaToHole };
     L.mgInternals = { ballStep, ballPos, millBlocked, moleUp, HOLES, B, me, placeOnTee, goToHole, strike, walkerAt, ufoAt, erupting, nudgeResting };
+    // End game: start the round again from the first hole
+    ENDGAME.on(L, { active: () => true, end: () => { restartRound(); return 'Back to the first hole.'; } });
     return L;
   })();
 
@@ -12992,12 +13071,17 @@ kbd {
       baseDraw(all);
     };
     L.bowlBotInternals = { botStep, decideKnock };
+    // End game: a fresh scorecard on your lane
+    ENDGAME.on(L, { active: () => me.rolls.length > 0, end: () => { newGame(); return 'A fresh game on your lane.'; } });
     return L;
   })();
 
   // ================================================================ LEVEL: THE CLUBHOUSE (hub)
   const hub = (() => {
     const L = newLevel(HUB);
+    // the clubhouse's tables and cabinets each say how to stop what you're playing on them (End game stops yours)
+    L.subEnds = [];
+    ENDGAME.on(L, { active: () => L.subEnds.some((e) => e.active()), end: () => L.subEnds.filter((e) => e.active()).map((e) => e.end()).join(' ') });
     const G = L.group;
     const rand = mulberry32(1111);
     L.gravityScale = 0.35;
@@ -13602,6 +13686,7 @@ kbd {
       state.hudDirty = true;
       forcePresence();
     }
+    L.subEnds.push({ active: () => AH.mySide >= 0, end: () => { newGame(false); forcePresence(); return 'Air hockey: starting over at 0-0.'; } });
     function newGame(announce) {
       AH.score = [0, 0]; AH.goalSeq += 1; AH.gid += 1; AH.overT = 0;
       serve(AH.mySide >= 0 ? AH.mySide : 0);
@@ -13940,6 +14025,7 @@ kbd {
 
     // ---------------------------------------------------------------- the rules (run by whoever has the ball)
     function serveSpot() { Object.assign(PP.b, { u: endU(PP.server) * 0.9, y: Y + 0.28, v: PP.server === 0 ? 0.25 : -0.25, vu: 0, vy: 0, vv: 0 }); }
+    L.subEnds.push({ active: () => PP.mySide >= 0 && PP.ph !== 'idle', end: () => { newGame(); PP.ver += 20; forcePresence(); return 'Ping pong: starting over at 0-0.'; } });
     function newGame() {
       PP.first = rand() < 0.5 ? 0 : 1;
       Object.assign(PP, { score: [0, 0], server: PP.first, overT: 0, winner: -1 });
@@ -14462,6 +14548,7 @@ kbd {
       Object.assign(FB.ball, { u: 0, v: (Math.random() - 0.5) * 0.1, vu: Math.cos(a) * 0.5, vv: Math.sin(a) * 0.35 });
       FB.ph = 'play'; FB.stuckT = 0;
     }
+    L.subEnds.push({ active: () => FB.mySide >= 0, end: () => { newGame(); return 'Foosball: starting over at 0-0.'; } });
     function newGame() { FB.score = [0, 0]; FB.winner = -1; FB.goalSeq += 1; spawnBall(); forcePresence(); }
     function goal(team) {
       FB.score[team] += 1; FB.goalSeq += 1;
@@ -14872,6 +14959,7 @@ kbd {
     };
     const myRound = () => CABS.find((c) => c.round && c.round.player === me());
     const roundOf = (cab) => (cab.round ? { player: me(), name: state.name, score: cab.round.score, left: Math.max(0, cab.round.end - performance.now()) } : remoteRound(cab.i));
+    L.subEnds.push({ active: () => !!myRound(), end: () => { const c = myRound(); if (c) { c.round = null; c.finalT = 0; state.hudDirty = true; forcePresence(); } return 'Press START for a new round.'; } });
     function startRound(cab) {
       const now = performance.now();
       if (roundOf(cab)) { showToast('That one\u2019s in use'); return; }
@@ -16632,6 +16720,8 @@ kbd {
       else if (starWas) { starWas = false; mine.body.color.set(PLAYER_COLORS[state.colorIdx].hex); }
     }
     L.botInternals = { BOT_NAMES, botDrive, placeBot, hitBot, BEND };
+    // End game: the race stops for everyone here, back on the grid (free driving until someone starts another)
+    ENDGAME.on(L, { shared: true, active: () => race.phase === 'count' || race.phase === 'run', end: () => { race.phase = 'free'; race.finish = 0; for (const b of botKarts()) { b.phase = 'free'; b.lap = 0; } placeOnGrid(); state.dirtyBoard = true; forcePresence(); return 'Start a race when everyone’s ready.'; } });
     return L;
   })();
 
@@ -17427,6 +17517,7 @@ kbd {
     };
     L.internals = { startRound, found, hostTag, EV, HOME_SPOT, request };
     L.hsInternals = { startRound, bots, R };
+    ENDGAME.on(L, { active: () => R.ph === 1 || R.ph === 2, end: () => { request(3); return 'Start a new round when everyone’s ready.'; } });
     return L;
   })();
 
@@ -18151,6 +18242,7 @@ kbd {
     L.onExit = () => { guessBox.style.display = 'none'; myCard.visible = false; if (ui.status) ui.status.hidden = true; statusKeyCH = ''; };
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0001) * 0.3; camera.position.set(Math.sin(a) * 4, 2.6, 6.5); camera.lookAt(0, 1.4, -5); };
     L.chInternals = { CH, hostTickCH, startGameCH, guessMatches, drawCard, gotIt, sendGuess, EVC };
+    ENDGAME.on(L, { active: () => CH.ph === 1 || CH.ph === 2 || CH.ph === 3, end: () => { request(2); return 'Start a new game when everyone’s ready.'; } });
     return L;
   })();
 
@@ -18701,6 +18793,7 @@ kbd {
     };
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0001) * 0.4; camera.position.set(Math.sin(a) * 10 - 6, 5, 22); camera.lookAt(0, 1, 0); };
     L.pbInternals = { GUNS, KINDS, fire, addBall, stepBalls, applyHit, judgeHit, startRound, hostTick, fillBots, bots, balls, splats, targets, teamOf, aliveOn, bodyHit };
+    ENDGAME.on(L, { active: () => PB.ph !== 0, end: () => { requestPB(2); return 'Start a new round when everyone’s ready.'; } });
     return L;
   })();
 
@@ -19414,6 +19507,8 @@ kbd {
       { label: () => 'New game', show: () => PB.mySide >= 0 && humans().length === 1, run: () => { newGame(); showToast(`New game against the court bots. First to ${WIN}, win by 2`); } },
     ];
     PB.internals = { bounceSpin, airStep, predictLanding, botStep, SPINS, deskHit: (now) => deskHit(now), HL, HW, KITCH, NET_H, paddles, takeSide, takeSlot, setDoubles, slots, botSlots, BOTS, serverSlot, responsible, authFor, homeZ, leaveCourt, newGame, startServe, onHit, onBounce, stepBall, hitBall, aimed, clearNet, flyTo, target, players, botSide, iAmAuth, serveZ };
+    // End game: start over at 0-0 with whoever's on the court
+    ENDGAME.on(L, { shared: true, active: () => PB.mySlot >= 0 && PB.ph !== 'idle', end: () => { if (PB.mySlot < 0) return ''; newGame(); PB.opp = oppKey(); PB.ver += 20; forcePresence(); return 'Starting over at 0-0.'; } });
     return L;
   })();
 
@@ -20198,6 +20293,7 @@ kbd {
     L.parkourInternals = { P, RACE, DRINK, startRace, step, grabFlat, releaseFlat, drinkNow, findHold, rampAt, supportAt, standings, bots, respawn, finishRace, routeAt, tryMantle, useCourse, COURSES };
     // the course's own pieces, whichever course is chosen
     for (const [k, get] of Object.entries({ SOL: () => SOL, RAMPS: () => RAMPS, HOLDS: () => HOLDS, ZONES: () => ZONES, CPS: () => CPS, bottles: () => bottles, ROUTE_T: () => ROUTE_T, C: () => C })) Object.defineProperty(L.parkourInternals, k, { get, enumerable: true });
+    ENDGAME.on(L, { shared: true, active: () => RACE.state !== 'idle', end: () => { RACE.state = 'idle'; RACE.myFinish = 0; resetDrinks(); toStart(); hudKey = ''; boardKey = ''; state.dirtyBoard = true; forcePresence(); return 'Start a race when everyone’s ready.'; } });
     return L;
   })();
 
@@ -20613,6 +20709,7 @@ kbd {
       }
     };
     L.dbInternals = { RS, H, bots, balls, me, humans, isHost, hostStep, botStep, beginCount, endRound, aliveCount, checkMyHit, trackBall, reviveFor, sendOut, throwBall, toSpot, goOut, switchTeam, onCatch, teamOf, nearestEnemy };
+    ENDGAME.on(L, { shared: true, active: () => RS.st !== 'idle', end: () => { if (isHost()) { RS.st = 'idle'; startMatchLocal(); } forcePresence(); return 'Starting over with everyone here.'; } });
     return L;
   })();
 
@@ -21273,6 +21370,7 @@ kbd {
     L.onExit = () => { hudPlate.visible = false; potato.visible = false; if (ui.status) ui.status.hidden = true; statusKey = ''; for (const b of bots) b.g.visible = false; };
     L.attract = (now) => { const a = reduceMotion ? 0 : now * 0.00006; camera.position.set(Math.sin(a) * 11, 4.2, Math.cos(a) * 11); camera.lookAt(0, 1, 0); };
     L.potatoInternals = { RS, H, me, FUSE, bots, hostStep, hostThrow, throwAt, pickTarget, spotPos, ringR, handPos, isHost };
+    ENDGAME.on(L, { shared: true, active: () => RS.ph !== 'idle', end: () => { if (isHost()) { RS.ph = 'idle'; RS.holder = ''; RS.fl = null; } forcePresence(); return 'Starting over with everyone here.'; } });
     return L;
   })();
   // ================================================================ LEVEL: WHITEWATER RAPIDS (kayak race)
@@ -21972,6 +22070,7 @@ kbd {
       camera.position.set(q.x + Math.sin(yaw) * 8, q.y + 5, q.z + Math.cos(yaw) * 8);
       camera.lookAt(q.x - Math.sin(yaw) * 10, q.y, q.z - Math.cos(yaw) * 10);
     };
+    ENDGAME.on(L, { shared: true, active: () => RACE.state !== 'idle', end: () => { RACE.state = 'idle'; RACE.myFinish = 0; toGrid(); hudKey = ''; boardKey = ''; state.dirtyBoard = true; forcePresence(); return 'Start a race when everyone’s ready.'; } });
     return L;
   })();
   // ================================================================ LEVEL: LAKESIDE CORNHOLE
@@ -22462,6 +22561,8 @@ kbd {
     L.onExit = () => { hudPlate.visible = false; botBody.visible = false; if (ui.status) ui.status.hidden = true; statusKey = ''; };
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0001) * 0.5; camera.position.set(3 + Math.sin(a) * 2, 2.2, 7.5); camera.lookAt(0, 0.3, -4); };
     L.cornholeInternals = { RS, H, me, bags, BOARDS, bagPoints, throwFor, lob, hostStep, isHost, turnBag, myTurn, setSlots, local };
+    // End game: the host starts a fresh game straight away with whoever's here (a newcomer takes Corny Carl's place)
+    ENDGAME.on(L, { shared: true, active: () => RS.ph !== 'idle', end: () => { if (hostId() === state.myPeer) RS.ph = 'idle'; forcePresence(); return 'Starting a fresh game with everyone here.'; } });
     return L;
   })();
   // ================================================================ LEVEL: CAPTURE THE FLAG
@@ -22922,6 +23023,7 @@ kbd {
     L.onExit = () => { hudPlate.visible = false; if (ui.status) ui.status.hidden = true; statusKey = ''; for (const b of bots) b.g.visible = false; };
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.00008) * 0.5; camera.position.set(Math.sin(a) * 16 + 10, 9, 18); camera.lookAt(0, 0, 0); };
     L.ctfInternals = { fillBots, RS, H, me, bots, HOME, COVER, hostStep, tag, validTag, everyone, isHost, startPlay, pushOut, requestTag, ownHalf };
+    ENDGAME.on(L, { shared: true, active: () => RS.ph !== 'idle', end: () => { if (isHost()) { RS.ph = 'idle'; RS.score = [0, 0]; RS.winner = -1; H.events = []; } toBase(); forcePresence(); return 'Starting over with everyone here.'; } });
     return L;
   })();
   // ================================================================ TRIVIA: THE QUESTION BANK
@@ -23958,6 +24060,7 @@ kbd {
     L.onExit = () => { if (ui.status) ui.status.hidden = true; statusKey = ''; for (const b of bots) b.g.visible = false; };
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.00012) * 0.5; camera.position.set(Math.sin(a) * 7, 3.2, 4 + Math.cos(a) * 2); camera.lookAt(0, 2.4, -7); };
     L.triviaInternals = { RS, H, me, T, bots, podiums, hostStep, answer, isHost, seatAt, mySeat, rightSlot, ansText, QN, SEAT_ORDER, kOf, bank: TRIVIA_Q };
+    ENDGAME.on(L, { shared: true, active: () => RS.ph !== 'idle', end: () => { if (isHost()) RS.ph = 'idle'; forcePresence(); return 'Starting a new game with everyone here.'; } });
     return L;
   })();
   // ================================================================ LEVEL: RECESS RUSH (a playground obstacle race)
@@ -25116,6 +25219,7 @@ kbd {
       }
     };
     L.recessInternals = { P, RACE, Z, CPS, SOL, HOLDS, squares, TIRES, BARS, bots, ROUTE, ROUTE_T, FIN_T, startRace, step, grabFlat, letGo, respawn, standings, routeAt, supportAt, inTire, onSquare, tunnelZone, finishRace, resetCourse, gate, ballOff, NB, vr: () => ({ myHands, vrHands, myHead }), TB, BT, DDS, DD, TS, BF, SWEET, STN, throwBall, trickVel, flipFrom, flipBottle, ddNext, inCircle, gates: () => [trickGate, flipGate, ddGate] };
+    ENDGAME.on(L, { shared: true, active: () => RACE.state !== 'idle', end: () => { RACE.state = 'idle'; RACE.myFinish = 0; resetCourse(); toStart(); hudKey = ''; boardKey = ''; state.dirtyBoard = true; forcePresence(); return 'Start a race when everyone’s ready.'; } });
     return L;
   })();
   // ================================================================ LEVEL: BEAT BLADES
@@ -25798,6 +25902,7 @@ kbd {
     L.sortRows = (a, b) => (b.score || 0) - (a.score || 0);
     L.drawBoard = () => { boardKey = ''; };
     L.bbInternals = { playStep, BB, SONGS, DIFFS, makeChart, start, stop, stepSong, blocks, bombs, walls, blade, sweepHit, HZ, COLS, ROWS, DIRV, lanes };
+    ENDGAME.on(L, { active: () => BB.st === 'play', end: () => { stop('quit'); return ''; } });
     return L;
   })();
   // ================================================================ LEVEL: JUGGLE JAM
@@ -26653,6 +26758,7 @@ kbd {
     L.sortRows = (a, b) => (b.score || 0) - (a.score || 0);
     L.drawBoard = () => { boardKey = ''; };
     L.woInternals = { W, SESSIONS, MOVES, makePlan, start, stop, step, pads, bars, walls, stars, HZ };
+    ENDGAME.on(L, { active: () => W.st === 'go', end: () => { stop('quit'); return ''; } });
     return L;
   })();
   // ================================================================ LEVEL: WALL RUSH
@@ -27063,6 +27169,7 @@ kbd {
     };
     L.sortRows = (a, b) => (b.score || 0) - (a.score || 0);
     L.drawBoard = () => { boardKey = ''; };
+    ENDGAME.on(L, { active: () => R.st === 'go', end: () => { stop('quit'); return ''; } });
     return L;
   })();
   // ================================================================ LEVEL: TWO-MINUTE DRILL (football)
@@ -28076,6 +28183,8 @@ kbd {
       drums: { k: 'x.......x.......', s: 'x.o.x.oox.o.xoxo', c: '....x.......x...', h: '..-...-...-...-.' } };
     L.fbInternals = { MP, assignSpots, snapshot, applySnap, pickQB, cycleRole, S, PLAYS, DIFFS, REC, COV, SAF, RUSH, LINE, routeAt, passTo, hike, startGame, choosePlay, step, endPlay, release, throwFlat, lookTarget, fieldGoal, spike, timeout, setFormation, YD };
     setFormation();
+    // End game: the drive stops (only the quarterback's game is the real one; a receiver's press ends it there too)
+    ENDGAME.on(L, { shared: true, active: () => !following() && S.phase !== 'idle' && S.phase !== 'over', end: () => { if (following()) return ''; S.phase = 'idle'; S.running = false; setFormation(); standQB(); forcePresence(); state.dirtyBoard = true; return 'Hike to start a new drill.'; } });
     return L;
   })();
   // ================================================================ LEVEL: SKEE-BALL ARCADE
@@ -28527,6 +28636,7 @@ kbd {
     L.onExit = () => { if (ui.status) ui.status.hidden = true; if (B.st === 'held') B.st = 'tray'; };
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 2, 2.2, 3.2); camera.lookAt(0, 1, -3); };
     MUSIC_THEMES.skeeball = { gain: 0.8, bpm: 118, swing: 0.1, chords: ['C', 'Am', 'F', 'G'], comp: { inst: 'synth', at: [0, 4, 8, 12], dur: 0.15 }, bass: { at: [0, 8] }, drums: { k: 'x...x...x...x...', h: '..o...o...o...o.' }, lead: { inst: 'musicbox', p: 0.3, up: 12 }, cut: 4800 };
+    ENDGAME.on(L, { active: () => me.phase === 'play', end: () => { me.phase = 'idle'; me.score = 0; me.left = BALLS; forcePresence(); state.dirtyBoard = true; return ''; } });
     return L;
   })();
   // ================================================================ LEVEL: MUSICAL CHAIRS
@@ -28796,6 +28906,7 @@ kbd {
     L.attract = (now) => { const a = reduceMotion ? 0 : now * 0.0001; camera.position.set(Math.sin(a) * 6, 3.5, Math.cos(a) * 6); camera.lookAt(0, 0.6, 0); };
     MUSIC_THEMES.chairs = { gain: 0.0001, bpm: 100, chords: ['C'], drums: {} };
     void _c;
+    ENDGAME.on(L, { shared: true, active: () => S.ph !== 'lobby', end: () => { if (isHost()) S.ph = 'lobby'; tuneNext = 0; forcePresence(); return 'Start a new game when everyone’s ready.'; } });
     return L;
   })();
   // ================================================================ LEVEL: KNOCKOUT KID (boxing)
@@ -29130,6 +29241,7 @@ kbd {
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.4; camera.position.set(Math.sin(a) * 3, 2.4, 3.2); camera.lookAt(0, 1.4, -1); };
     L.boxInternals = { B, LEVELS, startBout, boutStep, myPunch, resolvePunch, throwPunch, guarding };
     MUSIC_THEMES.boxing = { gain: 0.75, bpm: 96, swing: 0.12, chords: ['Am', 'Am', 'Dm', 'E'], comp: { inst: 'brass', at: [0, 6, 10], dur: 0.2 }, bass: { at: [0, 6, 8, 14] }, drums: { k: 'x.....x.x.......', s: '....x.......x...', h: 'o.o.o.o.o.o.o.o.' }, cut: 4000 };
+    ENDGAME.on(L, { active: () => B.st !== 'idle', end: () => { B.st = 'idle'; forcePresence(); state.dirtyBoard = true; return ''; } });
     return L;
   })();
   // ================================================================ LEVEL: SNOWBALL FIGHT
@@ -29584,6 +29696,7 @@ kbd {
       }
     };
     L.swInternals = { FORTS, splat, snowStep, RS, H, bots, balls, me, humans, isHost, hostStep, botStep, beginCount, endRound, aliveCount, checkMyHit, trackBall, reviveFor, sendOut, throwBall, toSpot, goOut, switchTeam, onCatch, teamOf, nearestEnemy };
+    ENDGAME.on(L, { shared: true, active: () => RS.st !== 'idle', end: () => { if (isHost()) { RS.st = 'idle'; startMatchLocal(); } forcePresence(); return 'Starting over with everyone here.'; } });
     return L;
   })();
 
@@ -29959,6 +30072,7 @@ kbd {
     L.attract = (now) => { const a = reduceMotion ? 0 : now * 0.00004; const p = posAt(60 + (a * 400) % 200, 0, new V3()); camera.position.set(p.x + 12, p.y + 8, p.z + 14); camera.lookAt(p); };
     L.sledInternals = { K, RACE, BOTS, sledStep, botDrive, startRace, toGrid, standings, posAt, SNOWMEN, ICE, JUMPS, FINISH_S, START_S };
     MUSIC_THEMES.toboggan = { gain: 0.8, bpm: 132, swing: 0.05, chords: ['D', 'G', 'A', 'D'], comp: { inst: 'vibes', at: [0, 4, 8, 12], dur: 0.2 }, bass: { at: [0, 8, 10] }, drums: { k: 'x...x...x...x...', sh: '-.-.-.-.-.-.-.-.' }, lead: { inst: 'musicbox', p: 0.3, up: 12 }, cut: 5000 };
+    ENDGAME.on(L, { shared: true, active: () => RACE.st === 'count' || RACE.st === 'run', end: () => { RACE.st = 'idle'; toGrid(); state.dirtyBoard = true; forcePresence(); return 'Start a race when everyone’s ready.'; } });
     return L;
   })();
   // ================================================================ LEVEL: PUB DARTS
@@ -30361,6 +30475,8 @@ kbd {
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 1.5, 1.8, 2.4); camera.lookAt(0, 1.6, BZ); };
     L.dartInternals = { S, F, newLeg, nextTurn, land, launch, flightStep, velTo, daveThrow, scoreAt, spotFor, aimPoint, myDarts, daveDarts, laneX, BZ, BY };
     MUSIC_THEMES.darts = { gain: 0.6, bpm: 100, swing: 0.2, chords: ['G', 'C', 'D', 'G'], comp: { inst: 'guitar', at: [0, 4, 8, 12], dur: 0.25 }, bass: { at: [0, 8] }, drums: { k: 'x.......x.......', h: '....o.......o...' }, lead: { inst: 'musicbox', p: 0.2, up: 12 }, cut: 3600 };
+    // End game: back to before a leg starts
+    ENDGAME.on(L, { active: () => S.phase === 'play', end: () => { S.phase = 'idle'; S.thrown = 0; S.wait = 0; forcePresence(); state.hudDirty = true; return 'Throw to start a new leg.'; } });
     return L;
   })();
   // ================================================================ LEVEL: BEACH VOLLEYBALL
@@ -30982,6 +31098,8 @@ kbd {
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.4; camera.position.set(Math.sin(a) * 6, 4, 11); camera.lookAt(0, 1.5, 0); };
     L.vbInternals = { V, P, ME, setSolo, setCourt, teamSlots, touchKind, court: () => [HX, HZ], startMatch, newServe, applyHit, shotVel, ballStep, botStep, hostStep, myTouch, predict, overNet, inCourt, snapshot, applySnap, validSnap, assignPeople, LEVELS };
     MUSIC_THEMES.volleyball = { gain: 0.7, bpm: 112, swing: 0.15, chords: ['C', 'F', 'G', 'F'], comp: { inst: 'guitar', at: [0, 3, 6, 10, 12], dur: 0.15 }, bass: { at: [0, 6, 8, 14] }, drums: { k: 'x.....x...x.....', s: '....x.......x...', h: '..o...o...o...o.' }, lead: { inst: 'vibes', p: 0.25, up: 12 }, cut: 4200 };
+    // End game: back to before a match (whoever's here gets a spot when the next one starts)
+    ENDGAME.on(L, { shared: true, active: () => V.ph !== 'idle' && V.ph !== 'over', end: () => { V.ph = 'idle'; V.score = [0, 0]; V.winner = -1; drawScore.key = ''; forcePresence(); return 'Press Start (or A / X) for a new match with everyone here.'; } });
     return L;
   })();
   // ================================================================ LEVEL: PILLOW FIGHT CASTLE
@@ -31394,6 +31512,7 @@ kbd {
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.5; camera.position.set(Math.sin(a) * 7, 4.5, 9); camera.lookAt(0, 1, 0); };
     L.pfInternals = { S, startRound, hostStep, bonk, myBonk, bots, snapshot, applySnap, validSnap, deskSwing };
     MUSIC_THEMES.pillow = { gain: 0.7, bpm: 132, swing: 0, chords: ['F', 'C', 'Dm', 'Bb'], comp: { inst: 'synth', at: [0, 4, 8, 12], dur: 0.12 }, bass: { at: [0, 4, 8, 12] }, drums: { k: 'x...x...x...x...', s: '....x.......x...', h: 'oooooooooooooooo' }, lead: { inst: 'musicbox', p: 0.35, up: 12 }, cut: 5000 };
+    ENDGAME.on(L, { shared: true, active: () => S.ph !== 'lobby', end: () => { if (isHost()) S.ph = 'lobby'; forcePresence(); return 'Start a new round when everyone’s ready.'; } });
     return L;
   })();
   // ================================================================ LEVEL: HAUNTED MANSION
@@ -31852,6 +31971,7 @@ kbd {
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 2, 1.8, ROOMS[0].z + 4.5); camera.lookAt(0, 1.4, ROOMS[0].z - 4); };
     L.hauntInternals = { H, ME, startHunt, hostStep, fillRoom, beams, lit, snapshot, applySnap, validSnap, ROOMS, roomOfZ };
     MUSIC_THEMES.haunted = { gain: 0.55, bpm: 72, swing: 0, chords: ['Am', 'Dm', 'E', 'Am'], comp: { inst: 'musicbox', at: [0, 3, 6, 9, 12], dur: 0.3 }, bass: { at: [0, 8] }, drums: {}, cut: 2400 };
+    ENDGAME.on(L, { shared: true, active: () => H.ph !== 'idle', end: () => { if (isHost()) H.ph = 'idle'; forcePresence(); return 'Start a new hunt when everyone’s ready.'; } });
     return L;
   })();
   // ================================================================ LEVEL: LLAMA DERBY
@@ -32282,6 +32402,7 @@ kbd {
     L.attract = (now) => { const a = reduceMotion ? 0 : now * 0.00004; const p = posAt((a * 400) % TLEN, 0, new V3()); camera.position.set(p.x + 10, 6, p.z + 12); camera.lookAt(p.x, 1, p.z); };
     L.llInternals = { K, RACE, BOTS, llamaStep, botRide, startRace, toGrid, standings, posAt, giddy, jump, BALES, CARROTS, MUD, TLEN, FINISH };
     MUSIC_THEMES.llama = { gain: 0.75, bpm: 140, swing: 0.1, chords: ['G', 'C', 'G', 'D'], comp: { inst: 'guitar', at: [0, 2, 4, 6, 8, 10, 12, 14], dur: 0.1 }, bass: { at: [0, 4, 8, 12] }, drums: { k: 'x.......x.......', s: '....x.......x...', sh: '-.-.-.-.-.-.-.-.' }, lead: { inst: 'vibes', p: 0.3, up: 12 }, cut: 4600 };
+    ENDGAME.on(L, { shared: true, active: () => RACE.st === 'count' || RACE.st === 'run', end: () => { RACE.st = 'idle'; toGrid(); state.dirtyBoard = true; forcePresence(); return 'Start a race when everyone’s ready.'; } });
     return L;
   })();
   // ================================================================ LEVEL: ROCK-PAPER-SCISSORS TOURNAMENT
@@ -32627,6 +32748,7 @@ kbd {
     Object.defineProperty(L, 'walkSpeed', { get: () => { const m = myMatch(); return m && !m[6] && S.ph !== 'lobby' && S.ph !== 'done' ? 0.0001 : 2.5; } });
     L.rpsInternals = { S, ME, startTournament, newRound, nextThrow, resolve, hostStep, pick, beats, snapshot, applySnap, validSnap, BOTS };
     MUSIC_THEMES.rps = { gain: 0.7, bpm: 120, swing: 0, chords: ['Am', 'F', 'C', 'G'], comp: { inst: 'synth', at: [0, 3, 6, 8, 11, 14], dur: 0.12 }, bass: { at: [0, 3, 6, 8] }, drums: { k: 'x..x..x.x..x..x.', s: '....x.......x...', h: 'o.o.o.o.o.o.o.o.' }, cut: 4600 };
+    ENDGAME.on(L, { shared: true, active: () => S.ph !== 'lobby' && S.ph !== 'done', end: () => { if (isHost()) S.ph = 'lobby'; forcePresence(); return 'Start a new tournament when everyone’s ready.'; } });
     return L;
   })();
   // ================================================================ LEVEL: DANCE-OFF
@@ -32965,6 +33087,7 @@ kbd {
     L.danceInternals = { D, MOVES, SONGS, start, step, judge, flatPress, makeChart, get chart() { return chart; }, targetPos, songT, beatLen };
     // the level's own groove does the music while you dance; this is the quiet background otherwise
     MUSIC_THEMES.dance = { gain: 0.35, bpm: 110, swing: 0.1, chords: ['Am', 'Dm', 'G', 'C'], comp: { inst: 'synth', at: [3, 7, 11, 15], dur: 0.1 }, bass: { at: [0, 4, 8, 12] }, drums: { k: 'x...x...x...x...', h: '..o...o...o...o.' }, cut: 3200 };
+    ENDGAME.on(L, { active: () => D.st === 'play', end: () => { D.st = 'idle'; quiet(false); state.hudDirty = true; return ''; } });
     return L;
   })();
   // ================================================================ CARNIVAL: shared scenery for the fairground games
@@ -33500,6 +33623,7 @@ kbd {
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 3, 2.0, 4.5); camera.lookAt(0, 1.6, -2); };
     L.duckInternals = { R, booths, fire, corkStep, duckPos, hitDuck, startRound, endRound, clock, corks, DZ };
     MUSIC_THEMES.duckshoot = { gain: 0.7, bpm: 126, swing: 0.15, chords: ['F', 'C', 'G', 'C'], comp: { inst: 'musicbox', at: [0, 2, 4, 6, 8, 10, 12, 14], dur: 0.1 }, bass: { at: [0, 4, 8, 12] }, drums: { k: 'x...x...x...x...', h: '..o...o...o...o.' }, cut: 4600 };
+    ENDGAME.on(L, { active: () => R.ph === 'play', end: () => { R.ph = 'idle'; for (const c of corks) { c.on = false; c.m.visible = false; } forcePresence(); return 'Fire to start a new round.'; } });
     return L;
   })();
   // ================================================================ LEVEL: RING TOSS (carnival)
@@ -33719,6 +33843,7 @@ kbd {
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 3, 2.2, 4); camera.lookAt(0, 1.2, -2); };
     L.ringInternals = { T, rings, bottles, launch, ringStep, lobTo, aimPoint, newGame, NECK_Y, CATCH };
     MUSIC_THEMES.ringtoss = { gain: 0.7, bpm: 104, swing: 0.25, chords: ['G', 'Em', 'C', 'D'], comp: { inst: 'vibes', at: [0, 4, 8, 12], dur: 0.2 }, bass: { at: [0, 6, 8, 14] }, drums: { k: 'x.......x.......', h: '..o...o...o...o.' }, lead: { inst: 'musicbox', p: 0.3, up: 12 }, cut: 4000 };
+    ENDGAME.on(L, { active: () => T.ph === 'play', end: () => { T.ph = 'idle'; T.thrown = 0; T.ringers = 0; forcePresence(); return ''; } });
     return L;
   })();
   // ================================================================ LEVEL: WHACK-A-MOLE (carnival)
@@ -33948,6 +34073,7 @@ kbd {
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 2, 2.0, 2.5); camera.lookAt(0, 0.9, -0.4); };
     L.whackInternals = { W, moles, bop, roundStep, startRound, endRound, holePos, KEYS };
     MUSIC_THEMES.whack = { gain: 0.7, bpm: 138, swing: 0.1, chords: ['C', 'F', 'G', 'C'], comp: { inst: 'synth', at: [0, 2, 4, 6, 8, 10, 12, 14], dur: 0.08 }, bass: { at: [0, 4, 8, 12] }, drums: { k: 'x...x...x...x...', s: '....x.......x...', h: 'o.o.o.o.o.o.o.o.' }, cut: 5000 };
+    ENDGAME.on(L, { active: () => W.ph === 'play', end: () => { W.ph = 'idle'; for (const c of moles) for (const m of c.list) m.want = 0; forcePresence(); return ''; } });
     return L;
   })();
   // ================================================================ LEVEL: SPEED OF LIGHT (carnival)
@@ -34156,6 +34282,7 @@ kbd {
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 2, 1.8, 2.8); camera.lookAt(0, 1.4, -0.6); };
     L.lightInternals = { S, panels, press, pushed, startRound, endRound, lightNext, btnPos, isLit };
     MUSIC_THEMES.lightspeed = { gain: 0.7, bpm: 140, swing: 0, chords: ['Em', 'C', 'G', 'D'], comp: { inst: 'synth', at: [0, 2, 4, 6, 8, 10, 12, 14], dur: 0.08 }, bass: { at: [0, 4, 8, 12] }, drums: { k: 'x...x...x...x...', h: 'o.o.o.o.o.o.o.o.' }, cut: 5200 };
+    ENDGAME.on(L, { active: () => S.ph === 'play', end: () => { S.ph = 'idle'; S.lits = []; forcePresence(); state.dirtyBoard = true; return 'Press a button to start a new round.'; } });
     return L;
   })();
   // ================================================================ STUDY HALL: content for the CompTIA A+ games
@@ -34903,6 +35030,8 @@ kbd {
     showMenu();
     L.qbInternals = { S, deck, answer, nextQuestion, startRound, endRound, onPick, drawReport, MODES };
     MUSIC_THEMES.quizblaster = { gain: 0.55, bpm: 112, swing: 0.1, chords: ['C', 'Am', 'F', 'G'], comp: { inst: 'piano', at: [0, 3, 6, 8, 11, 14], dur: 0.2 }, bass: { at: [0, 6, 8, 14] }, drums: { k: 'x.....x.x.......', h: '..o...o...o...o.' }, cut: 3600 };
+    // End game: back to the menu
+    ENDGAME.on(L, { active: () => S.ph !== 'menu', end: () => { L.onEnter(); return 'Pick a mode to start again.'; } });
     return L;
   })();
   // ================================================================ LEVEL: PORT & CABLE SORTER (study hall)
@@ -35184,6 +35313,8 @@ kbd {
     newCrate();
     L.sortInternals = { S, C, deck, sorted, lobTo, startRound, endRound, newCrate, items, flyStep, MODES };
     MUSIC_THEMES.portsorter = { gain: 0.6, bpm: 124, swing: 0.05, chords: ['Am', 'F', 'C', 'G'], arp: { inst: 'pluck', every: 1, order: [1, 2, 3, 4, 3, 2, 1, 2] }, bass: { at: [0, 3, 6, 8, 11, 14] }, drums: { k: 'x...x...x...x...', h: '-o-o-o-o-o-o-o-o' }, cut: 4200 };
+    // End game: back to the menu
+    ENDGAME.on(L, { active: () => S.ph !== 'menu', end: () => { L.onEnter(); return 'Pick a mode to start again.'; } });
     return L;
   })();
   // ================================================================ LEVEL: PC BUILD BENCH (study hall)
@@ -35584,6 +35715,7 @@ kbd {
     reset(null); drawDeck();
     L.pcInternals = { S, P, SLOTS, STEPS, fit, pickUp, powerOn, reset, goHome, slotPos, deck, clickAt };
     MUSIC_THEMES.pcbuild = { gain: 0.55, bpm: 96, swing: 0.1, chords: ['Dm7', 'G7', 'Cmaj7', 'Am7'], comp: { inst: 'ep', at: [0, 6, 10], dur: 0.5 }, bass: { at: [0, 7, 10] }, drums: { k: 'x.....x...x.....', s: '....x.......x...', h: 'o-o-o-o-o-o-o-o-' }, cut: 3400 };
+    ENDGAME.on(L, { active: () => S.ph !== 'idle', end: () => { L.onEnter(); return 'Pick a mode to start a new build.'; } });
     return L;
   })();
   // ================================================================ LEVEL: HELP DESK TICKETS (study hall)
@@ -35928,6 +36060,7 @@ kbd {
     menuCards();
     L.deskInternals = { S, TICKETS, deck, answer, advance, startShift, endShift, onPick, cust, ask };
     MUSIC_THEMES.helpdesk = { gain: 0.5, bpm: 88, swing: 0.2, chords: ['Fmaj7', 'Em7', 'Dm7', 'Cmaj7'], comp: { inst: 'ep', at: [0, 6, 11], dur: 0.8 }, bass: { at: [0, 8, 10] }, drums: { k: 'x.......x.......', s: '....x.......x...', h: 'o-o-o-o-o-o-o-o-' }, cut: 3200, crackle: 0.6 };
+    ENDGAME.on(L, { active: () => S.ph !== 'idle', end: () => { L.onEnter(); return 'Pick a mode to start a new shift.'; } });
     return L;
   })();
   // ================================================================ LEVEL: COMMAND LINE DOJO (study hall)
@@ -36202,6 +36335,8 @@ kbd {
     showMenu();
     L.dojoInternals = { S, CMDS, blk, deck, strike, missed, wave, startRound, endRound, beltOf, MODES };
     MUSIC_THEMES.cmddojo = { gain: 0.6, bpm: 100, swing: 0.05, chords: ['Am', 'Em', 'F', 'G'], arp: { inst: 'pluck', every: 2, order: [1, 3, 2, 4, 1, 3, 2, 4] }, bass: { at: [0, 6, 10] }, drums: { k: 'x.....x...x.....', s: '....x.......x...', h: '-o-o-o-o-o-o-o-o' }, cut: 3400 };
+    // End game: back to the menu
+    ENDGAME.on(L, { active: () => S.ph !== 'menu', end: () => { L.onEnter(); return 'Pick a mode to start again.'; } });
     return L;
   })();
   // ================================================================ LEVEL: MATH SPRINT (study hall)
@@ -36418,6 +36553,8 @@ kbd {
     showMenu();
     L.mathInternals = { S, deck, answer, next, startRound, endRound, problem, MODES };
     MUSIC_THEMES.mathsprint = { gain: 0.6, bpm: 132, swing: 0, chords: ['C', 'G', 'Am', 'F'], arp: { inst: 'marimba', every: 1, order: [1, 2, 3, 4, 3, 2, 1, 2] }, bass: { at: [0, 4, 8, 12] }, drums: { k: 'x...x...x...x...', h: 'o.o.o.o.o.o.o.o.' }, cut: 4800 };
+    // End game: back to the menu
+    ENDGAME.on(L, { active: () => S.ph !== 'menu', end: () => { L.onEnter(); return 'Pick a mode to start again.'; } });
     return L;
   })();
   // ================================================================ STUDY HALL: quiz-show trigger words
@@ -36905,6 +37042,8 @@ kbd {
     showMenu();
     L.trigInternals = { S, deck, onPick, start, finish, reveal, judge, grade, nextDue, rec, mastered, mem, pool };
     MUSIC_THEMES.triggers = { gain: 0.5, bpm: 104, swing: 0.15, chords: ['Bbmaj7', 'Gm7', 'Cm7', 'F7'], comp: { inst: 'ep', at: [0, 6, 10], dur: 0.5 }, bass: { walk: true }, drums: { k: 'x.......x.......', s: '....x.......x...', h: 'o-o-o-o-o-o-o-o-' }, cut: 3400 };
+    // End game: back to the menu
+    ENDGAME.on(L, { active: () => S.ph !== 'menu', end: () => { L.onEnter(); return 'Pick a mode to start again.'; } });
     return L;
   })();
   // ================================================================ LEVEL: FRUIT SLASH (get active)
@@ -37248,6 +37387,7 @@ kbd {
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 2, 1.7, 2.4); camera.lookAt(0, 1.5, -2); };
     L.fruitInternals = { S, items, launch, slice, start, end, edge, sweepHit, KINDS, spawnWave };
     MUSIC_THEMES.fruit = { gain: 0.6, bpm: 120, swing: 0.05, chords: ['Am', 'Em', 'F', 'G'], arp: { inst: 'pluck', every: 1, order: [1, 3, 2, 4, 3, 2, 1, 2], up: 12 }, bass: { at: [0, 6, 10] }, drums: { k: 'x.....x...x.....', s: '....x.......x...', sh: '-o-o-o-o-o-o-o-o' }, cut: 4200 };
+    ENDGAME.on(L, { active: () => S.ph === 'play', end: () => { S.ph = 'idle'; for (const it of items) { it.on = false; it.g.visible = false; for (const h of it.halves) h.visible = false; } forcePresence(); return ''; } });
     return L;
   })();
   // ================================================================ LEVEL: CLIFFSIDE CLIMB (racing and parkour)
@@ -37578,6 +37718,8 @@ kbd {
     L.climbInternals = { P, HOLDS, BASE, FACE, mantle, ringBell, backToStart, holdNear, flatReach, support, crumble, LANES };
     for (const n of ['D', 'Bm', 'G', 'A']) if (!CH[n]) CH[n] = genChord(n);
     MUSIC_THEMES.climb = { gain: 0.6, bpm: 92, swing: 0.1, chords: ['D', 'Bm', 'G', 'A'], arp: { inst: 'guitar', every: 2, order: [1, 2, 3, 4, 3, 2, 3, 4] }, pad: { inst: 'pad' }, bass: { at: [0, 10] }, drums: { k: 'x.......x.x.....', s: '....x.......x...', sh: '-o-o-o-o-o-o-o-o' }, cut: 3600 };
+    // End game: back down to the bottom, clock stopped
+    ENDGAME.on(L, { active: () => P.ph !== 'ground', end: () => { backToStart(); return ''; } });
     return L;
   })();
   // ================================================================ LEVEL: ARCHERY RANGE (golf and lanes)
@@ -37876,6 +38018,7 @@ kbd {
     L.archInternals = { S, TG, BAL, ARROWS, loose, arrowStep, newRound, endRound, mover };
     for (const n of ['G', 'Em', 'C', 'D']) if (!CH[n]) CH[n] = genChord(n);
     MUSIC_THEMES.archery = { gain: 0.55, bpm: 84, swing: 0.1, chords: ['G', 'Em', 'C', 'D'], arp: { inst: 'harp', every: 2, order: [1, 2, 3, 4, 3, 2, 3, 4] }, pad: { inst: 'flute' }, bass: { at: [0, 8] }, drums: { k: 'x.......x.......', sh: '--o---o---o---o-' }, cut: 3400 };
+    ENDGAME.on(L, { active: () => S.ph === 'play', end: () => { S.ph = 'idle'; S.left = ROUND; S.score = 0; S.bulls = 0; S.last = null; sbKey = ''; forcePresence(); state.hudDirty = true; return 'Draw the bow to start a new round.'; } });
     return L;
   })();
   // ================================================================ LEVEL: GORILLA TAG (party games)
@@ -38281,6 +38424,7 @@ kbd {
     L.attract = (now) => { const a = reduceMotion ? 0 : now * 0.00006; camera.position.set(Math.sin(a) * 12, 5, Math.cos(a) * 12); camera.lookAt(0, 2, 0); };
     L.gtInternals = { S, M, bots, BOXES, startRound, tag, endRound, hostStep, contact, support, pushOut, vrMove, settle, snapshot, applySnap, validSnap, myTags };
     MUSIC_THEMES.gorilla = { gain: 0.6, bpm: 118, swing: 0.15, chords: ['Am', 'G', 'F', 'G'], arp: { inst: 'marimba', every: 1, order: [1, 0, 3, 2, 0, 4, 3, 0] }, bass: { at: [0, 3, 6, 10] }, drums: { k: 'x..x..x...x..x..', c: '....x.......x...', sh: 'o-o-o-o-o-o-o-o-' }, cut: 4000 };
+    ENDGAME.on(L, { shared: true, active: () => S.ph === 'play', end: () => { if (isHost()) S.ph = 'lobby'; forcePresence(); clkKey = ''; return 'Start a new round when everyone’s ready.'; } });
     return L;
   })();
   // ---------------------------------------------------------------- VR controllers
@@ -38942,7 +39086,7 @@ kbd {
   function buildPresence() {
     const L = curLevel();
     const inGame = state.mode !== 'menu';
-    const p = { n: state.name, c: state.colorIdx, a: [state.hat, state.face, state.shirt, state.shirtColor], p: inGame ? 1 : 0, lv: state.level, h: null, l: null, r: null, b: [], t: [], s: null, bb: null, dg: null, d: null, dq: null, hx: null, sh: null, pc: null, dr: null, dh: null, lq: null, ls: null, lh: null, sq: null, mq: null, mb: null, bo: null, bp: null, bw: null, ka: null, pz: PRIZE_FX.mask(), bl: BOTLV.mine(L) };
+    const p = { n: state.name, c: state.colorIdx, a: [state.hat, state.face, state.shirt, state.shirtColor], p: inGame ? 1 : 0, lv: state.level, h: null, l: null, r: null, b: [], t: [], s: null, bb: null, dg: null, d: null, dq: null, hx: null, sh: null, pc: null, dr: null, dh: null, lq: null, ls: null, lh: null, sq: null, mq: null, mb: null, bo: null, bp: null, bw: null, ka: null, pz: PRIZE_FX.mask(), bl: BOTLV.mine(L), eg: ENDGAME.mine(L) };
     if (inGame) {
       const over = L.publishPose ? L.publishPose() : null;
       if (over) {
@@ -39038,6 +39182,7 @@ kbd {
     const L = curLevel();
     const st = rec.lvState[L.id] || (rec.lvState[L.id] = {});
     if (pres.bl && rec.inGame) BOTLV.read(rec, pres.bl);
+    if (rec.inGame) ENDGAME.read(rec, pres.eg);
     if (L.picker && pres.pc) L.picker.merge(pres.pc);
     if (L.sitOut) { if (pres.so === 1 !== !!st.sitOut) state.dirtyBoard = true; st.sitOut = pres.so === 1; }
     if (pres.rcd && rec.name) RECORDS.merge(L, rec.name, pres.rcd);
@@ -39497,7 +39642,7 @@ kbd {
     if (ui.micBtn) { ui.micBtn.hidden = !VOICE.stream; ui.micBtn.textContent = VOICE.muted ? 'Mic: muted' : 'Mic: on'; }
     syncVoiceToggle();
     if (ui.musicToggle) ui.musicToggle.checked = MUSIC.on;
-    const actionBtns = L.hudActions.concat(L.picker ? [L.picker.hud] : [], L.sitOut ? [L.sitOut.hud] : [], L.botHud ? [L.botHud] : [], L.recHud ? [L.recHud] : []).filter((a) => !a.show || a.show()).map((a) => {
+    const actionBtns = L.hudActions.concat(L.picker ? [L.picker.hud] : [], L.sitOut ? [L.sitOut.hud] : [], L.botHud ? [L.botHud] : [], L.endHud ? [L.endHud] : [], L.recHud ? [L.recHud] : []).filter((a) => !a.show || a.show()).map((a) => {
       const b = document.createElement('button');
       b.className = 'hud-btn';
       b.type = 'button';
@@ -39617,7 +39762,7 @@ kbd {
   // the tests in tests/ reach inside through this, only when the page is opened with ?test
   // the shared records board (the Claude page's database, or records.php on your own site), if there is one
   RECORDS.shared.start();
-  try { if (new URLSearchParams(location.search).has('test')) window.__fd = { LEVELS, prizeFx: PRIZE_FX, BOTLV, watch: { press: watchPress, btns: watchBtns }, state, dolly, camera, myHead, myHands, RECORDS, APLUS, switchLevel, startGame, voice: { VOICE, voiceWatch, voiceResend, remotes, buildPresence }, audio: { snd, tone, sfx, ensureAudio, MUSIC } }; } catch (e) { /* ignore */ }
+  try { if (new URLSearchParams(location.search).has('test')) window.__fd = { LEVELS, prizeFx: PRIZE_FX, BOTLV, watch: { press: watchPress, btns: watchBtns, draw: () => { panelKey = ''; drawPanel(); return panelC.g.canvas.toDataURL(); } }, state, dolly, camera, myHead, myHands, RECORDS, APLUS, switchLevel, startGame, voice: { VOICE, voiceWatch, voiceResend, remotes, buildPresence }, audio: { snd, tone, sfx, ensureAudio, MUSIC } }; } catch (e) { /* ignore */ }
 })();
 </script>
 </body>

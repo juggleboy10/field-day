@@ -277,5 +277,7 @@
     newCrate();
     L.sortInternals = { S, C, deck, sorted, lobTo, startRound, endRound, newCrate, items, flyStep, MODES };
     MUSIC_THEMES.portsorter = { gain: 0.6, bpm: 124, swing: 0.05, chords: ['Am', 'F', 'C', 'G'], arp: { inst: 'pluck', every: 1, order: [1, 2, 3, 4, 3, 2, 1, 2] }, bass: { at: [0, 3, 6, 8, 11, 14] }, drums: { k: 'x...x...x...x...', h: '-o-o-o-o-o-o-o-o' }, cut: 4200 };
+    // End game: back to the menu
+    ENDGAME.on(L, { active: () => S.ph !== 'menu', end: () => { L.onEnter(); return 'Pick a mode to start again.'; } });
     return L;
   })();

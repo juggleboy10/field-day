@@ -101,6 +101,7 @@
       Object.assign(FB.ball, { u: 0, v: (Math.random() - 0.5) * 0.1, vu: Math.cos(a) * 0.5, vv: Math.sin(a) * 0.35 });
       FB.ph = 'play'; FB.stuckT = 0;
     }
+    L.subEnds.push({ active: () => FB.mySide >= 0, end: () => { newGame(); return 'Foosball: starting over at 0-0.'; } });
     function newGame() { FB.score = [0, 0]; FB.winner = -1; FB.goalSeq += 1; spawnBall(); forcePresence(); }
     function goal(team) {
       FB.score[team] += 1; FB.goalSeq += 1;

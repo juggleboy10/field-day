@@ -661,5 +661,7 @@
     }
     L.onExit = ((base) => () => { base(); for (const b of sbots) b.g.visible = false; })(L.onExit);
     L.socInternals = { physics: (dt, now) => updateBodies(L, dt, now), me, scores, sbots, fillSocBots, stepSocBots, assignRoles, botKick, socHost, SOC, ball, HW, HL, GW };
+    // End game: a new match, 0-0 (the newer round reaches everyone's page by itself)
+    ENDGAME.on(L, { active: () => me.team >= 0, end: () => { me.round += 1; me.goals = [0, 0]; me.scoredBy = 0; me.winT = 0; if (ball.owner === state.myPeer || ball.owner === null) { reclaimToSlot(ball); ball.sleeping = false; } state.dirtyBoard = true; forcePresence(); return 'A new match: 0-0.'; } });
     return L;
   })();

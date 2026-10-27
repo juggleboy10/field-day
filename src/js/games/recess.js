@@ -1154,5 +1154,6 @@
       }
     };
     L.recessInternals = { P, RACE, Z, CPS, SOL, HOLDS, squares, TIRES, BARS, bots, ROUTE, ROUTE_T, FIN_T, startRace, step, grabFlat, letGo, respawn, standings, routeAt, supportAt, inTire, onSquare, tunnelZone, finishRace, resetCourse, gate, ballOff, NB, vr: () => ({ myHands, vrHands, myHead }), TB, BT, DDS, DD, TS, BF, SWEET, STN, throwBall, trickVel, flipFrom, flipBottle, ddNext, inCircle, gates: () => [trickGate, flipGate, ddGate] };
+    ENDGAME.on(L, { shared: true, active: () => RACE.state !== 'idle', end: () => { RACE.state = 'idle'; RACE.myFinish = 0; resetCourse(); toStart(); hudKey = ''; boardKey = ''; state.dirtyBoard = true; forcePresence(); return 'Start a race when everyone’s ready.'; } });
     return L;
   })();

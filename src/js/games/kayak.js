@@ -695,5 +695,6 @@
       camera.position.set(q.x + Math.sin(yaw) * 8, q.y + 5, q.z + Math.cos(yaw) * 8);
       camera.lookAt(q.x - Math.sin(yaw) * 10, q.y, q.z - Math.cos(yaw) * 10);
     };
+    ENDGAME.on(L, { shared: true, active: () => RACE.state !== 'idle', end: () => { RACE.state = 'idle'; RACE.myFinish = 0; toGrid(); hudKey = ''; boardKey = ''; state.dirtyBoard = true; forcePresence(); return 'Start a race when everyone’s ready.'; } });
     return L;
   })();

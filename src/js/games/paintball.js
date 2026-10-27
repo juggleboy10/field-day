@@ -545,6 +545,7 @@
     };
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0001) * 0.4; camera.position.set(Math.sin(a) * 10 - 6, 5, 22); camera.lookAt(0, 1, 0); };
     L.pbInternals = { GUNS, KINDS, fire, addBall, stepBalls, applyHit, judgeHit, startRound, hostTick, fillBots, bots, balls, splats, targets, teamOf, aliveOn, bodyHit };
+    ENDGAME.on(L, { active: () => PB.ph !== 0, end: () => { requestPB(2); return 'Start a new round when everyone’s ready.'; } });
     return L;
   })();
 

@@ -790,6 +790,7 @@
     };
     L.internals = { startRound, found, hostTag, EV, HOME_SPOT, request };
     L.hsInternals = { startRound, bots, R };
+    ENDGAME.on(L, { active: () => R.ph === 1 || R.ph === 2, end: () => { request(3); return 'Start a new round when everyone’s ready.'; } });
     return L;
   })();
 

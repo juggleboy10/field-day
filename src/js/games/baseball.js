@@ -1384,6 +1384,8 @@
     L.hudActions.splice(1, 0, { label: () => (GM.def ? 'Defense: on' : 'Defense: off'), run: () => gameRequest(GM.def ? 4 : 3) });
     L.defInternals = { hostCpuEvent, swingAt, defensePitch, HUMAN_SPOTS, FIRST_GLOVE };
 
+    // End game: the full game against the Sluggers stops (batting practice carries on)
+    ENDGAME.on(L, { active: () => gameOn(), end: () => { gameRequest(2); return 'Start a new game when everyone’s ready.'; } });
     return L;
   })();
 

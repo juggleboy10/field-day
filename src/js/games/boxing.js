@@ -330,5 +330,6 @@
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.4; camera.position.set(Math.sin(a) * 3, 2.4, 3.2); camera.lookAt(0, 1.4, -1); };
     L.boxInternals = { B, LEVELS, startBout, boutStep, myPunch, resolvePunch, throwPunch, guarding };
     MUSIC_THEMES.boxing = { gain: 0.75, bpm: 96, swing: 0.12, chords: ['Am', 'Am', 'Dm', 'E'], comp: { inst: 'brass', at: [0, 6, 10], dur: 0.2 }, bass: { at: [0, 6, 8, 14] }, drums: { k: 'x.....x.x.......', s: '....x.......x...', h: 'o.o.o.o.o.o.o.o.' }, cut: 4000 };
+    ENDGAME.on(L, { active: () => B.st !== 'idle', end: () => { B.st = 'idle'; forcePresence(); state.dirtyBoard = true; return ''; } });
     return L;
   })();

@@ -231,5 +231,6 @@
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 3, 2.0, 4.5); camera.lookAt(0, 1.6, -2); };
     L.duckInternals = { R, booths, fire, corkStep, duckPos, hitDuck, startRound, endRound, clock, corks, DZ };
     MUSIC_THEMES.duckshoot = { gain: 0.7, bpm: 126, swing: 0.15, chords: ['F', 'C', 'G', 'C'], comp: { inst: 'musicbox', at: [0, 2, 4, 6, 8, 10, 12, 14], dur: 0.1 }, bass: { at: [0, 4, 8, 12] }, drums: { k: 'x...x...x...x...', h: '..o...o...o...o.' }, cut: 4600 };
+    ENDGAME.on(L, { active: () => R.ph === 'play', end: () => { R.ph = 'idle'; for (const c of corks) { c.on = false; c.m.visible = false; } forcePresence(); return 'Fire to start a new round.'; } });
     return L;
   })();

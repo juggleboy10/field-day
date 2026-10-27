@@ -270,5 +270,7 @@
     showMenu();
     L.dojoInternals = { S, CMDS, blk, deck, strike, missed, wave, startRound, endRound, beltOf, MODES };
     MUSIC_THEMES.cmddojo = { gain: 0.6, bpm: 100, swing: 0.05, chords: ['Am', 'Em', 'F', 'G'], arp: { inst: 'pluck', every: 2, order: [1, 3, 2, 4, 1, 3, 2, 4] }, bass: { at: [0, 6, 10] }, drums: { k: 'x.....x...x.....', s: '....x.......x...', h: '-o-o-o-o-o-o-o-o' }, cut: 3400 };
+    // End game: back to the menu
+    ENDGAME.on(L, { active: () => S.ph !== 'menu', end: () => { L.onEnter(); return 'Pick a mode to start again.'; } });
     return L;
   })();

@@ -406,5 +406,6 @@
     };
     L.sortRows = (a, b) => (b.score || 0) - (a.score || 0);
     L.drawBoard = () => { boardKey = ''; };
+    ENDGAME.on(L, { active: () => R.st === 'go', end: () => { stop('quit'); return ''; } });
     return L;
   })();

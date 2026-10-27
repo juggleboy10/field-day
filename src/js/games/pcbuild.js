@@ -396,5 +396,6 @@
     reset(null); drawDeck();
     L.pcInternals = { S, P, SLOTS, STEPS, fit, pickUp, powerOn, reset, goHome, slotPos, deck, clickAt };
     MUSIC_THEMES.pcbuild = { gain: 0.55, bpm: 96, swing: 0.1, chords: ['Dm7', 'G7', 'Cmaj7', 'Am7'], comp: { inst: 'ep', at: [0, 6, 10], dur: 0.5 }, bass: { at: [0, 7, 10] }, drums: { k: 'x.....x...x.....', s: '....x.......x...', h: 'o-o-o-o-o-o-o-o-' }, cut: 3400 };
+    ENDGAME.on(L, { active: () => S.ph !== 'idle', end: () => { L.onEnter(); return 'Pick a mode to start a new build.'; } });
     return L;
   })();

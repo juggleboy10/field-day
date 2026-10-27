@@ -334,5 +334,6 @@
     L.danceInternals = { D, MOVES, SONGS, start, step, judge, flatPress, makeChart, get chart() { return chart; }, targetPos, songT, beatLen };
     // the level's own groove does the music while you dance; this is the quiet background otherwise
     MUSIC_THEMES.dance = { gain: 0.35, bpm: 110, swing: 0.1, chords: ['Am', 'Dm', 'G', 'C'], comp: { inst: 'synth', at: [3, 7, 11, 15], dur: 0.1 }, bass: { at: [0, 4, 8, 12] }, drums: { k: 'x...x...x...x...', h: '..o...o...o...o.' }, cut: 3200 };
+    ENDGAME.on(L, { active: () => D.st === 'play', end: () => { D.st = 'idle'; quiet(false); state.hudDirty = true; return ''; } });
     return L;
   })();

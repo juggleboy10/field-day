@@ -1,6 +1,9 @@
   // ================================================================ LEVEL: THE CLUBHOUSE (hub)
   const hub = (() => {
     const L = newLevel(HUB);
+    // the clubhouse's tables and cabinets each say how to stop what you're playing on them (End game stops yours)
+    L.subEnds = [];
+    ENDGAME.on(L, { active: () => L.subEnds.some((e) => e.active()), end: () => L.subEnds.filter((e) => e.active()).map((e) => e.end()).join(' ') });
     const G = L.group;
     const rand = mulberry32(1111);
     L.gravityScale = 0.35;
