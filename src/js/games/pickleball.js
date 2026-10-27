@@ -340,22 +340,36 @@
     // ---------------------------------------------------------------- your paddle
     const myPaddle = () => paddles.find((t) => t.held && t.held.peer === state.myPeer);
     const _pc = new V3(), _pn = new V3(), _bw = new V3(), _q = new Q4(), _cp = new V3();
-    let prevPC = null;
+    let prevPC = null, ballPrev = null;
+    const prevPN = new V3(1, 0, 0);
     function vrPaddle(dt, steps) {
       const t = myPaddle();
       if (!t || state.mode !== 'vr' || !iAmAuth()) { prevPC = null; return; }
       _pc.set(0, 0, -0.22).applyQuaternion(t.quat).add(t.pos); _pn.set(1, 0, 0).applyQuaternion(t.quat);
-      if (!prevPC) { prevPC = _pc.clone(); return; }
+      if (!prevPC) { prevPC = _pc.clone(); prevPN.copy(_pn); return; }
       const vp = _pc.clone().sub(prevPC).multiplyScalar(1 / Math.max(1e-3, dt));
+      // (a real jump of the paddle, a snap turn or teleport, isn't a swing)
+      if (_pc.distanceTo(prevPC) > 0.6) { prevPC.copy(_pc); prevPN.copy(_pn); return; }
       if (hittable(PB.mySide, PB.mySlot)) {
-        _bw.set(PB.b.x, PB.b.y, PB.b.z);
-        for (let k = 1; k <= steps; k++) {
-          const c = prevPC.clone().lerp(_pc, k / steps), rel = _bw.clone().sub(c);
-          const d = rel.dot(_pn), inPlane = Math.sqrt(Math.max(0, rel.lengthSq() - d * d));
-          if (inPlane > 0.15 || Math.abs(d) > BR + 0.04) continue;
-          const vb = new V3(PB.b.vx, PB.b.vy, PB.b.vz), vn = vb.clone().sub(vp).dot(_pn);
-          if (vn * Math.sign(d || 1) >= 0) continue;
-          vb.addScaledVector(_pn, -1.8 * vn);
+        // Swept: both the paddle and the ball move during the frame, so follow both through it in small steps, and
+        // count a hit if the ball touches the face or passes from one side of it to the other (however fast the swing,
+        // and whether or not you're moving as you swing)
+        const bNow = _bw.set(PB.b.x, PB.b.y, PB.b.z), b0 = ballPrev || bNow, N = Math.max(steps, 16);
+        let dPrev = null;
+        for (let k = 0; k <= N; k++) {
+          const u = k / N, c = prevPC.clone().lerp(_pc, u), n = prevPN.clone().lerp(_pn, u).normalize();
+          const rel = b0.clone().lerp(bNow, u).sub(c);
+          const d = rel.dot(n), inPlane = Math.sqrt(Math.max(0, rel.lengthSq() - d * d));
+          const crossed = dPrev !== null && Math.sign(d) !== Math.sign(dPrev) && inPlane < 0.16;
+          const side = crossed ? Math.sign(dPrev) || 1 : Math.sign(d || 1);
+          dPrev = d;
+          if (!crossed && (k === 0 || inPlane > 0.15 || Math.abs(d) > BR + 0.04)) continue;
+          const vb = new V3(PB.b.vx, PB.b.vy, PB.b.vz), vn = vb.clone().sub(vp).dot(n);
+          if (vn * side >= 0) continue;
+          // the ball comes off the face on the side it came from
+          const at = c.clone().add(rel.clone().addScaledVector(n, -d)).addScaledVector(n, side * (BR + 0.012));
+          PB.b.x = at.x; PB.b.y = Math.max(BR, at.y); PB.b.z = at.z;
+          vb.addScaledVector(n, -1.8 * vn);
           // your swing sets the pace and direction; the help keeps it in the court
           const speed = clamp(Math.hypot(vb.x, vb.z), 4, 14);
           const tg = target(PB.mySide, HL * clamp(0.35 + speed / 22, 0.45, 0.92), PB.b.z + vb.z * 0.35);
@@ -369,7 +383,7 @@
           break;
         }
       }
-      prevPC.copy(_pc);
+      prevPC.copy(_pc); prevPN.copy(_pn);
     }
     // browser: the paddle reaches for a ball near you; holding Space keeps a short swing window open
     L.deskHand = (side, mh) => {
@@ -650,6 +664,7 @@
       const steps = Math.max(1, Math.ceil(dt * 240)), h = dt / steps;
       if (iAmAuth()) {
         if (PB.ph === 'dead' && now - PB.deadT > 1500) { if (PB.winner >= 0) { if (now - PB.overT > 5000) newGame(); } else startServe(); }
+        ballPrev = new V3(PB.b.x, PB.b.y, PB.b.z);   // (where the ball was at the start of the frame, for the swept paddle check)
         for (let k = 0; k < steps && PB.ph === 'rally'; k++) {
           stepBall(h);
           const toward = sideOfX(PB.b.x), other = authFor(toward);
@@ -707,7 +722,7 @@
       { label: () => (PB.dbl ? 'Doubles \u25b8' : 'Singles \u25b8'), run: () => setDoubles(!PB.dbl) },
       { label: () => 'New game', show: () => PB.mySide >= 0 && humans().length === 1, run: () => { newGame(); showToast(`New game against the court bots. First to ${WIN}, win by 2`); } },
     ];
-    PB.internals = { bounceSpin, airStep, predictLanding, botStep, SPINS, deskHit: (now) => deskHit(now), HL, HW, KITCH, NET_H, paddles, takeSide, takeSlot, setDoubles, slots, botSlots, BOTS, serverSlot, responsible, authFor, homeZ, leaveCourt, newGame, startServe, onHit, onBounce, stepBall, hitBall, aimed, clearNet, flyTo, target, players, botSide, iAmAuth, serveZ };
+    PB.internals = { vrPaddle: (dt, steps, b0) => { ballPrev = b0 || null; vrPaddle(dt, steps); }, resetSwing: () => { prevPC = null; }, bounceSpin, airStep, predictLanding, botStep, SPINS, deskHit: (now) => deskHit(now), HL, HW, KITCH, NET_H, paddles, takeSide, takeSlot, setDoubles, slots, botSlots, BOTS, serverSlot, responsible, authFor, homeZ, leaveCourt, newGame, startServe, onHit, onBounce, stepBall, hitBall, aimed, clearNet, flyTo, target, players, botSide, iAmAuth, serveZ };
     // End game: start over at 0-0 with whoever's on the court
     ENDGAME.on(L, { shared: true, active: () => PB.mySlot >= 0 && PB.ph !== 'idle', end: () => { if (PB.mySlot < 0) return ''; newGame(); PB.opp = oppKey(); PB.ver += 20; forcePresence(); return 'Starting over at 0-0.'; } });
     return L;
