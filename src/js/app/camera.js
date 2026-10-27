@@ -1,5 +1,5 @@
   // ================================================================ THE CAMERA: a 90s point-and-shoot
-  // Take it out from the watch (VR) or with P / the Camera button (browser). VR: it sits in the hand that pressed the
+  // Take it out from the watch (VR) or with O / the Camera button (browser). VR: it sits in the hand that pressed the
   // watch; the trigger on that hand takes a picture. Its little screen on the back shows what the lens sees; turn it
   // round to face you and it's a selfie (the tiny mirror by the lens shows you). Browser: the screen becomes the
   // viewfinder; Space or a click takes a picture, V flips to a selfie (you, seen from arm's length).
@@ -187,7 +187,7 @@
       if (hand) C.hand = hand;
       C.trigPrev = true;    // (the trigger that pressed the watch doesn't also take a picture)
       if (!C.on) { C.selfie = false; body.visible = false; print.visible = false; }
-      showToast(C.on ? (state.mode === 'vr' ? 'Camera out: the trigger takes a picture. Turn it round for a selfie' : 'Camera: Space takes a picture, V for a selfie, P to put it away') : 'Camera away');
+      showToast(C.on ? (state.mode === 'vr' ? 'Camera out: the trigger takes a picture. Turn it round for a selfie' : 'Camera: Space takes a picture, V for a selfie, O to put it away') : 'Camera away');
       sfx(C.on ? 'click' : 'whoosh', 0.5);
       state.hudDirty = true; viewKey = '';
       return C.on;
@@ -205,7 +205,7 @@
       }
       album.replaceChildren();
       const head = document.createElement('div'); Object.assign(head.style, { display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxWidth: '980px', margin: '0 auto 16px' });
-      const h = document.createElement('div'); h.textContent = photos.length ? `Your photos (the last ${KEEP} are kept)` : 'No photos yet: press P for the camera, then Space to take one'; h.style.font = `800 22px ${DISPLAY}`;
+      const h = document.createElement('div'); h.textContent = photos.length ? `Your photos (the last ${KEEP} are kept)` : 'No photos yet: press O for the camera, then Space to take one'; h.style.font = `800 22px ${DISPLAY}`;
       const x = document.createElement('button'); x.textContent = 'Close'; x.className = 'hud-btn'; x.addEventListener('click', () => { album.style.display = 'none'; });
       head.append(h, x); album.appendChild(head);
       const grid = document.createElement('div'); Object.assign(grid.style, { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '18px', maxWidth: '980px', margin: '0 auto' });
@@ -268,7 +268,7 @@
       if (state.level === HUB_IDX && wallKey !== photos.join('|').length + ':' + photos.length) { wallKey = photos.join('|').length + ':' + photos.length; drawWall(); }
       const flat = state.mode === 'flat' && C.on;
       const vk = `${flat}|${C.selfie}|${photos.length}`;
-      if (vk !== viewKey) { viewKey = vk; viewDiv.style.display = flat ? 'block' : 'none'; vfText.textContent = `${C.selfie ? 'SELFIE' : 'CAMERA'}   SPACE: SHOOT   V: FLIP   P: PUT AWAY   ${String(photos.length).padStart(2, '0')}`; }
+      if (vk !== viewKey) { viewKey = vk; viewDiv.style.display = flat ? 'block' : 'none'; vfText.textContent = `${C.selfie ? 'SELFIE' : 'CAMERA'}   SPACE: SHOOT   V: FLIP   O: PUT AWAY   ${String(photos.length).padStart(2, '0')}`; }
       if (!C.on || state.mode === 'menu') { body.visible = false; return; }
       if (state.mode === 'vr') {
         const h = myHands[C.hand];

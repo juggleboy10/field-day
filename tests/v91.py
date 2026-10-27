@@ -49,7 +49,7 @@ def main():
         wt = page.evaluate("""() => { const fd = window.__fd, L = fd.LEVELS[37], I = L.vbInternals; I.startMatch(); const ids = fd.watch.btns().map((b) => b.id);
           fd.watch.press('end'); const one = I.V.ph; const t = performance.now(); while (performance.now() - t < 750) {} fd.watch.press('end'); return { ids, one, after: I.V.ph, idsAfter: fd.watch.btns().map((b) => b.id) }; }""")
         print("watch:", wt)
-        check(wt["ids"] == ["hub", "bots", "end"] and wt["one"] != "idle" and wt["after"] == "idle" and wt["idsAfter"] == ["hub", "bots"], f"watch end {wt}")
+        check(wt["ids"] == ["hub", "bots", "cam", "end"] and wt["one"] != "idle" and wt["after"] == "idle" and wt["idsAfter"] == ["hub", "bots", "cam"], f"watch end {wt}")
 
         # a few kinds of games: personal booths, races, study games, a table in the clubhouse
         cases = [

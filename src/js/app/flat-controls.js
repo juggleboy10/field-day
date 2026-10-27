@@ -227,8 +227,8 @@
     if (GAME_KEYS.includes(e.code)) e.preventDefault();
     state.keys[e.code] = true;
     if (e.repeat) return;
-    // the camera: P takes it out or puts it away; while it's out, Space takes a picture and V flips to a selfie
-    if (e.code === 'KeyP') { CAMERA.toggle(); return; }
+    // the camera: O takes it out or puts it away; while it's out, Space takes a picture and V flips to a selfie
+    if (e.code === 'KeyO') { CAMERA.toggle(); return; }
     if (CAMERA.isOn() && e.code === 'Space') { CAMERA.snap(); return; }
     if (CAMERA.isOn() && e.code === 'KeyV') { CAMERA.flipSelfie(); return; }
     if (e.code === 'KeyE') pressE();
