@@ -6560,7 +6560,20 @@ kbd {
     const flameMat = new THREE.SpriteMaterial({ map: warmGlowTex, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, color: lightCol });
     const coreMat = new THREE.SpriteMaterial({ map: paleSunTex, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, color: 0xffe6b0 });
     const ironMat = lam(0x2e2b33);
-    const ctx = { L, G, ROOMS, PATHS, rand, torches, flameMat, coreMat, ironMat, inst, playable, groundY };
+    // is (x, z) on a path between areas, or in the doorway where one meets an area (within m)? Scenery keeps off these
+    function onPath(x, z, m) {
+      const mm = m || 0;
+      for (let i = 0; i < PATHS.length; i++) {
+        const P = PATHS[i];
+        for (const sg of P.segs) if (x > sg.x0 - mm && x < sg.x1 + mm && z > sg.z0 - mm && z < sg.z1 + mm) return true;
+        // the doorways: a couple of metres into each area along the path
+        if (Math.abs(x - P.ax) < PW / 2 + mm && z > P.zA - mm && z < P.zA + 2.5 + mm) return true;
+        if (Math.abs(x - P.bx) < PW / 2 + mm && z > P.zB - 2.5 - mm && z < P.zB + mm) return true;
+      }
+      return false;
+    }
+    L.onPath = onPath;
+    const ctx = { L, G, ROOMS, PATHS, rand, torches, flameMat, coreMat, ironMat, inst, playable, groundY, onPath };
     const postGeo = new THREE.CylinderGeometry(0.06, 0.08, 1, 6), postMat = lam(0x3a2a20);
     const poleGeo = boxg(0.12, 1, 0.12), poleMat = lam(0x2a3040);
     function lightAt(x, z) {
@@ -6649,6 +6662,9 @@ kbd {
     const SOLIDS = [];
     {
       const inside = (x, z) => playable(x, z, 0);
+      // (a safety net: nothing solid may stand across a path or a doorway, or you could never get through)
+      const blocksPath = (x0, x1, z0, z1) => PATHS.some((P) => P.segs.some((sg) => x1 > sg.x0 + 0.2 && x0 < sg.x1 - 0.2 && z1 > sg.z0 && z0 < sg.z1)
+        || (x1 > P.ax - PW / 2 && x0 < P.ax + PW / 2 && z1 > P.zA && z0 < P.zA + 2.5) || (x1 > P.bx - PW / 2 && x0 < P.bx + PW / 2 && z1 > P.zB - 2.5 && z0 < P.zB));
       for (const g of L.gates) g.g.traverse((o) => { o.userData.noSolid = true; });
       for (const t of L.tools) t.g.traverse((o) => { o.userData.noSolid = true; });
       const bb = new THREE.Box3();
@@ -6658,6 +6674,7 @@ kbd {
         bb.setFromObject(o);
         if (bb.max.y < 0.7 || bb.min.y > 0.5 || bb.max.x - bb.min.x > 10 || bb.max.z - bb.min.z > 10) return;
         if (!inside((bb.min.x + bb.max.x) / 2, (bb.min.z + bb.max.z) / 2)) return;
+        if (blocksPath(bb.min.x, bb.max.x, bb.min.z, bb.max.z)) return;
         SOLIDS.push([bb.min.x, bb.max.x, bb.min.z, bb.max.z]);
       });
       for (const [batchKey, b] of batches) {
@@ -6669,6 +6686,7 @@ kbd {
           if (top < 0.7 || bot > 0.5 || !inside(x, z)) continue;
           let hx = rx * Math.abs(sx), hz = rz * Math.abs(sz);
           if (ry) { const h = Math.hypot(hx, hz); hx = hz = h; }
+          if (blocksPath(x - hx, x + hx, z - hz, z + hz)) continue;
           SOLIDS.push([x - hx, x + hx, z - hz, z + hz]);
         }
       }
@@ -9039,17 +9057,22 @@ kbd {
     },
     racks: { west: ['sword', 'sword', 'sword', 'sword'], east: ['crossbow', 'crossbow', 'crossbow', 'crossbow', 'shield'] },
     decorate(ctx) {
-      const { G, ROOMS, rand, VAULT, inst, torches, flameMat } = ctx;
+      const { G, ROOMS, rand, VAULT, inst, torches, flameMat, onPath } = ctx;
       const iceM = new THREE.MeshLambertMaterial({ color: 0xa8dcff, emissive: 0x0a3050, transparent: true, opacity: 0.88 });
       const rock = lam(0x7a8a9a), snow = lam(0xf4f8ff);
       // frozen falls: a curtain of ice down a cliff at the back
       const r2 = ROOMS[2];
-      for (let k = 0; k < 9; k++) { const c = new THREE.Mesh(new THREE.CylinderGeometry(0.5 + rand() * 0.4, 0.2, 6 + rand() * 3, 8), iceM); c.position.set(r2.cx - 7 + k * 1.8, 4, r2.z0 - 1.8); G.add(c); }
-      addBox(G, r2.w + 6, 10, 2, rock, r2.cx, 5, r2.z0 - 3);
+      // (with a gap where the path to the crystal cave goes through)
+      for (let k = 0; k < 9; k++) { const x = r2.cx - 7 + k * 1.8; if (onPath(x, r2.z0 - 1.8, 1.2)) continue; const c = new THREE.Mesh(new THREE.CylinderGeometry(0.5 + rand() * 0.4, 0.2, 6 + rand() * 3, 8), iceM); c.position.set(x, 4, r2.z0 - 1.8); G.add(c); }
+      {
+        const gx = ctx.PATHS[2].ax, gap = 2.6, lx0 = r2.cx - (r2.w + 6) / 2, lx1 = r2.cx + (r2.w + 6) / 2;
+        if (gx - gap > lx0) addBox(G, gx - gap - lx0, 10, 2, rock, (lx0 + gx - gap) / 2, 5, r2.z0 - 3);
+        if (lx1 > gx + gap) addBox(G, lx1 - gx - gap, 10, 2, rock, (gx + gap + lx1) / 2, 5, r2.z0 - 3);
+      }
       // the crystal cave: rock all round, glowing crystals
       const r3 = ROOMS[3];
-      for (let k = 0; k < 18; k++) { const a = (k / 18) * Math.PI * 2, s = 2.4 + rand() * 1.6; inst('cave', unitBlob, lam(0x5a6a7a), r3.cx + Math.cos(a) * (r3.w / 2 + 2.5), s * 0.5, r3.cz + Math.sin(a) * (r3.d / 2 + 2.5), s, s * 1.4, s, rand() * 6); }
-      for (const [x, z] of [[-7, -5], [7, -4], [-6, 5], [6.5, 5]]) {
+      for (let k = 0; k < 18; k++) { const a = (k / 18) * Math.PI * 2, s = 2.4 + rand() * 1.6; if (onPath(r3.cx + Math.cos(a) * (r3.w / 2 + 2.5), r3.cz + Math.sin(a) * (r3.d / 2 + 2.5), s * 0.6 + 0.5)) continue; inst('cave', unitBlob, lam(0x5a6a7a), r3.cx + Math.cos(a) * (r3.w / 2 + 2.5), s * 0.5, r3.cz + Math.sin(a) * (r3.d / 2 + 2.5), s, s * 1.4, s, rand() * 6); }
+      for (const [x, z] of [[-7, -5], [7, -4], [-6, 5], [6.5, 5]].filter(([x, z]) => !onPath(r3.cx + x, r3.cz + z, 1.6))) {
         for (let k = 0; k < 3; k++) { const c = new THREE.Mesh(new THREE.ConeGeometry(0.25, 1.4 + rand(), 6), new THREE.MeshLambertMaterial({ color: 0x9af0ff, emissive: 0x2a8aca })); c.position.set(r3.cx + x + (rand() - 0.5) * 0.8, 0.7, r3.cz + z + (rand() - 0.5) * 0.8); c.rotation.z = (rand() - 0.5) * 0.5; G.add(c); }
         const gl = new THREE.Sprite(flameMat.clone()); gl.material.color.setHex(0x7ad8ff); gl.position.set(r3.cx + x, 1.2, r3.cz + z); gl.scale.set(1.5, 1.5, 1); G.add(gl);
         torches.push({ glow: gl, core: null, phase: rand() * 100, big: true });
@@ -9064,7 +9087,7 @@ kbd {
       for (const sx of [-1, 1]) for (const z of [-4, 4]) { const p = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.55, 6, 10), iceM); p.position.set(r5.cx + sx * (r5.w / 2 - 1.2), 3, r5.cz + z); G.add(p); }
       // the heart of the mountain: crystals round the goal
       for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2, c = new THREE.Mesh(new THREE.ConeGeometry(0.4, 2.6, 6), new THREE.MeshLambertMaterial({ color: 0x9af0ff, emissive: 0x2a8aca })); c.position.set(VAULT.cx + Math.cos(a) * 3.8, 1.3, VAULT.cz + Math.sin(a) * 3.8); G.add(c); }
-      for (let k = 0; k < 10; k++) { const a = (k / 10) * Math.PI * 2; inst('vault', unitBlob, lam(0x6a7a8a), VAULT.cx + Math.cos(a) * 7.2, 2.2, VAULT.cz + Math.sin(a) * 7.2, 2.6, 4.4, 2.6, rand() * 6); }
+      for (let k = 0; k < 10; k++) { const a = (k / 10) * Math.PI * 2; if (onPath(VAULT.cx + Math.cos(a) * 7.2, VAULT.cz + Math.sin(a) * 7.2, 2)) continue; inst('vault', unitBlob, lam(0x6a7a8a), VAULT.cx + Math.cos(a) * 7.2, 2.2, VAULT.cz + Math.sin(a) * 7.2, 2.6, 4.4, 2.6, rand() * 6); }
       // snowy mountains all round, and pines on the slopes
       ring(ctx, 28, 170, 250, -60, (x, z) => { const s = 40 + rand() * 50; inst('mtn', unitCone, lam(0x8a9ab0), x, s * 0.7, z, s, s * 1.4, s); inst('cap', unitCone, snow, x, s * 1.12, z, s * 0.42, s * 0.56, s * 0.42); });
       scatter(ctx, 120, -70, 70, 20, -175, 3, (x, z) => {

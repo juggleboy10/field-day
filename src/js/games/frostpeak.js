@@ -127,17 +127,22 @@
     },
     racks: { west: ['sword', 'sword', 'sword', 'sword'], east: ['crossbow', 'crossbow', 'crossbow', 'crossbow', 'shield'] },
     decorate(ctx) {
-      const { G, ROOMS, rand, VAULT, inst, torches, flameMat } = ctx;
+      const { G, ROOMS, rand, VAULT, inst, torches, flameMat, onPath } = ctx;
       const iceM = new THREE.MeshLambertMaterial({ color: 0xa8dcff, emissive: 0x0a3050, transparent: true, opacity: 0.88 });
       const rock = lam(0x7a8a9a), snow = lam(0xf4f8ff);
       // frozen falls: a curtain of ice down a cliff at the back
       const r2 = ROOMS[2];
-      for (let k = 0; k < 9; k++) { const c = new THREE.Mesh(new THREE.CylinderGeometry(0.5 + rand() * 0.4, 0.2, 6 + rand() * 3, 8), iceM); c.position.set(r2.cx - 7 + k * 1.8, 4, r2.z0 - 1.8); G.add(c); }
-      addBox(G, r2.w + 6, 10, 2, rock, r2.cx, 5, r2.z0 - 3);
+      // (with a gap where the path to the crystal cave goes through)
+      for (let k = 0; k < 9; k++) { const x = r2.cx - 7 + k * 1.8; if (onPath(x, r2.z0 - 1.8, 1.2)) continue; const c = new THREE.Mesh(new THREE.CylinderGeometry(0.5 + rand() * 0.4, 0.2, 6 + rand() * 3, 8), iceM); c.position.set(x, 4, r2.z0 - 1.8); G.add(c); }
+      {
+        const gx = ctx.PATHS[2].ax, gap = 2.6, lx0 = r2.cx - (r2.w + 6) / 2, lx1 = r2.cx + (r2.w + 6) / 2;
+        if (gx - gap > lx0) addBox(G, gx - gap - lx0, 10, 2, rock, (lx0 + gx - gap) / 2, 5, r2.z0 - 3);
+        if (lx1 > gx + gap) addBox(G, lx1 - gx - gap, 10, 2, rock, (gx + gap + lx1) / 2, 5, r2.z0 - 3);
+      }
       // the crystal cave: rock all round, glowing crystals
       const r3 = ROOMS[3];
-      for (let k = 0; k < 18; k++) { const a = (k / 18) * Math.PI * 2, s = 2.4 + rand() * 1.6; inst('cave', unitBlob, lam(0x5a6a7a), r3.cx + Math.cos(a) * (r3.w / 2 + 2.5), s * 0.5, r3.cz + Math.sin(a) * (r3.d / 2 + 2.5), s, s * 1.4, s, rand() * 6); }
-      for (const [x, z] of [[-7, -5], [7, -4], [-6, 5], [6.5, 5]]) {
+      for (let k = 0; k < 18; k++) { const a = (k / 18) * Math.PI * 2, s = 2.4 + rand() * 1.6; if (onPath(r3.cx + Math.cos(a) * (r3.w / 2 + 2.5), r3.cz + Math.sin(a) * (r3.d / 2 + 2.5), s * 0.6 + 0.5)) continue; inst('cave', unitBlob, lam(0x5a6a7a), r3.cx + Math.cos(a) * (r3.w / 2 + 2.5), s * 0.5, r3.cz + Math.sin(a) * (r3.d / 2 + 2.5), s, s * 1.4, s, rand() * 6); }
+      for (const [x, z] of [[-7, -5], [7, -4], [-6, 5], [6.5, 5]].filter(([x, z]) => !onPath(r3.cx + x, r3.cz + z, 1.6))) {
         for (let k = 0; k < 3; k++) { const c = new THREE.Mesh(new THREE.ConeGeometry(0.25, 1.4 + rand(), 6), new THREE.MeshLambertMaterial({ color: 0x9af0ff, emissive: 0x2a8aca })); c.position.set(r3.cx + x + (rand() - 0.5) * 0.8, 0.7, r3.cz + z + (rand() - 0.5) * 0.8); c.rotation.z = (rand() - 0.5) * 0.5; G.add(c); }
         const gl = new THREE.Sprite(flameMat.clone()); gl.material.color.setHex(0x7ad8ff); gl.position.set(r3.cx + x, 1.2, r3.cz + z); gl.scale.set(1.5, 1.5, 1); G.add(gl);
         torches.push({ glow: gl, core: null, phase: rand() * 100, big: true });
@@ -152,7 +157,7 @@
       for (const sx of [-1, 1]) for (const z of [-4, 4]) { const p = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.55, 6, 10), iceM); p.position.set(r5.cx + sx * (r5.w / 2 - 1.2), 3, r5.cz + z); G.add(p); }
       // the heart of the mountain: crystals round the goal
       for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2, c = new THREE.Mesh(new THREE.ConeGeometry(0.4, 2.6, 6), new THREE.MeshLambertMaterial({ color: 0x9af0ff, emissive: 0x2a8aca })); c.position.set(VAULT.cx + Math.cos(a) * 3.8, 1.3, VAULT.cz + Math.sin(a) * 3.8); G.add(c); }
-      for (let k = 0; k < 10; k++) { const a = (k / 10) * Math.PI * 2; inst('vault', unitBlob, lam(0x6a7a8a), VAULT.cx + Math.cos(a) * 7.2, 2.2, VAULT.cz + Math.sin(a) * 7.2, 2.6, 4.4, 2.6, rand() * 6); }
+      for (let k = 0; k < 10; k++) { const a = (k / 10) * Math.PI * 2; if (onPath(VAULT.cx + Math.cos(a) * 7.2, VAULT.cz + Math.sin(a) * 7.2, 2)) continue; inst('vault', unitBlob, lam(0x6a7a8a), VAULT.cx + Math.cos(a) * 7.2, 2.2, VAULT.cz + Math.sin(a) * 7.2, 2.6, 4.4, 2.6, rand() * 6); }
       // snowy mountains all round, and pines on the slopes
       ring(ctx, 28, 170, 250, -60, (x, z) => { const s = 40 + rand() * 50; inst('mtn', unitCone, lam(0x8a9ab0), x, s * 0.7, z, s, s * 1.4, s); inst('cap', unitCone, snow, x, s * 1.12, z, s * 0.42, s * 0.56, s * 0.42); });
       scatter(ctx, 120, -70, 70, 20, -175, 3, (x, z) => {

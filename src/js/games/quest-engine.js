@@ -123,7 +123,20 @@
     const flameMat = new THREE.SpriteMaterial({ map: warmGlowTex, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, color: lightCol });
     const coreMat = new THREE.SpriteMaterial({ map: paleSunTex, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, color: 0xffe6b0 });
     const ironMat = lam(0x2e2b33);
-    const ctx = { L, G, ROOMS, PATHS, rand, torches, flameMat, coreMat, ironMat, inst, playable, groundY };
+    // is (x, z) on a path between areas, or in the doorway where one meets an area (within m)? Scenery keeps off these
+    function onPath(x, z, m) {
+      const mm = m || 0;
+      for (let i = 0; i < PATHS.length; i++) {
+        const P = PATHS[i];
+        for (const sg of P.segs) if (x > sg.x0 - mm && x < sg.x1 + mm && z > sg.z0 - mm && z < sg.z1 + mm) return true;
+        // the doorways: a couple of metres into each area along the path
+        if (Math.abs(x - P.ax) < PW / 2 + mm && z > P.zA - mm && z < P.zA + 2.5 + mm) return true;
+        if (Math.abs(x - P.bx) < PW / 2 + mm && z > P.zB - 2.5 - mm && z < P.zB + mm) return true;
+      }
+      return false;
+    }
+    L.onPath = onPath;
+    const ctx = { L, G, ROOMS, PATHS, rand, torches, flameMat, coreMat, ironMat, inst, playable, groundY, onPath };
     const postGeo = new THREE.CylinderGeometry(0.06, 0.08, 1, 6), postMat = lam(0x3a2a20);
     const poleGeo = boxg(0.12, 1, 0.12), poleMat = lam(0x2a3040);
     function lightAt(x, z) {
@@ -212,6 +225,9 @@
     const SOLIDS = [];
     {
       const inside = (x, z) => playable(x, z, 0);
+      // (a safety net: nothing solid may stand across a path or a doorway, or you could never get through)
+      const blocksPath = (x0, x1, z0, z1) => PATHS.some((P) => P.segs.some((sg) => x1 > sg.x0 + 0.2 && x0 < sg.x1 - 0.2 && z1 > sg.z0 && z0 < sg.z1)
+        || (x1 > P.ax - PW / 2 && x0 < P.ax + PW / 2 && z1 > P.zA && z0 < P.zA + 2.5) || (x1 > P.bx - PW / 2 && x0 < P.bx + PW / 2 && z1 > P.zB - 2.5 && z0 < P.zB));
       for (const g of L.gates) g.g.traverse((o) => { o.userData.noSolid = true; });
       for (const t of L.tools) t.g.traverse((o) => { o.userData.noSolid = true; });
       const bb = new THREE.Box3();
@@ -221,6 +237,7 @@
         bb.setFromObject(o);
         if (bb.max.y < 0.7 || bb.min.y > 0.5 || bb.max.x - bb.min.x > 10 || bb.max.z - bb.min.z > 10) return;
         if (!inside((bb.min.x + bb.max.x) / 2, (bb.min.z + bb.max.z) / 2)) return;
+        if (blocksPath(bb.min.x, bb.max.x, bb.min.z, bb.max.z)) return;
         SOLIDS.push([bb.min.x, bb.max.x, bb.min.z, bb.max.z]);
       });
       for (const [batchKey, b] of batches) {
@@ -232,6 +249,7 @@
           if (top < 0.7 || bot > 0.5 || !inside(x, z)) continue;
           let hx = rx * Math.abs(sx), hz = rz * Math.abs(sz);
           if (ry) { const h = Math.hypot(hx, hz); hx = hz = h; }
+          if (blocksPath(x - hx, x + hx, z - hz, z + hz)) continue;
           SOLIDS.push([x - hx, x + hx, z - hz, z + hz]);
         }
       }
