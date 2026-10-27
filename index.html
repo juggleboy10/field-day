@@ -11158,7 +11158,9 @@ kbd {
       grip.rotation.x = Math.PI / 2; grip.position.z = -0.08;
       const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.72, 6), lam(0xc8ccd6));
       shaft.rotation.x = Math.PI / 2; shaft.position.z = -0.53;
-      const head = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.03, 0.045), new THREE.MeshLambertMaterial({ color: 0x9aa0b0 }));
+      // (toe to heel runs along the controller's top, so with the controller pointing down the toe points away from you,
+      // the way a real putter sits; the face looks along your swing)
+      const head = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.12, 0.045), new THREE.MeshLambertMaterial({ color: 0x9aa0b0 }));
       head.position.z = -0.9;
       g.add(grip, shaft, head);
       g.userData.head = head;
@@ -11545,6 +11547,11 @@ kbd {
       forcePresence();
     }
     L.strike = strike;
+    // VR, the way Walkabout plays: the putter is always solid, and holding the trigger turns it to a ghost so you can
+    // line up behind the ball without touching it. The head is a flat face (12 cm wide); the ball goes the way the head
+    // is swinging (a toe or heel hit pushes it a little off line), at about 1.3 times the head's speed.
+    const _hx = new V3();
+    let noHitUntil = 0;
     function vrPutter(dt, now) {
       const mh = myHands[me.hand];
       putter.visible = mh.ok;
@@ -11552,29 +11559,63 @@ kbd {
       putter.position.copy(mh.pos);
       putter.quaternion.copy(mh.quat);
       fitPutter(mh);
-      // you only swing for real while holding the trigger; otherwise the putter is see-through and passes through the ball
       const gp = vrHands[me.hand].source && vrHands[me.hand].source.gamepad;
-      setArmed(!!(gp && gp.buttons && gp.buttons[0] && gp.buttons[0].pressed));
+      setArmed(!(gp && gp.buttons && gp.buttons[0] && gp.buttons[0].pressed));
       headNow.set(0, 0, -headLen).applyQuaternion(mh.quat).add(mh.pos);
+      _hx.set(0, 1, 0).applyQuaternion(mh.quat);   // along the face, heel to toe
       if (!headInit) { headPrev.copy(headNow); headInit = true; }
-      if (armed && (me.phase === 'rest' || (me.phase === 'moving' && now > B.hitCool)) && dt > 0) {
+      // a jump (a snap turn, a teleport) isn't a swing
+      if (headNow.distanceTo(headPrev) > 0.25) { headPrev.copy(headNow); noHitUntil = Math.max(noHitUntil, now + 150); }
+      if (armed && now > noHitUntil && (me.phase === 'rest' || (me.phase === 'moving' && now > B.hitCool)) && dt > 0) {
         const H = H0();
         const by = height(H, B.x - H.x, B.z - H.z) + BR;
-        const hvx = (headNow.x - headPrev.x) / dt, hvz = (headNow.z - headPrev.z) / dt;
-        for (let k = 1; k <= 4; k++) {
-          _hp.lerpVectors(headPrev, headNow, k / 4);
-          if (_hp.y > by + 0.25 || _hp.y < by - 0.25) continue;
-          const dx = B.x - _hp.x, dz = B.z - _hp.z, d = Math.hypot(dx, dz);
-          if (d > BR + 0.065 || d < 1e-5) continue;
-          const nx = dx / d, nz = dz / d, vn = hvx * nx + hvz * nz;
-          if (vn < 0.15) continue;
-          strike(nx, nz, vn * 1.15, now);
-          haptic(vrHands[me.hand], 0.4, 25);
+        const hvx = (headNow.x - headPrev.x) / dt, hvz = (headNow.z - headPrev.z) / dt, hs = Math.hypot(hvx, hvz);
+        for (let k = 1; k <= 8 && hs > 0.12; k++) {
+          _hp.lerpVectors(headPrev, headNow, k / 8);
+          // the nearest point of the face to the ball
+          const ox = B.x - _hp.x, oy = by - _hp.y, oz = B.z - _hp.z;
+          const t = clamp(ox * _hx.x + oy * _hx.y + oz * _hx.z, -0.06, 0.06);
+          const dx = ox - _hx.x * t, dy = oy - _hx.y * t, dz = oz - _hx.z * t;
+          if (Math.hypot(dx, dy, dz) > BR + 0.022) continue;
+          const dh = Math.hypot(dx, dz); if (dh < 1e-5) continue;
+          const sx = hvx / hs, sz = hvz / hs, cnx = dx / dh, cnz = dz / dh;
+          if (sx * cnx + sz * cnz < 0.2) continue;    // (the head has to be coming at the ball)
+          let nx = 0.8 * sx + 0.2 * cnx, nz = 0.8 * sz + 0.2 * cnz; const nl = Math.hypot(nx, nz); nx /= nl; nz /= nl;
+          // off the toe or the heel, the face twists a touch and the ball comes off a few degrees off line
+          { const tw = -(t / 0.06) * 0.07, c = Math.cos(tw), sn = Math.sin(tw), rx = nx * c - nz * sn, rz = nx * sn + nz * c; nx = rx; nz = rz; }
+          const vn = hvx * nx + hvz * nz;
+          if (vn < 0.1) continue;
+          strike(nx, nz, vn * 1.3, now);
+          haptic(vrHands[me.hand], 0.4 + Math.min(0.5, vn * 0.15), 25);
           break;
         }
       }
       headPrev.copy(headNow);
     }
+    // to your ball: behind it, looking down the line to the cup (VR: you're turned to face it too)
+    const _wq = new Q4(), _wf = new V3();
+    function goToBall(now) {
+      const H = H0(), cx = H.x + H.cup[0], cz = H.z + H.cup[1];
+      let ux = cx - B.x, uz = cz - B.z; const d = Math.hypot(ux, uz) || 1; ux /= d; uz /= d;
+      const yaw = Math.atan2(-ux, -uz);
+      if (state.mode === 'vr') {
+        camera.getWorldQuaternion(_wq); _wf.set(0, 0, -1).applyQuaternion(_wq);
+        const camYaw = Math.atan2(-_wf.x, -_wf.z);
+        camera.getWorldPosition(_hd);
+        dolly.rotation.y += yaw - camYaw; dolly.updateMatrixWorld(true);
+        const after = new V3(); camera.getWorldPosition(after);
+        dolly.position.x += _hd.x - after.x; dolly.position.z += _hd.z - after.z;
+      }
+      standAt(B.x - ux * 0.65, B.z - uz * 0.65, yaw);
+      headInit = false; noHitUntil = (now || performance.now()) + 700;   // (the putter jumps with you: no swing for a moment)
+      sfx('whoosh', 0.4);
+    }
+    L.goToBall = goToBall;
+    L.vrPutter = vrPutter;   // (tests)
+    L.ballY = () => { const H = H0(); return height(H, B.x - H.x, B.z - H.z) + BR; };
+    // after a putt, once the ball stops: off you go to it (VR), unless that's switched off
+    let autoWalk = prefs.golfWalk !== false, walkAt = 0, lastPhase = 'rest';
+    function toggleWalk() { autoWalk = !autoWalk; prefs.golfWalk = autoWalk; savePrefs(); showToast(autoWalk ? 'After each putt you’ll go to your ball' : 'You walk to your ball yourself (B or Y takes you there)'); state.hudDirty = true; }
     const _cq = new Q4(), _dir = new V3(), _tgt = new V3(), _hand = new V3();
     let followT = 0;
     function deskDir() {
@@ -11746,6 +11787,15 @@ kbd {
           me.t0 = now;
         }
       } else if (me.phase === 'between' && now - me.t0 > 5500) restartRound();
+      // the ball's stopped after a putt: go to it (VR), a moment later
+      if (lastPhase === 'moving' && me.phase === 'rest' && state.mode === 'vr' && autoWalk && Math.hypot(myHead.pos.x - B.x, myHead.pos.z - B.z) > 1.0) walkAt = now + 650;
+      lastPhase = me.phase;
+      if (walkAt && now > walkAt) { walkAt = 0; if (me.phase === 'rest') goToBall(now); }
+      if (state.mode === 'vr' && !(L.onRange && L.onRange())) {
+        let b = false; for (const sd of SIDES) { const gp = vrHands[sd].source && vrHands[sd].source.gamepad; if (gp && gp.buttons && gp.buttons[5] && gp.buttons[5].pressed) b = true; }
+        if (b && !L.bPrev && me.phase === 'rest') goToBall(now);
+        L.bPrev = b;
+      }
       if (L.onRange && L.onRange()) { putter.visible = false; aim.visible = false; }   // (at the driving range: the driver's in your hands instead)
       else if (state.mode === 'vr') vrPutter(dt, now);
       else if (state.mode === 'flat') deskPutter(now);
@@ -11828,8 +11878,9 @@ kbd {
       L.board.tex.needsUpdate = true;
       boardBack.g.drawImage(g.canvas, 0, 0); boardBack.tex.needsUpdate = true;
     };
-    L.hudActions = [{ label: () => 'Restart round', run: () => restartRound() }];
-    L.hints = [['Space', 'hold, then let go to putt'], ['Drag', 'aim'], ['WASD', 'move']];
+    L.hudActions = [{ label: () => 'Restart round', run: () => restartRound() }, { label: () => `VR: go to ball ${autoWalk ? 'automatically' : 'with B / Y'} \u25B8`, run: () => toggleWalk() }];
+    L.hints = [['Swing', 'through the ball, like a real putt'], ['Hold trigger', 'ghost putter, to line up'], ['B / Y', 'go to your ball'], ['Grip', 'other hand takes the putter']];
+    L.hintsFor = () => (state.mode === 'flat' ? [['Space', 'hold, then let go to putt'], ['Drag', 'aim'], ['WASD', 'move']] : L.hints);
     L.attract = (now) => {
       const a = reduceMotion ? 0 : Math.sin(now * 0.00008) * 0.5;
       camera.position.set(Math.sin(a) * 6, 5.5, 11);
@@ -39785,7 +39836,7 @@ kbd {
   // the tests in tests/ reach inside through this, only when the page is opened with ?test
   // the shared records board (the Claude page's database, or records.php on your own site), if there is one
   RECORDS.shared.start();
-  try { if (new URLSearchParams(location.search).has('test')) window.__fd = { LEVELS, prizeFx: PRIZE_FX, BOTLV, watch: { press: watchPress, btns: watchBtns, draw: () => { panelKey = ''; drawPanel(); return panelC.g.canvas.toDataURL(); } }, state, dolly, camera, myHead, myHands, RECORDS, APLUS, switchLevel, startGame, voice: { VOICE, voiceWatch, voiceResend, remotes, buildPresence }, audio: { snd, tone, sfx, ensureAudio, MUSIC } }; } catch (e) { /* ignore */ }
+  try { if (new URLSearchParams(location.search).has('test')) window.__fd = { LEVELS, vrHands, prizeFx: PRIZE_FX, BOTLV, watch: { press: watchPress, btns: watchBtns, draw: () => { panelKey = ''; drawPanel(); return panelC.g.canvas.toDataURL(); } }, state, dolly, camera, myHead, myHands, RECORDS, APLUS, switchLevel, startGame, voice: { VOICE, voiceWatch, voiceResend, remotes, buildPresence }, audio: { snd, tone, sfx, ensureAudio, MUSIC } }; } catch (e) { /* ignore */ }
 })();
 </script>
 </body>
