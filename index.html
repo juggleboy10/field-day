@@ -12494,6 +12494,8 @@ kbd {
     }
     // well behind where you bowl, so a backswing can't press it: turn around to start a new game
     for (let i = 0; i < NL; i++) makeButton(L, new V3((i - 1.5) * 1.67 + 1.67 / 2 - 0.55, 1.0, 4.5), 0xff9ad0, 'New game', () => newGame(), { faceYaw: Math.PI });
+    // the lights: a cosmic bowling switch by the New game buttons (the browser has it up top too)
+    makeButton(L, new V3(-3.0, 1.0, 4.5), 0xb388ff, 'Cosmic bowling', () => setCosmic(!COSMIC.on), { faceYaw: Math.PI });
     function newGame() {
       overKey = -1;
       me.rolls = [];
