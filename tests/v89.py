@@ -52,7 +52,7 @@ def main():
         w = page.evaluate("() => { const fd = window.__fd, L = fd.LEVELS[15]; const ids = fd.watch.btns().map((x) => x.id); fd.watch.press('bots'); const after = fd.BOTLV.get(L); fd.switchLevel(48); const study = fd.watch.btns().map((x) => x.id); fd.switchLevel(15); return { ids, after, study }; }")
         page.wait_for_timeout(800)
         print("watch:", w)
-        check(w["ids"] == ["hub", "bots"] and w["after"] == 0 and w["study"] == ["hub"], f"watch {w}")
+        check(w["ids"] == ["hub", "bots", "cam"] and w["after"] == 0 and w["study"] == ["hub", "cam"], f"watch {w}")
 
         # pickleball bots move faster on hard
         go(15)
