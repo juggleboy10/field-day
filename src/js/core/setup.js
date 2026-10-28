@@ -25,6 +25,8 @@
   const UP = new V3(0, 1, 0);
   const FWD = new V3(0, 0, -1);
   const GRAVITY = 9.8;
+  // which build this is (shown on the start screen and on the VR watch, so you can tell a fresh copy from a stale one)
+  const VERSION = 95;
   const PLAYER_COLORS = [
     { hex: '#4fc3f7', label: 'Sky blue' },
     { hex: '#ff5c8a', label: 'Pink' },

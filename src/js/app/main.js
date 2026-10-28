@@ -55,6 +55,7 @@
   });
 
   checkVR();
+  { const vn = document.getElementById('version-note'); if (vn) vn.textContent = `Field Day version ${VERSION}`; }
   initNet();
   updateNetUI();
   // the tests in tests/ reach inside through this, only when the page is opened with ?test

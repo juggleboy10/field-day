@@ -1,4 +1,7 @@
-"""v95: the floating classic body. A friend's body turns a beat behind their head (never more than 45 degrees from
+"""v95: the floating classic body, the version number on the start screen and the watch, and in VR the save and
+print buttons on each photo on the clubhouse walls.
+
+The floating classic body: A friend's body turns a beat behind their head (never more than 45 degrees from
 it), leans forward as they bend down, bobs as they walk and keeps still when they stand; they blink; their mouth
 opens and closes with their voice (or with "talking" from their page when their voice isn't reaching you).
 
@@ -65,6 +68,34 @@ def main():
         check(r["tilt0"] < 0.02 and r["tilt1"] > 0.15, f"leans when bending {r}")
         check(r["open"] > 0.5 and r["shut"] < 0.22 and r["loud"] > 0.8, f"mouth {r}")
         check(r["blinks"] >= 1 and not r["shadeBlink"], f"blinks {r}")
+        # the version, on the start screen and on the watch
+        ver = page.evaluate("() => document.getElementById('version-note').textContent")
+        check(ver.startswith("Field Day version 9"), f"version note {ver}")
+        # VR at the photo walls: the star saves a photo of mine, the corner button on someone else's gives me a print
+        page.evaluate("() => window.__fd.switchLevel(8)")
+        page.wait_for_timeout(1500)
+        vr = page.evaluate("""async () => { const fd = window.__fd, C = fd.CAMERA;
+          C.toggle(); C.snap(performance.now() + 5000); C.toggle();
+          fd.PHOTOS._add({ id: 'gx', n: 'Ava', t: Date.now(), src: C.mine[C.mine.length - 1].src });
+          await new Promise((r) => setTimeout(r, 400));
+          fd.state.mode = 'vr'; fd.myHands.right.ok = true; fd.myHands.left.ok = true;
+          const W = (k) => C.WALLS.list.find((w) => w.kind === k);
+          const m = W('mine').slots[0], a = W('all').slots[0];
+          const kept0 = m.item.p.kept; m.mini.ready = true; m.mini.onPress(); const kept1 = m.item.p.kept;
+          const starPainted = m.badge.visible;
+          fd.myHands.right.pos.copy(a.mini.pos); a.mini.ready = true; await a.mini.onPress();
+          const h = C.P.held, print = { held: !!h, gid: h && h.gid, src: !!(h && h.src), side: h && h.side };
+          C.binHeld();
+          a.btn.ready = true; a.btn.onPress(); const hearted = fd.PHOTOS.list().find((p) => p.id === 'gx').hearted;
+          // the hand still there: pressing again does nothing until it comes away
+          a.btn.onPress(); const still = fd.PHOTOS.list().find((p) => p.id === 'gx').hearted;
+          fd.state.mode = 'flat';
+          return { kept0, kept1, starPainted, print, hearted, still, buttons: fd.LEVELS[8].buttons.filter((b) => b.away).length }; }""")
+        print("VR walls:", vr)
+        check(vr["kept0"] is False and vr["kept1"] is True and vr["starPainted"], f"VR star saves {vr}")
+        check(vr["print"] == {"held": True, "gid": "gx", "src": True, "side": "right"}, f"VR print from everyone's wall {vr}")
+        check(vr["hearted"] and vr["still"], f"VR heart {vr}")
+        check(vr["buttons"] >= 60, f"wall buttons {vr}")
         check(not errors, f"page errors {errors}")
         browser.close()
     print("\n".join(fails) if fails else "\nv95 checks passed")

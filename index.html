@@ -283,6 +283,7 @@ kbd {
     <button id="btn-flat" class="btn" type="button">Play in browser</button>
   </div>
   <p id="vr-note" class="note" hidden></p>
+  <p id="version-note" class="note">Field Day</p>
   <p id="load-error" class="note error" hidden>The 3D engine didn't load. Check your connection and reload the page.</p>
 </section>
 
@@ -341,6 +342,8 @@ kbd {
   const UP = new V3(0, 1, 0);
   const FWD = new V3(0, 0, -1);
   const GRAVITY = 9.8;
+  // which build this is (shown on the start screen and on the VR watch, so you can tell a fresh copy from a stale one)
+  const VERSION = 95;
   const PLAYER_COLORS = [
     { hex: '#4fc3f7', label: 'Sky blue' },
     { hex: '#ff5c8a', label: 'Pink' },
@@ -2262,6 +2265,7 @@ kbd {
     rr(g, 4, 4, WCW - 8, bottom - 4, 34); g.fillStyle = 'rgba(20,16,32,0.92)'; g.fill();
     g.textAlign = 'center'; g.textBaseline = 'middle';
     g.fillStyle = '#ffd23f'; g.font = `800 44px ${DISPLAY}`; g.fillText('Field Day', WCW / 2, toCanvasY(0.042));
+    g.fillStyle = '#8a84a8'; g.font = `700 22px ${BODY}`; g.textAlign = 'right'; g.fillText(`v${VERSION}`, WCW - 30, toCanvasY(0.042) + 4); g.textAlign = 'center';
     // the buttons: drawn where they say they are
     for (const B of btns) {
       const bx = WCW / 2 + (B.x / PW) * WCW, by = toCanvasY(B.y), bw = (B.w / PW) * WCW, bh = (B.h / PH) * WCH, hov = WATCH.hover === B.id;
@@ -39322,6 +39326,38 @@ kbd {
     const WALLS = { built: false, list: [], key: '' };
     const G_SM = { card: boxg(0.76, 0.7, 0.025), pic: new THREE.PlaneGeometry(0.68, 0.51), cap: new THREE.PlaneGeometry(0.7, 0.11) };
     const G_BIG = { card: boxg(1.0, 0.93, 0.025), pic: new THREE.PlaneGeometry(0.9, 0.675), cap: new THREE.PlaneGeometry(0.92, 0.15) };
+    const BADGE_GEO = new THREE.CylinderGeometry(0.05, 0.05, 0.022, 20), BADGE_ICON_GEO = new THREE.PlaneGeometry(0.07, 0.07);
+    // the corner button's picture: a star (filled when saved), or a little printer
+    function drawIcon(s, it) {
+      const g = s.iconC.g; g.clearRect(0, 0, 64, 64);
+      s.badge.visible = !!it;
+      if (!it) { s.iconC.tex.needsUpdate = true; return; }
+      if (s.kind === 'mine') {
+        g.beginPath();
+        for (let k = 0; k < 10; k++) { const r = k % 2 ? 11 : 26, a = (k / 10) * Math.PI * 2 - Math.PI / 2; g.lineTo(32 + Math.cos(a) * r, 34 + Math.sin(a) * r); }
+        g.closePath(); g.lineWidth = 5; g.strokeStyle = '#1b1932'; g.stroke();
+        if (it.p.kept) { g.fillStyle = '#1b1932'; g.fill(); }
+      } else {
+        g.fillStyle = '#1b1932'; rr(g, 10, 24, 44, 22, 5); g.fill();
+        g.fillStyle = '#ffffff'; g.fillRect(19, 12, 26, 14); g.fillRect(19, 38, 26, 18);
+        g.fillStyle = '#1b1932'; g.fillRect(23, 44, 18, 3); g.fillRect(23, 50, 12, 3);
+      }
+      s.iconC.tex.needsUpdate = true;
+    }
+    async function pressMini(s) {
+      if (!s.item || !ready(s.mini)) return;
+      if (s.kind === 'mine') {
+        const p = s.item.p; setKept(p, !p.kept);
+        showToast(p.kept ? 'Saved: it stays in this browser and won\u2019t roll off' : 'Not saved: it rolls off after 12 newer ones');
+        sfx(p.kept ? 'chime' : 'click', 0.5);
+        return;
+      }
+      const gid = s.item.gid, side = state.mode === 'vr' ? nearHand(s.mini.pos) : 'right';
+      const h = takePrint({ lid: '', gid, src: '' }, side);
+      showToast(state.mode === 'vr' ? 'Here\u2019s a print of it: squeeze and let go to leave it somewhere' : 'Here\u2019s a print of it: press E to put it down');
+      const src = await PHOTOS.img(gid);
+      if (src && P.held === h) { h.src = src; showOn(h.mesh.userData.pm, src, 0x2a2a30); }
+    }
     function buildWalls() {
       const L = LEVELS[HUB_IDX]; if (!L || !L.group) return;
       WALLS.built = true;
@@ -39342,16 +39378,22 @@ kbd {
           const capC = canvasTexture(320, big ? 52 : 50);
           const capM = new THREE.Mesh(GG.cap, new THREE.MeshBasicMaterial({ map: capC.tex, transparent: true })); capM.position.set(0, big ? -0.37 : -0.275, 0.0135); card.add(capM);
           g.add(card);
-          const slot = { kind, k, card, pm, capC, id: '', capKey: '', item: null };
+          // a little round button in the card's corner: save it (my wall), or a print of it (the others)
+          const bx = big ? 0.42 : 0.31, by = big ? -0.37 : -0.275;
+          const badgeMat = new THREE.MeshLambertMaterial({ color: kind === 'mine' ? 0xffd23f : 0x8be0ff, emissive: 0x000000 });
+          const badge = new THREE.Mesh(BADGE_GEO, badgeMat); badge.rotation.x = Math.PI / 2; badge.position.set(bx, by, 0.03); card.add(badge);
+          const iconC = canvasTexture(64, 64), icon = new THREE.Mesh(BADGE_ICON_GEO, new THREE.MeshBasicMaterial({ map: iconC.tex, transparent: true })); icon.position.set(bx, by, 0.042); card.add(icon);
+          const slot = { kind, k, card, pm, capC, iconC, badge, id: '', capKey: '', item: null };
           slot.btn = { L, pos: g.localToWorld(new V3(x, y, 0.09)), mesh: card, mat, onPress: () => pressSlot(slot), cool: 0, pressT: -1e9, baseY: y, lit: false, label: kind, off: true, away: true, ready: true };
-          L.buttons.push(slot.btn);
+          slot.mini = { L, pos: g.localToWorld(new V3(x + bx, y + by, 0.1)), mesh: badge, mat: badgeMat, onPress: () => pressMini(slot), cool: 0, pressT: -1e9, baseY: by, lit: false, label: kind === 'mine' ? 'Save' : 'Print', off: true, away: true, ready: true };
+          L.buttons.push(slot.btn, slot.mini);
           slots.push(slot);
         }
         WALLS.list.push({ kind, slots });
       };
-      wall('mine', 5.4, '\u{1F4F7}  My photos', 'Touch one (or aim and press E) for a print of it', 4, 3, false, { bg: '#ffd23f', fg: '#1b1932', size: 0.66 });
-      wall('all', 9.6, '♥  Everyone’s photos', 'Touch one (or aim and press E) to give it a heart', 4, 3, false, { bg: '#ff8fb1', fg: '#1b1932', size: 0.66 });
-      wall('best', 14.3, '\u{1F3C6}  Best of all time', 'The photos with the most hearts', 3, 2, true, { bg: '#c9a227', fg: '#1b1932', size: 0.66 });
+      wall('mine', 5.4, '\u{1F4F7}  My photos', 'Touch one for a print \u00b7 the star saves it', 4, 3, false, { bg: '#ffd23f', fg: '#1b1932', size: 0.66 });
+      wall('all', 9.6, '♥  Everyone’s photos', 'Touch one to give it a heart \u00b7 the corner button prints it', 4, 3, false, { bg: '#ff8fb1', fg: '#1b1932', size: 0.66 });
+      wall('best', 14.3, '\u{1F3C6}  Best of all time', 'The most hearts ever \u00b7 touch to give one, the corner button prints it', 3, 2, true, { bg: '#c9a227', fg: '#1b1932', size: 0.66 });
     }
     function wallItems(kind) {
       if (kind === 'mine') {
@@ -39370,8 +39412,8 @@ kbd {
         g.fillStyle = '#8a8070'; g.font = `italic 700 20px "Comic Sans MS", "Chalkboard SE", "Marker Felt", cursive`; g.textAlign = 'center'; g.fillText(blank, cw / 2, ch / 2, cw - 16);
       } else {
         g.font = `italic 700 ${s.kind === 'best' ? 26 : 24}px "Comic Sans MS", "Chalkboard SE", "Marker Felt", cursive`;
-        g.fillStyle = '#2a2a6a'; g.textAlign = 'left'; g.fillText(it.a, 10, ch / 2, cw * 0.66);
-        g.fillStyle = it.on ? '#e0244a' : '#a03040'; g.textAlign = 'right'; g.fillText(it.b, cw - 10, ch / 2);
+        g.fillStyle = '#2a2a6a'; g.textAlign = 'left'; g.fillText(it.a, 10, ch / 2, cw * 0.56);
+        g.fillStyle = it.on ? '#e0244a' : '#a03040'; g.textAlign = 'right'; g.fillText(it.b, cw * 0.82, ch / 2);
       }
       s.capC.tex.needsUpdate = true;
     }
@@ -39388,8 +39430,9 @@ kbd {
             if (it && it.src) showOn(s.pm, it.src, 0xcfc6b4);
             else if (it) PHOTOS.img(it.gid).then((src) => { if (s.id === id) showOn(s.pm, src, 0xcfc6b4); });
           }
-          const ck = it ? `${it.a}|${it.b}|${it.on}` : `-${PHOTOS.mode}`;
-          if (ck !== s.capKey) { s.capKey = ck; drawCap(s, it); }
+          s.mini.off = !it;
+          const ck = it ? `${it.a}|${it.b}|${it.on}|${it.p ? it.p.kept : ''}` : `-${PHOTOS.mode}`;
+          if (ck !== s.capKey) { s.capKey = ck; drawCap(s, it); drawIcon(s, it); }
         });
       }
     }
@@ -40970,6 +41013,7 @@ kbd {
   });
 
   checkVR();
+  { const vn = document.getElementById('version-note'); if (vn) vn.textContent = `Field Day version ${VERSION}`; }
   initNet();
   updateNetUI();
   // the tests in tests/ reach inside through this, only when the page is opened with ?test

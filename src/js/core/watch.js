@@ -55,6 +55,7 @@
     rr(g, 4, 4, WCW - 8, bottom - 4, 34); g.fillStyle = 'rgba(20,16,32,0.92)'; g.fill();
     g.textAlign = 'center'; g.textBaseline = 'middle';
     g.fillStyle = '#ffd23f'; g.font = `800 44px ${DISPLAY}`; g.fillText('Field Day', WCW / 2, toCanvasY(0.042));
+    g.fillStyle = '#8a84a8'; g.font = `700 22px ${BODY}`; g.textAlign = 'right'; g.fillText(`v${VERSION}`, WCW - 30, toCanvasY(0.042) + 4); g.textAlign = 'center';
     // the buttons: drawn where they say they are
     for (const B of btns) {
       const bx = WCW / 2 + (B.x / PW) * WCW, by = toCanvasY(B.y), bw = (B.w / PW) * WCW, bh = (B.h / PH) * WCH, hov = WATCH.hover === B.id;
