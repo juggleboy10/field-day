@@ -94,7 +94,7 @@ def main():
 
         if want("camera"):
             go(37)
-            page.evaluate("() => { try { localStorage.removeItem('fd_photos'); } catch (e) {} window.__fd.CAMERA.photos.length = 0; }")
+            page.evaluate("() => { try { localStorage.removeItem('fd_photos'); } catch (e) {} const C = window.__fd.CAMERA; for (const p of C.mine.slice()) C.removeMine(p); }")
             # browser: P, Space, V, Space
             page.keyboard.press("KeyO"); page.wait_for_timeout(300)
             on = page.evaluate("() => window.__fd.CAMERA.isOn()")
@@ -102,7 +102,7 @@ def main():
             page.keyboard.press("KeyV"); page.wait_for_timeout(300)
             selfie = page.evaluate("() => { const C = window.__fd.CAMERA; return { selfie: C.C.selfie, view: !!C.viewCam() }; }")
             page.keyboard.press("Space"); page.wait_for_timeout(900)
-            fl = page.evaluate("() => { const C = window.__fd.CAMERA; return { n: C.photos.length, jpeg: C.photos.every((u) => u.startsWith('data:image/jpeg') && u.length > 20000), kept: (JSON.parse(localStorage.getItem('fd_photos') || '[]')).length }; }")
+            fl = page.evaluate("() => { const C = window.__fd.CAMERA; return { n: C.photos.length, jpeg: C.photos.every((u) => u.startsWith('data:image/jpeg') && u.length > 20000), kept: C.mine.length }; }")
             page.keyboard.press("KeyO"); page.wait_for_timeout(300)
             off = page.evaluate("() => window.__fd.CAMERA.isOn()")
             print("browser camera:", on, selfie, fl, off)

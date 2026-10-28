@@ -19012,8 +19012,40 @@ kbd {
       t.pbSide = s; t.pbSlot = sl;
       return t;
     });
-    const ballMesh = new THREE.Mesh(new THREE.SphereGeometry(BR, 14, 10), new THREE.MeshLambertMaterial({ color: 0xd8f43a }));
+    // the ball: bright yellow with its rows of holes and a faint seam, so you can watch it spin
+    const ballTex = canvasTexture(256, 128, (g) => {
+      g.fillStyle = '#d8f43a'; g.fillRect(0, 0, 256, 128);
+      // little dimples all over (so even a slow turn shows)
+      for (let row = 0; row < 12; row++) {
+        const lat = (row + 0.5) / 12, y = lat * 128, n = Math.max(3, Math.round(30 * Math.sin(Math.PI * lat)));
+        for (let k = 0; k < n; k++) { const x = (k + (row % 2) * 0.5) * 256 / n; g.fillStyle = 'rgba(90,110,0,0.22)'; g.beginPath(); g.ellipse(x, y, 2.2 / Math.max(0.25, Math.sin(Math.PI * lat)), 2.2, 0, 0, Math.PI * 2); g.fill(); }
+      }
+      // the holes: dark, with a lighter lip
+      for (const [lat, n, off] of [[0.2, 5, 0], [0.4, 8, 0.5], [0.6, 8, 0], [0.8, 5, 0.5]]) {
+        const y = lat * 128, sx = 1 / Math.max(0.3, Math.sin(Math.PI * lat));
+        for (let k = 0; k < n; k++) {
+          const x = (k + off) * 256 / n;
+          for (const xx of [x, x - 256, x + 256]) {
+            g.fillStyle = '#f2ff86'; g.beginPath(); g.ellipse(xx, y, 8.5 * sx, 8.5, 0, 0, Math.PI * 2); g.fill();
+            g.fillStyle = '#4a5400'; g.beginPath(); g.ellipse(xx, y, 6.2 * sx, 6.2, 0, 0, Math.PI * 2); g.fill();
+          }
+        }
+      }
+      // one hole at each pole, and a seam round the middle
+      g.fillStyle = '#4a5400'; g.fillRect(0, 0, 256, 4); g.fillRect(0, 124, 256, 4);
+      g.fillStyle = 'rgba(70,80,0,0.55)'; g.fillRect(0, 63, 256, 2);
+    }).tex;
+    const ballMesh = new THREE.Mesh(new THREE.SphereGeometry(BR, 20, 14), new THREE.MeshLambertMaterial({ color: 0xffffff, map: ballTex }));
     ballMesh.visible = false; G.add(ballMesh);
+    // turn the ball by its spin (the same w the flight uses: topspin turns it over forwards), and a slow tumble from
+    // its travel when there's no spin on it
+    const _spinAx = new V3();
+    function spinBall(dt) {
+      const b = PB.b, wx = b.wx || 0, wy = b.wy || 0, wz = b.wz || 0, w = Math.hypot(wx, wy, wz);
+      if (w > 0.02) { _spinAx.set(wx / w, wy / w, wz / w); ballMesh.rotateOnWorldAxis(_spinAx, w * 34 * dt); }
+      const sp = Math.hypot(b.vx, b.vz);
+      if (sp > 0.3 && PB.ph === 'rally') { _spinAx.set(b.vz / sp, 0, -b.vx / sp); ballMesh.rotateOnWorldAxis(_spinAx, sp * 0.6 * dt); }
+    }
     const shadow = new THREE.Mesh(new THREE.CircleGeometry(BR * 1.2, 12), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.25, depthWrite: false }));
     shadow.rotation.x = -Math.PI / 2; G.add(shadow);
     // the court bots, one for each spot (Dink Daisy has the east end)
@@ -19578,6 +19610,7 @@ kbd {
       botStep(dt, now);
       ballMesh.position.set(PB.b.x, PB.b.y, PB.b.z);
       ballMesh.visible = PB.ph !== 'idle';
+      if (ballMesh.visible) spinBall(Math.min(dt, 0.05));
       shadow.visible = ballMesh.visible; shadow.position.set(PB.b.x, 0.012, PB.b.z);
       const key = `${PB.score}|${PB.server}|${PB.ph === 'idle'}|${slots().join()}|${PB.botMask}|${PB.dbl}|${botSlots().join()}`;
       if (key !== scoreKey) { scoreKey = key; drawScore(); }
@@ -19623,7 +19656,7 @@ kbd {
       { label: () => (PB.dbl ? 'Doubles \u25b8' : 'Singles \u25b8'), run: () => setDoubles(!PB.dbl) },
       { label: () => 'New game', show: () => PB.mySide >= 0 && humans().length === 1, run: () => { newGame(); showToast(`New game against the court bots. First to ${WIN}, win by 2`); } },
     ];
-    PB.internals = { vrPaddle: (dt, steps, b0) => { ballPrev = b0 || null; vrPaddle(dt, steps); }, resetSwing: () => { prevPC = null; }, bounceSpin, airStep, predictLanding, botStep, SPINS, deskHit: (now) => deskHit(now), HL, HW, KITCH, NET_H, paddles, takeSide, takeSlot, setDoubles, slots, botSlots, BOTS, serverSlot, responsible, authFor, homeZ, leaveCourt, newGame, startServe, onHit, onBounce, stepBall, hitBall, aimed, clearNet, flyTo, target, players, botSide, iAmAuth, serveZ };
+    PB.internals = { ballMesh, spinBall, vrPaddle: (dt, steps, b0) => { ballPrev = b0 || null; vrPaddle(dt, steps); }, resetSwing: () => { prevPC = null; }, bounceSpin, airStep, predictLanding, botStep, SPINS, deskHit: (now) => deskHit(now), HL, HW, KITCH, NET_H, paddles, takeSide, takeSlot, setDoubles, slots, botSlots, BOTS, serverSlot, responsible, authFor, homeZ, leaveCourt, newGame, startServe, onHit, onBounce, stepBall, hitBall, aimed, clearNet, flyTo, target, players, botSide, iAmAuth, serveZ };
     // End game: start over at 0-0 with whoever's on the court
     ENDGAME.on(L, { shared: true, active: () => PB.mySlot >= 0 && PB.ph !== 'idle', end: () => { if (PB.mySlot < 0) return ''; newGame(); PB.opp = oppKey(); PB.ver += 20; forcePresence(); return 'Starting over at 0-0.'; } });
     return L;
@@ -38544,20 +38577,326 @@ kbd {
     ENDGAME.on(L, { shared: true, active: () => S.ph === 'play', end: () => { if (isHost()) S.ph = 'lobby'; forcePresence(); clkKey = ''; return 'Start a new round when everyone’s ready.'; } });
     return L;
   })();
+  // ================================================================ EVERYONE'S PHOTOS: the shared photo wall, and its hearts
+  // A photo you take goes up on everyone's wall in the clubhouse (unless you switch that off in Photos). Anyone can give a
+  // photo a heart; the ones with the most hearts make the "Best of all time" wall. Where the photos are kept:
+  //  - on the Claude page: its database. Each person writes only their own photos (photos/<them>, with each picture
+  //    under photos/<them>/pics) and their own hearts (likes/<them>); everyone reads all of it.
+  //  - on your own website: photos.php next to the page (the pictures sit in a folder beside it).
+  //  - with neither (your website without photos.php): passed straight to whoever is playing with you right now, and
+  //    gone when you leave. Hearts then only last the visit, too.
+  // The shared copy is a little smaller than the one on your own device (480x360), so the wall loads quickly.
+  const PHOTOS = (() => {
+    const PER = 24, SW = 480, SH = 360;
+    const S = { mode: 'off', db: null, me: '', dev: '', ver: 0, note: '', mine: null, pollT: 0, p2p: null, ready: false };
+    const all = new Map();       // id -> { id, by, n, t, pid, src? }
+    const hearts = new Map();    // id -> count (php) or Set of who (db, p2p)
+    const myHearts = new Set();
+    const bump = () => { S.ver += 1; state.hudDirty = true; };
+    const cleanN = (n) => (typeof n === 'string' ? n.replace(/[\u0000-\u001f\u007f<>]/g, '').slice(0, 24) : '') || 'Player';
+    const newPid = () => Date.now().toString(36) + Math.floor(Math.random() * 46656).toString(36).padStart(3, '0');
+    const okPid = (s) => typeof s === 'string' && /^[a-z0-9]{6,20}$/.test(s);
+    const okImg = (s) => typeof s === 'string' && s.startsWith('data:image/jpeg;base64,') && s.length < 240000;
+    const count = (id) => { const h = hearts.get(id); return h instanceof Set ? h.size : (h || 0); };
+    // one write at a time (the database wants one at a time per document; this keeps them all in order)
+    let chain = Promise.resolve();
+    const queue = (fn) => (chain = chain.then(fn).catch((e) => { S.note = 'couldn’t reach the shared wall just now'; console.warn('photos', e); }));
+
+    // the shared copy: smaller, a touch more squeezed
+    function shrink(src) {
+      return new Promise((res) => {
+        const im = new Image();
+        im.onload = () => {
+          const c = document.createElement('canvas'); c.width = SW; c.height = SH;
+          c.getContext('2d').drawImage(im, 0, 0, SW, SH);
+          res(c.toDataURL('image/jpeg', 0.78));
+        };
+        im.onerror = () => res('');
+        im.src = src;
+      });
+    }
+
+    // ---------------------------------------------------------------- what the walls and the album read
+    function decorate(p) { return { id: p.id, by: p.by, n: p.n, t: p.t, hearts: count(p.id), hearted: myHearts.has(p.id), mine: p.by === S.me }; }
+    function list() { return Array.from(all.values()).sort((a, b) => b.t - a.t).map(decorate); }
+    function best(n) { return list().filter((p) => p.hearts > 0).sort((a, b) => b.hearts - a.hearts || b.t - a.t).slice(0, n || 6); }
+    // the picture itself (a promise of something an <img> can show)
+    function img(id) {
+      const p = all.get(id); if (!p) return Promise.resolve('');
+      if (p.src) return Promise.resolve(p.src);
+      if (p.loading) return p.loading;
+      if (S.mode === 'php') { p.src = `photos.php?img=${encodeURIComponent(id)}`; return Promise.resolve(p.src); }
+      if (S.mode === 'db') {
+        p.loading = S.db.doc(`photos/${p.by}/pics/${p.pid}`).get().then((d) => { const x = d.exists ? d.data() : null; p.src = x && okImg(x.img) ? x.img : ''; p.loading = null; return p.src; }).catch(() => { p.loading = null; return ''; });
+        return p.loading;
+      }
+      return Promise.resolve('');
+    }
+    const has = (id) => all.has(id);
+
+    // ---------------------------------------------------------------- putting mine up, taking them down, hearts
+    // returns the shared id (or '' when there's nowhere to share to)
+    async function share(src) {
+      if (S.mode === 'off' || !src) return '';
+      const small = await shrink(src); if (!small) return '';
+      const n = cleanN(state.name), t = Date.now();
+      if (S.mode === 'db') {
+        const pid = newPid(), id = `${S.me}~${pid}`;
+        all.set(id, { id, by: S.me, n, t, pid, src: small }); bump();
+        queue(async () => {
+          await S.db.doc(`photos/${S.me}/pics/${pid}`).set({ img: small, t });
+          S.mine.push({ id: pid, t });
+          // past my 24: the oldest with the fewest hearts goes
+          while (S.mine.length > PER) {
+            const gone = S.mine.filter((e) => e.id !== pid).sort((a, b) => count(`${S.me}~${a.id}`) - count(`${S.me}~${b.id}`) || a.t - b.t)[0];
+            S.mine = S.mine.filter((e) => e !== gone);
+            all.delete(`${S.me}~${gone.id}`);
+            await S.db.doc(`photos/${S.me}/pics/${gone.id}`).delete();
+          }
+          await S.db.doc(`photos/${S.me}`).set({ n, list: S.mine.slice() });
+        });
+        return id;
+      }
+      if (S.mode === 'php') {
+        try {
+          const r = await fetch('photos.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ op: 'add', dev: S.dev, n, img: small }) });
+          const j = r.ok ? await r.json() : null;
+          if (!j || !j.ok || typeof j.id !== 'string') throw new Error('no');
+          all.set(j.id, { id: j.id, by: S.me, n, t, pid: j.id, src: small }); bump();
+          setTimeout(pull, 400);
+          return j.id;
+        } catch (e) { S.note = 'couldn’t put it on the shared wall just now'; return ''; }
+      }
+      if (S.mode === 'p2p') {
+        const pid = newPid(), id = `${S.me}~${pid}`;
+        all.set(id, { id, by: S.me, n, t, pid, src: small }); bump();
+        S.p2p.send({ k: 'add', pid, n, t, img: small });
+        return id;
+      }
+      return '';
+    }
+    function unshare(id) {
+      const p = all.get(id); if (!p || p.by !== S.me) return;
+      all.delete(id); hearts.delete(id); bump();
+      if (S.mode === 'db') queue(async () => { S.mine = S.mine.filter((e) => e.id !== p.pid); await S.db.doc(`photos/${S.me}/pics/${p.pid}`).delete(); await S.db.doc(`photos/${S.me}`).set({ n: cleanN(state.name), list: S.mine.slice() }); });
+      else if (S.mode === 'php') fetch('photos.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ op: 'del', dev: S.dev, id }) }).catch(() => {});
+      else if (S.mode === 'p2p') S.p2p.send({ k: 'del', pid: p.pid });
+    }
+    function heart(id, on) {
+      if (!all.has(id)) return false;
+      const want = on === undefined ? !myHearts.has(id) : !!on;
+      if (want === myHearts.has(id)) return want;
+      if (want) myHearts.add(id); else myHearts.delete(id);
+      const h = hearts.get(id);
+      if (S.mode === 'php') hearts.set(id, Math.max(0, (h || 0) + (want ? 1 : -1)));
+      else { const set = h instanceof Set ? h : new Set(); if (want) set.add(S.me || 'me'); else set.delete(S.me || 'me'); hearts.set(id, set); }
+      bump();
+      if (S.mode === 'db') queue(() => S.db.doc(`likes/${S.me}`).set({ ids: Array.from(myHearts).slice(-400) }));
+      else if (S.mode === 'php') fetch('photos.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ op: 'like', dev: S.dev, id, on: want }) }).catch(() => {});
+      else if (S.mode === 'p2p') S.p2p.send({ k: 'hearts', ids: Array.from(myHearts).slice(-200) });
+      return want;
+    }
+
+    // ---------------------------------------------------------------- the Claude page's database
+    async function startDb(db, uid) {
+      Object.assign(S, { mode: 'db', db, me: uid });
+      try { const d = await db.doc(`photos/${uid}`).get(); const x = d.exists ? d.data() : null; S.mine = x && Array.isArray(x.list) ? x.list.filter((e) => e && okPid(e.id)).map((e) => ({ id: e.id, t: Number(e.t) || 0 })) : []; } catch (e) { S.mine = []; }
+      db.collection('photos').onSnapshot((snap) => {
+        const seen = new Set();
+        for (const d of snap.docs) {
+          const by = d.id, x = d.data();
+          if (!x || !Array.isArray(x.list)) continue;
+          const n = cleanN(x.n);
+          for (const e of x.list.slice(0, 40)) {
+            if (!e || !okPid(e.id)) continue;
+            const id = `${by}~${e.id}`; seen.add(id);
+            const p = all.get(id);
+            if (p) p.n = n; else all.set(id, { id, by, n, t: Number(e.t) || 0, pid: e.id });
+          }
+        }
+        // (mine that are still on their way up stay)
+        for (const [id, p] of all) if (!seen.has(id) && !(p.by === S.me && Date.now() - p.t < 20000)) all.delete(id);
+        bump();
+      }, () => { /* recovers on its own */ });
+      let first = true;
+      db.collection('likes').onSnapshot((snap) => {
+        hearts.clear();
+        for (const d of snap.docs) {
+          const x = d.data(); if (!x || !Array.isArray(x.ids)) continue;
+          for (const id of x.ids.slice(0, 400)) if (typeof id === 'string') { let s = hearts.get(id); if (!s) hearts.set(id, (s = new Set())); s.add(d.id); }
+          if (first && d.id === uid) for (const id of x.ids) if (typeof id === 'string') myHearts.add(id);
+        }
+        // (my own hearts as I have them, even before the database catches up)
+        for (const id of myHearts) { let s = hearts.get(id); if (!s) hearts.set(id, (s = new Set())); s.add(uid); }
+        first = false;
+        bump();
+      }, () => { /* recovers on its own */ });
+      S.ready = true; bump();
+    }
+
+    // ---------------------------------------------------------------- your own website: photos.php
+    async function pull() {
+      if (S.mode !== 'php') return;
+      S.pollT = performance.now();
+      try {
+        const r = await fetch(`photos.php?op=list&dev=${S.dev}&t=${Date.now()}`, { cache: 'no-store' });
+        const j = r.ok ? await r.json() : null;
+        if (!j || !j.ok || !Array.isArray(j.photos)) return;
+        const seen = new Set();
+        for (const e of j.photos.slice(0, 600)) {
+          if (!e || typeof e.id !== 'string' || !/^[a-z0-9]{6,40}$/.test(e.id)) continue;
+          seen.add(e.id);
+          const p = all.get(e.id), by = e.m ? S.me : `x${e.id}`;
+          if (p) { p.n = cleanN(e.n); p.by = by; } else all.set(e.id, { id: e.id, by, n: cleanN(e.n), t: (Number(e.t) || 0) * 1000, pid: e.id });
+          hearts.set(e.id, Number.isInteger(e.h) ? e.h : 0);
+        }
+        for (const id of Array.from(all.keys())) if (!seen.has(id)) all.delete(id);
+        myHearts.clear(); if (Array.isArray(j.mine)) for (const id of j.mine) if (typeof id === 'string') myHearts.add(id);
+        bump();
+      } catch (e) { /* offline for now */ }
+    }
+    async function startPhp() {
+      try {
+        if (location.protocol !== 'http:' && location.protocol !== 'https:') return false;
+        if (typeof prefs.deviceId !== 'string' || !/^[a-z0-9]{12,32}$/.test(prefs.deviceId)) { prefs.deviceId = Array.from({ length: 20 }, () => 'abcdefghijklmnopqrstuvwxyz0123456789'[Math.floor(Math.random() * 36)]).join(''); savePrefs(); }
+        const r = await fetch(`photos.php?op=list&dev=${prefs.deviceId}&t=${Date.now()}`, { cache: 'no-store' });
+        const j = r.ok ? await r.json() : null;
+        if (!j || !j.ok) return false;
+        Object.assign(S, { mode: 'php', dev: prefs.deviceId, me: 'me' });
+        await pull();
+        S.ready = true;
+        return true;
+      } catch (e) { return false; }
+    }
+
+    // ---------------------------------------------------------------- nothing kept anywhere: straight to the people here now
+    function startP2P(room) {
+      const pics = room.pics; if (!pics) return false;
+      Object.assign(S, { mode: 'p2p', p2p: pics, me: pics.self || 'me' });
+      pics.on((m, from) => {
+        if (!m || typeof m !== 'object' || typeof from !== 'string') return;
+        if (m.k === 'add' && okPid(m.pid) && okImg(m.img)) {
+          const id = `${from}~${m.pid}`;
+          if (!all.has(id)) { all.set(id, { id, by: from, n: cleanN(m.n), t: Math.min(Date.now(), Number(m.t) || Date.now()), pid: m.pid, src: m.img }); bump(); }
+        } else if (m.k === 'del' && okPid(m.pid)) { if (all.delete(`${from}~${m.pid}`)) bump(); }
+        else if (m.k === 'hearts' && Array.isArray(m.ids)) {
+          for (const s of hearts.values()) if (s instanceof Set) s.delete(from);
+          for (const id of m.ids.slice(0, 200)) if (typeof id === 'string') { let s = hearts.get(id); if (!(s instanceof Set)) hearts.set(id, (s = new Set())); s.add(from); }
+          bump();
+        }
+      });
+      // someone new: send them what I've put up (the last 8) and my hearts
+      pics.onJoin((peer) => {
+        const mine = Array.from(all.values()).filter((p) => p.by === S.me && p.src).sort((a, b) => b.t - a.t).slice(0, 8);
+        for (const p of mine) pics.send({ k: 'add', pid: p.pid, n: p.n, t: p.t, img: p.src }, peer);
+        if (myHearts.size) pics.send({ k: 'hearts', ids: Array.from(myHearts).slice(-200) }, peer);
+      });
+      S.ready = true; bump();
+      return true;
+    }
+
+    async function start() {
+      try {
+        if (typeof window !== 'undefined' && window.claude && typeof window.claude.use === 'function') {
+          const [db, user] = await Promise.all([window.claude.use('db'), window.claude.use('user')]);
+          const uid = user ? await user.id() : null;
+          if (db && uid) { await startDb(db, uid); return; }
+          return;   // (the Claude page, signed out: just your own)
+        }
+      } catch (e) { return; }
+      if (await startPhp()) return;
+      // the peer-to-peer room may still be on its way
+      const wait = () => { if (S.mode !== 'off') return; if (state.room && state.room.pics) startP2P(state.room); else if (state.transport === 'p2p' && state.net !== 'solo') setTimeout(wait, 1500); };
+      wait();
+    }
+    // while you're in the clubhouse (or the album's open), photos.php is asked now and then for what's new
+    function tick(now, looking) { if (S.mode === 'php' && looking && now - S.pollT > 20000) pull(); }
+    return { S, start, startDb, startP2P, share, unshare, heart, list, best, img, has, tick, pull, count, get mode() { return S.mode; }, get ver() { return S.ver; }, _add: (p) => { all.set(p.id, Object.assign({ pid: p.id, by: 'x' }, p)); bump(); }, _hearts: hearts, _all: all };
+  })();
   // ================================================================ THE CAMERA: a 90s point-and-shoot
   // Take it out from the watch (VR) or with O / the Camera button (browser). VR: it sits in the hand that pressed the
   // watch; the trigger on that hand takes a picture. Its little screen on the back shows what the lens sees; turn it
   // round to face you and it's a selfie (the tiny mirror by the lens shows you). Browser: the screen becomes the
   // viewfinder; Space or a click takes a picture, V flips to a selfie (you, seen from arm's length).
   // Pictures come out warm and a touch faded, with a little grain and an orange date stamp in the corner, like a
-  // drugstore print from 1996. The last 12 are kept on this device: a Photos album (browser, with downloads) and a photo
-  // wall by the fireplace in the clubhouse.
+  // drugstore print from 1996. Where they go:
+  //  - yours: kept in this browser. The last 12 roll on; the ones you save (the star) stay. They hang on "My photos",
+  //    the first of three walls past the fireplace in the clubhouse.
+  //  - everyone's: unless you switch it off, each one also goes up on "Everyone's photos" for everyone (see PHOTOS).
+  //    Touch one there (or aim and press E) to give it a heart; the most-hearted make "Best of all time", the third wall.
+  //  - prints: each picture also slides out of the top of the camera as a print. Grab it with your other hand, carry it,
+  //    and let go wherever you like: it stays there, and friends who are here see it too. Touch a photo on "My photos"
+  //    for a print of it, or use Print in the album.
   const CAMERA = (() => {
-    const C = { on: false, selfie: false, hand: 'right', trigPrev: true, flashT: 0, frame: 0, printT: 0, lastShot: 0 };
-    const KEEP = 12, W = 640, H = 480;
-    const photos = [];
-    try { const a = JSON.parse(localStorage.getItem('fd_photos') || '[]'); if (Array.isArray(a)) for (const s of a.slice(-KEEP)) if (typeof s === 'string' && s.startsWith('data:image/')) photos.push(s); } catch (e) { /* none kept */ }
-    const store = () => { try { localStorage.setItem('fd_photos', JSON.stringify(photos)); } catch (e) { /* full, or blocked: they stay for this visit */ } };
+    const C = { on: false, selfie: false, hand: 'right', trigPrev: true, flashT: 0, frame: 0, printT: 0, lastShot: 0, loaded: false, ver: 0, printOf: null, grip: { left: false, right: false } };
+    const KEEP = 12, KEPT = 30, W = 640, H = 480;
+    const changed = () => { C.ver += 1; state.hudDirty = true; };
+    // my photos, oldest first: { id, t, src, kept, gid (its id on everyone's wall, when it's up there) }
+    const mine = [];
+    // ---------------------------------------------------------------- keeping them in this browser
+    // (IndexedDB holds pictures far better than localStorage; localStorage is only the fallback)
+    const IDB = (() => {
+      let dbp = null;
+      const open = () => dbp || (dbp = new Promise((res) => {
+        try { const r = indexedDB.open('field-day', 1); r.onupgradeneeded = () => r.result.createObjectStore('photos', { keyPath: 'id' }); r.onsuccess = () => res(r.result); r.onerror = () => res(null); r.onblocked = () => res(null); } catch (e) { res(null); }
+      }));
+      const run = async (mode, fn) => {
+        const db = await open(); if (!db) return null;
+        return new Promise((res) => {
+          try { const t = db.transaction('photos', mode), req = fn(t.objectStore('photos')); t.oncomplete = () => res(req && req.result !== undefined ? req.result : true); t.onerror = () => res(null); t.onabort = () => res(null); } catch (e) { res(null); }
+        });
+      };
+      return { all: () => run('readonly', (st) => st.getAll()), put: (p) => run('readwrite', (st) => st.put({ id: p.id, t: p.t, src: p.src, kept: !!p.kept, gid: p.gid || '' })), del: (id) => run('readwrite', (st) => st.delete(id)) };
+    })();
+    let idbOk = true;
+    const okSrc = (s) => typeof s === 'string' && s.startsWith('data:image/');
+    function storeLS() { try { localStorage.setItem('fd_photos2', JSON.stringify(mine.map((p) => ({ id: p.id, t: p.t, src: p.src, kept: p.kept, gid: p.gid })))); } catch (e) { /* full: they stay for this visit */ } }
+    function keepOne(p) { if (idbOk) IDB.put(p).then((r) => { if (r === null) { idbOk = false; storeLS(); } }); else storeLS(); }
+    function forget(p) { if (idbOk) IDB.del(p.id); else storeLS(); }
+    // the last 12 roll on; saved ones stay (up to 30)
+    function trim() {
+      const loose = mine.filter((p) => !p.kept), kept = mine.filter((p) => p.kept);
+      for (const p of loose.slice(0, Math.max(0, loose.length - KEEP))) { mine.splice(mine.indexOf(p), 1); forget(p); }
+      for (const p of kept.slice(0, Math.max(0, kept.length - KEPT))) { mine.splice(mine.indexOf(p), 1); forget(p); }
+    }
+    async function load() {
+      let got = await IDB.all();
+      if (got === null) { idbOk = false; try { got = JSON.parse(localStorage.getItem('fd_photos2') || '[]'); } catch (e) { got = []; } }
+      const have = new Set(mine.map((p) => p.id));
+      for (const p of Array.isArray(got) ? got : []) if (p && typeof p.id === 'string' && okSrc(p.src) && !have.has(p.id)) mine.push({ id: p.id, t: Number(p.t) || 0, src: p.src, kept: !!p.kept, gid: typeof p.gid === 'string' ? p.gid : '' });
+      // photos from before (v93 kept them in localStorage): bring them over
+      try {
+        const old = JSON.parse(localStorage.getItem('fd_photos') || '[]');
+        if (Array.isArray(old) && old.length) {
+          const ok = old.filter(okSrc);
+          ok.forEach((src, k) => { const p = { id: `old${k}${Date.now().toString(36)}`, t: Date.now() - (ok.length - k) * 1000, src, kept: false, gid: '' }; mine.push(p); keepOne(p); });
+          localStorage.removeItem('fd_photos');
+        }
+      } catch (e) { /* nothing to bring over */ }
+      mine.sort((a, b) => a.t - b.t);
+      trim(); C.loaded = true; drawLcd(); changed();
+      loadPrints();
+    }
+    const sharing = () => prefs.sharePhotos !== false;
+    function addMine(src) {
+      const p = { id: `p${Date.now().toString(36)}${Math.floor(Math.random() * 1296).toString(36)}`, t: Date.now(), src, kept: false, gid: '' };
+      mine.push(p); trim(); keepOne(p); changed();
+      if (sharing()) shareOne(p);
+      return p;
+    }
+    async function shareOne(p) {
+      if (p.gid && PHOTOS.has(p.gid)) return;
+      const gid = await PHOTOS.share(p.src);
+      if (!gid) return;
+      p.gid = gid; keepOne(p); changed();
+      // prints of it can now be seen by friends too
+      for (const it of P.placed.concat(P.held ? [P.held] : [])) if (it.lid === p.id) it.gid = gid;
+      savePrints(); if (typeof forcePresence === 'function') forcePresence();
+    }
+    function unshareOne(p) { if (p.gid) { PHOTOS.unshare(p.gid); p.gid = ''; keepOne(p); changed(); } }
+    function setKept(p, on) { p.kept = !!on; if (!p.kept) trim(); keepOne(p); changed(); }
+    function removeMine(p) { const i = mine.indexOf(p); if (i < 0) return; mine.splice(i, 1); forget(p); unshareOne(p); drawLcd(); changed(); }
+    const stampOf = (t) => { const d = new Date(t); return `'${String(d.getFullYear()).slice(2)} ${d.getMonth() + 1} ${d.getDate()}`; };
 
     // ---------------------------------------------------------------- the camera itself
     const M = (hex, em) => new THREE.MeshLambertMaterial({ color: hex, emissive: em || 0x000000 });
@@ -38601,7 +38940,7 @@ kbd {
     function drawLcd() {
       const g = lcdC.g; g.fillStyle = '#9aa88a'; g.fillRect(0, 0, 64, 32);
       g.fillStyle = '#1b2414'; g.font = `700 22px ${BODY}`; g.textAlign = 'center'; g.textBaseline = 'middle';
-      g.fillText(String(photos.length).padStart(2, '0'), 32, 17); lcdC.tex.needsUpdate = true;
+      g.fillText(String(mine.length).padStart(2, '0'), 32, 17); lcdC.tex.needsUpdate = true;
     }
     drawLcd();
 
@@ -38688,27 +39027,30 @@ kbd {
       og.shadowBlur = 0; og.fillStyle = '#ffc070'; og.fillText(stamp, W - 26, H - 24);
       return out.toDataURL('image/jpeg', 0.82);
     }
+
+    // ---------------------------------------------------------------- taking a picture
     function snap(at) {
       const now = at || performance.now();
       if (!C.on || now - C.lastShot < 700 || !aim()) return false;
       C.lastShot = now;
       renderTo(shotRT);
       const url = develop();
-      photos.push(url); while (photos.length > KEEP) photos.shift();
-      store(); drawLcd(); wallKey = '';
+      const p = addMine(url);
+      drawLcd();
       // click, the flash, and the film winding on
       tone(2600, 0, 0.03, 'square', 0.18); sfx('poof', 0.25);
       tone(180, 420, 0.45, 'sawtooth', 0.05, 0.12); tone(420, 380, 0.25, 'sawtooth', 0.04, 0.55);
       C.flashT = now;
-      if (state.mode === 'vr') { haptic(vrHands[C.hand], 0.6, 40); showPrint(url); }
+      if (state.mode === 'vr') { haptic(vrHands[C.hand], 0.6, 40); showPrint(p, now); }
       else flashScreen(url);
-      showToast(`Click! Photo ${photos.length} of the last ${KEEP} saved${state.mode === 'vr' ? ' (see them on the photo wall in the clubhouse)' : ' (Photos, up top)'}`);
+      const where = sharing() && PHOTOS.mode !== 'off' ? 'on your wall and everyone’s in the clubhouse' : 'on your wall in the clubhouse';
+      showToast(`Click! It’s ${where}${state.mode === 'vr' ? '. Grab the print with your other hand' : ' (Photos, up top)'}`);
       return true;
     }
-    function showPrint(url) {
-      const im = new Image();
-      im.onload = () => { printTex.image = im; printTex.needsUpdate = true; print.visible = true; C.printT = performance.now(); };
-      im.src = url;
+    function showPrint(p, now) {
+      C.printOf = p;
+      print.material.map = texFor(p.src); print.material.needsUpdate = true;
+      print.visible = true; C.printT = now;
     }
     // browser: a white flash and the print sliding into the corner
     let flashDiv = null, thumb = null;
@@ -38736,67 +39078,402 @@ kbd {
       showToast(C.on ? (state.mode === 'vr' ? 'Camera out: the trigger takes a picture. Turn it round for a selfie' : 'Camera: Space takes a picture, V for a selfie, O to put it away') : 'Camera away');
       sfx(C.on ? 'click' : 'whoosh', 0.5);
       state.hudDirty = true; viewKey = '';
+      if (typeof forcePresence === 'function') forcePresence();
       return C.on;
     }
     function flipSelfie() { if (!C.on) toggle(); C.selfie = !C.selfie; showToast(C.selfie ? 'Selfie: smile!' : 'Camera: looking out'); state.hudDirty = true; viewKey = ''; }
 
-    // ---------------------------------------------------------------- the album (browser) and the wall (clubhouse)
-    let album = null;
-    function openAlbum() {
+    // ---------------------------------------------------------------- pictures as textures (shared by walls and prints)
+    const texCache = new Map();
+    function texFor(src) {
+      let t = texCache.get(src);
+      if (t) return t;
+      t = new THREE.Texture();
+      const im = new Image();
+      im.onload = () => { t.image = im; t.needsUpdate = true; };
+      im.src = src;
+      texCache.set(src, t);
+      return t;
+    }
+    function showOn(mat, src, blank) {
+      if (mat.userData.src === src) return;
+      mat.userData.src = src;
+      if (src) { mat.map = texFor(src); mat.color.setHex(0xffffff); } else { mat.map = null; mat.color.setHex(blank); }
+      mat.needsUpdate = true;
+    }
+    // which hand is nearest (for a touch in VR)
+    function nearHand(pos) {
+      let best = 'right', d = Infinity;
+      for (const side of SIDES) { const h = myHands[side]; if (h.ok && h.pos.distanceTo(pos) < d) { d = h.pos.distanceTo(pos); best = side; } }
+      return best;
+    }
+    // my pressables need the hand to come away before they'll go again (a hand resting on a photo isn't a second press)
+    function ready(btn) {
+      if (state.mode !== 'vr') return true;
+      if (!btn.ready) return false;
+      btn.ready = false; return true;
+    }
+
+    // ---------------------------------------------------------------- prints: pictures you can hold and leave about
+    const PRW = 0.12, PRH = 0.142;
+    const prGeo = { card: boxg(PRW, PRH, 0.002), pic: new THREE.PlaneGeometry(PRW * 0.88, PRW * 0.66) };
+    function makePrint() {
+      const mat = new THREE.MeshLambertMaterial({ color: 0xf6f3ea, emissive: 0x000000 });
+      const card = new THREE.Mesh(prGeo.card, mat);
+      const pm = new THREE.MeshBasicMaterial({ color: 0x2a2a30 }); pm.userData.src = '';
+      const pic = new THREE.Mesh(prGeo.pic, pm); pic.position.set(0, PRH * 0.165, 0.0012); card.add(pic);
+      const back = new THREE.Mesh(prGeo.pic, pm); back.position.set(0, PRH * 0.165, -0.0012); back.rotation.y = Math.PI; back.visible = false; card.add(back);
+      card.userData = { mat, pm };
+      scene.add(card);
+      return card;
+    }
+    const P = { held: null, placed: [] };     // held: { lid, gid, src, side, mesh }; placed: { lid, gid, src, lv, pos, quat, mesh, btn }
+    const other = (s) => (s === 'left' ? 'right' : 'left');
+    function takePrint(ph, side) {
+      if (P.held) placeHeld();
+      const mesh = makePrint();
+      showOn(mesh.userData.pm, ph.src || '', 0x2a2a30);
+      P.held = { lid: ph.lid || '', gid: ph.gid || '', src: ph.src || '', side: side || (C.on ? other(C.hand) : 'right'), mesh };
+      holdPose();
+      sfx('click', 0.4); state.hudDirty = true;
+      if (typeof forcePresence === 'function') forcePresence();
+      return P.held;
+    }
+    // where a print I'm holding is: in my hand (VR), or down in the corner of the view (browser)
+    const _cq = new Q4(), _cp = new V3(), _tq = new Q4();
+    function holdPose() {
+      const h = P.held; if (!h) return;
+      h.mesh.visible = state.mode !== 'menu';
+      if (state.mode === 'vr') {
+        const m = myHands[h.side]; if (!m.ok) { h.mesh.visible = false; return; }
+        h.mesh.quaternion.copy(m.quat);
+        h.mesh.position.copy(m.pos).add(_p.set(0, 0.045, -0.085).applyQuaternion(m.quat));
+        return;
+      }
+      camera.getWorldQuaternion(_cq); camera.getWorldPosition(_cp);
+      h.mesh.quaternion.copy(_cq).multiply(_tq.setFromEuler(new THREE.Euler(-0.12, 0.3, 0.06)));
+      h.mesh.position.copy(_cp).add(_p.set(-0.2, -0.15, -0.42).applyQuaternion(_cq));
+    }
+    function placeHeld() {
+      const h = P.held; if (!h) return false;
+      P.held = null;
+      if (state.mode === 'flat') {
+        // a browser: stood up a step in front of you, facing you
+        camera.getWorldQuaternion(_cq); camera.getWorldPosition(_cp);
+        _f.set(0, 0, -1).applyQuaternion(_cq); _f.y = 0; if (_f.lengthSq() < 1e-4) _f.set(0, 0, -1); _f.normalize();
+        h.mesh.position.copy(_cp).addScaledVector(_f, 0.75); h.mesh.position.y = Math.max(0.35, _cp.y - 0.3);
+        h.mesh.lookAt(_cp.x, h.mesh.position.y + 0.05, _cp.z);
+      }
+      addPlaced({ lid: h.lid, gid: h.gid, src: h.src, lv: state.level, pos: h.mesh.position.clone(), quat: h.mesh.quaternion.clone() }, h.mesh);
+      savePrints(); sfx('whoosh', 0.3); state.hudDirty = true;
+      if (typeof forcePresence === 'function') forcePresence();
+      return true;
+    }
+    function addPlaced(o, mesh) {
+      const m = mesh || makePrint();
+      showOn(m.userData.pm, o.src || '', 0x2a2a30);
+      m.position.copy(o.pos); m.quaternion.copy(o.quat);
+      m.children[1].visible = true;    // (once it's down, its back shows the picture too, so it reads from either side)
+      const it = Object.assign(o, { mesh: m, btn: null });
+      const L = LEVELS[o.lv];
+      if (L && Array.isArray(L.buttons)) {
+        it.btn = { L, pos: o.pos.clone(), mesh: m, mat: m.userData.mat, onPress: () => { if (ready(it.btn)) pickUp(it); }, cool: 0, pressT: -1e9, baseY: o.pos.y, lit: false, label: 'Print', away: true, ready: false };
+        L.buttons.push(it.btn);
+      }
+      P.placed.push(it);
+      while (P.placed.length > 12) removePlaced(P.placed[0]);    // (twelve about at most: the oldest goes)
+      return it;
+    }
+    function removePlaced(it) {
+      const i = P.placed.indexOf(it); if (i >= 0) P.placed.splice(i, 1);
+      scene.remove(it.mesh);
+      if (it.btn) { const b = it.btn.L.buttons, j = b.indexOf(it.btn); if (j >= 0) b.splice(j, 1); }
+    }
+    function pickUp(it, side) {
+      if (P.held) { showToast('You’re holding a print already: put that one down first'); return false; }
+      removePlaced(it); savePrints();
+      takePrint({ lid: it.lid, gid: it.gid, src: it.src }, side || (state.mode === 'vr' ? nearHand(it.pos) : 'right'));
+      showToast(state.mode === 'vr' ? 'Got it: squeeze and let go to leave it somewhere' : 'Got it: press E to put it down');
+      return true;
+    }
+    function binHeld() { const h = P.held; if (!h) return; P.held = null; scene.remove(h.mesh); sfx('whoosh', 0.3); state.hudDirty = true; if (typeof forcePresence === 'function') forcePresence(); }
+    // where I left them stays on this device (and they come back next time)
+    const r4 = (x) => Math.round(x * 10000) / 10000;
+    function savePrints() {
+      try {
+        localStorage.setItem('fd_prints', JSON.stringify(P.placed.map((it) => ({
+          lid: it.lid, gid: it.gid, lv: it.lv, p: [it.pos.x, it.pos.y, it.pos.z].map(r4), q: [it.quat.x, it.quat.y, it.quat.z, it.quat.w].map(r4),
+          // (a print of someone else's photo keeps its own copy, in case theirs goes)
+          s: !it.lid && okSrc(it.src) && it.src.length < 120000 ? it.src : '',
+        }))));
+      } catch (e) { /* full: they stay for this visit */ }
+    }
+    function loadPrints() {
+      let a = [];
+      try { a = JSON.parse(localStorage.getItem('fd_prints') || '[]'); } catch (e) { a = []; }
+      if (!Array.isArray(a)) return;
+      for (const o of a.slice(-12)) {
+        if (!o || !Number.isInteger(o.lv) || o.lv < 0 || o.lv >= LEVELS.length || !Array.isArray(o.p) || o.p.length !== 3 || !Array.isArray(o.q) || o.q.length !== 4) continue;
+        if (![...o.p, ...o.q].every((x) => Number.isFinite(x) && Math.abs(x) < 500)) continue;
+        const own = typeof o.lid === 'string' && o.lid ? mine.find((p) => p.id === o.lid) : null;
+        const src = own ? own.src : (okSrc(o.s) ? o.s : '');
+        const gid = typeof o.gid === 'string' ? o.gid : '';
+        if (!src && !gid) continue;
+        addPlaced({ lid: own ? own.id : '', gid, src, lv: o.lv, pos: new V3(o.p[0], o.p[1], o.p[2]), quat: new Q4(o.q[0], o.q[1], o.q[2], o.q[3]).normalize() });
+      }
+    }
+    // what friends need to see mine: the camera in my hand, the print I'm holding, and the ones I've left in this game
+    // (only prints of photos that are up on everyone's wall: they can't see the others)
+    const r3c = (x) => Math.round(x * 1000) / 1000;
+    function pres() {
+      const cam = C.on && state.mode !== 'menu' ? (C.hand === 'left' ? 1 : 2) : 0;
+      const h = P.held && P.held.gid ? P.held : null;
+      const here = P.placed.filter((it) => it.gid && it.lv === state.level).slice(-6).map((it) => [it.gid, r3c(it.pos.x), r3c(it.pos.y), r3c(it.pos.z), r3c(it.quat.x), r3c(it.quat.y), r3c(it.quat.z), r3c(it.quat.w)]);
+      if (!cam && !h && !here.length) return null;
+      return [cam, h ? h.gid : '', h ? (h.side === 'left' ? 1 : 2) : 0, here];
+    }
+    // ...and theirs, drawn here
+    const theirs = new Map();
+    let camProto = null;
+    function theirCam() {
+      if (!camProto) { camProto = body.clone(); for (const m of [screen, mirror, print, flashGlow]) camProto.children[body.children.indexOf(m)].visible = false; }
+      const c = camProto.clone(); c.visible = true; scene.add(c); return c;
+    }
+    function theirPic(m, gid) {
+      if (m.userData.gid === gid) return;
+      m.userData.gid = gid; showOn(m.userData.pm, '', 0x2a2a30);
+      PHOTOS.img(gid).then((src) => { if (m.userData.gid === gid) showOn(m.userData.pm, src, 0x2a2a30); });
+    }
+    const okEntry = (e) => Array.isArray(e) && e.length === 8 && typeof e[0] === 'string' && e.slice(1).every((x) => Number.isFinite(x) && Math.abs(x) < 500);
+    function drawTheirs() {
+      for (const [peer, o] of theirs) if (!remotes.has(peer)) { for (const m of [o.cam, o.held, ...o.placed]) if (m) scene.remove(m); theirs.delete(peer); }
+      for (const rec of remotes.values()) {
+        const a = rec.pres && rec.pres.cm;
+        const ok = state.mode !== 'menu' && Array.isArray(a) && a.length === 4 && inMyLevel(rec) && rec.hasH;
+        let o = theirs.get(rec.peer);
+        if (!ok) { if (o) for (const m of [o.cam, o.held, ...o.placed]) if (m) m.visible = false; continue; }
+        if (!o) theirs.set(rec.peer, (o = { cam: null, held: null, placed: [] }));
+        const hand = (v) => (v === 1 && rec.hasL ? rec.cur.l : v === 2 && rec.hasR ? rec.cur.r : null);
+        // their camera
+        const ch = hand(a[0]);
+        if (ch && !o.cam) o.cam = theirCam();
+        if (o.cam) { o.cam.visible = !!ch; if (ch) { o.cam.quaternion.copy(ch.quat); o.cam.position.copy(ch.pos).add(_p.set(0, 0.035, -0.04).applyQuaternion(ch.quat)); } }
+        // the print in their hand
+        const ph = typeof a[1] === 'string' && a[1] && PHOTOS.has(a[1]) ? hand(a[2]) : null;
+        if (ph && !o.held) o.held = makePrint();
+        if (o.held) { o.held.visible = !!ph; if (ph) { theirPic(o.held, a[1]); o.held.quaternion.copy(ph.quat); o.held.position.copy(ph.pos).add(_p.set(0, 0.045, -0.085).applyQuaternion(ph.quat)); } }
+        // the ones they've left about
+        const list = Array.isArray(a[3]) ? a[3].filter(okEntry).slice(0, 6) : [];
+        while (o.placed.length < list.length) { const m = makePrint(); m.children[1].visible = true; o.placed.push(m); }
+        o.placed.forEach((m, i) => {
+          const e = list[i]; m.visible = !!e && PHOTOS.has(e[0]);
+          if (!m.visible) return;
+          theirPic(m, e[0]); m.position.set(e[1], e[2], e[3]); m.quaternion.set(e[4], e[5], e[6], e[7]).normalize();
+        });
+      }
+    }
+
+    // ---------------------------------------------------------------- the three walls, past the fireplace (clubhouse west wall)
+    const WALLS = { built: false, list: [], key: '' };
+    const G_SM = { card: boxg(0.76, 0.7, 0.025), pic: new THREE.PlaneGeometry(0.68, 0.51), cap: new THREE.PlaneGeometry(0.7, 0.11) };
+    const G_BIG = { card: boxg(1.0, 0.93, 0.025), pic: new THREE.PlaneGeometry(0.9, 0.675), cap: new THREE.PlaneGeometry(0.92, 0.15) };
+    function buildWalls() {
+      const L = LEVELS[HUB_IDX]; if (!L || !L.group) return;
+      WALLS.built = true;
+      const wall = (kind, z0, title, sub, cols, rows, big, plate) => {
+        const g = new THREE.Group(); g.position.set(-11.82, 0, z0); g.rotation.y = Math.PI / 2; L.group.add(g); g.updateMatrixWorld(true);
+        const sx = big ? 1.18 : 0.86, gw = cols * sx;
+        makePlate(g, title, gw, 0.3, new V3(0, big ? 3.2 : 3.05, 0.02), 0, plate);
+        makePlate(g, sub, gw * 0.9, 0.12, new V3(0, big ? 2.98 : 2.84, 0.02), 0, { bg: '#2a2236', fg: '#ffe9c2', size: 0.62 });
+        const GG = big ? G_BIG : G_SM, slots = [];
+        for (let k = 0; k < cols * rows; k++) {
+          const col = k % cols, row = Math.floor(k / cols);
+          const x = (col - (cols - 1) / 2) * sx, y = big ? 2.3 - row * 1.02 : 2.42 - row * 0.77;
+          if (big) g.add(at(new THREE.Mesh(boxg(1.1, 1.03, 0.02), lam(0xc9a227)), x, y, 0.005));
+          const mat = new THREE.MeshLambertMaterial({ color: 0xf4f1e8, emissive: 0x000000 });
+          const card = new THREE.Mesh(GG.card, mat); card.position.set(x, y, 0.025); card.rotation.z = big ? 0 : ((k * 37) % 7 - 3) * 0.007;   // (pinned up a little crooked)
+          const pm = new THREE.MeshBasicMaterial({ color: 0xcfc6b4 }); pm.userData.src = '';
+          const pic = new THREE.Mesh(GG.pic, pm); pic.position.set(0, big ? 0.07 : 0.055, 0.0135); card.add(pic);
+          const capC = canvasTexture(320, big ? 52 : 50);
+          const capM = new THREE.Mesh(GG.cap, new THREE.MeshBasicMaterial({ map: capC.tex, transparent: true })); capM.position.set(0, big ? -0.37 : -0.275, 0.0135); card.add(capM);
+          g.add(card);
+          const slot = { kind, k, card, pm, capC, id: '', capKey: '', item: null };
+          slot.btn = { L, pos: g.localToWorld(new V3(x, y, 0.09)), mesh: card, mat, onPress: () => pressSlot(slot), cool: 0, pressT: -1e9, baseY: y, lit: false, label: kind, off: true, away: true, ready: true };
+          L.buttons.push(slot.btn);
+          slots.push(slot);
+        }
+        WALLS.list.push({ kind, slots });
+      };
+      wall('mine', 5.4, '\u{1F4F7}  My photos', 'Touch one (or aim and press E) for a print of it', 4, 3, false, { bg: '#ffd23f', fg: '#1b1932', size: 0.66 });
+      wall('all', 9.6, '♥  Everyone’s photos', 'Touch one (or aim and press E) to give it a heart', 4, 3, false, { bg: '#ff8fb1', fg: '#1b1932', size: 0.66 });
+      wall('best', 14.3, '\u{1F3C6}  Best of all time', 'The photos with the most hearts', 3, 2, true, { bg: '#c9a227', fg: '#1b1932', size: 0.66 });
+    }
+    function wallItems(kind) {
+      if (kind === 'mine') {
+        const order = mine.filter((p) => p.kept).reverse().concat(mine.filter((p) => !p.kept).reverse());
+        return order.slice(0, 12).map((p) => ({ id: p.id, src: p.src, a: p.kept ? `★ ${stampOf(p.t)}` : stampOf(p.t), b: p.gid ? `♥ ${PHOTOS.count(p.gid)}` : '', on: false, p }));
+      }
+      const list = kind === 'all' ? PHOTOS.list().slice(0, 12) : PHOTOS.best(6);
+      return list.map((p, i) => ({ id: p.id, gid: p.id, a: kind === 'best' ? `#${i + 1}  ${p.n}` : p.n, b: `${p.hearted ? '♥' : '♡'} ${p.hearts}`, on: p.hearted }));
+    }
+    function drawCap(s, it) {
+      const g = s.capC.g, cw = s.capC.c ? s.capC.c.width : 320, ch = s.capC.c ? s.capC.c.height : 50;
+      g.clearRect(0, 0, cw, ch);
+      g.textBaseline = 'middle';
+      if (!it) {
+        const blank = s.k ? '' : s.kind === 'mine' ? 'Take a photo: O, or the watch' : s.kind === 'all' ? (PHOTOS.mode === 'off' ? 'Only your own here: nowhere to share' : 'Nobody’s shared one yet') : 'Hearts put photos here';
+        g.fillStyle = '#8a8070'; g.font = `italic 700 20px "Comic Sans MS", "Chalkboard SE", "Marker Felt", cursive`; g.textAlign = 'center'; g.fillText(blank, cw / 2, ch / 2, cw - 16);
+      } else {
+        g.font = `italic 700 ${s.kind === 'best' ? 26 : 24}px "Comic Sans MS", "Chalkboard SE", "Marker Felt", cursive`;
+        g.fillStyle = '#2a2a6a'; g.textAlign = 'left'; g.fillText(it.a, 10, ch / 2, cw * 0.66);
+        g.fillStyle = it.on ? '#e0244a' : '#a03040'; g.textAlign = 'right'; g.fillText(it.b, cw - 10, ch / 2);
+      }
+      s.capC.tex.needsUpdate = true;
+    }
+    function drawWalls() {
+      if (!WALLS.built) buildWalls();
+      for (const w of WALLS.list) {
+        const items = wallItems(w.kind);
+        w.slots.forEach((s) => {
+          const it = items[s.k] || null;
+          s.item = it; s.btn.off = !it;
+          const id = it ? it.id : '';
+          if (id !== s.id) {
+            s.id = id; showOn(s.pm, '', 0xcfc6b4);
+            if (it && it.src) showOn(s.pm, it.src, 0xcfc6b4);
+            else if (it) PHOTOS.img(it.gid).then((src) => { if (s.id === id) showOn(s.pm, src, 0xcfc6b4); });
+          }
+          const ck = it ? `${it.a}|${it.b}|${it.on}` : `-${PHOTOS.mode}`;
+          if (ck !== s.capKey) { s.capKey = ck; drawCap(s, it); }
+        });
+      }
+    }
+    function pressSlot(s) {
+      if (!s.item || !ready(s.btn)) return;
+      if (s.kind === 'mine') {
+        const p = s.item.p;
+        if (!p.kept) setKept(p, true);    // (a photo you've printed is one you're keeping)
+        takePrint({ lid: p.id, gid: p.gid, src: p.src }, state.mode === 'vr' ? nearHand(s.btn.pos) : 'right');
+        showToast(state.mode === 'vr' ? 'Here’s a print of it: squeeze and let go to leave it somewhere' : 'Here’s a print of it: press E to put it down');
+        return;
+      }
+      const on = PHOTOS.heart(s.item.gid);
+      sfx(on ? 'chime' : 'click', 0.5);
+      showToast(on ? `You gave ${s.item.a.replace(/^#\d+\s+/, '')}’s photo a heart` : 'Heart taken back');
+    }
+
+    // ---------------------------------------------------------------- saving a picture as a file
+    let dlNs = null;
+    async function download(src, name) {
+      try {
+        const blob = await (await fetch(src)).blob();
+        // the Claude page asks you first (its own save prompt); anywhere else it's an ordinary download
+        if (window.claude && typeof window.claude.use === 'function') {
+          if (dlNs === null) dlNs = (await window.claude.use('downloads')) || false;
+          if (dlNs) {
+            try { await dlNs.save({ filename: name, data: blob }); } catch (e) { if (e && e.code !== 'declined') showToast('Couldn’t save it from here'); }
+            return;
+          }
+        }
+        const a = document.createElement('a'), u = URL.createObjectURL(blob);
+        a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(u), 4000);
+      } catch (e) { showToast('Couldn’t save that one'); }
+    }
+    const fileName = (t, extra) => { const d = new Date(t); return `field-day-${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}${extra ? `-${extra}` : ''}.jpg`; };
+
+    // ---------------------------------------------------------------- the album (browser): mine, everyone's, the best
+    let album = null, tab = 'mine', albumVer = -1;
+    const picked = new Set();
+    const el = (tag, css, text) => { const e = document.createElement(tag); if (css) Object.assign(e.style, css); if (text !== undefined) e.textContent = text; return e; };
+    const pill = (text, fn, css) => {
+      const b = el('button', Object.assign({ font: `700 13px ${BODY}`, padding: '6px 10px', borderRadius: '8px', border: '0', cursor: 'pointer', background: '#ece6d6', color: '#1b1932' }, css || {}), text);
+      b.addEventListener('click', (e) => { e.stopPropagation(); fn(); });
+      return b;
+    };
+    const closeAlbum = () => { if (album) album.style.display = 'none'; };
+    const albumOpen = () => !!album && album.style.display !== 'none';
+    function printFromAlbum(ph) { closeAlbum(); takePrint(ph, 'right'); showToast(state.mode === 'vr' ? 'Here’s the print' : 'Here’s the print: press E to stand it up in front of you'); }
+    function openAlbum(which) {
+      if (which) { if (which !== tab) picked.clear(); tab = which; }
       if (!album) {
-        album = document.createElement('div');
-        Object.assign(album.style, { position: 'fixed', inset: '0', background: 'rgba(16,12,24,0.9)', zIndex: '40', overflow: 'auto', padding: '24px 16px', boxSizing: 'border-box', font: `500 16px ${BODY}`, color: '#fff' });
-        album.addEventListener('click', (e) => { if (e.target === album) album.style.display = 'none'; });
+        album = el('div', { position: 'fixed', inset: '0', background: 'rgba(16,12,24,0.92)', zIndex: '40', overflow: 'auto', padding: '20px 16px 40px', boxSizing: 'border-box', font: `500 16px ${BODY}`, color: '#fff' });
+        album.addEventListener('click', (e) => { if (e.target === album) closeAlbum(); });
         document.body.appendChild(album);
       }
+      albumVer = PHOTOS.ver;
+      const everyone = PHOTOS.list();
       album.replaceChildren();
-      const head = document.createElement('div'); Object.assign(head.style, { display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxWidth: '980px', margin: '0 auto 16px' });
-      const h = document.createElement('div'); h.textContent = photos.length ? `Your photos (the last ${KEEP} are kept)` : 'No photos yet: press O for the camera, then Space to take one'; h.style.font = `800 22px ${DISPLAY}`;
-      const x = document.createElement('button'); x.textContent = 'Close'; x.className = 'hud-btn'; x.addEventListener('click', () => { album.style.display = 'none'; });
-      head.append(h, x); album.appendChild(head);
-      const grid = document.createElement('div'); Object.assign(grid.style, { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '18px', maxWidth: '980px', margin: '0 auto' });
-      photos.slice().reverse().forEach((url, k) => {
-        const n = photos.length - k, card = document.createElement('div');
-        Object.assign(card.style, { background: '#fbfaf6', padding: '8px 8px 10px', boxShadow: '0 6px 18px rgba(0,0,0,0.45)', transform: `rotate(${(k % 3 - 1) * 1.5}deg)` });
-        const im = document.createElement('img'); im.src = url; im.style.width = '100%'; im.style.display = 'block';
-        const row = document.createElement('div'); Object.assign(row.style, { display: 'flex', gap: '10px', marginTop: '8px', fontSize: '14px' });
-        const dl = document.createElement('a'); dl.href = url; dl.download = `field-day-photo-${n}.jpg`; dl.textContent = 'Download'; dl.style.color = '#1b5ad8';
-        const del = document.createElement('a'); del.href = '#'; del.textContent = 'Delete'; del.style.color = '#c23b4a';
-        del.addEventListener('click', (e) => { e.preventDefault(); const i = photos.indexOf(url); if (i >= 0) photos.splice(i, 1); store(); drawLcd(); wallKey = ''; openAlbum(); state.hudDirty = true; });
-        row.append(dl, del); card.append(im, row); grid.appendChild(card);
-      });
-      album.appendChild(grid);
-      album.style.display = 'block';
-    }
-    // the photo wall: twelve frames on the clubhouse's west wall, past the fireplace
-    let wall = null, wallKey = '';
-    function buildWall() {
-      const L = LEVELS[HUB_IDX]; if (!L || !L.group) return;
-      const g = new THREE.Group(); g.position.set(-11.82, 0, 9.0); g.rotation.y = Math.PI / 2; L.group.add(g);
-      makePlate(g, '\u{1F4F7}  Photo wall: your last 12', 2.6, 0.28, new V3(0, 3.3, 0.02), 0, { bg: '#ffd23f', fg: '#1b1932', size: 0.6 });
-      const frames = [];
-      for (let k = 0; k < KEEP; k++) {
-        const col = k % 4, row = Math.floor(k / 4), x = -1.5 + col * 1.0, y = 2.65 - row * 0.8;
-        g.add(at(new THREE.Mesh(boxg(0.9, 0.69, 0.03), lam(0x5a3a24)), x, y, 0));
-        const tex = new THREE.Texture();
-        const pic = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 0.6), new THREE.MeshBasicMaterial({ color: 0xe8dcc8 }));   // (a blank card until there's a photo)
-        pic.position.set(x, y, 0.02); g.add(pic); frames.push({ pic, tex, url: '' });
+      const wrap = el('div', { maxWidth: '1000px', margin: '0 auto' });
+      const head = el('div', { display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginBottom: '12px' });
+      for (const [k, label] of [['mine', `My photos (${mine.length})`], ['all', `Everyone’s (${everyone.length})`], ['best', 'Best of all time']]) {
+        head.appendChild(pill(label, () => openAlbum(k), { background: tab === k ? '#ffd23f' : 'rgba(255,255,255,0.12)', color: tab === k ? '#1b1932' : '#fff', font: `800 15px ${BODY}`, padding: '8px 13px' }));
       }
-      wall = { g, frames };
-    }
-    function drawWall() {
-      if (!wall) buildWall();
-      if (!wall) return;
-      const list = photos.slice().reverse();
-      wall.frames.forEach((f, k) => {
-        const url = list[k] || '';
-        if (url === f.url) return;
-        f.url = url;
-        if (!url) { f.pic.material.map = null; f.pic.material.color.setHex(0xe8dcc8); f.pic.material.needsUpdate = true; return; }
-        const im = new Image();
-        im.onload = () => { f.tex.image = im; f.tex.needsUpdate = true; f.pic.material.map = f.tex; f.pic.material.color.setHex(0xffffff); f.pic.material.needsUpdate = true; };
-        im.src = url;
-      });
+      head.appendChild(el('div', { flex: '1' }));
+      head.appendChild(pill('Close', closeAlbum, { background: 'rgba(255,255,255,0.18)', color: '#fff' }));
+      wrap.appendChild(head);
+      const note = el('div', { color: '#d8cff0', fontSize: '14px', margin: '0 0 14px', display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', minHeight: '32px' });
+      wrap.appendChild(note);
+      const grid = el('div', { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '18px' });
+      const card = (k, src, lines, buttons, sel) => {
+        const c = el('div', { background: '#fbfaf6', color: '#1b1932', padding: '8px 8px 10px', boxShadow: sel ? '0 0 0 4px #ffd23f, 0 6px 18px rgba(0,0,0,0.45)' : '0 6px 18px rgba(0,0,0,0.45)', transform: `rotate(${(k % 3 - 1) * 1.2}deg)`, position: 'relative' });
+        const im = el('img', { width: '100%', display: 'block', aspectRatio: '4 / 3', background: '#cfc6b4', objectFit: 'cover' });
+        if (typeof src === 'string') im.src = src; else src.then((u) => { if (u) im.src = u; });
+        c.appendChild(im);
+        for (const [t, css] of lines) c.appendChild(el('div', Object.assign({ font: `italic 700 15px "Comic Sans MS", "Chalkboard SE", cursive`, marginTop: '6px', display: 'flex', justifyContent: 'space-between', gap: '8px' }, css || {}), t));
+        const row = el('div', { display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' });
+        for (const b of buttons) row.appendChild(b);
+        c.appendChild(row);
+        return { c, im };
+      };
+      if (tab === 'mine') {
+        note.appendChild(el('span', null, mine.length ? `The last ${KEEP} roll on: ★ Save keeps one in this browser for good. Tap pictures to pick several.` : 'No photos yet: press O for the camera, then Space to take one.'));
+        if (PHOTOS.mode !== 'off') note.appendChild(pill(`New photos go on everyone’s wall: ${sharing() ? 'On' : 'Off'}`, () => { prefs.sharePhotos = !sharing(); savePrefs(); openAlbum(); }, { background: sharing() ? '#8bd450' : '#9a90b0' }));
+        else note.appendChild(el('span', { color: '#a99cc8' }, '(Everyone’s wall isn’t reachable from here, so they stay on this device.)'));
+        const sel = mine.filter((p) => picked.has(p.id));
+        if (sel.length) {
+          const bar = el('div', { display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', background: '#2c2340', padding: '8px 10px', borderRadius: '10px', margin: '0 0 14px' });
+          bar.appendChild(el('span', { fontWeight: '800' }, `${sel.length} picked`));
+          bar.appendChild(pill(`★ Save ${sel.length} in this browser`, () => { for (const p of sel) setKept(p, true); showToast(`Saved ${sel.length} in this browser: they won’t roll off`); picked.clear(); openAlbum(); }, { background: '#ffd23f' }));
+          bar.appendChild(pill(`Download ${sel.length}`, async () => { for (const p of sel) await download(p.src, fileName(p.t, p.id.slice(-4))); }));
+          if (PHOTOS.mode !== 'off') bar.appendChild(pill('Put on everyone’s wall', () => { for (const p of sel) shareOne(p); picked.clear(); setTimeout(openAlbum, 600); }));
+          bar.appendChild(pill(`Delete ${sel.length}`, () => { for (const p of sel) removeMine(p); picked.clear(); openAlbum(); }, { background: '#f2b8be' }));
+          bar.appendChild(pill('Clear', () => { picked.clear(); openAlbum(); }, { background: 'rgba(255,255,255,0.18)', color: '#fff' }));
+          wrap.appendChild(bar);
+        }
+        mine.slice().reverse().forEach((p, k) => {
+          const shared = !!p.gid && PHOTOS.has(p.gid);
+          const btns = [
+            pill(p.kept ? '★ Saved' : '☆ Save', () => { setKept(p, !p.kept); openAlbum(); }, { background: p.kept ? '#ffd23f' : '#ece6d6' }),
+            pill('Print', () => { setKept(p, true); printFromAlbum({ lid: p.id, gid: p.gid, src: p.src }); }),
+            pill('Download', () => download(p.src, fileName(p.t, p.id.slice(-4)))),
+          ];
+          if (PHOTOS.mode !== 'off') btns.push(pill(shared ? 'Take off wall' : 'Share', () => { if (shared) unshareOne(p); else shareOne(p); setTimeout(openAlbum, shared ? 0 : 600); }));
+          btns.push(pill('Delete', () => { picked.delete(p.id); removeMine(p); openAlbum(); }, { background: '#f2b8be' }));
+          const { c, im } = card(k, p.src, [[`${stampOf(p.t)}${p.kept ? '  ★' : ''}`], ...(shared ? [[`on everyone’s wall  ♥ ${PHOTOS.count(p.gid)}`, { fontSize: '13px', color: '#a03040' }]] : [])], btns, picked.has(p.id));
+          im.style.cursor = 'pointer'; im.title = 'Tap to pick';
+          im.addEventListener('click', (e) => { e.stopPropagation(); if (picked.has(p.id)) picked.delete(p.id); else picked.add(p.id); openAlbum(); });
+          grid.appendChild(c);
+        });
+      } else {
+        const list = tab === 'all' ? everyone : PHOTOS.best(12);
+        note.textContent = PHOTOS.mode === 'off' ? 'Everyone’s wall isn’t reachable from here (on your own website it needs photos.php next to the game).'
+          : tab === 'all' ? (list.length ? 'Photos everyone has shared, newest first. Give the ones you like a heart.' : 'Nobody’s shared a photo yet.')
+            : (list.length ? 'The photos with the most hearts, ever.' : 'No hearts yet: give photos on Everyone’s a heart and the best end up here.');
+        list.forEach((p, k) => {
+          const src = PHOTOS.img(p.id);
+          const btns = [
+            pill(`${p.hearted ? '♥' : '♡'} ${p.hearts}`, () => { PHOTOS.heart(p.id); openAlbum(); }, { background: p.hearted ? '#ff8fb1' : '#ece6d6' }),
+            pill('Print', () => src.then((u) => printFromAlbum({ lid: '', gid: p.id, src: u }))),
+            pill('Download', () => src.then((u) => u && download(u, fileName(p.t, p.n.replace(/[^a-z0-9]/gi, '').slice(0, 12))))),
+          ];
+          if (p.mine) btns.push(pill('Take down', () => { const m = mine.find((x) => x.gid === p.id); if (m) unshareOne(m); else PHOTOS.unshare(p.id); openAlbum(); }, { background: '#f2b8be' }));
+          grid.appendChild(card(k, src, [[`${tab === 'best' ? `#${k + 1}  ` : ''}${p.n}${p.mine ? ' (you)' : ''}`], [stampOf(p.t), { fontSize: '13px', color: '#6a6070' }]], btns, false).c);
+        });
+      }
+      wrap.appendChild(grid);
+      album.appendChild(wrap);
+      album.style.display = 'block';
     }
 
     // ---------------------------------------------------------------- every frame
@@ -38810,11 +39487,46 @@ kbd {
     viewDiv.append(vfText, vfDot);
     document.body.appendChild(viewDiv);
     function tick(dt, now) {
-      // the photo wall, whenever you're in the clubhouse
-      if (state.level === HUB_IDX && wallKey !== photos.join('|').length + ':' + photos.length) { wallKey = photos.join('|').length + ':' + photos.length; drawWall(); }
+      const L = curLevel(), atHub = state.level === HUB_IDX;
+      // the walls, whenever you're in the clubhouse
+      PHOTOS.tick(now, (atHub && state.mode !== 'menu') || albumOpen());
+      if (atHub) { const k = `${PHOTOS.ver}|${C.ver}`; if (k !== WALLS.key) { WALLS.key = k; drawWalls(); } }
+      if (albumOpen() && tab !== 'mine' && albumVer !== PHOTOS.ver) openAlbum();
+      // my wall photos and prints want the hand to come away before they press again
+      if (state.mode === 'vr') for (const b of L.buttons) if (b.away && !b.ready) {
+        let far = true;
+        for (const side of SIDES) { const h = myHands[side]; if (h.ok && h.pos.distanceTo(b.pos) < 0.22) far = false; }
+        if (far) b.ready = true;
+      }
+      // prints: the one I'm holding, the ones I've left (only in their own game), and my friends'
+      holdPose();
+      for (const it of P.placed) {
+        it.mesh.visible = it.lv === state.level && state.mode !== 'menu';
+        if (!it.src && it.gid && !it.asked && PHOTOS.has(it.gid)) { it.asked = true; PHOTOS.img(it.gid).then((src) => { if (src) { it.src = src; showOn(it.mesh.userData.pm, src, 0x2a2a30); } }); }
+      }
+      drawTheirs();
       const flat = state.mode === 'flat' && C.on;
-      const vk = `${flat}|${C.selfie}|${photos.length}`;
-      if (vk !== viewKey) { viewKey = vk; viewDiv.style.display = flat ? 'block' : 'none'; vfText.textContent = `${C.selfie ? 'SELFIE' : 'CAMERA'}   SPACE: SHOOT   V: FLIP   O: PUT AWAY   ${String(photos.length).padStart(2, '0')}`; }
+      const vk = `${flat}|${C.selfie}|${mine.length}`;
+      if (vk !== viewKey) { viewKey = vk; viewDiv.style.display = flat ? 'block' : 'none'; vfText.textContent = `${C.selfie ? 'SELFIE' : 'CAMERA'}   SPACE: SHOOT   V: FLIP   O: PUT AWAY   ${String(mine.length).padStart(2, '0')}`; }
+      // VR grips: take the print sticking out of the camera, or pick up one lying about; let go to leave it
+      if (state.mode === 'vr') {
+        for (const side of SIDES) {
+          const gp = vrHands[side].source && vrHands[side].source.gamepad;
+          const g = !!(gp && gp.buttons && gp.buttons[1] && gp.buttons[1].pressed), was = C.grip[side];
+          C.grip[side] = g;
+          const h = myHands[side]; if (!h.ok) continue;
+          if (g && !was) {
+            if (print.visible && C.on && side !== C.hand && C.printOf && print.getWorldPosition(_h).distanceTo(h.pos) < 0.17) {
+              print.visible = false; const p = C.printOf; setKept(p, true);
+              takePrint({ lid: p.id, gid: p.gid, src: p.src }, side); haptic(vrHands[side], 0.4, 30);
+            } else if (!P.held) {
+              const it = P.placed.find((x) => x.lv === state.level && x.mesh.position.distanceTo(h.pos) < 0.15);
+              if (it) { pickUp(it, side); haptic(vrHands[side], 0.4, 30); }
+            }
+          }
+          if (!g && was && P.held && P.held.side === side) { placeHeld(); haptic(vrHands[side], 0.3, 20); }
+        }
+      }
       if (!C.on || state.mode === 'menu') { body.visible = false; return; }
       if (state.mode === 'vr') {
         const h = myHands[C.hand];
@@ -38831,30 +39543,39 @@ kbd {
         // the little screen and the selfie mirror (a few times a second is plenty)
         C.frame += 1;
         if (C.frame % 4 === 0 && aim()) renderTo(preRT);
-        mirror.visible = C.selfie; screen.visible = !C.selfie || true;
+        mirror.visible = C.selfie;
       } else body.visible = false;
-      // the flash, and the print sliding out
+      // the flash, and the print sliding out (it waits there a while for you to take it)
       flashGlow.visible = now - C.flashT < 90;
       if (print.visible) {
         const u = (now - C.printT) / 1000;
         print.position.set(-0.01, 0.035 + Math.min(1, u * 1.6) * 0.07, 0.006);
-        if (u > 4) print.visible = false;
+        if (u > 12) print.visible = false;
       }
     }
     // in a browser, the screen shows what the camera sees (a selfie is seen from in front of you)
     function viewCam() {
       if (state.mode !== 'flat' || !C.on || !C.selfie || !aim()) return null;
-      const el = renderer.domElement, a = el.clientWidth / Math.max(1, el.clientHeight);
+      const el2 = renderer.domElement, a = el2.clientWidth / Math.max(1, el2.clientHeight);
       if (Math.abs(pcam.aspect - a) > 1e-3) { pcam.aspect = a; pcam.updateProjectionMatrix(); }
       myAvatar().visible = true; return pcam;
     }
     function afterRender() { if (me) me.visible = false; }
+    // E in a browser, holding a print and not aiming at anything: stand it up in front of you
+    function onE() { if (state.mode !== 'flat' || !P.held) return false; placeHeld(); return true; }
     const hud = [
       { label: () => (C.on ? 'Camera: on ▸' : 'Camera'), run: () => toggle() },
       { label: () => (C.selfie ? 'Selfie ↺' : 'Selfie'), show: () => C.on && state.mode === 'flat', run: () => flipSelfie() },
-      { label: () => `Photos (${photos.length})`, run: () => openAlbum() },
+      { label: () => `Photos (${mine.length})`, run: () => openAlbum() },
+      { label: () => 'Put print down', show: () => !!P.held && state.mode === 'flat', run: () => placeHeld() },
+      { label: () => 'Bin print', show: () => !!P.held && state.mode === 'flat', run: () => binHeld() },
     ];
-    return { C, photos, body, toggle, flipSelfie, snap, tick, viewCam, afterRender, hud, openAlbum, develop, aim, drawWall, isOn: () => C.on };
+    const loading = load();
+    return {
+      C, mine, P, WALLS, body, print, toggle, flipSelfie, snap, tick, viewCam, afterRender, hud, openAlbum, closeAlbum, develop, aim, drawWalls, drawWall: drawWalls,
+      isOn: () => C.on, pres, onE, theirs, pressSlot, takePrint, placeHeld, pickUp, binHeld, setKept, removeMine, shareOne, unshareOne, download, loading,
+      get photos() { return mine.map((p) => p.src); },
+    };
   })();
   // ---------------------------------------------------------------- VR controllers
   const myHandMat = new THREE.MeshLambertMaterial({ color: PLAYER_COLORS[state.colorIdx].hex });
@@ -39221,6 +39942,7 @@ kbd {
     if (state.mode !== 'flat') return;
     const aimed = findFlatTarget();
     if (aimed && aimed.kind === 'button') { pressButton(aimed.obj, performance.now()); return; }
+    if (CAMERA.onE()) return;   // (holding a print: stand it up in front of me)
     if (curLevel().onE && curLevel().onE()) return;   // (a level's own use for E)
     if (holdingTool()) {
       const t = state.held.obj;
@@ -39520,7 +40242,7 @@ kbd {
   function buildPresence() {
     const L = curLevel();
     const inGame = state.mode !== 'menu';
-    const p = { n: state.name, c: state.colorIdx, a: [state.hat, state.face, state.shirt, state.shirtColor], p: inGame ? 1 : 0, lv: state.level, h: null, l: null, r: null, b: [], t: [], s: null, bb: null, dg: null, d: null, dq: null, hx: null, sh: null, pc: null, dr: null, dh: null, lq: null, ls: null, lh: null, sq: null, mq: null, mb: null, bo: null, bp: null, bw: null, ka: null, pz: PRIZE_FX.mask(), bl: BOTLV.mine(L), eg: ENDGAME.mine(L) };
+    const p = { n: state.name, c: state.colorIdx, a: [state.hat, state.face, state.shirt, state.shirtColor], p: inGame ? 1 : 0, lv: state.level, h: null, l: null, r: null, b: [], t: [], s: null, bb: null, dg: null, d: null, dq: null, hx: null, sh: null, pc: null, dr: null, dh: null, lq: null, ls: null, lh: null, sq: null, mq: null, mb: null, bo: null, bp: null, bw: null, ka: null, pz: PRIZE_FX.mask(), bl: BOTLV.mine(L), eg: ENDGAME.mine(L), cm: CAMERA.pres() };
     if (inGame) {
       const over = L.publishPose ? L.publishPose() : null;
       if (over) {
@@ -39725,10 +40447,14 @@ kbd {
       snapshot = null;
       notify();
     };
+    // photos for everyone's wall, when there's nowhere to keep them (see PHOTOS)
+    const picAct = room.makeAction('pic'), picFns = [], joinFns = [];
+    picAct.onMessage = (data, ctx) => { const id = ctx && ctx.peerId; if (typeof id !== 'string') return; for (const fn of picFns) { try { fn(data, id); } catch (e) { /* ignore */ } } };
     room.onPeerJoin = (id) => {
       if (!others.has(id)) others.set(id, { presence: Object.freeze({}), updatedAt: Date.now() });
       snapshot = null;
       act.send(mine, { target: id }).catch(() => {});
+      for (const fn of joinFns) { try { fn(id); } catch (e) { /* ignore */ } }
       if (VOICE.stream) addVoice(VOICE.stream, id);
       notify();
     };
@@ -39766,6 +40492,12 @@ kbd {
       },
       onPeers(fn) { peerListeners.push(fn); return () => {}; },
       onConnection(fn) { setTimeout(() => fn(true), 0); return () => {}; },
+      pics: {
+        self: selfId,
+        send: (m, target) => { try { const r = picAct.send(m, target ? { target } : undefined); if (r && r.catch) r.catch(() => {}); } catch (e) { /* ignore */ } },
+        on: (fn) => { picFns.push(fn); },
+        onJoin: (fn) => { joinFns.push(fn); },
+      },
       voice: {
         add: (s) => addVoice(s),
         remove: (s) => { try { room.removeStream(s); } catch (e) { /* ignore */ } },
@@ -40198,7 +40930,8 @@ kbd {
   // the tests in tests/ reach inside through this, only when the page is opened with ?test
   // the shared records board (the Claude page's database, or records.php on your own site), if there is one
   RECORDS.shared.start();
-  try { if (new URLSearchParams(location.search).has('test')) window.__fd = { LEVELS, vrHands, CAMERA, prizeFx: PRIZE_FX, BOTLV, watch: { press: watchPress, btns: watchBtns, draw: () => { panelKey = ''; drawPanel(); return panelC.g.canvas.toDataURL(); } }, state, dolly, camera, myHead, myHands, RECORDS, APLUS, switchLevel, startGame, voice: { VOICE, voiceWatch, voiceResend, remotes, buildPresence }, audio: { snd, tone, sfx, ensureAudio, MUSIC } }; } catch (e) { /* ignore */ }
+  PHOTOS.start();
+  try { if (new URLSearchParams(location.search).has('test')) window.__fd = { LEVELS, vrHands, CAMERA, PHOTOS, prizeFx: PRIZE_FX, BOTLV, watch: { press: watchPress, btns: watchBtns, draw: () => { panelKey = ''; drawPanel(); return panelC.g.canvas.toDataURL(); } }, state, dolly, camera, myHead, myHands, RECORDS, APLUS, switchLevel, startGame, voice: { VOICE, voiceWatch, voiceResend, remotes, buildPresence }, audio: { snd, tone, sfx, ensureAudio, MUSIC } }; } catch (e) { /* ignore */ }
 })();
 </script>
 </body>

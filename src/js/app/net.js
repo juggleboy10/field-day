@@ -3,7 +3,7 @@
   function buildPresence() {
     const L = curLevel();
     const inGame = state.mode !== 'menu';
-    const p = { n: state.name, c: state.colorIdx, a: [state.hat, state.face, state.shirt, state.shirtColor], p: inGame ? 1 : 0, lv: state.level, h: null, l: null, r: null, b: [], t: [], s: null, bb: null, dg: null, d: null, dq: null, hx: null, sh: null, pc: null, dr: null, dh: null, lq: null, ls: null, lh: null, sq: null, mq: null, mb: null, bo: null, bp: null, bw: null, ka: null, pz: PRIZE_FX.mask(), bl: BOTLV.mine(L), eg: ENDGAME.mine(L) };
+    const p = { n: state.name, c: state.colorIdx, a: [state.hat, state.face, state.shirt, state.shirtColor], p: inGame ? 1 : 0, lv: state.level, h: null, l: null, r: null, b: [], t: [], s: null, bb: null, dg: null, d: null, dq: null, hx: null, sh: null, pc: null, dr: null, dh: null, lq: null, ls: null, lh: null, sq: null, mq: null, mb: null, bo: null, bp: null, bw: null, ka: null, pz: PRIZE_FX.mask(), bl: BOTLV.mine(L), eg: ENDGAME.mine(L), cm: CAMERA.pres() };
     if (inGame) {
       const over = L.publishPose ? L.publishPose() : null;
       if (over) {
@@ -208,10 +208,14 @@
       snapshot = null;
       notify();
     };
+    // photos for everyone's wall, when there's nowhere to keep them (see PHOTOS)
+    const picAct = room.makeAction('pic'), picFns = [], joinFns = [];
+    picAct.onMessage = (data, ctx) => { const id = ctx && ctx.peerId; if (typeof id !== 'string') return; for (const fn of picFns) { try { fn(data, id); } catch (e) { /* ignore */ } } };
     room.onPeerJoin = (id) => {
       if (!others.has(id)) others.set(id, { presence: Object.freeze({}), updatedAt: Date.now() });
       snapshot = null;
       act.send(mine, { target: id }).catch(() => {});
+      for (const fn of joinFns) { try { fn(id); } catch (e) { /* ignore */ } }
       if (VOICE.stream) addVoice(VOICE.stream, id);
       notify();
     };
@@ -249,6 +253,12 @@
       },
       onPeers(fn) { peerListeners.push(fn); return () => {}; },
       onConnection(fn) { setTimeout(() => fn(true), 0); return () => {}; },
+      pics: {
+        self: selfId,
+        send: (m, target) => { try { const r = picAct.send(m, target ? { target } : undefined); if (r && r.catch) r.catch(() => {}); } catch (e) { /* ignore */ } },
+        on: (fn) => { picFns.push(fn); },
+        onJoin: (fn) => { joinFns.push(fn); },
+      },
       voice: {
         add: (s) => addVoice(s),
         remove: (s) => { try { room.removeStream(s); } catch (e) { /* ignore */ } },

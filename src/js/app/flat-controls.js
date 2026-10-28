@@ -95,6 +95,7 @@
     if (state.mode !== 'flat') return;
     const aimed = findFlatTarget();
     if (aimed && aimed.kind === 'button') { pressButton(aimed.obj, performance.now()); return; }
+    if (CAMERA.onE()) return;   // (holding a print: stand it up in front of me)
     if (curLevel().onE && curLevel().onE()) return;   // (a level's own use for E)
     if (holdingTool()) {
       const t = state.held.obj;

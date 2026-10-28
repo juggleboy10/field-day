@@ -54,3 +54,16 @@ If the three.js CDN is not reachable, point the test at a local copy: `THREE_JS=
 1. Build, and run the tests.
 2. Upload `index.html` to Hostinger as `field-day.html`, then hard refresh.
 3. Commit and push here.
+
+## Shared photos and records on your own website
+
+Two small PHP files in `server/` go next to `field-day.html` on the website (same folder). Upload them once; the game
+finds them on its own.
+
+- `photos.php`: everyone's photo wall in the clubhouse ("Everyone's photos", with hearts, and "Best of all time").
+  The pictures are kept in a `photos` folder it makes beside itself. Without it, photos are only passed to whoever is
+  playing at the same moment.
+- `records.php`: the shared records boards.
+
+On the Claude page, the same things are kept in the page's own database instead (the `db` capability: each person
+writes only their own `photos/<them>`, `likes/<them>` and `records/<them>`).

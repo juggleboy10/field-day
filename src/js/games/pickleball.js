@@ -111,8 +111,40 @@
       t.pbSide = s; t.pbSlot = sl;
       return t;
     });
-    const ballMesh = new THREE.Mesh(new THREE.SphereGeometry(BR, 14, 10), new THREE.MeshLambertMaterial({ color: 0xd8f43a }));
+    // the ball: bright yellow with its rows of holes and a faint seam, so you can watch it spin
+    const ballTex = canvasTexture(256, 128, (g) => {
+      g.fillStyle = '#d8f43a'; g.fillRect(0, 0, 256, 128);
+      // little dimples all over (so even a slow turn shows)
+      for (let row = 0; row < 12; row++) {
+        const lat = (row + 0.5) / 12, y = lat * 128, n = Math.max(3, Math.round(30 * Math.sin(Math.PI * lat)));
+        for (let k = 0; k < n; k++) { const x = (k + (row % 2) * 0.5) * 256 / n; g.fillStyle = 'rgba(90,110,0,0.22)'; g.beginPath(); g.ellipse(x, y, 2.2 / Math.max(0.25, Math.sin(Math.PI * lat)), 2.2, 0, 0, Math.PI * 2); g.fill(); }
+      }
+      // the holes: dark, with a lighter lip
+      for (const [lat, n, off] of [[0.2, 5, 0], [0.4, 8, 0.5], [0.6, 8, 0], [0.8, 5, 0.5]]) {
+        const y = lat * 128, sx = 1 / Math.max(0.3, Math.sin(Math.PI * lat));
+        for (let k = 0; k < n; k++) {
+          const x = (k + off) * 256 / n;
+          for (const xx of [x, x - 256, x + 256]) {
+            g.fillStyle = '#f2ff86'; g.beginPath(); g.ellipse(xx, y, 8.5 * sx, 8.5, 0, 0, Math.PI * 2); g.fill();
+            g.fillStyle = '#4a5400'; g.beginPath(); g.ellipse(xx, y, 6.2 * sx, 6.2, 0, 0, Math.PI * 2); g.fill();
+          }
+        }
+      }
+      // one hole at each pole, and a seam round the middle
+      g.fillStyle = '#4a5400'; g.fillRect(0, 0, 256, 4); g.fillRect(0, 124, 256, 4);
+      g.fillStyle = 'rgba(70,80,0,0.55)'; g.fillRect(0, 63, 256, 2);
+    }).tex;
+    const ballMesh = new THREE.Mesh(new THREE.SphereGeometry(BR, 20, 14), new THREE.MeshLambertMaterial({ color: 0xffffff, map: ballTex }));
     ballMesh.visible = false; G.add(ballMesh);
+    // turn the ball by its spin (the same w the flight uses: topspin turns it over forwards), and a slow tumble from
+    // its travel when there's no spin on it
+    const _spinAx = new V3();
+    function spinBall(dt) {
+      const b = PB.b, wx = b.wx || 0, wy = b.wy || 0, wz = b.wz || 0, w = Math.hypot(wx, wy, wz);
+      if (w > 0.02) { _spinAx.set(wx / w, wy / w, wz / w); ballMesh.rotateOnWorldAxis(_spinAx, w * 34 * dt); }
+      const sp = Math.hypot(b.vx, b.vz);
+      if (sp > 0.3 && PB.ph === 'rally') { _spinAx.set(b.vz / sp, 0, -b.vx / sp); ballMesh.rotateOnWorldAxis(_spinAx, sp * 0.6 * dt); }
+    }
     const shadow = new THREE.Mesh(new THREE.CircleGeometry(BR * 1.2, 12), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.25, depthWrite: false }));
     shadow.rotation.x = -Math.PI / 2; G.add(shadow);
     // the court bots, one for each spot (Dink Daisy has the east end)
@@ -677,6 +709,7 @@
       botStep(dt, now);
       ballMesh.position.set(PB.b.x, PB.b.y, PB.b.z);
       ballMesh.visible = PB.ph !== 'idle';
+      if (ballMesh.visible) spinBall(Math.min(dt, 0.05));
       shadow.visible = ballMesh.visible; shadow.position.set(PB.b.x, 0.012, PB.b.z);
       const key = `${PB.score}|${PB.server}|${PB.ph === 'idle'}|${slots().join()}|${PB.botMask}|${PB.dbl}|${botSlots().join()}`;
       if (key !== scoreKey) { scoreKey = key; drawScore(); }
@@ -722,7 +755,7 @@
       { label: () => (PB.dbl ? 'Doubles \u25b8' : 'Singles \u25b8'), run: () => setDoubles(!PB.dbl) },
       { label: () => 'New game', show: () => PB.mySide >= 0 && humans().length === 1, run: () => { newGame(); showToast(`New game against the court bots. First to ${WIN}, win by 2`); } },
     ];
-    PB.internals = { vrPaddle: (dt, steps, b0) => { ballPrev = b0 || null; vrPaddle(dt, steps); }, resetSwing: () => { prevPC = null; }, bounceSpin, airStep, predictLanding, botStep, SPINS, deskHit: (now) => deskHit(now), HL, HW, KITCH, NET_H, paddles, takeSide, takeSlot, setDoubles, slots, botSlots, BOTS, serverSlot, responsible, authFor, homeZ, leaveCourt, newGame, startServe, onHit, onBounce, stepBall, hitBall, aimed, clearNet, flyTo, target, players, botSide, iAmAuth, serveZ };
+    PB.internals = { ballMesh, spinBall, vrPaddle: (dt, steps, b0) => { ballPrev = b0 || null; vrPaddle(dt, steps); }, resetSwing: () => { prevPC = null; }, bounceSpin, airStep, predictLanding, botStep, SPINS, deskHit: (now) => deskHit(now), HL, HW, KITCH, NET_H, paddles, takeSide, takeSlot, setDoubles, slots, botSlots, BOTS, serverSlot, responsible, authFor, homeZ, leaveCourt, newGame, startServe, onHit, onBounce, stepBall, hitBall, aimed, clearNet, flyTo, target, players, botSide, iAmAuth, serveZ };
     // End game: start over at 0-0 with whoever's on the court
     ENDGAME.on(L, { shared: true, active: () => PB.mySlot >= 0 && PB.ph !== 'idle', end: () => { if (PB.mySlot < 0) return ''; newGame(); PB.opp = oppKey(); PB.ver += 20; forcePresence(); return 'Starting over at 0-0.'; } });
     return L;
