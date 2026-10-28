@@ -66,6 +66,9 @@
   const handGeo = new THREE.SphereGeometry(0.045, 12, 8);
   const thumbGeo = new THREE.SphereGeometry(0.02, 8, 6);
   const visorMat = lam(0x17152e);
+  // a mouth under the visor: a flat dark oval that opens (scale.y) when its player talks
+  const mouthGeo = new THREE.SphereGeometry(0.03, 14, 8), mouthMat = new THREE.MeshBasicMaterial({ color: 0x0b0a16 });
+  function makeMouth() { const m = new THREE.Mesh(mouthGeo, mouthMat); m.scale.set(1, 0.18, 0.35); m.position.set(0, -0.062, -0.116); return m; }
   const eyeMat = new THREE.MeshBasicMaterial({ color: 0xf4f7ff });
   const legMat = lam(0x2b2d42);
   function makeHand(mat, side) {
@@ -395,7 +398,7 @@
     const visor = new THREE.Mesh(visorGeo, visorMat);
     visor.scale.set(1.05, 0.55, 0.72);
     visor.position.set(0, 0.012, -0.078);
-    head.add(visor, buildFace(face));
+    head.add(visor, buildFace(face), makeMouth());
     const h = buildHat(hat);
     if (h) head.add(h);
     g.add(head);

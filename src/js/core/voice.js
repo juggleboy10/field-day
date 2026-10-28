@@ -166,7 +166,8 @@
       }
       if (here !== v.on) { v.on = here; setParam(v.gain.gain, here ? 1 : 0, t); }
       // speaking?
-      if (level(v.an, v.buf) > 0.02) v.speakT = now;
+      v.lvl = level(v.an, v.buf);
+      if (v.lvl > 0.02) v.speakT = now;
       let spr = speakSprites.get(peerId);
       const talking = here && now - v.speakT < 260;
       if (talking && !spr) { spr = new THREE.Sprite(speakMat); spr.scale.set(0.22, 0.11, 1); scene.add(spr); speakSprites.set(peerId, spr); }

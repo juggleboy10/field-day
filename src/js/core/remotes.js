@@ -25,6 +25,7 @@
     const hatSlot = new THREE.Group(), faceSlot = new THREE.Group();
     head.add(hatSlot, faceSlot);
     faceSlot.add(buildFace(0));
+    const mouth = makeMouth(); head.add(mouth);
     const body = new THREE.Mesh(bodyGeo, dark);
     const vest = new THREE.Mesh(new THREE.TorusGeometry(0.17, 0.035, 8, 24), new THREE.MeshBasicMaterial({ color: 0xffffff }));
     vest.rotation.x = Math.PI / 2;
@@ -42,6 +43,7 @@
       name: '', colorIdx: -1, inGame: false, lv: -1, hasH: false, hasL: false, hasR: false,
       tgt: { h: pose(), l: pose(), r: pose() }, cur: { h: pose(), l: pose(), r: pose() },
       lvState: {}, disc: null, hatSlot, faceSlot, look: [0, 0, 0, 0], vest, blaster: null,
+      mouth, talk: 0, blinkT: 2 + Math.random() * 3, byaw: null, stand: 0, bob: 0, speed: 0, lastP: new V3(),
     };
     remotes.set(peerId, rec);
     return rec;
@@ -81,9 +83,7 @@
       if (rec.hasR) { cur.r.pos.lerp(tgt.r.pos, k); cur.r.quat.slerp(tgt.r.quat, k); }
       rec.head.position.copy(cur.h.pos);
       rec.head.quaternion.copy(cur.h.quat);
-      _fwd.set(0, 0, -1).applyQuaternion(cur.h.quat);
-      rec.body.position.set(cur.h.pos.x, cur.h.pos.y - 0.44, cur.h.pos.z);
-      rec.body.rotation.set(0, Math.atan2(-_fwd.x, -_fwd.z), 0);
+      bodyFollow(rec, dt);
       rec.lh.visible = rec.hasL;
       rec.rh.visible = rec.hasR;
       if (rec.hasL) { rec.lh.position.copy(cur.l.pos); rec.lh.quaternion.copy(cur.l.quat); }
@@ -99,10 +99,51 @@
       rec.vest.visible = team >= 0 && !(st.tagged && Math.floor(performance.now() / 120) % 2);
       if (team >= 0) {
         rec.vest.material.color.setHex(st.tagged ? 0x666677 : TEAM_COLORS[team]);
-        rec.vest.position.set(rec.cur.h.pos.x, rec.cur.h.pos.y - 0.36, rec.cur.h.pos.z);
+        rec.vest.position.copy(rec.body.position); rec.vest.position.y += 0.08;
       }
     }
   }
+  // The body under a player's head (the floating classic): it turns a beat behind the head and never more than 45
+  // degrees from it, leans forward as they bend or crouch, and bobs as they walk. Their eyes blink, and their mouth
+  // opens and closes with their voice (how loud it is, here), or with "talking" from their page if their voice isn't
+  // reaching this one.
+  const _bq = new Q4(), _bx = new Q4(), _bf = new V3(), _bAx = new V3(1, 0, 0);
+  function bodyFollow(rec, dt) {
+    const h = rec.cur.h;
+    _fwd.set(0, 0, -1).applyQuaternion(h.quat);
+    const yaw = Math.atan2(-_fwd.x, -_fwd.z), pitch = Math.asin(clamp(-_fwd.y, -1, 1));
+    if (rec.byaw === null || !finite(rec.byaw)) { rec.byaw = yaw; rec.stand = h.pos.y; rec.lastP.copy(h.pos); }
+    let d = yaw - rec.byaw; d = Math.atan2(Math.sin(d), Math.cos(d));
+    d *= 1 - Math.exp(-dt * 4);
+    rec.byaw += d;
+    let off = yaw - rec.byaw; off = Math.atan2(Math.sin(off), Math.cos(off));
+    if (Math.abs(off) > 0.8) rec.byaw = yaw - Math.sign(off) * 0.8;
+    // standing height: the highest they've been lately (it drifts down slowly, so sitting down settles)
+    rec.stand = Math.max(h.pos.y, rec.stand - dt * 0.03);
+    const lean = clamp((rec.stand - h.pos.y) * 1.6 + pitch * 0.25, -0.2, 0.6);
+    // walking: how fast the head moves across the ground
+    const moved = Math.hypot(h.pos.x - rec.lastP.x, h.pos.z - rec.lastP.z); rec.lastP.copy(h.pos);
+    const sp = dt > 0 && moved < 1 ? moved / dt : 0;
+    rec.speed += (sp - rec.speed) * (1 - Math.exp(-dt * 6));
+    rec.bob += dt * Math.min(3, rec.speed) * 5.5;
+    const bob = Math.abs(Math.sin(rec.bob)) * 0.022 * Math.min(1, rec.speed / 1.2);
+    _bf.set(-Math.sin(rec.byaw), 0, -Math.cos(rec.byaw));
+    rec.body.position.set(h.pos.x, Math.max(0.24, h.pos.y - 0.44 + bob), h.pos.z).addScaledVector(_bf, -0.02 + lean * 0.06);
+    rec.body.quaternion.copy(_bq.setFromAxisAngle(_up3, rec.byaw)).multiply(_bx.setFromAxisAngle(_bAx, -lean * 0.35));
+    // blink every few seconds (not behind shades)
+    rec.blinkT -= dt;
+    const shut = rec.blinkT < 0.12 && rec.look[1] !== 2;
+    if (rec.blinkT < 0) rec.blinkT = 2.5 + Math.random() * 3.5;
+    rec.faceSlot.scale.y = shut ? 0.15 : 1;
+    // talking
+    const v = VOICE.peers.get(rec.peer), pr = rec.pres || {};
+    let open = 0;
+    if (v && !v.dead && v.on && finite(v.lvl)) open = clamp((v.lvl - 0.012) * 9, 0, 1);
+    else if (pr.vt === 1) { rec.tph = (rec.tph || 0) + dt; open = Math.max(0, Math.sin(rec.tph * 11) * 0.5 + Math.sin(rec.tph * 4.3) * 0.5); }
+    rec.talk += (open - rec.talk) * (1 - Math.exp(-dt * 18));
+    rec.mouth.scale.y = 0.18 + rec.talk * 0.75;
+  }
+  const _up3 = new V3(0, 1, 0);
   function setLook(rec, hat, face, shirt, shirtColor) {
     const col = PLAYER_COLORS[rec.colorIdx] ? PLAYER_COLORS[rec.colorIdx].hex : '#888888';
     dressBody(rec.dark, col, shirt, shirtColor);
