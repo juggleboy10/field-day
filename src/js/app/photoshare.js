@@ -63,7 +63,7 @@
       const n = cleanN(state.name), t = Date.now();
       if (S.mode === 'db') {
         const pid = newPid(), id = `${S.me}~${pid}`;
-        all.set(id, { id, by: S.me, n, t, pid, src: small }); bump();
+        all.set(id, { id, by: S.me, n, t, pid, src: small, up: true }); bump();
         queue(async () => {
           await S.db.doc(`photos/${S.me}/pics/${pid}`).set({ img: small, t });
           S.mine.push({ id: pid, t });
@@ -75,6 +75,7 @@
             await S.db.doc(`photos/${S.me}/pics/${gone.id}`).delete();
           }
           await S.db.doc(`photos/${S.me}`).set({ n, list: S.mine.slice() });
+          const e = all.get(id); if (e) e.up = false;
         });
         return id;
       }
@@ -103,6 +104,15 @@
       else if (S.mode === 'php') fetch('photos.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ op: 'del', dev: S.dev, id }) }).catch(() => {});
       else if (S.mode === 'p2p') S.p2p.send({ k: 'del', pid: p.pid });
     }
+    // the owner of the Claude page can take anyone's photo down (the page's rules let its owner write anywhere)
+    function takeDown(id) {
+      const p = all.get(id); if (!p) return;
+      if (p.by === S.me) { unshare(id); return; }
+      if (S.mode !== 'db' || !S.admin) return;
+      all.delete(id); hearts.delete(id); bump();
+      const list = Array.from(all.values()).filter((x) => x.by === p.by).map((x) => ({ id: x.pid, t: x.t }));
+      queue(async () => { await S.db.doc(`photos/${p.by}/pics/${p.pid}`).delete(); await S.db.doc(`photos/${p.by}`).set({ n: p.n, list }); });
+    }
     function heart(id, on) {
       if (!all.has(id)) return false;
       const want = on === undefined ? !myHearts.has(id) : !!on;
@@ -128,6 +138,8 @@
           const by = d.id, x = d.data();
           if (!x || !Array.isArray(x.list)) continue;
           const n = cleanN(x.n);
+          // (my own list as the database has it: if the owner took one of mine down, it stays down)
+          if (by === S.me) S.mine = x.list.filter((e) => e && okPid(e.id)).map((e) => ({ id: e.id, t: Number(e.t) || 0 }));
           for (const e of x.list.slice(0, 40)) {
             if (!e || !okPid(e.id)) continue;
             const id = `${by}~${e.id}`; seen.add(id);
@@ -135,8 +147,7 @@
             if (p) p.n = n; else all.set(id, { id, by, n, t: Number(e.t) || 0, pid: e.id });
           }
         }
-        // (mine that are still on their way up stay)
-        for (const [id, p] of all) if (!seen.has(id) && !(p.by === S.me && Date.now() - p.t < 20000)) all.delete(id);
+        for (const [id, p] of all) if (!seen.has(id) && !p.up) all.delete(id);   // (mine still on their way up stay)
         bump();
       }, () => { /* recovers on its own */ });
       let first = true;
@@ -221,7 +232,7 @@
         if (typeof window !== 'undefined' && window.claude && typeof window.claude.use === 'function') {
           const [db, user] = await Promise.all([window.claude.use('db'), window.claude.use('user')]);
           const uid = user ? await user.id() : null;
-          if (db && uid) { await startDb(db, uid); return; }
+          if (db && uid) { try { S.admin = !!(user.isOwner && user.isOwner()); } catch (e) { S.admin = false; } await startDb(db, uid); return; }
           return;   // (the Claude page, signed out: just your own)
         }
       } catch (e) { return; }
@@ -232,5 +243,5 @@
     }
     // while you're in the clubhouse (or the album's open), photos.php is asked now and then for what's new
     function tick(now, looking) { if (S.mode === 'php' && looking && now - S.pollT > 20000) pull(); }
-    return { S, start, startDb, startP2P, share, unshare, heart, list, best, img, has, tick, pull, count, get mode() { return S.mode; }, get ver() { return S.ver; }, _add: (p) => { all.set(p.id, Object.assign({ pid: p.id, by: 'x' }, p)); bump(); }, _hearts: hearts, _all: all };
+    return { S, start, startDb, startP2P, share, unshare, takeDown, heart, list, best, img, has, tick, pull, count, get mode() { return S.mode; }, get admin() { return !!S.admin; }, get ver() { return S.ver; }, _add: (p) => { all.set(p.id, Object.assign({ pid: p.id, by: 'x' }, p)); bump(); }, _hearts: hearts, _all: all };
   })();

@@ -480,6 +480,33 @@
       }
       s.iconC.tex.needsUpdate = true;
     }
+    // the bin: press once and it turns red and asks; press again within 3 seconds and the photo goes
+    const BIN_COLOR = 0xff9a9a, BIN_ARMED = 0xff2d3d;
+    function drawBinIcon(c) {
+      const g = c.g; g.clearRect(0, 0, 64, 64); g.fillStyle = '#1b1932';
+      g.fillRect(16, 18, 32, 5); g.fillRect(27, 13, 10, 5);
+      g.beginPath(); g.moveTo(19, 26); g.lineTo(45, 26); g.lineTo(42, 53); g.lineTo(22, 53); g.closePath(); g.fill();
+      g.fillStyle = '#ff9a9a'; for (const x of [26, 31, 36]) g.fillRect(x, 30, 3, 19);
+      c.tex.needsUpdate = true;
+    }
+    function disarm(s) { s.armT = 0; s.binMat.color.setHex(BIN_COLOR); }
+    function pressBin(s) {
+      if (!s.item || !ready(s.del)) return;
+      const now = performance.now(), it = s.item;
+      const what = s.kind === 'mine' ? 'delete this photo' : it.mine ? 'take it off everyone\u2019s wall' : 'take it down for everyone';
+      if (now > s.armT) {
+        for (const w of WALLS.list) for (const o of w.slots) if (o !== s && o.armT) disarm(o);
+        s.armT = now + 3000; s.binMat.color.setHex(BIN_ARMED); sfx('click', 0.5);
+        showToast(`${state.mode === 'vr' ? 'Touch' : 'Press'} the bin again to ${what}`);
+        setTimeout(() => { if (s.armT && performance.now() >= s.armT) disarm(s); }, 3100);
+        return;
+      }
+      disarm(s);
+      if (s.kind === 'mine') { removeMine(it.p); showToast('Photo deleted'); }
+      else if (it.mine) { const m = mine.find((x) => x.gid === it.gid); if (m) unshareOne(m); else PHOTOS.unshare(it.gid); showToast('Taken off everyone\u2019s wall (it\u2019s still on yours)'); }
+      else { PHOTOS.takeDown(it.gid); showToast('Taken down for everyone'); }
+      sfx('whoosh', 0.5);
+    }
     async function pressMini(s) {
       if (!s.item || !ready(s.mini)) return;
       if (s.kind === 'mine') {
@@ -522,13 +549,21 @@
           const slot = { kind, k, card, pm, capC, iconC, badge, id: '', capKey: '', item: null };
           slot.btn = { L, pos: g.localToWorld(new V3(x, y, 0.09)), mesh: card, mat, onPress: () => pressSlot(slot), cool: 0, pressT: -1e9, baseY: y, lit: false, label: kind, off: true, away: true, ready: true };
           slot.mini = { L, pos: g.localToWorld(new V3(x + bx, y + by, 0.1)), mesh: badge, mat: badgeMat, onPress: () => pressMini(slot), cool: 0, pressT: -1e9, baseY: by, lit: false, label: kind === 'mine' ? 'Save' : 'Print', off: true, away: true, ready: true };
-          L.buttons.push(slot.btn, slot.mini);
+          // and a bin in the top corner, on the ones you can delete (all of yours; on the shared walls, the ones you put up)
+          const tby = big ? 0.4 : 0.3;
+          const binMat = new THREE.MeshLambertMaterial({ color: BIN_COLOR, emissive: 0x000000 });
+          const bin = new THREE.Mesh(BADGE_GEO, binMat); bin.rotation.x = Math.PI / 2; bin.position.set(bx, tby, 0.03); card.add(bin);
+          const binC = canvasTexture(64, 64), binIcon = new THREE.Mesh(BADGE_ICON_GEO, new THREE.MeshBasicMaterial({ map: binC.tex, transparent: true })); binIcon.position.set(bx, tby, 0.042); card.add(binIcon);
+          drawBinIcon(binC);
+          Object.assign(slot, { bin, binIcon, binMat, armT: 0 });
+          slot.del = { L, pos: g.localToWorld(new V3(x + bx, y + tby, 0.1)), mesh: bin, mat: binMat, onPress: () => pressBin(slot), cool: 0, pressT: -1e9, baseY: tby, lit: false, label: 'Delete', off: true, away: true, ready: true };
+          L.buttons.push(slot.btn, slot.mini, slot.del);
           slots.push(slot);
         }
         WALLS.list.push({ kind, slots });
       };
-      wall('mine', 5.4, '\u{1F4F7}  My photos', 'Touch one for a print \u00b7 the star saves it', 4, 3, false, { bg: '#ffd23f', fg: '#1b1932', size: 0.66 });
-      wall('all', 9.6, '♥  Everyone’s photos', 'Touch one to give it a heart \u00b7 the corner button prints it', 4, 3, false, { bg: '#ff8fb1', fg: '#1b1932', size: 0.66 });
+      wall('mine', 5.4, '\u{1F4F7}  My photos', 'Touch one for a print \u00b7 the star saves it \u00b7 the bin deletes it', 4, 3, false, { bg: '#ffd23f', fg: '#1b1932', size: 0.66 });
+      wall('all', 9.6, '♥  Everyone’s photos', 'Touch one to give it a heart \u00b7 the corner button prints it \u00b7 the bin takes yours down', 4, 3, false, { bg: '#ff8fb1', fg: '#1b1932', size: 0.66 });
       wall('best', 14.3, '\u{1F3C6}  Best of all time', 'The most hearts ever \u00b7 touch to give one, the corner button prints it', 3, 2, true, { bg: '#c9a227', fg: '#1b1932', size: 0.66 });
     }
     function wallItems(kind) {
@@ -537,7 +572,7 @@
         return order.slice(0, 12).map((p) => ({ id: p.id, src: p.src, a: p.kept ? `★ ${stampOf(p.t)}` : stampOf(p.t), b: p.gid ? `♥ ${PHOTOS.count(p.gid)}` : '', on: false, p }));
       }
       const list = kind === 'all' ? PHOTOS.list().slice(0, 12) : PHOTOS.best(6);
-      return list.map((p, i) => ({ id: p.id, gid: p.id, a: kind === 'best' ? `#${i + 1}  ${p.n}` : p.n, b: `${p.hearted ? '♥' : '♡'} ${p.hearts}`, on: p.hearted }));
+      return list.map((p, i) => ({ id: p.id, gid: p.id, a: kind === 'best' ? `#${i + 1}  ${p.n}` : p.n, b: `${p.hearted ? '♥' : '♡'} ${p.hearts}`, on: p.hearted, mine: p.mine }));
     }
     function drawCap(s, it) {
       const g = s.capC.g, cw = s.capC.c ? s.capC.c.width : 320, ch = s.capC.c ? s.capC.c.height : 50;
@@ -567,6 +602,9 @@
             else if (it) PHOTOS.img(it.gid).then((src) => { if (s.id === id) showOn(s.pm, src, 0xcfc6b4); });
           }
           s.mini.off = !it;
+          const canDel = !!it && (w.kind === 'mine' || it.mine || PHOTOS.admin);
+          if (id !== s.delId) { s.delId = id; disarm(s); }
+          s.del.off = !canDel; s.bin.visible = s.binIcon.visible = canDel;
           const ck = it ? `${it.a}|${it.b}|${it.on}|${it.p ? it.p.kept : ''}` : `-${PHOTOS.mode}`;
           if (ck !== s.capKey) { s.capKey = ck; drawCap(s, it); drawIcon(s, it); }
         });
@@ -692,6 +730,7 @@
             pill('Download', () => src.then((u) => u && download(u, fileName(p.t, p.n.replace(/[^a-z0-9]/gi, '').slice(0, 12))))),
           ];
           if (p.mine) btns.push(pill('Take down', () => { const m = mine.find((x) => x.gid === p.id); if (m) unshareOne(m); else PHOTOS.unshare(p.id); openAlbum(); }, { background: '#f2b8be' }));
+          else if (PHOTOS.admin) btns.push(pill('Take down (yours to run)', () => { PHOTOS.takeDown(p.id); openAlbum(); }, { background: '#f2b8be' }));
           grid.appendChild(card(k, src, [[`${tab === 'best' ? `#${k + 1}  ` : ''}${p.n}${p.mine ? ' (you)' : ''}`], [stampOf(p.t), { fontSize: '13px', color: '#6a6070' }]], btns, false).c);
         });
       }
@@ -714,7 +753,7 @@
       const L = curLevel(), atHub = state.level === HUB_IDX;
       // the walls, whenever you're in the clubhouse
       PHOTOS.tick(now, (atHub && state.mode !== 'menu') || albumOpen());
-      if (atHub) { const k = `${PHOTOS.ver}|${C.ver}`; if (k !== WALLS.key) { WALLS.key = k; drawWalls(); } }
+      if (atHub) { const k = `${PHOTOS.ver}|${C.ver}|${PHOTOS.admin}`; if (k !== WALLS.key) { WALLS.key = k; drawWalls(); } }
       if (albumOpen() && tab !== 'mine' && albumVer !== PHOTOS.ver) openAlbum();
       // my wall photos and prints want the hand to come away before they press again
       if (state.mode === 'vr') for (const b of L.buttons) if (b.away && !b.ready) {

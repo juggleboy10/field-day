@@ -28,13 +28,15 @@
   // the buttons: the Clubhouse, the Bots (in a game with bots) side by side, and End game below (while a game's going)
   // (the camera's defined later in the page: until then, it's simply not out)
   const camOn = () => { try { return CAMERA.isOn(); } catch (e) { return false; } };
+  const holdingPrint = () => { try { return !!CAMERA.P.held; } catch (e) { return false; } };
   function watchBtns() {
     const L = curLevel(), out = [];
     if (L && L.botLv) out.push({ id: 'hub', x: -0.034, y: ROW1, w: 0.064, h: BH }, { id: 'bots', x: 0.034, y: ROW1, w: 0.064, h: BH });
     else out.push({ id: 'hub', x: 0, y: ROW1, w: 0.12, h: BH });
-    // the second row: the camera, and End game while a game's going
-    if (L && ENDGAME.isOn(L)) out.push({ id: 'cam', x: -0.034, y: ROW2, w: 0.064, h: BH }, { id: 'end', x: 0.034, y: ROW2, w: 0.064, h: BH });
-    else out.push({ id: 'cam', x: 0, y: ROW2, w: 0.12, h: BH });
+    // the second row: the camera, a bin while you're holding a print, and End game while a game's going
+    const row = ['cam'].concat(holdingPrint() ? ['bin'] : [], L && ENDGAME.isOn(L) ? ['end'] : []);
+    const span = 0.132, gap = 0.004, w = (span - gap * (row.length - 1)) / row.length;
+    row.forEach((id, i) => out.push({ id, x: -span / 2 + w / 2 + i * (w + gap), y: ROW2, w, h: BH }));
     return out;
   }
   const panelC = canvasTexture(WCW, WCH);
@@ -46,7 +48,7 @@
   const toCanvasY = (y) => (PH / 2 - y) / PH * WCH;
   function drawPanel() {
     const L = curLevel(), atHub = state.level === HUB_IDX, bots = L && L.botLv ? BOTLV.name(L) : '', btns = watchBtns();
-    const key = `${atHub}|${WATCH.hover}|${bots}|${btns.length}|${ENDGAME.armed()}|${camOn()}`;
+    const key = `${atHub}|${WATCH.hover}|${bots}|${btns.map((b) => b.id).join(',')}|${ENDGAME.armed()}|${camOn()}`;
     if (key === panelKey) return;
     panelKey = key;
     const g = panelC.g;
@@ -69,11 +71,14 @@
         g.fillStyle = '#1b1932'; g.font = `800 34px ${BODY}`; g.fillText(`Bots: ${bots}`, bx, by + 2, bw - 24);
       } else if (B.id === 'cam') {
         g.fillStyle = hov ? '#c8f0a8' : '#a8e08a'; g.fill();
-        g.fillStyle = '#14240e'; g.font = `800 ${btns.length > 3 ? 32 : 36}px ${BODY}`; g.fillText(camOn() ? '\u{1F4F7} Put away' : '\u{1F4F7} Camera', bx, by + 2, bw - 24);
+        g.fillStyle = '#14240e'; g.font = `800 ${bw < 200 ? 28 : btns.length > 3 ? 32 : 36}px ${BODY}`; g.fillText(bw < 200 ? (camOn() ? 'Put away' : '\u{1F4F7}') : camOn() ? '\u{1F4F7} Put away' : '\u{1F4F7} Camera', bx, by + 2, bw - 20);
+      } else if (B.id === 'bin') {
+        g.fillStyle = hov ? '#ffc0c0' : '#ff9a9a'; g.fill();
+        g.fillStyle = '#2a0a10'; g.font = `800 ${bw < 200 ? 28 : 34}px ${BODY}`; g.fillText(bw < 200 ? '\u{1F5D1} Bin' : '\u{1F5D1} Bin print', bx, by + 2, bw - 20);
       } else {
         const arm = ENDGAME.armed();
         g.fillStyle = arm ? '#ff4d5a' : hov ? '#ff9a9a' : '#ff7a7a'; g.fill();
-        g.fillStyle = arm ? '#ffffff' : '#2a0a10'; g.font = `800 ${bw < 300 ? 32 : 36}px ${BODY}`; g.fillText(arm ? (bw < 300 ? 'Again to end' : 'Press again to end') : 'End game', bx, by + 2, bw - 24);
+        g.fillStyle = arm ? '#ffffff' : '#2a0a10'; g.font = `800 ${bw < 200 ? 26 : bw < 300 ? 32 : 36}px ${BODY}`; g.fillText(arm ? (bw < 300 ? 'Again to end' : 'Press again to end') : 'End game', bx, by + 2, bw - 20);
       }
     }
     panelC.tex.needsUpdate = true;
@@ -88,6 +93,13 @@
       haptic(vrHands[other], 0.4, 30);
       CAMERA.toggle(other); panelKey = '';
       WATCH.awake = false; panel.visible = false;
+      return;
+    }
+    if (id === 'bin') {
+      if (now < WATCH.cool) return;
+      WATCH.cool = now + 700;
+      haptic(vrHands[WATCH.side === 'left' ? 'right' : 'left'], 0.4, 30);
+      CAMERA.binHeld(); showToast('Print binned'); panelKey = '';
       return;
     }
     if (id === 'end') {

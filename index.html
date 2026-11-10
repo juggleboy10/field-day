@@ -343,7 +343,7 @@ kbd {
   const FWD = new V3(0, 0, -1);
   const GRAVITY = 9.8;
   // which build this is (shown on the start screen and on the VR watch, so you can tell a fresh copy from a stale one)
-  const VERSION = 95;
+  const VERSION = 96;
   const PLAYER_COLORS = [
     { hex: '#4fc3f7', label: 'Sky blue' },
     { hex: '#ff5c8a', label: 'Pink' },
@@ -2238,13 +2238,15 @@ kbd {
   // the buttons: the Clubhouse, the Bots (in a game with bots) side by side, and End game below (while a game's going)
   // (the camera's defined later in the page: until then, it's simply not out)
   const camOn = () => { try { return CAMERA.isOn(); } catch (e) { return false; } };
+  const holdingPrint = () => { try { return !!CAMERA.P.held; } catch (e) { return false; } };
   function watchBtns() {
     const L = curLevel(), out = [];
     if (L && L.botLv) out.push({ id: 'hub', x: -0.034, y: ROW1, w: 0.064, h: BH }, { id: 'bots', x: 0.034, y: ROW1, w: 0.064, h: BH });
     else out.push({ id: 'hub', x: 0, y: ROW1, w: 0.12, h: BH });
-    // the second row: the camera, and End game while a game's going
-    if (L && ENDGAME.isOn(L)) out.push({ id: 'cam', x: -0.034, y: ROW2, w: 0.064, h: BH }, { id: 'end', x: 0.034, y: ROW2, w: 0.064, h: BH });
-    else out.push({ id: 'cam', x: 0, y: ROW2, w: 0.12, h: BH });
+    // the second row: the camera, a bin while you're holding a print, and End game while a game's going
+    const row = ['cam'].concat(holdingPrint() ? ['bin'] : [], L && ENDGAME.isOn(L) ? ['end'] : []);
+    const span = 0.132, gap = 0.004, w = (span - gap * (row.length - 1)) / row.length;
+    row.forEach((id, i) => out.push({ id, x: -span / 2 + w / 2 + i * (w + gap), y: ROW2, w, h: BH }));
     return out;
   }
   const panelC = canvasTexture(WCW, WCH);
@@ -2256,7 +2258,7 @@ kbd {
   const toCanvasY = (y) => (PH / 2 - y) / PH * WCH;
   function drawPanel() {
     const L = curLevel(), atHub = state.level === HUB_IDX, bots = L && L.botLv ? BOTLV.name(L) : '', btns = watchBtns();
-    const key = `${atHub}|${WATCH.hover}|${bots}|${btns.length}|${ENDGAME.armed()}|${camOn()}`;
+    const key = `${atHub}|${WATCH.hover}|${bots}|${btns.map((b) => b.id).join(',')}|${ENDGAME.armed()}|${camOn()}`;
     if (key === panelKey) return;
     panelKey = key;
     const g = panelC.g;
@@ -2279,11 +2281,14 @@ kbd {
         g.fillStyle = '#1b1932'; g.font = `800 34px ${BODY}`; g.fillText(`Bots: ${bots}`, bx, by + 2, bw - 24);
       } else if (B.id === 'cam') {
         g.fillStyle = hov ? '#c8f0a8' : '#a8e08a'; g.fill();
-        g.fillStyle = '#14240e'; g.font = `800 ${btns.length > 3 ? 32 : 36}px ${BODY}`; g.fillText(camOn() ? '\u{1F4F7} Put away' : '\u{1F4F7} Camera', bx, by + 2, bw - 24);
+        g.fillStyle = '#14240e'; g.font = `800 ${bw < 200 ? 28 : btns.length > 3 ? 32 : 36}px ${BODY}`; g.fillText(bw < 200 ? (camOn() ? 'Put away' : '\u{1F4F7}') : camOn() ? '\u{1F4F7} Put away' : '\u{1F4F7} Camera', bx, by + 2, bw - 20);
+      } else if (B.id === 'bin') {
+        g.fillStyle = hov ? '#ffc0c0' : '#ff9a9a'; g.fill();
+        g.fillStyle = '#2a0a10'; g.font = `800 ${bw < 200 ? 28 : 34}px ${BODY}`; g.fillText(bw < 200 ? '\u{1F5D1} Bin' : '\u{1F5D1} Bin print', bx, by + 2, bw - 20);
       } else {
         const arm = ENDGAME.armed();
         g.fillStyle = arm ? '#ff4d5a' : hov ? '#ff9a9a' : '#ff7a7a'; g.fill();
-        g.fillStyle = arm ? '#ffffff' : '#2a0a10'; g.font = `800 ${bw < 300 ? 32 : 36}px ${BODY}`; g.fillText(arm ? (bw < 300 ? 'Again to end' : 'Press again to end') : 'End game', bx, by + 2, bw - 24);
+        g.fillStyle = arm ? '#ffffff' : '#2a0a10'; g.font = `800 ${bw < 200 ? 26 : bw < 300 ? 32 : 36}px ${BODY}`; g.fillText(arm ? (bw < 300 ? 'Again to end' : 'Press again to end') : 'End game', bx, by + 2, bw - 20);
       }
     }
     panelC.tex.needsUpdate = true;
@@ -2298,6 +2303,13 @@ kbd {
       haptic(vrHands[other], 0.4, 30);
       CAMERA.toggle(other); panelKey = '';
       WATCH.awake = false; panel.visible = false;
+      return;
+    }
+    if (id === 'bin') {
+      if (now < WATCH.cool) return;
+      WATCH.cool = now + 700;
+      haptic(vrHands[WATCH.side === 'left' ? 'right' : 'left'], 0.4, 30);
+      CAMERA.binHeld(); showToast('Print binned'); panelKey = '';
       return;
     }
     if (id === 'end') {
@@ -38691,7 +38703,7 @@ kbd {
       const n = cleanN(state.name), t = Date.now();
       if (S.mode === 'db') {
         const pid = newPid(), id = `${S.me}~${pid}`;
-        all.set(id, { id, by: S.me, n, t, pid, src: small }); bump();
+        all.set(id, { id, by: S.me, n, t, pid, src: small, up: true }); bump();
         queue(async () => {
           await S.db.doc(`photos/${S.me}/pics/${pid}`).set({ img: small, t });
           S.mine.push({ id: pid, t });
@@ -38703,6 +38715,7 @@ kbd {
             await S.db.doc(`photos/${S.me}/pics/${gone.id}`).delete();
           }
           await S.db.doc(`photos/${S.me}`).set({ n, list: S.mine.slice() });
+          const e = all.get(id); if (e) e.up = false;
         });
         return id;
       }
@@ -38731,6 +38744,15 @@ kbd {
       else if (S.mode === 'php') fetch('photos.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ op: 'del', dev: S.dev, id }) }).catch(() => {});
       else if (S.mode === 'p2p') S.p2p.send({ k: 'del', pid: p.pid });
     }
+    // the owner of the Claude page can take anyone's photo down (the page's rules let its owner write anywhere)
+    function takeDown(id) {
+      const p = all.get(id); if (!p) return;
+      if (p.by === S.me) { unshare(id); return; }
+      if (S.mode !== 'db' || !S.admin) return;
+      all.delete(id); hearts.delete(id); bump();
+      const list = Array.from(all.values()).filter((x) => x.by === p.by).map((x) => ({ id: x.pid, t: x.t }));
+      queue(async () => { await S.db.doc(`photos/${p.by}/pics/${p.pid}`).delete(); await S.db.doc(`photos/${p.by}`).set({ n: p.n, list }); });
+    }
     function heart(id, on) {
       if (!all.has(id)) return false;
       const want = on === undefined ? !myHearts.has(id) : !!on;
@@ -38756,6 +38778,8 @@ kbd {
           const by = d.id, x = d.data();
           if (!x || !Array.isArray(x.list)) continue;
           const n = cleanN(x.n);
+          // (my own list as the database has it: if the owner took one of mine down, it stays down)
+          if (by === S.me) S.mine = x.list.filter((e) => e && okPid(e.id)).map((e) => ({ id: e.id, t: Number(e.t) || 0 }));
           for (const e of x.list.slice(0, 40)) {
             if (!e || !okPid(e.id)) continue;
             const id = `${by}~${e.id}`; seen.add(id);
@@ -38763,8 +38787,7 @@ kbd {
             if (p) p.n = n; else all.set(id, { id, by, n, t: Number(e.t) || 0, pid: e.id });
           }
         }
-        // (mine that are still on their way up stay)
-        for (const [id, p] of all) if (!seen.has(id) && !(p.by === S.me && Date.now() - p.t < 20000)) all.delete(id);
+        for (const [id, p] of all) if (!seen.has(id) && !p.up) all.delete(id);   // (mine still on their way up stay)
         bump();
       }, () => { /* recovers on its own */ });
       let first = true;
@@ -38849,7 +38872,7 @@ kbd {
         if (typeof window !== 'undefined' && window.claude && typeof window.claude.use === 'function') {
           const [db, user] = await Promise.all([window.claude.use('db'), window.claude.use('user')]);
           const uid = user ? await user.id() : null;
-          if (db && uid) { await startDb(db, uid); return; }
+          if (db && uid) { try { S.admin = !!(user.isOwner && user.isOwner()); } catch (e) { S.admin = false; } await startDb(db, uid); return; }
           return;   // (the Claude page, signed out: just your own)
         }
       } catch (e) { return; }
@@ -38860,7 +38883,7 @@ kbd {
     }
     // while you're in the clubhouse (or the album's open), photos.php is asked now and then for what's new
     function tick(now, looking) { if (S.mode === 'php' && looking && now - S.pollT > 20000) pull(); }
-    return { S, start, startDb, startP2P, share, unshare, heart, list, best, img, has, tick, pull, count, get mode() { return S.mode; }, get ver() { return S.ver; }, _add: (p) => { all.set(p.id, Object.assign({ pid: p.id, by: 'x' }, p)); bump(); }, _hearts: hearts, _all: all };
+    return { S, start, startDb, startP2P, share, unshare, takeDown, heart, list, best, img, has, tick, pull, count, get mode() { return S.mode; }, get admin() { return !!S.admin; }, get ver() { return S.ver; }, _add: (p) => { all.set(p.id, Object.assign({ pid: p.id, by: 'x' }, p)); bump(); }, _hearts: hearts, _all: all };
   })();
   // ================================================================ THE CAMERA: a 90s point-and-shoot
   // Take it out from the watch (VR) or with O / the Camera button (browser). VR: it sits in the hand that pressed the
@@ -39344,6 +39367,33 @@ kbd {
       }
       s.iconC.tex.needsUpdate = true;
     }
+    // the bin: press once and it turns red and asks; press again within 3 seconds and the photo goes
+    const BIN_COLOR = 0xff9a9a, BIN_ARMED = 0xff2d3d;
+    function drawBinIcon(c) {
+      const g = c.g; g.clearRect(0, 0, 64, 64); g.fillStyle = '#1b1932';
+      g.fillRect(16, 18, 32, 5); g.fillRect(27, 13, 10, 5);
+      g.beginPath(); g.moveTo(19, 26); g.lineTo(45, 26); g.lineTo(42, 53); g.lineTo(22, 53); g.closePath(); g.fill();
+      g.fillStyle = '#ff9a9a'; for (const x of [26, 31, 36]) g.fillRect(x, 30, 3, 19);
+      c.tex.needsUpdate = true;
+    }
+    function disarm(s) { s.armT = 0; s.binMat.color.setHex(BIN_COLOR); }
+    function pressBin(s) {
+      if (!s.item || !ready(s.del)) return;
+      const now = performance.now(), it = s.item;
+      const what = s.kind === 'mine' ? 'delete this photo' : it.mine ? 'take it off everyone\u2019s wall' : 'take it down for everyone';
+      if (now > s.armT) {
+        for (const w of WALLS.list) for (const o of w.slots) if (o !== s && o.armT) disarm(o);
+        s.armT = now + 3000; s.binMat.color.setHex(BIN_ARMED); sfx('click', 0.5);
+        showToast(`${state.mode === 'vr' ? 'Touch' : 'Press'} the bin again to ${what}`);
+        setTimeout(() => { if (s.armT && performance.now() >= s.armT) disarm(s); }, 3100);
+        return;
+      }
+      disarm(s);
+      if (s.kind === 'mine') { removeMine(it.p); showToast('Photo deleted'); }
+      else if (it.mine) { const m = mine.find((x) => x.gid === it.gid); if (m) unshareOne(m); else PHOTOS.unshare(it.gid); showToast('Taken off everyone\u2019s wall (it\u2019s still on yours)'); }
+      else { PHOTOS.takeDown(it.gid); showToast('Taken down for everyone'); }
+      sfx('whoosh', 0.5);
+    }
     async function pressMini(s) {
       if (!s.item || !ready(s.mini)) return;
       if (s.kind === 'mine') {
@@ -39386,13 +39436,21 @@ kbd {
           const slot = { kind, k, card, pm, capC, iconC, badge, id: '', capKey: '', item: null };
           slot.btn = { L, pos: g.localToWorld(new V3(x, y, 0.09)), mesh: card, mat, onPress: () => pressSlot(slot), cool: 0, pressT: -1e9, baseY: y, lit: false, label: kind, off: true, away: true, ready: true };
           slot.mini = { L, pos: g.localToWorld(new V3(x + bx, y + by, 0.1)), mesh: badge, mat: badgeMat, onPress: () => pressMini(slot), cool: 0, pressT: -1e9, baseY: by, lit: false, label: kind === 'mine' ? 'Save' : 'Print', off: true, away: true, ready: true };
-          L.buttons.push(slot.btn, slot.mini);
+          // and a bin in the top corner, on the ones you can delete (all of yours; on the shared walls, the ones you put up)
+          const tby = big ? 0.4 : 0.3;
+          const binMat = new THREE.MeshLambertMaterial({ color: BIN_COLOR, emissive: 0x000000 });
+          const bin = new THREE.Mesh(BADGE_GEO, binMat); bin.rotation.x = Math.PI / 2; bin.position.set(bx, tby, 0.03); card.add(bin);
+          const binC = canvasTexture(64, 64), binIcon = new THREE.Mesh(BADGE_ICON_GEO, new THREE.MeshBasicMaterial({ map: binC.tex, transparent: true })); binIcon.position.set(bx, tby, 0.042); card.add(binIcon);
+          drawBinIcon(binC);
+          Object.assign(slot, { bin, binIcon, binMat, armT: 0 });
+          slot.del = { L, pos: g.localToWorld(new V3(x + bx, y + tby, 0.1)), mesh: bin, mat: binMat, onPress: () => pressBin(slot), cool: 0, pressT: -1e9, baseY: tby, lit: false, label: 'Delete', off: true, away: true, ready: true };
+          L.buttons.push(slot.btn, slot.mini, slot.del);
           slots.push(slot);
         }
         WALLS.list.push({ kind, slots });
       };
-      wall('mine', 5.4, '\u{1F4F7}  My photos', 'Touch one for a print \u00b7 the star saves it', 4, 3, false, { bg: '#ffd23f', fg: '#1b1932', size: 0.66 });
-      wall('all', 9.6, '♥  Everyone’s photos', 'Touch one to give it a heart \u00b7 the corner button prints it', 4, 3, false, { bg: '#ff8fb1', fg: '#1b1932', size: 0.66 });
+      wall('mine', 5.4, '\u{1F4F7}  My photos', 'Touch one for a print \u00b7 the star saves it \u00b7 the bin deletes it', 4, 3, false, { bg: '#ffd23f', fg: '#1b1932', size: 0.66 });
+      wall('all', 9.6, '♥  Everyone’s photos', 'Touch one to give it a heart \u00b7 the corner button prints it \u00b7 the bin takes yours down', 4, 3, false, { bg: '#ff8fb1', fg: '#1b1932', size: 0.66 });
       wall('best', 14.3, '\u{1F3C6}  Best of all time', 'The most hearts ever \u00b7 touch to give one, the corner button prints it', 3, 2, true, { bg: '#c9a227', fg: '#1b1932', size: 0.66 });
     }
     function wallItems(kind) {
@@ -39401,7 +39459,7 @@ kbd {
         return order.slice(0, 12).map((p) => ({ id: p.id, src: p.src, a: p.kept ? `★ ${stampOf(p.t)}` : stampOf(p.t), b: p.gid ? `♥ ${PHOTOS.count(p.gid)}` : '', on: false, p }));
       }
       const list = kind === 'all' ? PHOTOS.list().slice(0, 12) : PHOTOS.best(6);
-      return list.map((p, i) => ({ id: p.id, gid: p.id, a: kind === 'best' ? `#${i + 1}  ${p.n}` : p.n, b: `${p.hearted ? '♥' : '♡'} ${p.hearts}`, on: p.hearted }));
+      return list.map((p, i) => ({ id: p.id, gid: p.id, a: kind === 'best' ? `#${i + 1}  ${p.n}` : p.n, b: `${p.hearted ? '♥' : '♡'} ${p.hearts}`, on: p.hearted, mine: p.mine }));
     }
     function drawCap(s, it) {
       const g = s.capC.g, cw = s.capC.c ? s.capC.c.width : 320, ch = s.capC.c ? s.capC.c.height : 50;
@@ -39431,6 +39489,9 @@ kbd {
             else if (it) PHOTOS.img(it.gid).then((src) => { if (s.id === id) showOn(s.pm, src, 0xcfc6b4); });
           }
           s.mini.off = !it;
+          const canDel = !!it && (w.kind === 'mine' || it.mine || PHOTOS.admin);
+          if (id !== s.delId) { s.delId = id; disarm(s); }
+          s.del.off = !canDel; s.bin.visible = s.binIcon.visible = canDel;
           const ck = it ? `${it.a}|${it.b}|${it.on}|${it.p ? it.p.kept : ''}` : `-${PHOTOS.mode}`;
           if (ck !== s.capKey) { s.capKey = ck; drawCap(s, it); drawIcon(s, it); }
         });
@@ -39556,6 +39617,7 @@ kbd {
             pill('Download', () => src.then((u) => u && download(u, fileName(p.t, p.n.replace(/[^a-z0-9]/gi, '').slice(0, 12))))),
           ];
           if (p.mine) btns.push(pill('Take down', () => { const m = mine.find((x) => x.gid === p.id); if (m) unshareOne(m); else PHOTOS.unshare(p.id); openAlbum(); }, { background: '#f2b8be' }));
+          else if (PHOTOS.admin) btns.push(pill('Take down (yours to run)', () => { PHOTOS.takeDown(p.id); openAlbum(); }, { background: '#f2b8be' }));
           grid.appendChild(card(k, src, [[`${tab === 'best' ? `#${k + 1}  ` : ''}${p.n}${p.mine ? ' (you)' : ''}`], [stampOf(p.t), { fontSize: '13px', color: '#6a6070' }]], btns, false).c);
         });
       }
@@ -39578,7 +39640,7 @@ kbd {
       const L = curLevel(), atHub = state.level === HUB_IDX;
       // the walls, whenever you're in the clubhouse
       PHOTOS.tick(now, (atHub && state.mode !== 'menu') || albumOpen());
-      if (atHub) { const k = `${PHOTOS.ver}|${C.ver}`; if (k !== WALLS.key) { WALLS.key = k; drawWalls(); } }
+      if (atHub) { const k = `${PHOTOS.ver}|${C.ver}|${PHOTOS.admin}`; if (k !== WALLS.key) { WALLS.key = k; drawWalls(); } }
       if (albumOpen() && tab !== 'mine' && albumVer !== PHOTOS.ver) openAlbum();
       // my wall photos and prints want the hand to come away before they press again
       if (state.mode === 'vr') for (const b of L.buttons) if (b.away && !b.ready) {
