@@ -129,18 +129,22 @@ def main():
             print("Kirtland's appears:", k)
             check(k is not None and k["kind"] == "jack" and k["y"] < 3 and k["d"] > 9, f"kirtland perch {k}")
             # a long lens on it, from where I am (moving to a spot with a clear view of it)
-            shot = page.evaluate("""() => { const fd = window.__fd, I = fd.LEVELS[59].birdInternals, b = I.birds.find((x) => x.sp.id === 'kirtland'); b.stay = 999;
+            shot = page.evaluate("""() => { const fd = window.__fd, I = fd.LEVELS[59].birdInternals; let b = I.birds.find((x) => x.sp.id === 'kirtland'); b.stay = 999;
               let got = null;
+              // (some of its perches are deep in the pines: try a few until one has a clear view from somewhere)
+              for (let tries = 0; tries < 6 && !got; tries++) {
+              if (tries) { b.gone = true; fd.LEVELS[59].group.remove(b.B.root); if (b.perch) b.perch.taken = null; I.birds.length = 0; I.releaseSpecial({ id: 'kirtland' }); b = I.birds.find((x) => x.sp.id === 'kirtland'); if (!b) continue; b.stay = 999; }
               for (let a = 0; a < 24; a++) for (const r of [9.5, 11, 14]) { const ang = a / 24 * Math.PI * 2, x = b.pos.x + Math.cos(ang) * r, z = b.pos.z + Math.sin(ang) * r;
                 fd.dolly.position.set(x, 0, z); fd.dolly.updateMatrixWorld(true); fd.camera.updateMatrixWorld(true);
                 const eye = new THREE.Vector3(); fd.camera.getWorldPosition(eye); const cam = fd.CAMERA.pcam; cam.position.copy(eye); cam.fov = 56 / 6; cam.aspect = 4 / 3;
                 const c = new THREE.Vector3(0, b.B.center + b.B.height * 0.3, 0); b.B.body.localToWorld(c); cam.lookAt(c); cam.updateProjectionMatrix(); cam.updateMatrixWorld(true);
                 const j = I.judge(cam); if (j.best && j.best.sp.id === 'kirtland' && j.best.seen === 3 && (!got || j.best.pts > got.pts)) got = { pts: j.best.pts, centre: +j.best.centre.toFixed(2), r }; }
+              }
               return got; }""")
             print("Kirtland's, zoomed and centred:", shot)
             check(shot is not None and shot["pts"] >= 300, f"kirtland score {shot}")
             # walk up close: it's off
-            fl = page.evaluate("""() => { const fd = window.__fd, I = fd.LEVELS[59].birdInternals, b = I.birds.find((x) => x.sp.id === 'kirtland'); b.stay = 999;
+            fl = page.evaluate("""() => { const fd = window.__fd, I = fd.LEVELS[59].birdInternals; let b = I.birds.find((x) => x.sp.id === 'kirtland' && !x.gone); if (!b) { I.releaseSpecial({ id: 'kirtland' }); b = I.birds.find((x) => x.sp.id === 'kirtland' && !x.gone); } b.stay = 999;
               fd.dolly.position.set(b.pos.x + 3, 0, b.pos.z); fd.dolly.updateMatrixWorld(true); fd.camera.updateMatrixWorld(true); fd.myHead.pos.set(b.pos.x + 3, 1.6, b.pos.z);
               fd.LEVELS[59].update(0.016, performance.now()); return b.state; }""")
             print("Kirtland's when I get close:", fl)

@@ -92,6 +92,7 @@ js/games/climb.js
 js/games/archery.js
 js/games/gorilla.js
 js/games/birdwatch.js
+js/games/brawl.js
 js/app/photoshare.js
 js/app/camera.js
 js/app/vr-controls.js

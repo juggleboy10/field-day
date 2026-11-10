@@ -766,6 +766,9 @@
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.00015) * 0.4; camera.position.set(Math.sin(a) * 4, 2.2, 22); camera.lookAt(0, 2.5, 0); };
     ENDGAME.on(L, { active: () => R.ph === 'play', end: () => { endRound(); return 'Your photos are on the Field Notes board.'; } });
     L.presence = () => ({ bw: [R.ph === 'play' ? 1 : 0, R.best] });
+    L.readPresence = (rec, pres, st) => { const a = pres.bw; st.bw = Array.isArray(a) && a.length === 2 && a.every((x) => Number.isFinite(x)) ? a : null; };
+    L.rowFor = (st, isMe) => { const a = isMe ? [R.ph === 'play' ? 1 : 0, R.best] : st && st.bw; return { best: a ? a[1] : 0, text: a ? `${a[0] ? 'out birding \u00b7 ' : ''}best ${a[1]}` : '' }; };
+    L.sortRows = (a, b) => (b.best || 0) - (a.best || 0);
     MUSIC_THEMES.birdwatch = { gain: 0.35, bpm: 76, swing: 0.1, chords: ['Cmaj7', 'Am7', 'Fmaj7', 'G6'], comp: { inst: 'musicbox', at: [0, 6, 10], dur: 0.4 }, bass: { at: [0, 8] }, cut: 2400 };
 
     // ---------------------------------------------------------------- every frame

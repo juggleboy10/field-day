@@ -10,7 +10,7 @@ from playwright.sync_api import sync_playwright
 ROOT = Path(__file__).resolve().parent.parent
 THREE_JS = os.environ.get("THREE_JS")
 
-GAMES = ["baseball", "bowling", "chairs", "cornhole", "ctf", "discgolf", "dodgeball", "gorilla", "hideseek", "hoops", "potato", "karts", "kayak",
+GAMES = ["baseball", "bowling", "brawl", "chairs", "cornhole", "ctf", "discgolf", "dodgeball", "gorilla", "hideseek", "hoops", "potato", "karts", "kayak",
          "lasertag", "llama", "minigolf", "paintball", "parkour", "pickleball", "pillow", "recess", "rps", "snowball", "soccer", "toboggan", "trivia",
          "volleyball", "hub"]
 
