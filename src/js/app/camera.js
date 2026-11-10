@@ -13,7 +13,7 @@
   //    and let go wherever you like: it stays there, and friends who are here see it too. Touch a photo on "My photos"
   //    for a print of it, or use Print in the album.
   const CAMERA = (() => {
-    const C = { on: false, selfie: false, hand: 'right', trigPrev: true, flashT: 0, frame: 0, printT: 0, lastShot: 0, loaded: false, ver: 0, printOf: null, grip: { left: false, right: false } };
+    const C = { on: false, selfie: false, zoom: 1, eye: false, hand: 'right', trigPrev: true, flashT: 0, frame: 0, printT: 0, lastShot: 0, loaded: false, ver: 0, printOf: null, grip: { left: false, right: false } };
     const KEEP = 12, KEPT = 30, W = 640, H = 480;
     const changed = () => { C.ver += 1; state.hudDirty = true; };
     // my photos, oldest first: { id, t, src, kept, gid (its id on everyone's wall, when it's up there) }
@@ -125,7 +125,8 @@
     function drawLcd() {
       const g = lcdC.g; g.fillStyle = '#9aa88a'; g.fillRect(0, 0, 64, 32);
       g.fillStyle = '#1b2414'; g.font = `700 22px ${BODY}`; g.textAlign = 'center'; g.textBaseline = 'middle';
-      g.fillText(String(mine.length).padStart(2, '0'), 32, 17); lcdC.tex.needsUpdate = true;
+      let n = mine.length; try { const L = curLevel(); if (L && L.cameraCount) n = L.cameraCount(); } catch (e) { /* (not ready yet) */ }
+      g.fillText(String(n).padStart(2, '0'), 32, 17); lcdC.tex.needsUpdate = true;
     }
     drawLcd();
 
@@ -147,7 +148,17 @@
       return me;
     }
     // point pcam where the picture's taken from; returns false when there's no camera to take it with
+    // the zoom (1x to 6x): narrows the lens. Not for selfies.
+    const MAXZ = 6;
+    function setFov() {
+      const want = C.selfie ? 56 : 56 / C.zoom;
+      if (Math.abs(pcam.fov - want) > 1e-3) { pcam.fov = want; pcam.updateProjectionMatrix(); }
+    }
+    function setZoom(z) { const was = C.zoom; C.zoom = Math.max(1, Math.min(MAXZ, z)); if (Math.abs(was - C.zoom) > 0.01) { viewKey = ''; state.hudDirty = true; } return C.zoom; }
     function aim() {
+      const ok = aimPose(); setFov(); return ok;
+    }
+    function aimPose() {
       if (state.mode === 'vr') {
         const h = myHands[C.hand]; if (!h.ok) return false;
         _f.set(0, 0, -1).applyQuaternion(body.quaternion); _u.set(0, 1, 0).applyQuaternion(body.quaternion);
@@ -170,7 +181,8 @@
     }
     // draw the scene from pcam into a render target (with the headset's own view switched off for a moment)
     function renderTo(rt) {
-      const xr = renderer.xr.enabled, before = renderer.getRenderTarget(), bodyVis = body.visible;
+      const xr = renderer.xr.enabled, before = renderer.getRenderTarget(), bodyVis = body.visible, eyeVis = eyeG.visible;
+      eyeG.visible = false;
       const showMe = C.selfie;
       if (Math.abs(pcam.aspect - W / H) > 1e-3) { pcam.aspect = W / H; pcam.updateProjectionMatrix(); }
       if (showMe) myAvatar().visible = true;
@@ -180,9 +192,56 @@
       renderer.render(scene, pcam);
       renderer.setRenderTarget(before);
       renderer.xr.enabled = xr;
-      body.visible = bodyVis;
+      body.visible = bodyVis; eyeG.visible = eyeVis;
       if (me) me.visible = false;
     }
+    // ---------------------------------------------------------------- the eyepiece (VR): hold the camera up to your eye
+    // and you look through it: the view through the lens fills a round window in front of you, with frame lines, the
+    // zoom and what's left on the roll. While it's up, that hand's thumbstick zooms (up to zoom in).
+    const eyeRT = new THREE.WebGLRenderTarget(512, 384);
+    const eyeG = new THREE.Group(); eyeG.visible = false; scene.add(eyeG);
+    const EYE_D = 0.11, EYE_W = 2 * EYE_D * Math.tan(30 * Math.PI / 180), EYE_H = EYE_W * 0.75;
+    const eyeView = new THREE.Mesh(new THREE.PlaneGeometry(EYE_W, EYE_H), new THREE.MeshBasicMaterial({ map: eyeRT.texture, depthTest: false, depthWrite: false }));
+    eyeView.position.z = -EYE_D; eyeView.renderOrder = 30; eyeG.add(eyeView);
+    const eyeHudC = canvasTexture(512, 384);
+    const eyeHud = new THREE.Mesh(new THREE.PlaneGeometry(EYE_W, EYE_H), new THREE.MeshBasicMaterial({ map: eyeHudC.tex, transparent: true, depthTest: false, depthWrite: false }));
+    eyeHud.position.z = -EYE_D + 0.0005; eyeHud.renderOrder = 31; eyeG.add(eyeHud);
+    // (the dark round edge of the eyepiece, all around the window)
+    const eyeMask = new THREE.Mesh(new THREE.RingGeometry(EYE_W * 0.62, EYE_W * 3, 48), new THREE.MeshBasicMaterial({ color: 0x050507, depthTest: false, depthWrite: false }));
+    eyeMask.position.z = -EYE_D + 0.001; eyeMask.renderOrder = 32; eyeG.add(eyeMask);
+    const eyeBox = new THREE.Mesh(new THREE.RingGeometry(0, 1, 4), new THREE.MeshBasicMaterial({ color: 0x050507, depthTest: false, depthWrite: false }));
+    eyeBox.visible = false; eyeG.add(eyeBox);
+    let eyeKey = '';
+    function drawEyeHud() {
+      let note = '';
+      try { const L = curLevel(); if (L && L.cameraNote) note = L.cameraNote(); } catch (e) { /* none */ }
+      const key = `${C.zoom.toFixed(1)}|${note}`;
+      if (key === eyeKey) return;
+      eyeKey = key;
+      const g = eyeHudC.g; g.clearRect(0, 0, 512, 384);
+      g.strokeStyle = 'rgba(255,255,255,0.85)'; g.lineWidth = 4;
+      // frame corners and the centre circle
+      for (const [x, y, dx, dy] of [[40, 40, 1, 1], [472, 40, -1, 1], [40, 344, 1, -1], [472, 344, -1, -1]]) { g.beginPath(); g.moveTo(x, y + dy * 40); g.lineTo(x, y); g.lineTo(x + dx * 40, y); g.stroke(); }
+      g.beginPath(); g.arc(256, 192, 34, 0, Math.PI * 2); g.stroke();
+      g.beginPath(); g.moveTo(256, 176); g.lineTo(256, 208); g.moveTo(240, 192); g.lineTo(272, 192); g.lineWidth = 2; g.stroke();
+      g.font = '700 26px "Courier New", monospace'; g.fillStyle = '#ffd23f'; g.textBaseline = 'alphabetic';
+      g.textAlign = 'left'; g.fillText(`${C.zoom.toFixed(1)}x`, 56, 330);
+      g.textAlign = 'right'; g.fillText(note, 456, 330);
+      eyeHudC.tex.needsUpdate = true;
+    }
+    const _eyeP = new V3(), _hf = new V3();
+    function eyeCheck() {
+      // the back of the camera at your eye, pointing the way you're looking
+      _eyeP.set(-0.01, 0.0, 0.03).applyQuaternion(body.quaternion).add(body.position);
+      const d = _eyeP.distanceTo(myHead.pos);
+      _f.set(0, 0, -1).applyQuaternion(body.quaternion); _hf.set(0, 0, -1).applyQuaternion(myHead.quat);
+      const facing = _f.dot(_hf);
+      if (!C.eye && d < 0.15 && facing > 0.75) { C.eye = true; haptic(vrHands[C.hand], 0.2, 20); }
+      else if (C.eye && (d > 0.2 || facing < 0.6)) C.eye = false;
+      return C.eye;
+    }
+    // while it's at your eye, that hand's stick is the zoom (not walking or turning)
+    const stickBusy = (side) => C.on && C.eye && state.mode === 'vr' && side === C.hand;
 
     // ---------------------------------------------------------------- taking a picture
     const px = new Uint8Array(W * H * 4);
@@ -217,9 +276,22 @@
     function snap(at) {
       const now = at || performance.now();
       if (!C.on || now - C.lastShot < 700 || !aim()) return false;
+      // a game can say no (out of film, say), or take the picture for itself (it then says what happens next)
+      const L = curLevel();
+      if (L.canSnap) { const why = L.canSnap(); if (why) { C.lastShot = now; showToast(why); sfx('buzzer', 0.3); return false; } }
       C.lastShot = now;
       renderTo(shotRT);
       const url = develop();
+      if (L.onPhoto) {
+        const said = L.onPhoto(url, pcam, now);
+        if (said) {
+          tone(2600, 0, 0.03, 'square', 0.18); sfx('poof', 0.25); tone(180, 420, 0.45, 'sawtooth', 0.05, 0.12);
+          C.flashT = now; drawLcd();
+          if (state.mode === 'vr') haptic(vrHands[C.hand], 0.6, 40); else flashScreen(url);
+          if (said.toast) showToast(said.toast);
+          return true;
+        }
+      }
       const p = addMine(url);
       drawLcd();
       // click, the flash, and the film winding on
@@ -259,7 +331,7 @@
       C.on = !C.on;
       if (hand) C.hand = hand;
       C.trigPrev = true;    // (the trigger that pressed the watch doesn't also take a picture)
-      if (!C.on) { C.selfie = false; body.visible = false; print.visible = false; }
+      if (!C.on) { C.selfie = false; C.zoom = 1; C.eye = false; body.visible = false; print.visible = false; eyeG.visible = false; }
       showToast(C.on ? (state.mode === 'vr' ? 'Camera out: the trigger takes a picture. Turn it round for a selfie' : 'Camera: Space takes a picture, V for a selfie, O to put it away') : 'Camera away');
       sfx(C.on ? 'click' : 'whoosh', 0.5);
       state.hudDirty = true; viewKey = '';
@@ -769,8 +841,8 @@
       }
       drawTheirs();
       const flat = state.mode === 'flat' && C.on;
-      const vk = `${flat}|${C.selfie}|${mine.length}`;
-      if (vk !== viewKey) { viewKey = vk; viewDiv.style.display = flat ? 'block' : 'none'; vfText.textContent = `${C.selfie ? 'SELFIE' : 'CAMERA'}   SPACE: SHOOT   V: FLIP   O: PUT AWAY   ${String(mine.length).padStart(2, '0')}`; }
+      const vk = `${flat}|${C.selfie}|${mine.length}|${C.zoom.toFixed(1)}|${vfNote()}`;
+      if (vk !== viewKey) { viewKey = vk; viewDiv.style.display = flat ? 'block' : 'none'; vfText.textContent = `${C.selfie ? 'SELFIE' : `CAMERA ${C.zoom.toFixed(1)}x`}   SPACE: SHOOT   WHEEL/+/-: ZOOM   V: FLIP   O: PUT AWAY   ${vfNote()}`; }
       // VR grips: take the print sticking out of the camera, or pick up one lying about; let go to leave it
       if (state.mode === 'vr') {
         for (const side of SIDES) {
@@ -790,6 +862,7 @@
           if (!g && was && P.held && P.held.side === side) { placeHeld(); haptic(vrHands[side], 0.3, 20); }
         }
       }
+      if (!C.on || state.mode !== 'vr') { eyeG.visible = false; C.eye = false; }
       if (!C.on || state.mode === 'menu') { body.visible = false; return; }
       if (state.mode === 'vr') {
         const h = myHands[C.hand];
@@ -805,7 +878,18 @@
         C.trigPrev = trig;
         // the little screen and the selfie mirror (a few times a second is plenty)
         C.frame += 1;
-        if (C.frame % 4 === 0 && aim()) renderTo(preRT);
+        const eye = !C.selfie && eyeCheck();
+        if (eye) {
+          const gp2 = vrHands[C.hand].source && vrHands[C.hand].source.gamepad, ax = gp2 && gp2.axes;
+          const y = ax ? (ax.length >= 4 ? ax[3] : ax[1]) : 0;
+          if (Math.abs(y) > 0.2) setZoom(C.zoom * Math.exp(-y * dt * 1.6));
+          if (aim()) renderTo(eyeRT);
+          eyeG.position.copy(myHead.pos); eyeG.quaternion.copy(myHead.quat); eyeG.visible = true;
+          body.visible = false; drawEyeHud();
+        } else {
+          eyeG.visible = false;
+          if (C.frame % 4 === 0 && aim()) renderTo(preRT);
+        }
         mirror.visible = C.selfie;
       } else body.visible = false;
       // the flash, and the print sliding out (it waits there a while for you to take it)
@@ -817,11 +901,13 @@
       }
     }
     // in a browser, the screen shows what the camera sees (a selfie is seen from in front of you)
+    function vfNote() { try { const L = curLevel(); if (L && L.cameraNote) return L.cameraNote(); } catch (e) { /* none */ } return String(mine.length).padStart(2, '0'); }
     function viewCam() {
-      if (state.mode !== 'flat' || !C.on || !C.selfie || !aim()) return null;
+      if (state.mode !== 'flat' || !C.on || (!C.selfie && C.zoom < 1.01) || !aim()) return null;
       const el2 = renderer.domElement, a = el2.clientWidth / Math.max(1, el2.clientHeight);
       if (Math.abs(pcam.aspect - a) > 1e-3) { pcam.aspect = a; pcam.updateProjectionMatrix(); }
-      myAvatar().visible = true; return pcam;
+      if (C.selfie) myAvatar().visible = true;
+      return pcam;
     }
     function afterRender() { if (me) me.visible = false; }
     // E in a browser, holding a print and not aiming at anything: stand it up in front of you
@@ -836,7 +922,7 @@
     const loading = load();
     return {
       C, mine, P, WALLS, body, print, toggle, flipSelfie, snap, tick, viewCam, afterRender, hud, openAlbum, closeAlbum, develop, aim, drawWalls, drawWall: drawWalls,
-      isOn: () => C.on, pres, onE, theirs, pressSlot, takePrint, placeHeld, pickUp, binHeld, setKept, removeMine, shareOne, unshareOne, download, loading,
+      isOn: () => C.on, pres, onE, keepPhoto: (url) => addMine(url), setZoom, stickBusy, drawLcd, pcam, eyeG, theirs, pressSlot, takePrint, placeHeld, pickUp, binHeld, setKept, removeMine, shareOne, unshareOne, download, loading,
       get photos() { return mine.map((p) => p.src); },
     };
   })();

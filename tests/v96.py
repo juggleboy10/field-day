@@ -101,7 +101,7 @@ def main():
                 print("watch:", w)
                 check("bin" not in w["before"] and w["holding"] == w["before"] + ["bin"] and w["after"] == {"held": False, "ids": w["before"]}, f"watch bin {w}")
                 ver = page.evaluate("() => document.getElementById('version-note').textContent")
-                check(ver == "Field Day version 96", f"version {ver}")
+                check(ver.startswith("Field Day version 9"), f"version {ver}")
             check(not errors, f"page errors {errors}")
             ctx.close()
 

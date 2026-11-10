@@ -207,6 +207,8 @@
     }
   }
   canvas.addEventListener('pointerup', endPointer);
+  // the mouse wheel zooms the camera while it's out
+  canvas.addEventListener('wheel', (e) => { if (state.mode !== 'flat' || !CAMERA.isOn()) return; e.preventDefault(); CAMERA.setZoom(CAMERA.C.zoom * Math.exp(-e.deltaY * 0.0015)); }, { passive: false });
   canvas.addEventListener('pointercancel', endPointer);
   ui.grabBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); ensureAudio(); pressE(); });
   ui.throwBtn.addEventListener('pointerdown', (e) => {
@@ -232,6 +234,8 @@
     if (e.code === 'KeyO') { CAMERA.toggle(); return; }
     if (CAMERA.isOn() && e.code === 'Space') { CAMERA.snap(); return; }
     if (CAMERA.isOn() && e.code === 'KeyV') { CAMERA.flipSelfie(); return; }
+    if (CAMERA.isOn() && (e.code === 'Equal' || e.code === 'NumpadAdd')) { CAMERA.setZoom(CAMERA.C.zoom * 1.25); return; }
+    if (CAMERA.isOn() && (e.code === 'Minus' || e.code === 'NumpadSubtract')) { CAMERA.setZoom(CAMERA.C.zoom / 1.25); return; }
     if (e.code === 'KeyE') pressE();
     else if (e.code === 'Space') startCharge();
     else if (e.code === 'Escape') toMenu();

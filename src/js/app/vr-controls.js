@@ -190,7 +190,7 @@
         while (h.hist.length > 2 && now - h.hist[0].t > 160) h.hist.shift();
       } else h.hist.length = 0;
     }
-    const la = L.noLocomotion ? null : stickAxes(vrHands.left), ra = L.noLocomotion && L.noLocomotion !== 'turn' ? null : stickAxes(vrHands.right);   // ('turn': no walking, but you can still turn)
+    const la = L.noLocomotion || CAMERA.stickBusy('left') ? null : stickAxes(vrHands.left), ra = (L.noLocomotion && L.noLocomotion !== 'turn') || CAMERA.stickBusy('right') ? null : stickAxes(vrHands.right);   // ('turn': no walking, but you can still turn)
     if (la) {
       const x = la[0], y = la[1], m = Math.hypot(x, y);
       if (m > 0.15) {
