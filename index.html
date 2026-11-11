@@ -343,7 +343,7 @@ kbd {
   const FWD = new V3(0, 0, -1);
   const GRAVITY = 9.8;
   // which build this is (shown on the start screen and on the VR watch, so you can tell a fresh copy from a stale one)
-  const VERSION = 98;
+  const VERSION = 99;
   const PLAYER_COLORS = [
     { hex: '#4fc3f7', label: 'Sky blue' },
     { hex: '#ff5c8a', label: 'Pink' },
@@ -40650,16 +40650,17 @@ kbd {
     // ---------------------------------------------------------------- the eyepiece (VR): hold the camera up to your eye
     // and you look through it: the view through the lens fills a round window in front of you, with frame lines, the
     // zoom and what's left on the roll. While it's up, that hand's thumbstick zooms (up to zoom in).
-    const eyeRT = new THREE.WebGLRenderTarget(512, 384);
+    const eyeRT = new THREE.WebGLRenderTarget(768, 576);
     const eyeG = new THREE.Group(); eyeG.visible = false; scene.add(eyeG);
-    const EYE_D = 0.11, EYE_W = 2 * EYE_D * Math.tan(30 * Math.PI / 180), EYE_H = EYE_W * 0.75;
+    // (about 90 degrees across: nearly all of what you can see)
+    const EYE_D = 0.11, EYE_W = 2 * EYE_D * Math.tan(45 * Math.PI / 180), EYE_H = EYE_W * 0.75;
     const eyeView = new THREE.Mesh(new THREE.PlaneGeometry(EYE_W, EYE_H), new THREE.MeshBasicMaterial({ map: eyeRT.texture, depthTest: false, depthWrite: false }));
     eyeView.position.z = -EYE_D; eyeView.renderOrder = 30; eyeG.add(eyeView);
     const eyeHudC = canvasTexture(512, 384);
     const eyeHud = new THREE.Mesh(new THREE.PlaneGeometry(EYE_W, EYE_H), new THREE.MeshBasicMaterial({ map: eyeHudC.tex, transparent: true, depthTest: false, depthWrite: false }));
     eyeHud.position.z = -EYE_D + 0.0005; eyeHud.renderOrder = 31; eyeG.add(eyeHud);
     // (the dark round edge of the eyepiece, all around the window)
-    const eyeMask = new THREE.Mesh(new THREE.RingGeometry(EYE_W * 0.62, EYE_W * 3, 48), new THREE.MeshBasicMaterial({ color: 0x050507, depthTest: false, depthWrite: false }));
+    const eyeMask = new THREE.Mesh(new THREE.RingGeometry(EYE_W * 0.64, EYE_W * 3, 48), new THREE.MeshBasicMaterial({ color: 0x050507, depthTest: false, depthWrite: false }));
     eyeMask.position.z = -EYE_D + 0.001; eyeMask.renderOrder = 32; eyeG.add(eyeMask);
     const eyeBox = new THREE.Mesh(new THREE.RingGeometry(0, 1, 4), new THREE.MeshBasicMaterial({ color: 0x050507, depthTest: false, depthWrite: false }));
     eyeBox.visible = false; eyeG.add(eyeBox);
@@ -40688,8 +40689,8 @@ kbd {
       const d = _eyeP.distanceTo(myHead.pos);
       _f.set(0, 0, -1).applyQuaternion(body.quaternion); _hf.set(0, 0, -1).applyQuaternion(myHead.quat);
       const facing = _f.dot(_hf);
-      if (!C.eye && d < 0.15 && facing > 0.75) { C.eye = true; haptic(vrHands[C.hand], 0.2, 20); }
-      else if (C.eye && (d > 0.2 || facing < 0.6)) C.eye = false;
+      if (!C.eye && d < 0.2 && facing > 0.7) { C.eye = true; haptic(vrHands[C.hand], 0.2, 20); }
+      else if (C.eye && (d > 0.27 || facing < 0.5)) C.eye = false;
       return C.eye;
     }
     // while it's at your eye, that hand's stick is the zoom (not walking or turning)

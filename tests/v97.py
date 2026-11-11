@@ -64,7 +64,7 @@ def main():
                 cam: fd.CAMERA.isOn(), ver: document.getElementById('version-note').textContent }; }""")
             print("level:", r)
             check(r["birds"] >= 5 and not r["missing"] and r["kirtland"] == "legend" and r["habK"] == "jack" and r["cam"], f"level {r}")
-            check(r["ver"] == "Field Day version 97", f"version {r['ver']}")
+            check(r["ver"].startswith("Field Day version "), f"version {r['ver']}")
 
         if want("judge"):
             page.evaluate("() => window.__fd.LEVELS[59].startRound()")
