@@ -1,2 +1,4 @@
 index.html.tmp
 __pycache__/
+node_modules/
+tools/measure.json

@@ -315,9 +315,18 @@ kbd {
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-(() => {
-  'use strict';
-
+window.addEventListener('error', function (e) {
+  if (window.__fdReady || window.__fdStop) return;
+  window.__fdStop = (e && e.message) || 'error';
+  var el = document.getElementById('load-error');
+  if (el) { if (!el.textContent.trim()) el.textContent = 'Field Day couldn\u2019t start. Try reloading the page.'; el.hidden = false; }
+  ['btn-vr', 'btn-flat'].forEach(function (id) { var b = document.getElementById(id); if (b) b.disabled = true; });
+});
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+  // Every file here is an ordinary script, and they all share the page's top-level names: a const or function declared
+  // at the top of one file can be used in every file after it (see tools/build.py). So top-level names must be unique
+  // across the whole game, and must not be the name of something the browser already has (tools/check_scope.py checks).
   const $ = (s) => document.querySelector(s);
   const ui = {
     panel: $('#panel'), net: $('#net'), netText: $('#net-text'), levels: $('#levels'), name: $('#name'), swatches: $('#swatches'),
@@ -329,12 +338,13 @@ kbd {
     levelBlurb: $('#level-blurb'), lookPreview: $('#look-preview'), hatChips: $('#hat-chips'), faceChips: $('#face-chips'), shirtChips: $('#shirt-chips'), shirtColorChips: $('#shirtc-chips'),
   };
   function fail(msg) {
+    window.__fdStop = msg || 'could not start';   // (the scripts after this one see it and don't run)
     if (msg) ui.loadError.textContent = msg;
     ui.loadError.hidden = false;
     ui.vrBtn.disabled = true;
     ui.flatBtn.disabled = true;
   }
-  if (!window.THREE) { fail(); return; }
+  if (!window.THREE) { fail(); throw new Error('Field Day: three.js did not load'); }
 
   // ---------------------------------------------------------------- constants
   const V3 = THREE.Vector3, Q4 = THREE.Quaternion;
@@ -343,7 +353,7 @@ kbd {
   const FWD = new V3(0, 0, -1);
   const GRAVITY = 9.8;
   // which build this is (shown on the start screen and on the VR watch, so you can tell a fresh copy from a stale one)
-  const VERSION = 99;
+  const VERSION = 100;
   const PLAYER_COLORS = [
     { hex: '#4fc3f7', label: 'Sky blue' },
     { hex: '#ff5c8a', label: 'Pink' },
@@ -458,7 +468,7 @@ kbd {
     renderer = new THREE.WebGLRenderer({ canvas: $('#scene'), antialias: true, powerPreference: 'high-performance' });
   } catch (e) {
     fail('This browser couldn\u2019t start 3D graphics. Try another browser or device.');
-    return;
+    throw new Error('Field Day: no 3D graphics');
   }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setSize(window.innerWidth, window.innerHeight, false);
@@ -554,7 +564,8 @@ kbd {
       sunSprite.scale.set(env.sprite.scale, env.sprite.scale, 1);
     }
   }
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ---------------------------------------------------------------- sound (synthesized)
   const snd = { ctx: null, master: null, noise: null, live: 0, last: {}, dropped: 0 };
   const MAX_LIVE = 24;      // sound effects playing at once; past this, new ones are skipped (a pile-up only adds mush and strain)
@@ -666,7 +677,8 @@ kbd {
       case 'fanfare': [523, 659, 784, 1047].forEach((f, i) => tone(f, 0, 0.5, 'triangle', 0.16 * v, i * 0.13)); break;
     }
   }
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ---------------------------------------------------------------- poses + hands
   const pose = () => ({ pos: new V3(), quat: new Q4() });
   const myHead = pose();
@@ -1371,7 +1383,8 @@ kbd {
     return L;
   }
   const curLevel = () => LEVELS[state.level];
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ RECORDS: all-time high scores for each game
   // A game says what its records are (RECORDS.def), and reports a result when one's set (RECORDS.add). The top five
   // of each are kept on this device, with who set them, and friends in the same game share their bests (so their
@@ -1582,6 +1595,8 @@ kbd {
     })();
     return { def, add, mine, merge, build, draw, hidePanel, list: listOf, fmtTime, shared: SHARED };
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ BOTLV: how good the bots are, game by game
   // A game with bots calls BOTLV.on(L) and reads its bots' skill with BOTLV.pick(L, [easy, normal, hard]) (or
   // BOTLV.get(L): 0 easy, 1 normal, 2 hard). Normal is how the bots always played. Each game remembers its own level
@@ -1626,6 +1641,8 @@ kbd {
     }
     return { NAMES, on, get, pick, name, set, cycle, mine, read };
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ ENDGAME: stop the game that's going, any game
   // A game says how to tell it's running and how to stop it: ENDGAME.on(L, { active, end, shared }). Then there's an
   // "End game" button (in a browser, up top; in VR, on the watch). Press it twice (the first press asks) and the
@@ -1671,6 +1688,8 @@ kbd {
     }
     return { on, isOn, armed, press, endNow, mine, read };
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LO-FI MUSIC: a quiet, generative soundtrack themed to each place
   // Every place has a recipe: tempo, swing, four chords, and which instruments play chords, arpeggios, a lead,
   // bass and drums. Notes are scheduled a moment ahead on the audio clock and run through a soft lo-fi chain
@@ -2020,7 +2039,8 @@ kbd {
     }
     MUSIC.beat = Math.floor((c.currentTime - MUSIC.startT) / (60 / T.bpm));
   }
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ SPATIAL VOICE CHAT
   // Opt-in. Your microphone goes straight to the other players (peer-to-peer), and each voice plays from that
   // player's head: louder up close, quieter across the room, and from the correct side in your headset.
@@ -2209,7 +2229,8 @@ kbd {
     if (pressed && !stickClickPrev) setMuted(!VOICE.muted);
     stickClickPrev = pressed;
   }
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ THE WRIST WATCH (VR)
   // A watch on your right wrist. Raise it and look at it, and a little panel wakes up with a Clubhouse button (and, in
   // a game with bots, a Bots button for how good they are): poke a button with your other hand, or point at it and
@@ -2403,7 +2424,8 @@ kbd {
     if (hover !== WATCH.hover) { WATCH.hover = hover; }
     drawPanel();
   }
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ---------------------------------------------------------------- remote players
   const remotes = new Map();
   const seenPresence = new Map();
@@ -2567,7 +2589,8 @@ kbd {
     const has = side === 'left' ? rec.hasL : rec.hasR;
     return has ? rec.cur[side === 'left' ? 'l' : 'r'] : rec.cur.h;
   }
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ---------------------------------------------------------------- balls (sphere bodies)
   function makeBody(L, o) {
     const mat = new THREE.MeshLambertMaterial({ map: o.tex, emissive: 0x000000 });
@@ -2970,7 +2993,8 @@ kbd {
     }
   }
   const batHiMat = new THREE.MeshLambertMaterial({ color: 0xc89a5b, emissive: 0x5a2a00 });
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ---------------------------------------------------------------- ownership claims
   // Each player publishes the balls and bats they last touched. A higher version wins;
   // ties go to the lower peer label, so every page settles on the same owner.
@@ -3059,7 +3083,8 @@ kbd {
       if (leader) { t.v += 1; t.owner = state.myPeer; forcePresence(); }
     }
   }
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ QUEST REGISTRY: enemies, projectiles, weapons
   // ai: melee | ranged | flyer | kamikaze | charger | turret | boss
   // The first three keep their original codes (0, 1, 2) so older pages still understand each other.
@@ -3310,7 +3335,8 @@ kbd {
   // what each weapon's shot looks like, for sending to other players
   const WEAPON_FX = ['bolt', 'pistol', 'scatter', 'rail', 'plasma', 'fire', 'frost', 'storm'];
   const WEAPON_FX_COLOR = { bolt: 0x9aa0b0, pistol: 0x4fc3f7, scatter: 0xffb020, rail: 0xb388ff, plasma: 0x6aff8a, fire: 0xff7a2a, frost: 0x8ad8ff, storm: 0xe8e06a };
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ PRIZE_FX: what the Skee-Ball prizes do
   // Prizes bought with tickets at the prize counter can each be switched on or off there (press an owned prize's
   // button). What they do, everywhere you go:
@@ -3500,6 +3526,8 @@ kbd {
     }
     return { IDS, DESC, isOn, owned, setOn, toggle, mask, tickets, fireworks, tick, mine, theirs, rockets: () => ROCKETS.length };
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: ROOFTOP HOOPS
   const hoops = (() => {
     const L = newLevel(0);
@@ -4275,7 +4303,8 @@ kbd {
       g.fillText('Friends who open this page will show up here', 36, y0 + step + 24);
     }
   }
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: SANDLOT BASEBALL
   const baseball = (() => {
     const L = newLevel(1);
@@ -5666,7 +5695,8 @@ kbd {
     ENDGAME.on(L, { active: () => gameOn(), end: () => { gameRequest(2); return 'Start a new game when everyone’s ready.'; } });
     return L;
   })();
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: MAPLE HOLLOW DISC GOLF
   const discgolf = (() => {
     const L = newLevel(2);
@@ -6513,7 +6543,8 @@ kbd {
     ENDGAME.on(L, { active: () => true, end: () => { restartRound(); return 'Back to the first tee.'; } });
     return L;
   })();
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ QUEST ENGINE (Sunstone Keep, Skyline Siege, Hexwood Hollow)
   // Each quest is an open world: areas where the fighting happens, joined by wide paths that bend,
   // with themed boundaries (castle walls, tree lines, rooftop railings) instead of corridors.
@@ -8463,7 +8494,8 @@ kbd {
     ENDGAME.on(L, { active: () => !!L.q && (L.q.pg > 0 || !!L.q.done), end: () => { request(1); return 'The quest starts again from the beginning.'; } });
     return L;
   }
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ QUESTS
   const speckle = (g, rand, n, a, b) => { for (let k = 0; k < n; k++) { g.fillStyle = rand() < 0.5 ? a : b; g.fillRect(rand() * 256, rand() * 256, 2, 2); } };
   const unitBox = boxg(1, 1, 1);
@@ -8482,7 +8514,8 @@ kbd {
   function ring(ctx, n, rMin, rMax, cz, fn) {
     for (let k = 0; k < n; k++) { const a = ctx.rand() * Math.PI * 2, r = rMin + ctx.rand() * (rMax - rMin); fn(Math.cos(a) * r, cz + Math.sin(a) * r, a); }
   }
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ---------------- Sunstone Keep: ruined castle grounds at dusk
   const dungeon = makeQuest({
     idx: 3, seed: 31337,
@@ -8583,7 +8616,8 @@ kbd {
     },
     colors: { board: '#17121c', accent: '#e8b54a', sub: '#c9b8d8', text: '#ece4f4', label: '#e8a24a', button: 0xe8b54a },
   });
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ---------------- Skyline Siege: rooftops and bridges high above a city at night
   const siege = makeQuest({
     idx: 10, seed: 70707,
@@ -8689,7 +8723,8 @@ kbd {
     },
     colors: { board: '#0d1424', accent: '#4fc3f7', sub: '#9ab4d8', text: '#e4eefa', label: '#ff6ab0', button: 0x4fc3f7 },
   });
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ---------------- Hexwood Hollow: clearings in a moonlit forest, joined by dirt trails
   const hexwood = makeQuest({
     helpers: true,
@@ -8796,7 +8831,8 @@ kbd {
     },
     colors: { board: '#1a1430', accent: '#b06aff', sub: '#c8b8e8', text: '#ece4f4', label: '#8affc0', button: 0x8affc0 },
   });
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ---------------- Pirate Cove: a jungle island, a wrecked ship, smugglers' caves, and Captain Saltbeard's treasure
   // Its crew are new enemies, and the gunners fire a new projectile: lead shot, with a puff of a muzzle flash.
   PROJ.shot = { code: 3, speed: 12, gravity: 1.6, color: 0x2a2a2a, glow: 0xffd890, size: 0.18, dmg: 1 };
@@ -9007,6 +9043,8 @@ kbd {
     },
     colors: { board: '#14222c', accent: '#e8b54a', sub: '#a8c8d8', text: '#eef4f8', label: '#ffb060', button: 0xe8b54a },
   });
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ---------------- Frostpeak Caverns: up a frozen mountain pass and into the ice caves, to the Frost King's heart-gem
   // New enemies (snow goblins, frost archers, yetis, ice bats, frost sprites and the Frost King) and a new projectile:
   // ice shards, glowing pale blue.
@@ -9187,6 +9225,8 @@ kbd {
     },
     colors: { board: '#13202e', accent: '#9af0ff', sub: '#b8d4ea', text: '#eef6fc', label: '#7ad8ff', button: 0x7ad8ff },
   });
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ team helpers (laser tag + soccer)
   function pickTeam(L) {
     // counts teams straight from everyone's latest presence, so it works the moment you arrive
@@ -9217,7 +9257,8 @@ kbd {
     big.sort();
     if (big[big.length - 1] === state.myPeer) switchTeam(true);
   }
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: NEON LASER TAG
   const lasertag = (() => {
     const L = newLevel(4);
@@ -10057,7 +10098,8 @@ kbd {
     ENDGAME.on(L, { active: () => me.round > 0, end: () => { startGame(); return 'New game: everyone back to base.'; } });
     return L;
   })();
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: SUNDAY SOCCER
   const soccer = (() => {
     const L = newLevel(5);
@@ -10725,6 +10767,8 @@ kbd {
     ENDGAME.on(L, { active: () => me.team >= 0, end: () => { me.round += 1; me.goals = [0, 0]; me.scoredBy = 0; me.winT = 0; if (ball.owner === state.myPeer || ball.owner === null) { reclaimToSlot(ball); ball.sleeping = false; } state.dirtyBoard = true; forcePresence(); return 'A new match: 0-0.'; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: SEASIDE MINI GOLF
   const minigolf = (() => {
     const L = newLevel(6);
@@ -12161,7 +12205,8 @@ kbd {
     ENDGAME.on(L, { active: () => true, end: () => { restartRound(); return 'Back to the first hole.'; } });
     return L;
   })();
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ MINI GOLF: THE DRIVING RANGE
   // A deck off the side of the pier with a tee mat, hitting out to sea: floating greens at 50 to 250 yards, a yardage
   // buoy every 50. A bucket is ten balls; land on a green for points (more for the far ones, double near the pin).
@@ -12398,6 +12443,8 @@ kbd {
     L.rangeInternals = { R, launch, flyStep, land, teeUp, newBucket, goRange, greens, TEE, TARGETS, YD };
     return R;
   })(minigolf);
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: MOONLIGHT LANES (bowling)
   // Standard ten-pin scoring. Returns the frames so far, the running total,
   // and what the next ball needs: which frame, which ball, and whether the rack is fresh.
@@ -13228,7 +13275,8 @@ kbd {
     ENDGAME.on(L, { active: () => me.rolls.length > 0, end: () => { newGame(); return 'A fresh game on your lane.'; } });
     return L;
   })();
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: THE CLUBHOUSE (hub)
   const hub = (() => {
     const L = newLevel(HUB);
@@ -13699,7 +13747,8 @@ kbd {
     }
     return L;
   })();
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ CLUBHOUSE AIR HOCKEY
   // A table in the corner by the dance floor. Two players, or one against the clubhouse's resident bot.
   // Whoever has the puck on their half runs it, so your own hits never lag; it hands over at the center line.
@@ -14089,7 +14138,8 @@ kbd {
     AH.internals = { STAND, C, LEN, WID, Y, takeSide, leaveTable, stepPuck, serve, iAmAuthority, players };
     return AH;
   })(hub);
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ CLUBHOUSE PING PONG
   // A regulation table behind the lounge couches. Grab a paddle to take that end; play a friend, or the
   // clubhouse bot when you're on your own. Whoever the ball is heading toward runs it, so your hits never lag.
@@ -14559,7 +14609,8 @@ kbd {
     PP.internals = { vrPaddle: (dt, steps, b0) => { ballPrev = b0 || null; vrPaddle(dt, steps); }, resetSwing: () => { prevPC = null; }, C, LEN, WID, Y, STAND, paddles, takeSide, leaveTable, newGame, startServe, stepBall, onHit, onTable, onDead, hitBall, aimedVelocity, players, botSide, iAmAuth, endU };
     return PP;
   })(hub);
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ THE JUKEBOX: pick a song for the clubhouse
   // Buttons on the wall by the jukebox. Everyone in the clubhouse hears the same pick; the newest press wins.
   ((L) => {
@@ -14609,7 +14660,8 @@ kbd {
       }
     };
   })(hub);
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ CLUBHOUSE FOOSBALL
   // A real table: eight rods across the width, each with its little men. You push and pull a rod to slide it and
   // twist it to kick. VR: grab a handle (pull to slide, turn your wrist to spin). Browser: W/S slide the rod,
@@ -15040,7 +15092,8 @@ kbd {
     FB.internals = { C, FL, FW, Y, RODS, MEN, SPACE, RANGE, RU, STAND, TEAM_ROD, rods, takeSide, leaveTable, newGame, spawnBall, stepBall, moveRods, botSide, iAmHost, players, goal, footHit };
     return FB;
   })(hub);
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ CLUBHOUSE POP-A-SHOT
   // Two arcade cabinets on the south wall. Press START, then you have 45 seconds to sink as many shots as you can
   // (2 points each). Balls come back to the rack by themselves. In VR you throw for real; in a browser, aim with
@@ -15325,7 +15378,8 @@ kbd {
     L.popInternals = { physics: (dt, now) => updateBodies(L, dt, now), RAMP, TRAY, WALL_X, WALL_Z0, STAND_Z,  startRound, endRound, basket, popCollide, roundOf, myRound, RYh, RR, ROUND_MS };
     return CABS;
   })(hub);
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ THE D20
   // A chunky twenty-sided die on the coffee table in the lounge. Grab it and throw it: it tumbles, rolls and settles on a
   // face, and whatever is on top is your roll. Opposite faces add up to 21, like a real die. The thrower's page decides
@@ -15521,7 +15575,8 @@ kbd {
     L.d20Internals = { faces, die, SLOT, TABLE, beginSettle, showResult, R_IN };
     return D;
   })(hub);
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: PEBBLE BAY GO-KARTS
   const karts = (() => {
     const L = newLevel(9);
@@ -16889,7 +16944,8 @@ kbd {
     ENDGAME.on(L, { shared: true, active: () => race.phase === 'count' || race.phase === 'run', end: () => { race.phase = 'free'; race.finish = 0; for (const b of botKarts()) { b.phase = 'free'; b.lap = 0; } placeOnGrid(); state.dirtyBoard = true; forcePresence(); return 'Start a race when everyone’s ready.'; } });
     return L;
   })();
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: SUNSET BACKYARDS (hide-and-seek)
   const hideseek = (() => {
     const L = newLevel(12);
@@ -17685,7 +17741,8 @@ kbd {
     ENDGAME.on(L, { active: () => R.ph === 1 || R.ph === 2, end: () => { request(3); return 'Start a new round when everyone’s ready.'; } });
     return L;
   })();
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: CHARADES LOUNGE
   const charades = (() => {
     const L = newLevel(13);
@@ -18410,7 +18467,8 @@ kbd {
     ENDGAME.on(L, { active: () => CH.ph === 1 || CH.ph === 2 || CH.ph === 3, end: () => { request(2); return 'Start a new game when everyone’s ready.'; } });
     return L;
   })();
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: PAINTBALL PARK
   const paintball = (() => {
     const L = newLevel(14);
@@ -18961,7 +19019,8 @@ kbd {
     ENDGAME.on(L, { active: () => PB.ph !== 0, end: () => { requestPB(2); return 'Start a new round when everyone’s ready.'; } });
     return L;
   })();
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: SUNNY PICKLEBALL COURTS
   // Singles or doubles on a regulation court: underhand serves into the diagonal box, the two-bounce rule, no volleys
   // from the kitchen, rally scoring to 11 (win by 2). Four spots, two at each end (slot = side * 2 + spot; spot 0 plays
@@ -19724,7 +19783,8 @@ kbd {
     ENDGAME.on(L, { shared: true, active: () => PB.mySlot >= 0 && PB.ph !== 'idle', end: () => { if (PB.mySlot < 0) return ''; newGame(); PB.opp = oppKey(); PB.ver += 20; forcePresence(); return 'Starting over at 0-0.'; } });
     return L;
   })();
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: SKYLINE SPRINT (parkour race)
   // A race up and across a sunset skyline. In VR you grab holds and pull yourself along (let go and you fling);
   // in a browser E grabs the nearest wall, bar or pole and WASD climb it. Slides, moving platforms, power-up drinks.
@@ -20509,7 +20569,8 @@ kbd {
     ENDGAME.on(L, { shared: true, active: () => RACE.state !== 'idle', end: () => { RACE.state = 'idle'; RACE.myFinish = 0; resetDrinks(); toStart(); hudKey = ''; boardKey = ''; state.dirtyBoard = true; forcePresence(); return 'Start a race when everyone’s ready.'; } });
     return L;
   })();
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: GYM CLASS DODGEBALL
   // Red on one half of a gym, blue on the other, six foam balls on the centre line. Pick one up and throw it: a ball that hasn't
   // touched the floor sends whoever it hits to the sideline. Catch one instead and the thrower is out and a teammate comes back.
@@ -20925,7 +20986,8 @@ kbd {
     ENDGAME.on(L, { shared: true, active: () => RS.st !== 'idle', end: () => { if (isHost()) { RS.st = 'idle'; startMatchLocal(); } forcePresence(); return 'Starting over with everyone here.'; } });
     return L;
   })();
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: HARVEST HOT POTATO
   // Everyone stands on a ring of spots in a farmyard and passes a ticking potato. Whoever is holding it when it
   // pops is out; the last one standing wins the round. Bots fill the ring to six.
@@ -21586,6 +21648,8 @@ kbd {
     ENDGAME.on(L, { shared: true, active: () => RS.ph !== 'idle', end: () => { if (isHost()) { RS.ph = 'idle'; RS.holder = ''; RS.fl = null; } forcePresence(); return 'Starting over with everyone here.'; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: WHITEWATER RAPIDS (kayak race)
   // A river down a wooded valley: a calm start pool, bends, rocks, three drops, and a finish pool. The current
   // carries you; paddling speeds you up and steers. In VR you hold a real two-handed paddle: dip a blade and pull it
@@ -22286,6 +22350,8 @@ kbd {
     ENDGAME.on(L, { shared: true, active: () => RACE.state !== 'idle', end: () => { RACE.state = 'idle'; RACE.myFinish = 0; toGrid(); hudKey = ''; boardKey = ''; state.dirtyBoard = true; forcePresence(); return 'Start a race when everyone’s ready.'; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: LAKESIDE CORNHOLE
   // Two regulation boards 27 ft apart on a lawn by a lake. Red and blue take turns throwing four bags each at the far
   // board: on the board is 1, through the hole is 3, and only the difference counts each round. First to 21 wins.
@@ -22778,6 +22844,8 @@ kbd {
     ENDGAME.on(L, { shared: true, active: () => RS.ph !== 'idle', end: () => { if (hostId() === state.myPeer) RS.ph = 'idle'; forcePresence(); return 'Starting a fresh game with everyone here.'; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: CAPTURE THE FLAG
   // Red holds the south half of a park, blue the north. Run into their half, grab their flag from its stand, and get
   // it back to your base. On your own half you can tag anyone from the other team: tagged players go back to their
@@ -23239,6 +23307,8 @@ kbd {
     ENDGAME.on(L, { shared: true, active: () => RS.ph !== 'idle', end: () => { if (isHost()) { RS.ph = 'idle'; RS.score = [0, 0]; RS.winner = -1; H.events = []; } toBase(); forcePresence(); return 'Starting over with everyone here.'; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ TRIVIA: THE QUESTION BANK
   // Each entry: [category, question, right answer, wrong, wrong, wrong]. The game shuffles the answers.
   // Evergreen facts only (nothing that changes from year to year).
@@ -23499,6 +23569,8 @@ kbd {
     ['Human Body', 'When you hit your funny bone, what are you really bumping?', 'A nerve', 'A bone', 'A muscle', 'A tendon'],
     ['Human Body', 'Which body part has the most bones?', 'The hands and wrists', 'The skull', 'The legs', 'The chest'],
   ];
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: QUIZZY'S TRIVIA NIGHT
   // A game-show studio. Contestants stand at podiums in an arc facing a big screen, each podium with four
   // coloured answer buttons. Ten questions a game, fifteen seconds each: points for being right, more for being quick.
@@ -24276,6 +24348,8 @@ kbd {
     ENDGAME.on(L, { shared: true, active: () => RS.ph !== 'idle', end: () => { if (isHost()) RS.ph = 'idle'; forcePresence(); return 'Starting a new game with everyone here.'; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: RECESS RUSH (a playground obstacle race)
   // A race down a schoolyard lane through seven playground games: hopscotch (light every square, and the paint
   // between them is lava), a tire run (step in the tires, the mud slows you), a sack race (you can only hop),
@@ -25435,6 +25509,8 @@ kbd {
     ENDGAME.on(L, { shared: true, active: () => RACE.state !== 'idle', end: () => { RACE.state = 'idle'; RACE.myFinish = 0; resetCourse(); toStart(); hudKey = ''; boardKey = ''; state.dirtyBoard = true; forcePresence(); return 'Start a race when everyone’s ready.'; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: BEAT BLADES
   // A rhythm game. Blocks fly down a neon runway in time with the music; slice each with the blade of its colour
   // (red in your left hand, blue in your right) in the direction its arrow points. A dot can be cut any way.
@@ -26118,6 +26194,8 @@ kbd {
     ENDGAME.on(L, { active: () => BB.st === 'play', end: () => { stop('quit'); return ''; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: JUGGLE JAM
   // Juggling under a circus big top. In VR the balls are real: close your hand (grip or trigger) to catch or pick one
   // up, open it to throw. A hand can hold two. Slow-motion settings play the whole thing slower (same arcs, more time),
@@ -26532,6 +26610,8 @@ kbd {
     L.jgInternals = { __clock: (t) => { fakeNow = t; }, __vr: () => ({ myHands, vrHands }), __step: (dt) => { vrHandsStep(); physics(dt); }, J, balls, hands, SPEEDS, physics, catchBall, dropped, resetBalls, ballsToHands, flatPress, flatStep, FL, flatHands, setCount, nextSpeed };
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: SUNRISE WORKOUT
   // A coached workout on a rooftop at dawn, to a beat. Rounds of punching (red pads with your left fist, blue with
   // your right; low pads are uppercuts), squats (duck under the bars), dodges (lean away from the walls) and reaches
@@ -26974,6 +27054,8 @@ kbd {
     ENDGAME.on(L, { active: () => W.st === 'go', end: () => { stop('quit'); return ''; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: WALL RUSH
   // A game show for your whole body. Walls slide down a neon runway with a body-shaped hole cut in them; strike the
   // pose and fit through. Every pose is a stance (stand tall, squat, lunge left or right) plus arms (down, up in a Y,
@@ -27385,6 +27467,8 @@ kbd {
     ENDGAME.on(L, { active: () => R.st === 'go', end: () => { stop('quit'); return ''; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: TWO-MINUTE DRILL (football)
   // You're the quarterback, two minutes on the clock, ball on your own 25. Pick a play, hike it, read the coverage
   // and throw before the rush gets home. Completions keep the clock running (hurry up and snap); incompletions,
@@ -28400,6 +28484,8 @@ kbd {
     ENDGAME.on(L, { shared: true, active: () => !following() && S.phase !== 'idle' && S.phase !== 'over', end: () => { if (following()) return ''; S.phase = 'idle'; S.running = false; setFormation(); standQB(); forcePresence(); state.dirtyBoard = true; return 'Hike to start a new drill.'; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: SKEE-BALL ARCADE
   // Four machines in a row, one each. Roll the ball up the lane: it hops the jump and drops into a ring:
   // 10 at the bottom, then 20, 30, 40, 50 in the middle, and 100 in the top corners. Nine balls a game.
@@ -28852,6 +28938,8 @@ kbd {
     ENDGAME.on(L, { active: () => me.phase === 'play', end: () => { me.phase = 'idle'; me.score = 0; me.left = BALLS; forcePresence(); state.dirtyBoard = true; return ''; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: MUSICAL CHAIRS
   // Walk round the ring of chairs while the music plays. When it stops, grab a seat: stand right at a chair.
   // There's one chair fewer than players, so whoever's left standing is out; a chair goes each round until one
@@ -29122,6 +29210,8 @@ kbd {
     ENDGAME.on(L, { shared: true, active: () => S.ph !== 'lobby', end: () => { if (isHost()) S.ph = 'lobby'; tuneNext = 0; forcePresence(); return 'Start a new game when everyone’s ready.'; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: KNOCKOUT KID (boxing)
   // Spar with a cartoon boxer. He keeps his guard up and telegraphs every punch (his glove glows and pulls back):
   // a jab (lean aside), a hook from the left or right (duck it), or an uppercut (lean aside, ducking won't help).
@@ -29457,6 +29547,8 @@ kbd {
     ENDGAME.on(L, { active: () => B.st !== 'idle', end: () => { B.st = 'idle'; forcePresence(); state.dirtyBoard = true; return ''; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: SNOWBALL FIGHT
   // Red against blue on a snowy field, each side with snow forts to hide behind. Snowballs wait in piles at the back:
   // grab one and throw. Three hits and you're out to the sideline until the next round. A snowball that lands melts
@@ -29912,7 +30004,8 @@ kbd {
     ENDGAME.on(L, { shared: true, active: () => RS.st !== 'idle', end: () => { if (isHost()) { RS.st = 'idle'; startMatchLocal(); } forcePresence(); return 'Starting over with everyone here.'; } });
     return L;
   })();
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: TOBOGGAN RUN
   // A downhill sled race on a snowy mountain. Gravity does the work; you steer round the snowmen, hit the blue ice
   // strips for speed, and fly off two jumps. Tucking down goes faster but steers less; braking slows you.
@@ -30288,6 +30381,8 @@ kbd {
     ENDGAME.on(L, { shared: true, active: () => RACE.st === 'count' || RACE.st === 'run', end: () => { RACE.st = 'idle'; toGrid(); state.dirtyBoard = true; forcePresence(); return 'Start a race when everyone’s ready.'; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: PUB DARTS
   // A cosy pub with three dartboards on the back wall: one each, against Dart Dave.
   // 301: count down from 301 to exactly zero (going below is a bust and the turn doesn't count).
@@ -30692,6 +30787,8 @@ kbd {
     ENDGAME.on(L, { active: () => S.phase === 'play', end: () => { S.phase = 'idle'; S.thrown = 0; S.wait = 0; forcePresence(); state.hudDirty = true; return 'Throw to start a new leg.'; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: BEACH VOLLEYBALL
   // Two against two on the sand (or one on one, on a smaller court), first to 15 (win by 2). Each side gets three touches: a pass to the setter,
   // a set up by the net, and a spike over. Your touches are helped along: a pass floats to your setter, a set
@@ -31315,6 +31412,8 @@ kbd {
     ENDGAME.on(L, { shared: true, active: () => V.ph !== 'idle' && V.ph !== 'over', end: () => { V.ph = 'idle'; V.score = [0, 0]; V.winner = -1; drawScore.key = ''; forcePresence(); return 'Press Start (or A / X) for a new match with everyone here.'; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: PILLOW FIGHT CASTLE
   // Red against blue in a bouncy castle, a pillow in each hand. Bonk someone on the other team three times and
   // they're out; the last team with anyone left wins the round. Bots make up the numbers.
@@ -31728,6 +31827,8 @@ kbd {
     ENDGAME.on(L, { shared: true, active: () => S.ph !== 'lobby', end: () => { if (isHost()) S.ph = 'lobby'; forcePresence(); return 'Start a new round when everyone’s ready.'; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: HAUNTED MANSION
   // A dark old house, five rooms deep, and a flashlight each. Ghosts drift about; hold one in your beam and it
   // shivers, shrinks and gets sucked into the light. Catch every ghost in a room to unlock the next door.
@@ -32187,6 +32288,8 @@ kbd {
     ENDGAME.on(L, { shared: true, active: () => H.ph !== 'idle', end: () => { if (isHost()) H.ph = 'idle'; forcePresence(); return 'Start a new hunt when everyone’s ready.'; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: LLAMA DERBY
   // Two laps round a ranch track on the back of a llama. Shake the reins (giddy-up!) to go faster, jump the hay
   // bales, grab carrots for a burst of speed and keep out of the mud. Three bot llamas race too; friends race
@@ -32618,6 +32721,8 @@ kbd {
     ENDGAME.on(L, { shared: true, active: () => RACE.st === 'count' || RACE.st === 'run', end: () => { RACE.st = 'idle'; toGrid(); state.dirtyBoard = true; forcePresence(); return 'Start a race when everyone’s ready.'; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: ROCK-PAPER-SCISSORS TOURNAMENT
   // Eight players, a knockout bracket, best of three in every match (draws throw again). Friends who are here
   // take places in the bracket and bots fill the rest, each with their own habits (Rocky loves rock; Copycat Cal
@@ -32964,6 +33069,8 @@ kbd {
     ENDGAME.on(L, { shared: true, active: () => S.ph !== 'lobby' && S.ph !== 'done', end: () => { if (isHost()) S.ph = 'lobby'; forcePresence(); return 'Start a new tournament when everyone’s ready.'; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: DANCE-OFF
   // Disco Dot dances on the stage; copy her moves like a mirror, on the beat. Each move lights up two targets in
   // front of you (blue for your left hand, pink for your right) with rings that close in on the beat: have your
@@ -33303,6 +33410,8 @@ kbd {
     ENDGAME.on(L, { active: () => D.st === 'play', end: () => { D.st = 'idle'; quiet(false); state.hudDirty = true; return ''; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ CARNIVAL: shared scenery for the fairground games
   // A summer evening at the fair: string lights, striped booths, a Ferris wheel turning in the distance.
   // Every carnival game pays out tickets (skeeball.addTickets), spent at the Skee-Ball prize counter.
@@ -33384,6 +33493,8 @@ kbd {
     const prizeStand = (L, x, z, yaw) => (typeof skeeball !== 'undefined' && skeeball.makePrizeStand ? skeeball.makePrizeStand(L, x, z, yaw) : { tick() {} });
     return { env, backdrop, booth, lights, tickets, prizeStand };
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: STRONGMAN BELL (carnival)
   // Swing the big mallet down on the pad and the puck shoots up the tower: Wimp, Weakling, Not bad, Strong,
   // Mighty… and DING! the bell, if you hit hard enough. Tickets for every swing, more the higher it goes.
@@ -33603,6 +33714,8 @@ kbd {
     MUSIC_THEMES.strongman = { gain: 0.7, bpm: 116, swing: 0.2, chords: ['C', 'G', 'C', 'F'], comp: { inst: 'brass', at: [0, 4, 8, 12], dur: 0.2 }, bass: { at: [0, 8] }, drums: { k: 'x.......x.......', s: '....x.......x...' }, lead: { inst: 'musicbox', p: 0.3, up: 12 }, cut: 4200 };
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: DUCK SHOOTING GALLERY (carnival)
   // Three rows of tin ducks glide past at the back of the booth. Pop as many as you can with the cork gun in 40
   // seconds: a duck is 1 point, a golden duck 5, and leave the bunnies alone (they cost you 3).
@@ -33839,6 +33952,8 @@ kbd {
     ENDGAME.on(L, { active: () => R.ph === 'play', end: () => { R.ph = 'idle'; for (const c of corks) { c.on = false; c.m.visible = false; } forcePresence(); return 'Fire to start a new round.'; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: RING TOSS (carnival)
   // A table packed with bottles. Toss ten rings: one that drops over a bottle's neck is a ringer. Green bottles
   // pay 3 tickets, red ones 6, and the gold bottle in the middle 15. Close isn't good enough: rings that clip a
@@ -34059,6 +34174,8 @@ kbd {
     ENDGAME.on(L, { active: () => T.ph === 'play', end: () => { T.ph = 'idle'; T.thrown = 0; T.ringers = 0; forcePresence(); return ''; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: WHACK-A-MOLE (carnival)
   // Nine holes, 45 seconds, and moles that pop up faster and faster. Bop one while it's up: 1 point, a golden mole
   // 3. Points pay out tickets for the Skee-Ball prize counter.
@@ -34289,6 +34406,8 @@ kbd {
     ENDGAME.on(L, { active: () => W.ph === 'play', end: () => { W.ph = 'idle'; for (const c of moles) for (const m of c.list) m.want = 0; forcePresence(); return ''; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: SPEED OF LIGHT (carnival)
   // A wall of twenty buttons, five across and four high. Three are lit at once, each for a couple of seconds: hit them
   // and new ones light up elsewhere, so plan your route. Thirty seconds: how many can you get? A light you're too slow
@@ -34498,6 +34617,8 @@ kbd {
     ENDGAME.on(L, { active: () => S.ph === 'play', end: () => { S.ph = 'idle'; S.lits = []; forcePresence(); state.dirtyBoard = true; return 'Press a button to start a new round.'; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ STUDY HALL: content for the CompTIA A+ games
   // Written to the A+ V15 exam objectives: Core 1 (220-1201) and Core 2 (220-1202). Each question:
   // [domain, question, [four answers], index of the right one, why]. Answers are shuffled when shown.
@@ -34706,6 +34827,8 @@ kbd {
     ];
     return { DOMAINS, Q, PORTS, CONNECTORS, WIFI, next, mark, log, shuffled };
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ STUDY HALL: the shared room, screens and answer cards
   // A bright study hall: wood floor, tall windows, bookshelves, a wall clock that tells the real time.
   // Answer cards are the one way you answer in every Study Hall game: in VR touch one (or point and pull the trigger),
@@ -34978,6 +35101,8 @@ kbd {
     const wrong = () => { tone(220, 160, 0.22, 'square', 0.08); };
     return { env, room, shelf, screen, wrap, fit, cards, input, slotOf, SLOT_X, standAt, right, wrong };
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: QUIZ BLASTER (study hall)
   // CompTIA A+ practice with a blaster: a question goes up on the big screen, four answer cards float in front of you,
   // and you shoot the right one. Twelve questions a round, points for being quick and for streaks.
@@ -35247,6 +35372,8 @@ kbd {
     ENDGAME.on(L, { active: () => S.ph !== 'menu', end: () => { L.onEnter(); return 'Pick a mode to start again.'; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: PORT & CABLE SORTER (study hall)
   // Crates ride a conveyor belt past you, each stamped with a port, a protocol, a cable use or a Wi-Fi standard.
   // Toss each one into the bin with its match before it reaches the end of the belt. Sixty seconds; the belt speeds up.
@@ -35530,6 +35657,8 @@ kbd {
     ENDGAME.on(L, { active: () => S.ph !== 'menu', end: () => { L.onEnter(); return 'Pick a mode to start again.'; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: PC BUILD BENCH (study hall)
   // Build a PC on an open test bench, the way the A+ exam expects: wrist strap on first, CPU in the socket, thermal paste,
   // cooler, memory of the right generation (one stick on the tray is the wrong kind), the M.2 SSD, the graphics card in
@@ -35931,6 +36060,8 @@ kbd {
     ENDGAME.on(L, { active: () => S.ph !== 'idle', end: () => { L.onEnter(); return 'Pick a mode to start a new build.'; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: HELP DESK TICKETS (study hall)
   // You're on the help desk. Customers walk up with a problem; for each one, pick the most likely cause and then the
   // right fix, the way the A+ troubleshooting questions work. Six customers a shift. Quick right answers score more,
@@ -36276,6 +36407,8 @@ kbd {
     ENDGAME.on(L, { active: () => S.ph !== 'idle', end: () => { L.onEnter(); return 'Pick a mode to start a new shift.'; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: COMMAND LINE DOJO (study hall)
   // The terminal on the wall gives you a task ("show this PC's IP settings"); three command blocks fly at you and you
   // strike the one that does it. The command types itself into the terminal with its output. Three strikes (a wrong
@@ -36552,6 +36685,8 @@ kbd {
     ENDGAME.on(L, { active: () => S.ph !== 'menu', end: () => { L.onEnter(); return 'Pick a mode to start again.'; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: MATH SPRINT (study hall)
   // Mental maths against the clock: a problem goes up on the chalkboard, four answers hang in front of you, and you tap
   // the right one. Sixty seconds, as many as you can; a wrong answer locks you out for a second and a half.
@@ -36770,6 +36905,8 @@ kbd {
     ENDGAME.on(L, { active: () => S.ph !== 'menu', end: () => { L.onEnter(); return 'Pick a mode to start again.'; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ STUDY HALL: quiz-show trigger words
   // The phrases that point straight at one answer on TV quiz shows: "Norwegian playwright" is almost always Ibsen.
   // Each: [category, the trigger, the answer, 'who' | 'what' (how you'd phrase the response), a note (optional)]
@@ -36972,6 +37109,8 @@ kbd {
     const respond = (t) => `${t[3] === 'who' ? 'Who is' : 'What is'} ${t[2]}?`.replace(/^Who is (.+ and .+)\?$/, 'Who are $1?').replace(/^What is (Bolivia and Paraguay)\?$/, 'What are $1?').replace(/^What is (the Urals)\?$/, 'What are $1?');
     return { CATS, T, respond };
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: TRIGGER WORDS (study hall)
   // Quiz-show training: learn the phrases that give the answer away ("Norwegian playwright" → Ibsen).
   // Buzz & recall: the trigger goes up on the board; buzz when you know it, see the response, and say whether you had
@@ -37259,6 +37398,8 @@ kbd {
     ENDGAME.on(L, { active: () => S.ph !== 'menu', end: () => { L.onEnter(); return 'Pick a mode to start again.'; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: FRUIT SLASH (get active)
   // Fruit flies up in front of you; slice it with a katana in each hand before it falls. Don't touch the bombs.
   // Classic: three dropped fruit and you're out, and a bomb ends it. Arcade: 60 seconds, bombs cost 10 points, and
@@ -37603,6 +37744,8 @@ kbd {
     ENDGAME.on(L, { active: () => S.ph === 'play', end: () => { S.ph = 'idle'; for (const it of items) { it.on = false; it.g.visible = false; for (const h of it.halves) h.visible = false; } forcePresence(); return ''; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: CLIFFSIDE CLIMB (racing and parkour)
   // A sea cliff in three tiers, 24 metres to the bell at the top. Three lines of holds go up each tier (green close
   // together, blue further apart, red far apart with crumbly holds that break away). You're on an auto-belay: let go and
@@ -37935,6 +38078,8 @@ kbd {
     ENDGAME.on(L, { active: () => P.ph !== 'ground', end: () => { backToStart(); return ''; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: ARCHERY RANGE (golf and lanes)
   // A meadow range: straw targets at 10, 20, 30 and 50 metres, one sliding target, and balloons drifting about.
   // A round is 12 arrows at whatever you like: rings score 1 to 10, times the distance (x1 at 10 m up to x5 at 50 m; the sliding target x4), a balloon is 10.
@@ -38234,6 +38379,8 @@ kbd {
     ENDGAME.on(L, { active: () => S.ph === 'play', end: () => { S.ph = 'idle'; S.left = ROUND; S.score = 0; S.bulls = 0; S.last = null; sbKey = ''; forcePresence(); state.hudDirty = true; return 'Draw the bow to start a new round.'; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: GORILLA TAG (party games)
   // Jungle infection tag. No sticks, no legs: in VR you move with your arms, pushing off the ground, trunks and
   // platforms like a gorilla (push down and back to go up and forward, let go to fly). One player starts as "lava";
@@ -38640,6 +38787,8 @@ kbd {
     ENDGAME.on(L, { shared: true, active: () => S.ph === 'play', end: () => { if (isHost()) S.ph = 'lobby'; forcePresence(); clkKey = ''; return 'Start a new round when everyone’s ready.'; } });
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: BIRDWATCHING (a Michigan forest)
   // A morning walk through a northern Michigan forest with the camera: two minutes and a roll of 24 to photograph as
   // many birds as you can. At the end the round's photos go up on the Field Notes board, each judged on how rare the
@@ -39434,6 +39583,8 @@ kbd {
     L.birdInternals = { R, birds, SPECIES, SP, PERCH, spawn, judge, startRound, endRound, releaseSpecial, flyTo, makeBird, TIERS, life, OCC, drawResults };
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: TABLETOP BRAWL (a platform fighter on a table)
   // A little floating arena hovers over a games table, and you play one of four tiny fighters on it, side-on, the way
   // the classic party fighters work: every hit adds to your damage %, and the higher it is the further the next hit
@@ -40203,6 +40354,8 @@ kbd {
     L.brawlInternals = { F, H, FIGHTERS, MOVES, step, hostStep, startMatch, toLobby, me, isHost, humans, botThink, hurt, ko, place, takeMine, buildModel, PLATS, BLAST, dropBomb };
     return L;
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ EVERYONE'S PHOTOS: the shared photo wall, and its hearts
   // A photo you take goes up on everyone's wall in the clubhouse (unless you switch that off in Photos). Anyone can give a
   // photo a heart; the ones with the most hearts make the "Best of all time" wall. Where the photos are kept:
@@ -40450,6 +40603,8 @@ kbd {
     function tick(now, looking) { if (S.mode === 'php' && looking && now - S.pollT > 20000) pull(); }
     return { S, start, startDb, startP2P, share, unshare, takeDown, heart, list, best, img, has, tick, pull, count, get mode() { return S.mode; }, get admin() { return !!S.admin; }, get ver() { return S.ver; }, _add: (p) => { all.set(p.id, Object.assign({ pid: p.id, by: 'x' }, p)); bump(); }, _hearts: hearts, _all: all };
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ THE CAMERA: a 90s point-and-shoot
   // Take it out from the watch (VR) or with O / the Camera button (browser). VR: it sits in the hand that pressed the
   // watch; the trigger on that hand takes a picture. Its little screen on the back shows what the lens sees; turn it
@@ -41379,6 +41534,8 @@ kbd {
       get photos() { return mine.map((p) => p.src); },
     };
   })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ---------------------------------------------------------------- VR controllers
   const myHandMat = new THREE.MeshLambertMaterial({ color: PLAYER_COLORS[state.colorIdx].hex });
   function newHand(side) {
@@ -41646,7 +41803,8 @@ kbd {
       }
     }
   }
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ---------------------------------------------------------------- browser (flat) controls
   function updateMyPose(now) {
     camera.getWorldPosition(myHead.pos);
@@ -41901,7 +42059,8 @@ kbd {
     state.charge = null;
     ui.power.hidden = true;
   });
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ---------------------------------------------------------------- modes + levels
   function dropMine() {
     const L = curLevel();
@@ -42042,7 +42201,8 @@ kbd {
     if (state.mode === 'vr') toMenu();
     onResize();
   }
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ---------------------------------------------------------------- multiplayer (room presence)
   const poseArr = (p, q) => [r3(p.x), r3(p.y), r3(p.z), r3(q.x), r3(q.y), r3(q.z), r3(q.w)];
   function buildPresence() {
@@ -42361,7 +42521,8 @@ kbd {
     if (!room) { goSolo(); return; }
     attachRoom(room);
   }
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ---------------------------------------------------------------- start panel
   const levelEls = [];
   const catEls = [];
@@ -42584,7 +42745,8 @@ kbd {
   if (ui.micBtn) ui.micBtn.addEventListener('click', () => { ui.micBtn.blur(); setMuted(!VOICE.muted); });
   if (ui.musicBtn) ui.musicBtn.addEventListener('click', () => { ui.musicBtn.blur(); ensureAudio(); musicTheme(curLevel().meta.id); setMusicOn(!MUSIC.on); });
   if (ui.musicToggle) { ui.musicToggle.checked = MUSIC.on; ui.musicToggle.addEventListener('change', () => setMusicOn(ui.musicToggle.checked, true)); }
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ---------------------------------------------------------------- HUD + boards
   function playerRows(L) {
     const rows = [Object.assign({ name: state.name, color: PLAYER_COLORS[state.colorIdx].hex, me: true }, L.rowFor(null, true))];
@@ -42673,7 +42835,8 @@ kbd {
       }
     });
   }
-
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ---------------------------------------------------------------- main loop
   hoops.throwSpeed = [3, 12, 0.2];
   baseball.throwSpeed = [4, 24, 0.08];
@@ -42739,7 +42902,7 @@ kbd {
   RECORDS.shared.start();
   PHOTOS.start();
   try { if (new URLSearchParams(location.search).has('test')) window.__fd = { LEVELS, vrHands, CAMERA, PHOTOS, prizeFx: PRIZE_FX, BOTLV, watch: { press: watchPress, btns: watchBtns, draw: () => { panelKey = ''; drawPanel(); return panelC.g.canvas.toDataURL(); } }, state, dolly, camera, myHead, myHands, RECORDS, APLUS, switchLevel, startGame, voice: { VOICE, voiceWatch, voiceResend, remotes, buildPresence, createRemote, bodyFollow }, audio: { snd, tone, sfx, ensureAudio, MUSIC } }; } catch (e) { /* ignore */ }
-})();
+  window.__fdReady = true;
 </script>
 </body>
 </html>

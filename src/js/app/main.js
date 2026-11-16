@@ -63,4 +63,4 @@
   RECORDS.shared.start();
   PHOTOS.start();
   try { if (new URLSearchParams(location.search).has('test')) window.__fd = { LEVELS, vrHands, CAMERA, PHOTOS, prizeFx: PRIZE_FX, BOTLV, watch: { press: watchPress, btns: watchBtns, draw: () => { panelKey = ''; drawPanel(); return panelC.g.canvas.toDataURL(); } }, state, dolly, camera, myHead, myHands, RECORDS, APLUS, switchLevel, startGame, voice: { VOICE, voiceWatch, voiceResend, remotes, buildPresence, createRemote, bodyFollow }, audio: { snd, tone, sfx, ensureAudio, MUSIC } }; } catch (e) { /* ignore */ }
-})();
+  window.__fdReady = true;

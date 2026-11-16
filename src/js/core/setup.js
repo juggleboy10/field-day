@@ -1,6 +1,6 @@
-(() => {
-  'use strict';
-
+  // Every file here is an ordinary script, and they all share the page's top-level names: a const or function declared
+  // at the top of one file can be used in every file after it (see tools/build.py). So top-level names must be unique
+  // across the whole game, and must not be the name of something the browser already has (tools/check_scope.py checks).
   const $ = (s) => document.querySelector(s);
   const ui = {
     panel: $('#panel'), net: $('#net'), netText: $('#net-text'), levels: $('#levels'), name: $('#name'), swatches: $('#swatches'),
@@ -12,12 +12,13 @@
     levelBlurb: $('#level-blurb'), lookPreview: $('#look-preview'), hatChips: $('#hat-chips'), faceChips: $('#face-chips'), shirtChips: $('#shirt-chips'), shirtColorChips: $('#shirtc-chips'),
   };
   function fail(msg) {
+    window.__fdStop = msg || 'could not start';   // (the scripts after this one see it and don't run)
     if (msg) ui.loadError.textContent = msg;
     ui.loadError.hidden = false;
     ui.vrBtn.disabled = true;
     ui.flatBtn.disabled = true;
   }
-  if (!window.THREE) { fail(); return; }
+  if (!window.THREE) { fail(); throw new Error('Field Day: three.js did not load'); }
 
   // ---------------------------------------------------------------- constants
   const V3 = THREE.Vector3, Q4 = THREE.Quaternion;
@@ -26,7 +27,7 @@
   const FWD = new V3(0, 0, -1);
   const GRAVITY = 9.8;
   // which build this is (shown on the start screen and on the VR watch, so you can tell a fresh copy from a stale one)
-  const VERSION = 99;
+  const VERSION = 100;
   const PLAYER_COLORS = [
     { hex: '#4fc3f7', label: 'Sky blue' },
     { hex: '#ff5c8a', label: 'Pink' },
@@ -141,7 +142,7 @@
     renderer = new THREE.WebGLRenderer({ canvas: $('#scene'), antialias: true, powerPreference: 'high-performance' });
   } catch (e) {
     fail('This browser couldn\u2019t start 3D graphics. Try another browser or device.');
-    return;
+    throw new Error('Field Day: no 3D graphics');
   }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setSize(window.innerWidth, window.innerHeight, false);

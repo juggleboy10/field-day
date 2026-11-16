@@ -15,7 +15,10 @@ src/
   js/games/            one file per game (quests share quest-engine.js and quest-shared.js)
   js/games/clubhouse/  the clubhouse and its tables: air hockey, ping pong, foosball, pop-a-shot, the D20, the jukebox
   js/app/              controls (VR and browser), switching places, networking, the menu, the HUD, the main loop
-build.sh               joins src/ into index.html
+build.sh               builds index.html from src/ (tools/build.py)
+tools/check_scope.py   checks the names the files share (no duplicates, nothing the browser already has)
+tools/measure.py       what each place costs to build and to draw
+docs/PLAN.md           the plan for loading places on demand, the match kit and Quest frame rate
 tests/smoke.py         plays every place for a few seconds and fails on any page error
 tests/parkour.py       Skyline Sprint physics: landing on the stepping stones, climbing over the walls
 tests/hotpotato.py     Hot potato: full rounds against the bots, your throws, staying on your spot
@@ -37,7 +40,7 @@ tests/multiplayer.py   two players on one machine (a stand-in for Claude's room)
 
 The tests open the page with `?test`, which makes the game expose its insides as `window.__fd`. Without `?test` nothing is exposed.
 
-All the code still runs as one script, in the order listed in `src/order.txt`. A file can use anything defined in a file above it.
+Each file is its own ordinary script, run in the order listed in `src/order.txt`. They share the page's top level: a file can use any `const` or function declared at the top of a file above it. So top-level names must be unique across the game (`python3 tools/check_scope.py`, after `cd tools && npm install` once).
 
 ## Build and test
 
