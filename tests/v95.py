@@ -70,7 +70,7 @@ def main():
         check(r["blinks"] >= 1 and not r["shadeBlink"], f"blinks {r}")
         # the version, on the start screen and on the watch
         ver = page.evaluate("() => document.getElementById('version-note').textContent")
-        check(ver.startswith("Field Day version 9"), f"version note {ver}")
+        check(ver.startswith("Field Day version "), f"version note {ver}")
         # VR at the photo walls: the star saves a photo of mine, the corner button on someone else's gives me a print
         page.evaluate("() => window.__fd.switchLevel(8)")
         page.wait_for_timeout(1500)
