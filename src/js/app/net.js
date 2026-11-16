@@ -55,6 +55,7 @@
   function setMyPeer(id) {
     if (id === state.myPeer) return;
     for (const L of LEVELS) {
+      if (!L) continue;
       for (const o of L.bodies.concat(L.tools)) {
         if (o.owner === state.myPeer) o.owner = id;
         if (o.held && o.held.peer === state.myPeer) o.held.peer = id;
@@ -84,7 +85,7 @@
     setLook(rec, pick(look[0], HATS.length), pick(look[1], FACES.length), pick(look[2], SHIRTS.length), pick(look[3], SHIRT_COLORS.length));
     const wasHere = rec.lv === state.level, wasIn = rec.inGame;
     rec.inGame = pres.p === 1;
-    rec.lv = Number.isInteger(pres.lv) && pres.lv >= 0 && pres.lv < LEVELS.length ? pres.lv : 0;
+    rec.lv = Number.isInteger(pres.lv) && pres.lv >= 0 && pres.lv < LEVEL_META.length ? pres.lv : 0;
     if (wasHere && rec.lv !== state.level) { adoptFrom(rec.peer, curLevel(), state.lastPeers); rec.lvState = {}; }
     if (wasIn !== rec.inGame || wasHere !== (rec.lv === state.level)) state.dirtyBoard = true;
     const had = { h: rec.hasH, l: rec.hasL, r: rec.hasR };
@@ -146,6 +147,7 @@
     remotes.clear();
     seenPresence.clear();
     for (const L of LEVELS) {
+      if (!L) continue;
       for (const o of L.bodies.concat(L.tools)) if (o.held && o.held.peer !== state.myPeer) o.held = null;
     }
     setMyPeer('solo');

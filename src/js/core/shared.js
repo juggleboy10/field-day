@@ -680,6 +680,7 @@
 
   // ---------------------------------------------------------------- level registry
   const LEVELS = [];
+  const HOP_PLACES = ['hoops', 'baseball', 'lasertag', 'hub', 'hideseek', 'paintball', 'dodgeball', 'ctf'];
   function newLevel(idx) {
     const group = new THREE.Group();
     group.visible = false;
@@ -698,8 +699,41 @@
       presence: () => ({}), readPresence: () => {}, rowFor: () => null, sortRows: () => 0, drawBoard: () => {},
       spawn: () => {}, onEnter: () => {}, onExit: () => {}, clampPlayer: null,
     };
+    // the places where a little hop is on (J in a browser; A or X, or the right stick pushed up, in VR)
+    if (HOP_PLACES.includes(L.id)) { L.canHop = true; L.vrHop = true; }
     LEVELS[idx] = L;
     return L;
   }
   const curLevel = () => LEVELS[state.level];
 
+  // Draws a list of player rows on a scoreboard canvas (shared by every level)
+  function drawRows(g, rows, y0, step, W) {
+    rows.slice(0, 6).forEach((p, i) => {
+      const y = y0 + i * step;
+      g.fillStyle = p.color; rr(g, 36, y - 26, 12, 32, 4); g.fill();
+      g.textAlign = 'left';
+      g.fillStyle = '#f4f2ff'; g.font = `${p.me ? 700 : 400} 30px ${BODY}`;
+      g.fillText(p.me ? `${p.name} (you)` : p.name, 64, y, W - 330);
+      g.textAlign = 'right';
+      g.fillStyle = '#ffd08a'; g.font = `800 38px ${DISPLAY}`;
+      g.fillText(p.text, W - 40, y + 2, 240);
+    });
+    g.textAlign = 'left';
+    if (rows.length === 1) {
+      g.fillStyle = '#8f89b8'; g.font = `400 24px ${BODY}`;
+      g.fillText('Friends who open this page will show up here', 36, y0 + step + 24);
+    }
+  }
+
+  // Chain-link (fences and nets in several games): one texture, made the first time a game asks; clone it to tile it
+  let _linkTex = null;
+  function linkTex() {
+    if (_linkTex) return _linkTex;
+    const link = canvasTexture(64, 64, (g) => {
+      g.clearRect(0, 0, 64, 64);
+      g.strokeStyle = 'rgba(214,216,232,1)'; g.lineWidth = 3.2;
+      g.beginPath(); g.moveTo(0, 0); g.lineTo(64, 64); g.moveTo(64, 0); g.lineTo(0, 64); g.stroke();
+    });
+    link.tex.wrapS = link.tex.wrapT = THREE.RepeatWrapping;
+    return (_linkTex = link.tex);
+  }

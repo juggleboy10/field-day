@@ -316,13 +316,14 @@ kbd {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 window.addEventListener('error', function (e) {
-  if (window.__fdReady || window.__fdStop) return;
+  if (window.__fdReady || window.__fdStop || window.__fdLazy) return;
   window.__fdStop = (e && e.message) || 'error';
   var el = document.getElementById('load-error');
   if (el) { if (!el.textContent.trim()) el.textContent = 'Field Day couldn\u2019t start. Try reloading the page.'; el.hidden = false; }
   ['btn-vr', 'btn-flat'].forEach(function (id) { var b = document.getElementById(id); if (b) b.disabled = true; });
 });
 </script>
+<script type="application/json" id="fd-manifest">{"places":{"hoops":["js/games/hoops.js"],"baseball":["js/games/baseball.js"],"discgolf":["js/games/discgolf.js"],"dungeon":["js/games/quest-engine.js","js/games/quest-shared.js","js/games/dungeon.js"],"lasertag":["js/games/lasertag.js"],"soccer":["js/games/soccer.js"],"minigolf":["js/games/minigolf.js","js/games/drivingrange.js"],"bowling":["js/games/bowling.js"],"karts":["js/games/karts.js"],"siege":["js/games/quest-engine.js","js/games/quest-shared.js","js/games/siege.js"],"hexwood":["js/games/quest-engine.js","js/games/quest-shared.js","js/games/hexwood.js"],"hideseek":["js/games/hideseek.js"],"charades":["js/games/charades.js"],"paintball":["js/games/paintball.js"],"pickleball":["js/games/pickleball.js"],"parkour":["js/games/parkour.js"],"dodgeball":["js/games/dodgeball.js"],"potato":["js/games/hotpotato.js"],"kayak":["js/games/kayak.js"],"cornhole":["js/games/cornhole.js"],"ctf":["js/games/ctf.js"],"pirate":["js/games/quest-engine.js","js/games/quest-shared.js","js/games/piratecove.js"],"trivia":["js/games/trivia-questions.js","js/games/trivia.js"],"recess":["js/games/recess.js"],"beats":["js/games/beats.js"],"juggle":["js/games/juggle.js"],"workout":["js/games/workout.js"],"wallrush":["js/games/wallrush.js"],"football":["js/games/football.js"],"frostpeak":["js/games/quest-engine.js","js/games/quest-shared.js","js/games/frostpeak.js"],"skeeball":["js/games/skeeball.js"],"chairs":["js/games/chairs.js"],"boxing":["js/games/boxing.js"],"snowball":["js/games/snowball.js"],"toboggan":["js/games/toboggan.js"],"darts":["js/games/darts.js"],"volleyball":["js/games/volleyball.js"],"pillow":["js/games/pillow.js"],"haunted":["js/games/haunted.js"],"llama":["js/games/llama.js"],"rps":["js/games/rps.js"],"dance":["js/games/dance.js"],"strongman":["js/games/skeeball.js","js/games/carnival.js","js/games/strongman.js"],"duckshoot":["js/games/skeeball.js","js/games/carnival.js","js/games/duckshoot.js"],"ringtoss":["js/games/skeeball.js","js/games/carnival.js","js/games/ringtoss.js"],"whack":["js/games/skeeball.js","js/games/carnival.js","js/games/whack.js"],"lightspeed":["js/games/skeeball.js","js/games/carnival.js","js/games/lightspeed.js"],"quizblaster":["js/games/study-content.js","js/games/study.js","js/games/quizblaster.js"],"portsorter":["js/games/study-content.js","js/games/study.js","js/games/portsorter.js"],"pcbuild":["js/games/study.js","js/games/pcbuild.js"],"helpdesk":["js/games/study-content.js","js/games/study.js","js/games/helpdesk.js"],"cmddojo":["js/games/study.js","js/games/cmddojo.js"],"mathsprint":["js/games/study.js","js/games/mathsprint.js"],"triggers":["js/games/study.js","js/games/triggers-content.js","js/games/triggers.js"],"fruit":["js/games/fruit.js"],"climb":["js/games/climb.js"],"archery":["js/games/archery.js"],"gorilla":["js/games/gorilla.js"],"birdwatch":["js/games/birdwatch.js"],"brawl":["js/games/brawl.js"]}}</script>
 <script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // Every file here is an ordinary script, and they all share the page's top-level names: a const or function declared
   // at the top of one file can be used in every file after it (see tools/build.py). So top-level names must be unique
@@ -353,7 +354,7 @@ window.addEventListener('error', function (e) {
   const FWD = new V3(0, 0, -1);
   const GRAVITY = 9.8;
   // which build this is (shown on the start screen and on the VR watch, so you can tell a fresh copy from a stale one)
-  const VERSION = 100;
+  const VERSION = 101;
   const PLAYER_COLORS = [
     { hex: '#4fc3f7', label: 'Sky blue' },
     { hex: '#ff5c8a', label: 'Pink' },
@@ -1361,6 +1362,7 @@ window.addEventListener('error', function (e) {
 
   // ---------------------------------------------------------------- level registry
   const LEVELS = [];
+  const HOP_PLACES = ['hoops', 'baseball', 'lasertag', 'hub', 'hideseek', 'paintball', 'dodgeball', 'ctf'];
   function newLevel(idx) {
     const group = new THREE.Group();
     group.visible = false;
@@ -1379,10 +1381,44 @@ window.addEventListener('error', function (e) {
       presence: () => ({}), readPresence: () => {}, rowFor: () => null, sortRows: () => 0, drawBoard: () => {},
       spawn: () => {}, onEnter: () => {}, onExit: () => {}, clampPlayer: null,
     };
+    // the places where a little hop is on (J in a browser; A or X, or the right stick pushed up, in VR)
+    if (HOP_PLACES.includes(L.id)) { L.canHop = true; L.vrHop = true; }
     LEVELS[idx] = L;
     return L;
   }
   const curLevel = () => LEVELS[state.level];
+
+  // Draws a list of player rows on a scoreboard canvas (shared by every level)
+  function drawRows(g, rows, y0, step, W) {
+    rows.slice(0, 6).forEach((p, i) => {
+      const y = y0 + i * step;
+      g.fillStyle = p.color; rr(g, 36, y - 26, 12, 32, 4); g.fill();
+      g.textAlign = 'left';
+      g.fillStyle = '#f4f2ff'; g.font = `${p.me ? 700 : 400} 30px ${BODY}`;
+      g.fillText(p.me ? `${p.name} (you)` : p.name, 64, y, W - 330);
+      g.textAlign = 'right';
+      g.fillStyle = '#ffd08a'; g.font = `800 38px ${DISPLAY}`;
+      g.fillText(p.text, W - 40, y + 2, 240);
+    });
+    g.textAlign = 'left';
+    if (rows.length === 1) {
+      g.fillStyle = '#8f89b8'; g.font = `400 24px ${BODY}`;
+      g.fillText('Friends who open this page will show up here', 36, y0 + step + 24);
+    }
+  }
+
+  // Chain-link (fences and nets in several games): one texture, made the first time a game asks; clone it to tile it
+  let _linkTex = null;
+  function linkTex() {
+    if (_linkTex) return _linkTex;
+    const link = canvasTexture(64, 64, (g) => {
+      g.clearRect(0, 0, 64, 64);
+      g.strokeStyle = 'rgba(214,216,232,1)'; g.lineWidth = 3.2;
+      g.beginPath(); g.moveTo(0, 0); g.lineTo(64, 64); g.moveTo(64, 0); g.lineTo(0, 64); g.stroke();
+    });
+    link.tex.wrapS = link.tex.wrapT = THREE.RepeatWrapping;
+    return (_linkTex = link.tex);
+  }
 </script>
 <script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ RECORDS: all-time high scores for each game
@@ -1408,6 +1444,7 @@ window.addEventListener('error', function (e) {
       L.recDefs = defs; L.recAt = at || null;
       if (L.kioskAt || at) build(L); else L.recPending = true;
       L.recHud = { label: () => '\u{1F3C6} Records', run: () => showPanel(L) };
+      SHARED.late(L);
     }
     const better = (d, a, b) => (d.low ? a < b : a > b);
     const fmtOf = (d) => (typeof d.fmt === 'function' ? d.fmt : FMT[d.fmt || 'int'] || FMT.int);
@@ -1519,20 +1556,23 @@ window.addEventListener('error', function (e) {
     // entry per device). Each player's document holds their best for every record: { n: name, b: { "game.key": value } }.
     // Without either, the boards are just this device's (plus friends met in the room).
     const SHARED = (() => {
-      const S = { mode: 'off', db: null, uid: '', dev: '', pushT: 0, timer: 0, lastPush: '', note: '' };
+      const S = { mode: 'off', db: null, uid: '', dev: '', pushT: 0, timer: 0, lastPush: '', note: '', players: [] };
       const byId = () => { const m = {}; for (const L of LEVELS) if (L && L.recDefs) m[L.id] = L; return m; };
-      // all my bests, as one map
+      // All my bests, as one map. It's read from what this device has saved, not from the places that happen to be
+      // built: a place you haven't visited this time still has your records in it. (Each saved list is in order, best
+      // first, so my first entry in it is my best.)
       function myBests() {
-        const me = state.name || 'You', b = {};
-        for (const L of LEVELS) {
-          if (!L || !L.recDefs) continue;
-          for (const d of L.recDefs) { const e = listOf(L, d.k).find((x) => x[1] === me); if (e) b[`${L.id}.${d.k}`] = e[0]; }
+        const me = state.name || 'You', b = {}, s = store();
+        for (const id of Object.keys(s)) {
+          if (!s[id] || typeof s[id] !== 'object') continue;
+          for (const k of Object.keys(s[id])) { const e = listOf({ id }, k).find((x) => x[1] === me); if (e) b[`${id}.${k}`] = e[0]; }
         }
         return b;
       }
-      // put everyone's bests onto the boards
-      function absorb(players) {
-        const levels = byId();
+      // put everyone's bests onto the boards (kept, so a place built later gets them too: see late)
+      function absorb(players, only) {
+        if (!only) S.players = players;
+        const levels = only ? { [only.id]: only } : byId();
         for (const p of players) {
           if (!p || typeof p.n !== 'string' || !p.n || !p.b || typeof p.b !== 'object') continue;
           const name = p.n.slice(0, 24);
@@ -1555,6 +1595,8 @@ window.addEventListener('error', function (e) {
           S.lastPush = key;
         } catch (e) { S.note = 'couldn\u2019t save to the shared board just now'; }
       }
+      // a place that's just been built: put what the shared board last said onto it
+      function late(L) { if (S.players.length) absorb(S.players, L); }
       // a moment after a new result (several in a row go up together)
       function soon() { if (S.mode === 'off' || S.timer) return; S.timer = setTimeout(push, 2500); }
       async function pull() {
@@ -1591,7 +1633,7 @@ window.addEventListener('error', function (e) {
           } catch (e) { /* no records.php here */ }
         }
       }
-      return { start, soon, pull, push, absorb, myBests, get mode() { return S.mode; }, S };
+      return { start, soon, pull, push, absorb, late, myBests, get mode() { return S.mode; }, S };
     })();
     return { def, add, mine, merge, build, draw, hidePanel, list: listOf, fmtTime, shared: SHARED };
   })();
@@ -3090,7 +3132,11 @@ window.addEventListener('error', function (e) {
   // The first three keep their original codes (0, 1, 2) so older pages still understand each other.
   const ENEMIES = [];
   const ENEMY = {};
-  function defEnemy(name, o) { o.name = name; o.code = ENEMIES.length; ENEMIES.push(o); ENEMY[name] = o.code; return o.code; }
+  // A quest that brings its own enemies says where its codes start (enemySlot), so the codes are the same for everyone
+  // whichever quest their page happened to load first.
+  let enemyNext = -1;
+  function enemySlot(n) { enemyNext = n; }
+  function defEnemy(name, o) { o.name = name; o.code = enemyNext >= 0 ? enemyNext++ : ENEMIES.length; ENEMIES[o.code] = o; ENEMY[name] = o.code; return o.code; }
   const cyl = (rt, rb, h, s) => new THREE.CylinderGeometry(rt, rb, h, s || 10);
   const sph = (r, a, b) => new THREE.SphereGeometry(r, a || 12, b || 10);
   const boxg = (w, h, d) => new THREE.BoxGeometry(w, h, d);
@@ -3527,7 +3573,7 @@ window.addEventListener('error', function (e) {
     return { IDS, DESC, isOn, owned, setOn, toggle, mask, tickets, fireworks, tick, mine, theirs, rockets: () => ROCKETS.length };
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/hoops.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: ROOFTOP HOOPS
   const hoops = (() => {
     const L = newLevel(0);
@@ -3642,13 +3688,7 @@ window.addEventListener('error', function (e) {
     G.add(courtMesh);
 
     // fence + string lights
-    const link = canvasTexture(64, 64, (g) => {
-      g.clearRect(0, 0, 64, 64);
-      g.strokeStyle = 'rgba(214,216,232,1)'; g.lineWidth = 3.2;
-      g.beginPath(); g.moveTo(0, 0); g.lineTo(64, 64); g.moveTo(64, 0); g.lineTo(0, 64); g.stroke();
-    });
-    link.tex.wrapS = link.tex.wrapT = THREE.RepeatWrapping;
-    L.linkTex = link.tex;
+    const link = { tex: linkTex() };
     function fencePanel(len, x, z, rotY) {
       const t = link.tex.clone();
       t.needsUpdate = true;
@@ -4284,27 +4324,9 @@ window.addEventListener('error', function (e) {
     ENDGAME.on(L, { active: () => LT.ph === 1, end: () => { requestLT(2); return 'Start Lightning again when everyone’s ready.'; } });
     return L;
   })();
-
-  // Draws a list of player rows on a scoreboard canvas (shared by every level)
-  function drawRows(g, rows, y0, step, W) {
-    rows.slice(0, 6).forEach((p, i) => {
-      const y = y0 + i * step;
-      g.fillStyle = p.color; rr(g, 36, y - 26, 12, 32, 4); g.fill();
-      g.textAlign = 'left';
-      g.fillStyle = '#f4f2ff'; g.font = `${p.me ? 700 : 400} 30px ${BODY}`;
-      g.fillText(p.me ? `${p.name} (you)` : p.name, 64, y, W - 330);
-      g.textAlign = 'right';
-      g.fillStyle = '#ffd08a'; g.font = `800 38px ${DISPLAY}`;
-      g.fillText(p.text, W - 40, y + 2, 240);
-    });
-    g.textAlign = 'left';
-    if (rows.length === 1) {
-      g.fillStyle = '#8f89b8'; g.font = `400 24px ${BODY}`;
-      g.fillText('Friends who open this page will show up here', 36, y0 + step + 24);
-    }
-  }
+  hoops.throwSpeed = [3, 12, 0.2];
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/baseball.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: SANDLOT BASEBALL
   const baseball = (() => {
     const L = newLevel(1);
@@ -4450,7 +4472,7 @@ window.addEventListener('error', function (e) {
     }
 
     // backstop
-    const linkT = hoops.linkTex.clone();
+    const linkT = linkTex().clone();
     linkT.needsUpdate = true;
     linkT.repeat.set(16 / 0.14, 6 / 0.14);
     const back = new THREE.Mesh(new THREE.PlaneGeometry(16, 6), new THREE.MeshBasicMaterial({ map: linkT, transparent: true, opacity: 0.6, side: THREE.DoubleSide, depthWrite: false, color: 0x9aa0b8 }));
@@ -5695,8 +5717,10 @@ window.addEventListener('error', function (e) {
     ENDGAME.on(L, { active: () => gameOn(), end: () => { gameRequest(2); return 'Start a new game when everyone’s ready.'; } });
     return L;
   })();
+  baseball.throwSpeed = [4, 24, 0.08];
+  baseball.lockWhileHolding = true;
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/discgolf.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: MAPLE HOLLOW DISC GOLF
   const discgolf = (() => {
     const L = newLevel(2);
@@ -6543,8 +6567,9 @@ window.addEventListener('error', function (e) {
     ENDGAME.on(L, { active: () => true, end: () => { restartRound(); return 'Back to the first tee.'; } });
     return L;
   })();
+  discgolf.walkSpeed = 3.4;
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/quest-engine.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ QUEST ENGINE (Sunstone Keep, Skyline Siege, Hexwood Hollow)
   // Each quest is an open world: areas where the fighting happens, joined by wide paths that bend,
   // with themed boundaries (castle walls, tree lines, rooftop railings) instead of corridors.
@@ -7916,7 +7941,7 @@ window.addEventListener('error', function (e) {
       const seen = new Set();
       if (Array.isArray(dh.e)) {
         for (const a of dh.e.slice(0, 30)) {
-          if (!Array.isArray(a) || (a.length !== 11 && a.length !== 12) || !int(a[0], 0, 1e9) || !int(a[1], 0, ENEMIES.length - 1) || !num(a[2], 300) || !num(a[3], 300) || !num(a[4], 50) || !int(a[5], 0, 999) || !int(a[6], 1, 999) || !int(a[7], 0, 5) || !int(a[8], 0, 1e9) || !num(a[9], 30) || !int(a[10], 0, 1)) continue;
+          if (!Array.isArray(a) || (a.length !== 11 && a.length !== 12) || !int(a[0], 0, 1e9) || !int(a[1], 0, ENEMIES.length - 1) || !ENEMIES[a[1]] || !num(a[2], 300) || !num(a[3], 300) || !num(a[4], 50) || !int(a[5], 0, 999) || !int(a[6], 1, 999) || !int(a[7], 0, 5) || !int(a[8], 0, 1e9) || !num(a[9], 30) || !int(a[10], 0, 1)) continue;
           let e = L.enemies.get(a[0]);
           if (!e) { e = makeEnemy(a[0], a[1], a[2], a[3], a[9]); e.lastAc = a[8]; }
           if (a[11] === 1) makeChamp(e);
@@ -7933,7 +7958,7 @@ window.addEventListener('error', function (e) {
       }
       if (Array.isArray(dh.p)) {
         for (const a of dh.p.slice(0, 14)) {
-          if (!Array.isArray(a) || a.length !== 8 || !int(a[0], 0, 1e9) || !a.slice(1, 7).every((x) => num(x, 300)) || !int(a[7], 0, PROJ_BY_CODE.length - 1)) continue;
+          if (!Array.isArray(a) || a.length !== 8 || !int(a[0], 0, 1e9) || !a.slice(1, 7).every((x) => num(x, 300)) || !PROJ_BY_CODE[a[7]] || !int(a[7], 0, PROJ_BY_CODE.length - 1)) continue;
           if (seenProj.has(a[0])) continue;
           seenProj.add(a[0]);
           L.spawnProjectile(a[0], new V3(a[1], a[2], a[3]), new V3(a[4], a[5], a[6]), a[7]);
@@ -8495,7 +8520,7 @@ window.addEventListener('error', function (e) {
     return L;
   }
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/quest-shared.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ QUESTS
   const speckle = (g, rand, n, a, b) => { for (let k = 0; k < n; k++) { g.fillStyle = rand() < 0.5 ? a : b; g.fillRect(rand() * 256, rand() * 256, 2, 2); } };
   const unitBox = boxg(1, 1, 1);
@@ -8515,7 +8540,7 @@ window.addEventListener('error', function (e) {
     for (let k = 0; k < n; k++) { const a = ctx.rand() * Math.PI * 2, r = rMin + ctx.rand() * (rMax - rMin); fn(Math.cos(a) * r, cz + Math.sin(a) * r, a); }
   }
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/dungeon.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ---------------- Sunstone Keep: ruined castle grounds at dusk
   const dungeon = makeQuest({
     idx: 3, seed: 31337,
@@ -8617,7 +8642,7 @@ window.addEventListener('error', function (e) {
     colors: { board: '#17121c', accent: '#e8b54a', sub: '#c9b8d8', text: '#ece4f4', label: '#e8a24a', button: 0xe8b54a },
   });
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/siege.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ---------------- Skyline Siege: rooftops and bridges high above a city at night
   const siege = makeQuest({
     idx: 10, seed: 70707,
@@ -8724,7 +8749,7 @@ window.addEventListener('error', function (e) {
     colors: { board: '#0d1424', accent: '#4fc3f7', sub: '#9ab4d8', text: '#e4eefa', label: '#ff6ab0', button: 0x4fc3f7 },
   });
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/hexwood.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ---------------- Hexwood Hollow: clearings in a moonlit forest, joined by dirt trails
   const hexwood = makeQuest({
     helpers: true,
@@ -8832,11 +8857,12 @@ window.addEventListener('error', function (e) {
     colors: { board: '#1a1430', accent: '#b06aff', sub: '#c8b8e8', text: '#ece4f4', label: '#8affc0', button: 0x8affc0 },
   });
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/piratecove.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ---------------- Pirate Cove: a jungle island, a wrecked ship, smugglers' caves, and Captain Saltbeard's treasure
   // Its crew are new enemies, and the gunners fire a new projectile: lead shot, with a puff of a muzzle flash.
   PROJ.shot = { code: 3, speed: 12, gravity: 1.6, color: 0x2a2a2a, glow: 0xffd890, size: 0.18, dmg: 1 };
-  PROJ_BY_CODE.push(PROJ.shot);
+  PROJ_BY_CODE[3] = PROJ.shot;
+  enemySlot(18);
   defEnemy('pirate', { hp: 3, r: 0.4, h: 1.65, speed: 1.8, ai: 'melee', reach: 1.2, windup: 0.5, cool: 1.3, dmg: 1,
     mesh(g, arm, M) {
       const skin = M(0xd8a878), shirt = M(0xf2ece0), sash = M(0xc23a3a), pants = M(0x3a3a52), band = M(0xd83a3a);
@@ -9044,12 +9070,13 @@ window.addEventListener('error', function (e) {
     colors: { board: '#14222c', accent: '#e8b54a', sub: '#a8c8d8', text: '#eef4f8', label: '#ffb060', button: 0xe8b54a },
   });
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/frostpeak.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ---------------- Frostpeak Caverns: up a frozen mountain pass and into the ice caves, to the Frost King's heart-gem
   // New enemies (snow goblins, frost archers, yetis, ice bats, frost sprites and the Frost King) and a new projectile:
   // ice shards, glowing pale blue.
   PROJ.ice = { code: 4, speed: 11, gravity: 1.0, color: 0xcfefff, glow: 0x7ad8ff, size: 0.2, dmg: 1 };
-  PROJ_BY_CODE.push(PROJ.ice);
+  PROJ_BY_CODE[4] = PROJ.ice;
+  enemySlot(24);
   defEnemy('snowgob', { hp: 3, r: 0.42, h: 1.35, speed: 1.8, ai: 'melee', reach: 1.15, windup: 0.55, cool: 1.3, dmg: 1,
     mesh(g, arm, M) {
       const skin = M(0x9ac8e8), fur = M(0xf4f8ff), dark = M(0x4a6a8a);
@@ -9258,7 +9285,7 @@ window.addEventListener('error', function (e) {
     if (big[big.length - 1] === state.myPeer) switchTeam(true);
   }
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/lasertag.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: NEON LASER TAG
   const lasertag = (() => {
     const L = newLevel(4);
@@ -10099,7 +10126,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/soccer.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: SUNDAY SOCCER
   const soccer = (() => {
     const L = newLevel(5);
@@ -10159,7 +10186,7 @@ window.addEventListener('error', function (e) {
       }
       for (const side of [-1, 1]) addBox(G, HW - GW, 0.9, 0.15, boardMat, side * (GW + (HW - GW) / 2), 0.45, s * (HL + 0.08));
     }
-    const netT = hoops.linkTex.clone();
+    const netT = linkTex().clone();
     netT.needsUpdate = true;
     netT.repeat.set(40 / 0.2, 3 / 0.2);
     const netMat = new THREE.MeshBasicMaterial({ map: netT, transparent: true, opacity: 0.35, side: THREE.DoubleSide, depthWrite: false, color: 0xdde4ee });
@@ -10177,7 +10204,7 @@ window.addEventListener('error', function (e) {
     }
     // goals
     const postMat = lam(0xffffff);
-    const goalNetT = hoops.linkTex.clone();
+    const goalNetT = linkTex().clone();
     goalNetT.needsUpdate = true;
     goalNetT.repeat.set(6 / 0.12, 2.2 / 0.12);
     const goalNet = new THREE.MeshBasicMaterial({ map: goalNetT, transparent: true, opacity: 0.6, side: THREE.DoubleSide, depthWrite: false });
@@ -10768,7 +10795,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/minigolf.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: SEASIDE MINI GOLF
   const minigolf = (() => {
     const L = newLevel(6);
@@ -12206,7 +12233,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/drivingrange.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ MINI GOLF: THE DRIVING RANGE
   // A deck off the side of the pier with a tee mat, hitting out to sea: floating greens at 50 to 250 yards, a yardage
   // buoy every 50. A bucket is ten balls; land on a green for points (more for the far ones, double near the pin).
@@ -12444,7 +12471,7 @@ window.addEventListener('error', function (e) {
     return R;
   })(minigolf);
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/bowling.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: MOONLIGHT LANES (bowling)
   // Standard ten-pin scoring. Returns the frames so far, the running total,
   // and what the next ball needs: which frame, which ball, and whether the rack is fresh.
@@ -15576,7 +15603,7 @@ window.addEventListener('error', function (e) {
     return D;
   })(hub);
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/karts.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: PEBBLE BAY GO-KARTS
   const karts = (() => {
     const L = newLevel(9);
@@ -16945,7 +16972,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/hideseek.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: SUNSET BACKYARDS (hide-and-seek)
   const hideseek = (() => {
     const L = newLevel(12);
@@ -17742,7 +17769,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/charades.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: CHARADES LOUNGE
   const charades = (() => {
     const L = newLevel(13);
@@ -18468,7 +18495,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/paintball.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: PAINTBALL PARK
   const paintball = (() => {
     const L = newLevel(14);
@@ -19020,7 +19047,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/pickleball.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: SUNNY PICKLEBALL COURTS
   // Singles or doubles on a regulation court: underhand serves into the diagonal box, the two-bounce rule, no volleys
   // from the kitchen, rally scoring to 11 (win by 2). Four spots, two at each end (slot = side * 2 + spot; spot 0 plays
@@ -19784,7 +19811,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/parkour.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: SKYLINE SPRINT (parkour race)
   // A race up and across a sunset skyline. In VR you grab holds and pull yourself along (let go and you fling);
   // in a browser E grabs the nearest wall, bar or pole and WASD climb it. Slides, moving platforms, power-up drinks.
@@ -20570,7 +20597,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/dodgeball.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: GYM CLASS DODGEBALL
   // Red on one half of a gym, blue on the other, six foam balls on the centre line. Pick one up and throw it: a ball that hasn't
   // touched the floor sends whoever it hits to the sideline. Catch one instead and the thrower is out and a teammate comes back.
@@ -20987,7 +21014,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/hotpotato.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: HARVEST HOT POTATO
   // Everyone stands on a ring of spots in a farmyard and passes a ticking potato. Whoever is holding it when it
   // pops is out; the last one standing wins the round. Bots fill the ring to six.
@@ -21649,7 +21676,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/kayak.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: WHITEWATER RAPIDS (kayak race)
   // A river down a wooded valley: a calm start pool, bends, rocks, three drops, and a finish pool. The current
   // carries you; paddling speeds you up and steers. In VR you hold a real two-handed paddle: dip a blade and pull it
@@ -22351,7 +22378,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/cornhole.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: LAKESIDE CORNHOLE
   // Two regulation boards 27 ft apart on a lawn by a lake. Red and blue take turns throwing four bags each at the far
   // board: on the board is 1, through the hole is 3, and only the difference counts each round. First to 21 wins.
@@ -22845,7 +22872,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/ctf.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: CAPTURE THE FLAG
   // Red holds the south half of a park, blue the north. Run into their half, grab their flag from its stand, and get
   // it back to your base. On your own half you can tag anyone from the other team: tagged players go back to their
@@ -23308,7 +23335,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/trivia-questions.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ TRIVIA: THE QUESTION BANK
   // Each entry: [category, question, right answer, wrong, wrong, wrong]. The game shuffles the answers.
   // Evergreen facts only (nothing that changes from year to year).
@@ -23570,7 +23597,7 @@ window.addEventListener('error', function (e) {
     ['Human Body', 'Which body part has the most bones?', 'The hands and wrists', 'The skull', 'The legs', 'The chest'],
   ];
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/trivia.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: QUIZZY'S TRIVIA NIGHT
   // A game-show studio. Contestants stand at podiums in an arc facing a big screen, each podium with four
   // coloured answer buttons. Ten questions a game, fifteen seconds each: points for being right, more for being quick.
@@ -24349,7 +24376,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/recess.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: RECESS RUSH (a playground obstacle race)
   // A race down a schoolyard lane through seven playground games: hopscotch (light every square, and the paint
   // between them is lava), a tire run (step in the tires, the mud slows you), a sack race (you can only hop),
@@ -25510,7 +25537,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/beats.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: BEAT BLADES
   // A rhythm game. Blocks fly down a neon runway in time with the music; slice each with the blade of its colour
   // (red in your left hand, blue in your right) in the direction its arrow points. A dot can be cut any way.
@@ -26195,7 +26222,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/juggle.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: JUGGLE JAM
   // Juggling under a circus big top. In VR the balls are real: close your hand (grip or trigger) to catch or pick one
   // up, open it to throw. A hand can hold two. Slow-motion settings play the whole thing slower (same arcs, more time),
@@ -26611,7 +26638,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/workout.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: SUNRISE WORKOUT
   // A coached workout on a rooftop at dawn, to a beat. Rounds of punching (red pads with your left fist, blue with
   // your right; low pads are uppercuts), squats (duck under the bars), dodges (lean away from the walls) and reaches
@@ -27055,7 +27082,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/wallrush.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: WALL RUSH
   // A game show for your whole body. Walls slide down a neon runway with a body-shaped hole cut in them; strike the
   // pose and fit through. Every pose is a stance (stand tall, squat, lunge left or right) plus arms (down, up in a Y,
@@ -27468,7 +27495,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/football.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: TWO-MINUTE DRILL (football)
   // You're the quarterback, two minutes on the clock, ball on your own 25. Pick a play, hike it, read the coverage
   // and throw before the rush gets home. Completions keep the clock running (hurry up and snap); incompletions,
@@ -28485,7 +28512,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/skeeball.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: SKEE-BALL ARCADE
   // Four machines in a row, one each. Roll the ball up the lane: it hops the jump and drops into a ring:
   // 10 at the bottom, then 20, 30, 40, 50 in the middle, and 100 in the top corners. Nine balls a game.
@@ -28939,7 +28966,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/chairs.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: MUSICAL CHAIRS
   // Walk round the ring of chairs while the music plays. When it stops, grab a seat: stand right at a chair.
   // There's one chair fewer than players, so whoever's left standing is out; a chair goes each round until one
@@ -29211,7 +29238,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/boxing.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: KNOCKOUT KID (boxing)
   // Spar with a cartoon boxer. He keeps his guard up and telegraphs every punch (his glove glows and pulls back):
   // a jab (lean aside), a hook from the left or right (duck it), or an uppercut (lean aside, ducking won't help).
@@ -29548,7 +29575,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/snowball.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: SNOWBALL FIGHT
   // Red against blue on a snowy field, each side with snow forts to hide behind. Snowballs wait in piles at the back:
   // grab one and throw. Three hits and you're out to the sideline until the next round. A snowball that lands melts
@@ -30005,7 +30032,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/toboggan.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: TOBOGGAN RUN
   // A downhill sled race on a snowy mountain. Gravity does the work; you steer round the snowmen, hit the blue ice
   // strips for speed, and fly off two jumps. Tucking down goes faster but steers less; braking slows you.
@@ -30382,7 +30409,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/darts.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: PUB DARTS
   // A cosy pub with three dartboards on the back wall: one each, against Dart Dave.
   // 301: count down from 301 to exactly zero (going below is a bust and the turn doesn't count).
@@ -30788,7 +30815,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/volleyball.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: BEACH VOLLEYBALL
   // Two against two on the sand (or one on one, on a smaller court), first to 15 (win by 2). Each side gets three touches: a pass to the setter,
   // a set up by the net, and a spike over. Your touches are helped along: a pass floats to your setter, a set
@@ -31413,7 +31440,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/pillow.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: PILLOW FIGHT CASTLE
   // Red against blue in a bouncy castle, a pillow in each hand. Bonk someone on the other team three times and
   // they're out; the last team with anyone left wins the round. Bots make up the numbers.
@@ -31828,7 +31855,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/haunted.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: HAUNTED MANSION
   // A dark old house, five rooms deep, and a flashlight each. Ghosts drift about; hold one in your beam and it
   // shivers, shrinks and gets sucked into the light. Catch every ghost in a room to unlock the next door.
@@ -32289,7 +32316,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/llama.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: LLAMA DERBY
   // Two laps round a ranch track on the back of a llama. Shake the reins (giddy-up!) to go faster, jump the hay
   // bales, grab carrots for a burst of speed and keep out of the mud. Three bot llamas race too; friends race
@@ -32722,7 +32749,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/rps.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: ROCK-PAPER-SCISSORS TOURNAMENT
   // Eight players, a knockout bracket, best of three in every match (draws throw again). Friends who are here
   // take places in the bracket and bots fill the rest, each with their own habits (Rocky loves rock; Copycat Cal
@@ -33070,7 +33097,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/dance.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: DANCE-OFF
   // Disco Dot dances on the stage; copy her moves like a mirror, on the beat. Each move lights up two targets in
   // front of you (blue for your left hand, pink for your right) with rings that close in on the beat: have your
@@ -33411,7 +33438,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/carnival.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ CARNIVAL: shared scenery for the fairground games
   // A summer evening at the fair: string lights, striped booths, a Ferris wheel turning in the distance.
   // Every carnival game pays out tickets (skeeball.addTickets), spent at the Skee-Ball prize counter.
@@ -33494,7 +33521,7 @@ window.addEventListener('error', function (e) {
     return { env, backdrop, booth, lights, tickets, prizeStand };
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/strongman.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: STRONGMAN BELL (carnival)
   // Swing the big mallet down on the pad and the puck shoots up the tower: Wimp, Weakling, Not bad, Strong,
   // Mighty… and DING! the bell, if you hit hard enough. Tickets for every swing, more the higher it goes.
@@ -33715,7 +33742,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/duckshoot.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: DUCK SHOOTING GALLERY (carnival)
   // Three rows of tin ducks glide past at the back of the booth. Pop as many as you can with the cork gun in 40
   // seconds: a duck is 1 point, a golden duck 5, and leave the bunnies alone (they cost you 3).
@@ -33953,7 +33980,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/ringtoss.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: RING TOSS (carnival)
   // A table packed with bottles. Toss ten rings: one that drops over a bottle's neck is a ringer. Green bottles
   // pay 3 tickets, red ones 6, and the gold bottle in the middle 15. Close isn't good enough: rings that clip a
@@ -34175,7 +34202,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/whack.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: WHACK-A-MOLE (carnival)
   // Nine holes, 45 seconds, and moles that pop up faster and faster. Bop one while it's up: 1 point, a golden mole
   // 3. Points pay out tickets for the Skee-Ball prize counter.
@@ -34407,7 +34434,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/lightspeed.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: SPEED OF LIGHT (carnival)
   // A wall of twenty buttons, five across and four high. Three are lit at once, each for a couple of seconds: hit them
   // and new ones light up elsewhere, so plan your route. Thirty seconds: how many can you get? A light you're too slow
@@ -34618,7 +34645,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/study-content.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ STUDY HALL: content for the CompTIA A+ games
   // Written to the A+ V15 exam objectives: Core 1 (220-1201) and Core 2 (220-1202). Each question:
   // [domain, question, [four answers], index of the right one, why]. Answers are shuffled when shown.
@@ -34828,7 +34855,7 @@ window.addEventListener('error', function (e) {
     return { DOMAINS, Q, PORTS, CONNECTORS, WIFI, next, mark, log, shuffled };
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/study.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ STUDY HALL: the shared room, screens and answer cards
   // A bright study hall: wood floor, tall windows, bookshelves, a wall clock that tells the real time.
   // Answer cards are the one way you answer in every Study Hall game: in VR touch one (or point and pull the trigger),
@@ -35102,7 +35129,7 @@ window.addEventListener('error', function (e) {
     return { env, room, shelf, screen, wrap, fit, cards, input, slotOf, SLOT_X, standAt, right, wrong };
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/quizblaster.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: QUIZ BLASTER (study hall)
   // CompTIA A+ practice with a blaster: a question goes up on the big screen, four answer cards float in front of you,
   // and you shoot the right one. Twelve questions a round, points for being quick and for streaks.
@@ -35373,7 +35400,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/portsorter.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: PORT & CABLE SORTER (study hall)
   // Crates ride a conveyor belt past you, each stamped with a port, a protocol, a cable use or a Wi-Fi standard.
   // Toss each one into the bin with its match before it reaches the end of the belt. Sixty seconds; the belt speeds up.
@@ -35658,7 +35685,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/pcbuild.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: PC BUILD BENCH (study hall)
   // Build a PC on an open test bench, the way the A+ exam expects: wrist strap on first, CPU in the socket, thermal paste,
   // cooler, memory of the right generation (one stick on the tray is the wrong kind), the M.2 SSD, the graphics card in
@@ -36061,7 +36088,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/helpdesk.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: HELP DESK TICKETS (study hall)
   // You're on the help desk. Customers walk up with a problem; for each one, pick the most likely cause and then the
   // right fix, the way the A+ troubleshooting questions work. Six customers a shift. Quick right answers score more,
@@ -36408,7 +36435,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/cmddojo.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: COMMAND LINE DOJO (study hall)
   // The terminal on the wall gives you a task ("show this PC's IP settings"); three command blocks fly at you and you
   // strike the one that does it. The command types itself into the terminal with its output. Three strikes (a wrong
@@ -36686,7 +36713,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/mathsprint.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: MATH SPRINT (study hall)
   // Mental maths against the clock: a problem goes up on the chalkboard, four answers hang in front of you, and you tap
   // the right one. Sixty seconds, as many as you can; a wrong answer locks you out for a second and a half.
@@ -36906,7 +36933,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/triggers-content.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ STUDY HALL: quiz-show trigger words
   // The phrases that point straight at one answer on TV quiz shows: "Norwegian playwright" is almost always Ibsen.
   // Each: [category, the trigger, the answer, 'who' | 'what' (how you'd phrase the response), a note (optional)]
@@ -37110,7 +37137,7 @@ window.addEventListener('error', function (e) {
     return { CATS, T, respond };
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/triggers.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: TRIGGER WORDS (study hall)
   // Quiz-show training: learn the phrases that give the answer away ("Norwegian playwright" → Ibsen).
   // Buzz & recall: the trigger goes up on the board; buzz when you know it, see the response, and say whether you had
@@ -37399,7 +37426,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/fruit.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: FRUIT SLASH (get active)
   // Fruit flies up in front of you; slice it with a katana in each hand before it falls. Don't touch the bombs.
   // Classic: three dropped fruit and you're out, and a bomb ends it. Arcade: 60 seconds, bombs cost 10 points, and
@@ -37745,7 +37772,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/climb.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: CLIFFSIDE CLIMB (racing and parkour)
   // A sea cliff in three tiers, 24 metres to the bell at the top. Three lines of holds go up each tier (green close
   // together, blue further apart, red far apart with crumbly holds that break away). You're on an auto-belay: let go and
@@ -38079,7 +38106,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/archery.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: ARCHERY RANGE (golf and lanes)
   // A meadow range: straw targets at 10, 20, 30 and 50 metres, one sliding target, and balloons drifting about.
   // A round is 12 arrows at whatever you like: rings score 1 to 10, times the distance (x1 at 10 m up to x5 at 50 m; the sliding target x4), a balloon is 10.
@@ -38380,7 +38407,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/gorilla.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: GORILLA TAG (party games)
   // Jungle infection tag. No sticks, no legs: in VR you move with your arms, pushing off the ground, trunks and
   // platforms like a gorilla (push down and back to go up and forward, let go to fly). One player starts as "lava";
@@ -38788,7 +38815,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/birdwatch.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: BIRDWATCHING (a Michigan forest)
   // A morning walk through a northern Michigan forest with the camera: two minutes and a roll of 24 to photograph as
   // many birds as you can. At the end the round's photos go up on the Field Notes board, each judged on how rare the
@@ -39584,7 +39611,7 @@ window.addEventListener('error', function (e) {
     return L;
   })();
 </script>
-<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+<script type="text/plain" data-fd="js/games/brawl.js">'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ================================================================ LEVEL: TABLETOP BRAWL (a platform fighter on a table)
   // A little floating arena hovers over a games table, and you play one of four tiny fighters on it, side-on, the way
   // the classic party fighters work: every hit adds to your damage %, and the higher it is the further the next hit
@@ -41040,15 +41067,20 @@ window.addEventListener('error', function (e) {
       m.position.copy(o.pos); m.quaternion.copy(o.quat);
       m.children[1].visible = true;    // (once it's down, its back shows the picture too, so it reads from either side)
       const it = Object.assign(o, { mesh: m, btn: null });
-      const L = LEVELS[o.lv];
-      if (L && Array.isArray(L.buttons)) {
-        it.btn = { L, pos: o.pos.clone(), mesh: m, mat: m.userData.mat, onPress: () => { if (ready(it.btn)) pickUp(it); }, cool: 0, pressT: -1e9, baseY: o.pos.y, lit: false, label: 'Print', away: true, ready: false };
-        L.buttons.push(it.btn);
-      }
+      attachBtn(it);
       P.placed.push(it);
       while (P.placed.length > 12) removePlaced(P.placed[0]);    // (twelve about at most: the oldest goes)
       return it;
     }
+    // A print's button belongs to the place it's in. That place may not be built yet: levelLoaded attaches it then.
+    function attachBtn(it) {
+      const L = LEVELS[it.lv], o = it, m = it.mesh;
+      if (!it.btn && L && Array.isArray(L.buttons)) {
+        it.btn = { L, pos: o.pos.clone(), mesh: m, mat: m.userData.mat, onPress: () => { if (ready(it.btn)) pickUp(it); }, cool: 0, pressT: -1e9, baseY: o.pos.y, lit: false, label: 'Print', away: true, ready: false };
+        L.buttons.push(it.btn);
+      }
+    }
+    function levelLoaded(L) { for (const it of P.placed) if (it.lv === L.idx) attachBtn(it); }
     function removePlaced(it) {
       const i = P.placed.indexOf(it); if (i >= 0) P.placed.splice(i, 1);
       scene.remove(it.mesh);
@@ -41078,7 +41110,7 @@ window.addEventListener('error', function (e) {
       try { a = JSON.parse(localStorage.getItem('fd_prints') || '[]'); } catch (e) { a = []; }
       if (!Array.isArray(a)) return;
       for (const o of a.slice(-12)) {
-        if (!o || !Number.isInteger(o.lv) || o.lv < 0 || o.lv >= LEVELS.length || !Array.isArray(o.p) || o.p.length !== 3 || !Array.isArray(o.q) || o.q.length !== 4) continue;
+        if (!o || !Number.isInteger(o.lv) || o.lv < 0 || o.lv >= LEVEL_META.length || !Array.isArray(o.p) || o.p.length !== 3 || !Array.isArray(o.q) || o.q.length !== 4) continue;
         if (![...o.p, ...o.q].every((x) => Number.isFinite(x) && Math.abs(x) < 500)) continue;
         const own = typeof o.lid === 'string' && o.lid ? mine.find((p) => p.id === o.lid) : null;
         const src = own ? own.src : (okSrc(o.s) ? o.s : '');
@@ -41529,7 +41561,7 @@ window.addEventListener('error', function (e) {
     ];
     const loading = load();
     return {
-      C, mine, P, WALLS, body, print, toggle, flipSelfie, snap, tick, viewCam, afterRender, hud, openAlbum, closeAlbum, develop, aim, drawWalls, drawWall: drawWalls,
+      C, mine, P, WALLS, levelLoaded, body, print, toggle, flipSelfie, snap, tick, viewCam, afterRender, hud, openAlbum, closeAlbum, develop, aim, drawWalls, drawWall: drawWalls,
       isOn: () => C.on, pres, onE, keepPhoto: (url) => addMine(url), setZoom, stickBusy, drawLcd, pcam, eyeG, theirs, pressSlot, takePrint, placeHeld, pickUp, binHeld, setKept, removeMine, shareOne, unshareOne, download, loading,
       get photos() { return mine.map((p) => p.src); },
     };
@@ -42081,7 +42113,9 @@ window.addEventListener('error', function (e) {
     if (state.mode !== 'vr') camera.rotation.set(state.pitch, state.yaw, 0, 'YXZ');
   }
   function switchLevel(i) {
-    if (i === state.level || !LEVELS[i]) return;
+    if (i === state.level || !LEVEL_META[i]) { LOADER.want = -1; return; }
+    if (!LEVELS[i]) { LOADER.go(i); return; }     // (not built yet: it's loaded, then this runs again)
+    LOADER.want = -1;
     const old = curLevel();
     dropMine();
     old.onExit(); RECORDS.hidePanel();
@@ -42260,6 +42294,7 @@ window.addEventListener('error', function (e) {
   function setMyPeer(id) {
     if (id === state.myPeer) return;
     for (const L of LEVELS) {
+      if (!L) continue;
       for (const o of L.bodies.concat(L.tools)) {
         if (o.owner === state.myPeer) o.owner = id;
         if (o.held && o.held.peer === state.myPeer) o.held.peer = id;
@@ -42289,7 +42324,7 @@ window.addEventListener('error', function (e) {
     setLook(rec, pick(look[0], HATS.length), pick(look[1], FACES.length), pick(look[2], SHIRTS.length), pick(look[3], SHIRT_COLORS.length));
     const wasHere = rec.lv === state.level, wasIn = rec.inGame;
     rec.inGame = pres.p === 1;
-    rec.lv = Number.isInteger(pres.lv) && pres.lv >= 0 && pres.lv < LEVELS.length ? pres.lv : 0;
+    rec.lv = Number.isInteger(pres.lv) && pres.lv >= 0 && pres.lv < LEVEL_META.length ? pres.lv : 0;
     if (wasHere && rec.lv !== state.level) { adoptFrom(rec.peer, curLevel(), state.lastPeers); rec.lvState = {}; }
     if (wasIn !== rec.inGame || wasHere !== (rec.lv === state.level)) state.dirtyBoard = true;
     const had = { h: rec.hasH, l: rec.hasL, r: rec.hasR };
@@ -42351,6 +42386,7 @@ window.addEventListener('error', function (e) {
     remotes.clear();
     seenPresence.clear();
     for (const L of LEVELS) {
+      if (!L) continue;
       for (const o of L.bodies.concat(L.tools)) if (o.held && o.held.peer !== state.myPeer) o.held = null;
     }
     setMyPeer('solo');
@@ -42696,10 +42732,7 @@ window.addEventListener('error', function (e) {
     state.colorIdx = i;
     const hex = PLAYER_COLORS[i].hex;
     myHandMat.color.set(hex);
-    discgolf.setColor(hex);
-    minigolf.setColor(hex);
-    bowling.setColor(hex);
-    karts.setColor(hex);
+    for (const Lv of LEVELS) if (Lv && Lv.setColor) Lv.setColor(hex);
     drawPreview();
     savePrefs();
     state.dirtyBoard = true;
@@ -42837,13 +42870,70 @@ window.addEventListener('error', function (e) {
   }
 </script>
 <script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+  // ================================================================ LOADER: each place is built the first time you go there
+  // The page carries every place's code, but only the clubhouse runs at startup. The rest sit in the page as text
+  // (<script type="text/plain" data-fd="js/games/hoops.js">) and the list of which files each place needs is in
+  // #fd-manifest (written by tools/manifest.py). Going to a place runs its files, once, as ordinary scripts: they see
+  // everything the core defines, just as if they had been there from the start.
+  // A page built with --single has no such list: everything is already there, and all of this does nothing.
+  //   ?eager in the address builds every place at startup, the old way. The tests (?test) do too, unless ?lazy is there.
+  const LOADER = (() => {
+    let places = null;
+    try { const el = document.getElementById('fd-manifest'); if (el) places = JSON.parse(el.textContent).places; } catch (e) { places = null; }
+    const q = new URLSearchParams(location.search);
+    const S = { want: -1, ran: new Set(), eager: !places || q.has('eager') || (q.has('test') && !q.has('lazy')), failed: new Set() };
+    const filesFor = (i) => (places && LEVEL_META[i] && places[LEVEL_META[i].id]) || [];
+    function run(file) {
+      if (S.ran.has(file)) return;
+      S.ran.add(file);
+      const src = document.querySelector(`script[data-fd="${file}"]`);
+      if (!src) throw new Error(`missing ${file}`);
+      const s = document.createElement('script');
+      s.textContent = `${src.textContent}\n//# sourceURL=${file}`;
+      document.head.appendChild(s);     // (runs right here)
+      s.remove(); src.remove();
+    }
+    // things the core told every place while this one wasn't there yet
+    function settle(L) {
+      if (L.setColor) L.setColor(PLAYER_COLORS[state.colorIdx].hex);
+      CAMERA.levelLoaded(L);
+    }
+    // Build place i now, if it isn't. True if it's there afterwards.
+    function sync(i) {
+      if (LEVELS[i]) return true;
+      if (!LEVEL_META[i] || S.failed.has(i)) return false;
+      window.__fdLazy = !S.eager;  // (an error in here is this place's problem, not a reason to stop the whole game)
+      try { for (const f of filesFor(i)) run(f); } catch (e) { console.error(e); }
+      window.__fdLazy = false;
+      if (!LEVELS[i]) { S.failed.add(i); return false; }
+      try { settle(LEVELS[i]); } catch (e) { console.error(e); }
+      return true;
+    }
+    function all() { for (let i = 0; i < LEVEL_META.length; i++) sync(i); }
+    // Go to a place that isn't built: say so, give the screen a moment to show it, build, then go.
+    function go(i) {
+      if (S.want === i) return;
+      S.want = i;
+      const name = LEVEL_META[i].name;
+      showToast(`Loading ${name}…`);
+      setTimeout(() => {
+        if (S.want !== i) return;
+        S.want = -1;
+        if (sync(i)) switchLevel(i);
+        else { showToast(`${name} couldn’t load. Try reloading the page.`); syncLevelPicker(); }
+      }, 40);
+    }
+    // at startup: everything (eager), or just the place you were last in
+    function boot() {
+      if (S.eager) { all(); return; }
+      if (!sync(state.level)) state.level = HUB_IDX;
+    }
+    return { S, sync, all, go, boot, filesFor, get want() { return S.want; }, set want(v) { S.want = v; }, get eager() { return S.eager; } };
+  })();
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ---------------------------------------------------------------- main loop
-  hoops.throwSpeed = [3, 12, 0.2];
-  baseball.throwSpeed = [4, 24, 0.08];
-  baseball.lockWhileHolding = true;
-  discgolf.walkSpeed = 3.4;
-  // the places where a little hop is on (J in a browser; A or X, or the right stick pushed up, in VR)
-  for (const id of ['hoops', 'baseball', 'lasertag', 'hub', 'hideseek', 'paintball', 'dodgeball', 'ctf']) { const Lv = LEVELS.find((l) => l && l.id === id); if (Lv) { Lv.canHop = true; Lv.vrHop = true; } }
+  LOADER.boot();
   curLevel().group.visible = true;
   applyEnv(curLevel().env);
 
@@ -42901,7 +42991,7 @@ window.addEventListener('error', function (e) {
   // the shared records board (the Claude page's database, or records.php on your own site), if there is one
   RECORDS.shared.start();
   PHOTOS.start();
-  try { if (new URLSearchParams(location.search).has('test')) window.__fd = { LEVELS, vrHands, CAMERA, PHOTOS, prizeFx: PRIZE_FX, BOTLV, watch: { press: watchPress, btns: watchBtns, draw: () => { panelKey = ''; drawPanel(); return panelC.g.canvas.toDataURL(); } }, state, dolly, camera, myHead, myHands, RECORDS, APLUS, switchLevel, startGame, voice: { VOICE, voiceWatch, voiceResend, remotes, buildPresence, createRemote, bodyFollow }, audio: { snd, tone, sfx, ensureAudio, MUSIC } }; } catch (e) { /* ignore */ }
+  try { if (new URLSearchParams(location.search).has('test')) window.__fd = { get APLUS() { return typeof APLUS === 'undefined' ? null : APLUS; }, LEVELS, LOADER, load: (i) => LOADER.sync(i), vrHands, CAMERA, PHOTOS, prizeFx: PRIZE_FX, BOTLV, watch: { press: watchPress, btns: watchBtns, draw: () => { panelKey = ''; drawPanel(); return panelC.g.canvas.toDataURL(); } }, state, dolly, camera, myHead, myHands, RECORDS, switchLevel, startGame, voice: { VOICE, voiceWatch, voiceResend, remotes, buildPresence, createRemote, bodyFollow }, audio: { snd, tone, sfx, ensureAudio, MUSIC } }; } catch (e) { /* ignore */ }
   window.__fdReady = true;
 </script>
 </body>

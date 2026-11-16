@@ -3,7 +3,11 @@
   // The first three keep their original codes (0, 1, 2) so older pages still understand each other.
   const ENEMIES = [];
   const ENEMY = {};
-  function defEnemy(name, o) { o.name = name; o.code = ENEMIES.length; ENEMIES.push(o); ENEMY[name] = o.code; return o.code; }
+  // A quest that brings its own enemies says where its codes start (enemySlot), so the codes are the same for everyone
+  // whichever quest their page happened to load first.
+  let enemyNext = -1;
+  function enemySlot(n) { enemyNext = n; }
+  function defEnemy(name, o) { o.name = name; o.code = enemyNext >= 0 ? enemyNext++ : ENEMIES.length; ENEMIES[o.code] = o; ENEMY[name] = o.code; return o.code; }
   const cyl = (rt, rb, h, s) => new THREE.CylinderGeometry(rt, rb, h, s || 10);
   const sph = (r, a, b) => new THREE.SphereGeometry(r, a || 12, b || 10);
   const boxg = (w, h, d) => new THREE.BoxGeometry(w, h, d);

@@ -1,0 +1,251 @@
+{
+ "core": [
+  "js/core/setup.js",
+  "js/core/sound.js",
+  "js/core/shared.js",
+  "js/core/records.js",
+  "js/core/botlevel.js",
+  "js/core/endgame.js",
+  "js/core/music.js",
+  "js/core/voice.js",
+  "js/core/watch.js",
+  "js/core/remotes.js",
+  "js/core/bodies.js",
+  "js/core/claims.js",
+  "js/core/quest-registry.js",
+  "js/core/prizes.js",
+  "js/core/teams.js",
+  "js/games/clubhouse/hub.js",
+  "js/games/clubhouse/airhockey.js",
+  "js/games/clubhouse/pingpong.js",
+  "js/games/clubhouse/jukebox.js",
+  "js/games/clubhouse/foosball.js",
+  "js/games/clubhouse/popashot.js",
+  "js/games/clubhouse/d20.js",
+  "js/app/photoshare.js",
+  "js/app/camera.js",
+  "js/app/vr-controls.js",
+  "js/app/flat-controls.js",
+  "js/app/modes.js",
+  "js/app/net.js",
+  "js/app/menu.js",
+  "js/app/hud.js",
+  "js/app/loader.js",
+  "js/app/main.js"
+ ],
+ "places": {
+  "hoops": [
+   "js/games/hoops.js"
+  ],
+  "baseball": [
+   "js/games/baseball.js"
+  ],
+  "discgolf": [
+   "js/games/discgolf.js"
+  ],
+  "dungeon": [
+   "js/games/quest-engine.js",
+   "js/games/quest-shared.js",
+   "js/games/dungeon.js"
+  ],
+  "lasertag": [
+   "js/games/lasertag.js"
+  ],
+  "soccer": [
+   "js/games/soccer.js"
+  ],
+  "minigolf": [
+   "js/games/minigolf.js",
+   "js/games/drivingrange.js"
+  ],
+  "bowling": [
+   "js/games/bowling.js"
+  ],
+  "karts": [
+   "js/games/karts.js"
+  ],
+  "siege": [
+   "js/games/quest-engine.js",
+   "js/games/quest-shared.js",
+   "js/games/siege.js"
+  ],
+  "hexwood": [
+   "js/games/quest-engine.js",
+   "js/games/quest-shared.js",
+   "js/games/hexwood.js"
+  ],
+  "hideseek": [
+   "js/games/hideseek.js"
+  ],
+  "charades": [
+   "js/games/charades.js"
+  ],
+  "paintball": [
+   "js/games/paintball.js"
+  ],
+  "pickleball": [
+   "js/games/pickleball.js"
+  ],
+  "parkour": [
+   "js/games/parkour.js"
+  ],
+  "dodgeball": [
+   "js/games/dodgeball.js"
+  ],
+  "potato": [
+   "js/games/hotpotato.js"
+  ],
+  "kayak": [
+   "js/games/kayak.js"
+  ],
+  "cornhole": [
+   "js/games/cornhole.js"
+  ],
+  "ctf": [
+   "js/games/ctf.js"
+  ],
+  "pirate": [
+   "js/games/quest-engine.js",
+   "js/games/quest-shared.js",
+   "js/games/piratecove.js"
+  ],
+  "trivia": [
+   "js/games/trivia-questions.js",
+   "js/games/trivia.js"
+  ],
+  "recess": [
+   "js/games/recess.js"
+  ],
+  "beats": [
+   "js/games/beats.js"
+  ],
+  "juggle": [
+   "js/games/juggle.js"
+  ],
+  "workout": [
+   "js/games/workout.js"
+  ],
+  "wallrush": [
+   "js/games/wallrush.js"
+  ],
+  "football": [
+   "js/games/football.js"
+  ],
+  "frostpeak": [
+   "js/games/quest-engine.js",
+   "js/games/quest-shared.js",
+   "js/games/frostpeak.js"
+  ],
+  "skeeball": [
+   "js/games/skeeball.js"
+  ],
+  "chairs": [
+   "js/games/chairs.js"
+  ],
+  "boxing": [
+   "js/games/boxing.js"
+  ],
+  "snowball": [
+   "js/games/snowball.js"
+  ],
+  "toboggan": [
+   "js/games/toboggan.js"
+  ],
+  "darts": [
+   "js/games/darts.js"
+  ],
+  "volleyball": [
+   "js/games/volleyball.js"
+  ],
+  "pillow": [
+   "js/games/pillow.js"
+  ],
+  "haunted": [
+   "js/games/haunted.js"
+  ],
+  "llama": [
+   "js/games/llama.js"
+  ],
+  "rps": [
+   "js/games/rps.js"
+  ],
+  "dance": [
+   "js/games/dance.js"
+  ],
+  "strongman": [
+   "js/games/skeeball.js",
+   "js/games/carnival.js",
+   "js/games/strongman.js"
+  ],
+  "duckshoot": [
+   "js/games/skeeball.js",
+   "js/games/carnival.js",
+   "js/games/duckshoot.js"
+  ],
+  "ringtoss": [
+   "js/games/skeeball.js",
+   "js/games/carnival.js",
+   "js/games/ringtoss.js"
+  ],
+  "whack": [
+   "js/games/skeeball.js",
+   "js/games/carnival.js",
+   "js/games/whack.js"
+  ],
+  "lightspeed": [
+   "js/games/skeeball.js",
+   "js/games/carnival.js",
+   "js/games/lightspeed.js"
+  ],
+  "quizblaster": [
+   "js/games/study-content.js",
+   "js/games/study.js",
+   "js/games/quizblaster.js"
+  ],
+  "portsorter": [
+   "js/games/study-content.js",
+   "js/games/study.js",
+   "js/games/portsorter.js"
+  ],
+  "pcbuild": [
+   "js/games/study.js",
+   "js/games/pcbuild.js"
+  ],
+  "helpdesk": [
+   "js/games/study-content.js",
+   "js/games/study.js",
+   "js/games/helpdesk.js"
+  ],
+  "cmddojo": [
+   "js/games/study.js",
+   "js/games/cmddojo.js"
+  ],
+  "mathsprint": [
+   "js/games/study.js",
+   "js/games/mathsprint.js"
+  ],
+  "triggers": [
+   "js/games/study.js",
+   "js/games/triggers-content.js",
+   "js/games/triggers.js"
+  ],
+  "fruit": [
+   "js/games/fruit.js"
+  ],
+  "climb": [
+   "js/games/climb.js"
+  ],
+  "archery": [
+   "js/games/archery.js"
+  ],
+  "gorilla": [
+   "js/games/gorilla.js"
+  ],
+  "birdwatch": [
+   "js/games/birdwatch.js"
+  ],
+  "brawl": [
+   "js/games/brawl.js"
+  ]
+ }
+}

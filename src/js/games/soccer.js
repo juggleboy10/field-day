@@ -57,7 +57,7 @@
       }
       for (const side of [-1, 1]) addBox(G, HW - GW, 0.9, 0.15, boardMat, side * (GW + (HW - GW) / 2), 0.45, s * (HL + 0.08));
     }
-    const netT = hoops.linkTex.clone();
+    const netT = linkTex().clone();
     netT.needsUpdate = true;
     netT.repeat.set(40 / 0.2, 3 / 0.2);
     const netMat = new THREE.MeshBasicMaterial({ map: netT, transparent: true, opacity: 0.35, side: THREE.DoubleSide, depthWrite: false, color: 0xdde4ee });
@@ -75,7 +75,7 @@
     }
     // goals
     const postMat = lam(0xffffff);
-    const goalNetT = hoops.linkTex.clone();
+    const goalNetT = linkTex().clone();
     goalNetT.needsUpdate = true;
     goalNetT.repeat.set(6 / 0.12, 2.2 / 0.12);
     const goalNet = new THREE.MeshBasicMaterial({ map: goalNetT, transparent: true, opacity: 0.6, side: THREE.DoubleSide, depthWrite: false });

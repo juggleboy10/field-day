@@ -101,5 +101,6 @@ js/app/modes.js
 js/app/net.js
 js/app/menu.js
 js/app/hud.js
+js/app/loader.js
 js/app/main.js
 html/bottom.html

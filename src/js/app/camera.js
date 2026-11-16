@@ -433,15 +433,20 @@
       m.position.copy(o.pos); m.quaternion.copy(o.quat);
       m.children[1].visible = true;    // (once it's down, its back shows the picture too, so it reads from either side)
       const it = Object.assign(o, { mesh: m, btn: null });
-      const L = LEVELS[o.lv];
-      if (L && Array.isArray(L.buttons)) {
-        it.btn = { L, pos: o.pos.clone(), mesh: m, mat: m.userData.mat, onPress: () => { if (ready(it.btn)) pickUp(it); }, cool: 0, pressT: -1e9, baseY: o.pos.y, lit: false, label: 'Print', away: true, ready: false };
-        L.buttons.push(it.btn);
-      }
+      attachBtn(it);
       P.placed.push(it);
       while (P.placed.length > 12) removePlaced(P.placed[0]);    // (twelve about at most: the oldest goes)
       return it;
     }
+    // A print's button belongs to the place it's in. That place may not be built yet: levelLoaded attaches it then.
+    function attachBtn(it) {
+      const L = LEVELS[it.lv], o = it, m = it.mesh;
+      if (!it.btn && L && Array.isArray(L.buttons)) {
+        it.btn = { L, pos: o.pos.clone(), mesh: m, mat: m.userData.mat, onPress: () => { if (ready(it.btn)) pickUp(it); }, cool: 0, pressT: -1e9, baseY: o.pos.y, lit: false, label: 'Print', away: true, ready: false };
+        L.buttons.push(it.btn);
+      }
+    }
+    function levelLoaded(L) { for (const it of P.placed) if (it.lv === L.idx) attachBtn(it); }
     function removePlaced(it) {
       const i = P.placed.indexOf(it); if (i >= 0) P.placed.splice(i, 1);
       scene.remove(it.mesh);
@@ -471,7 +476,7 @@
       try { a = JSON.parse(localStorage.getItem('fd_prints') || '[]'); } catch (e) { a = []; }
       if (!Array.isArray(a)) return;
       for (const o of a.slice(-12)) {
-        if (!o || !Number.isInteger(o.lv) || o.lv < 0 || o.lv >= LEVELS.length || !Array.isArray(o.p) || o.p.length !== 3 || !Array.isArray(o.q) || o.q.length !== 4) continue;
+        if (!o || !Number.isInteger(o.lv) || o.lv < 0 || o.lv >= LEVEL_META.length || !Array.isArray(o.p) || o.p.length !== 3 || !Array.isArray(o.q) || o.q.length !== 4) continue;
         if (![...o.p, ...o.q].every((x) => Number.isFinite(x) && Math.abs(x) < 500)) continue;
         const own = typeof o.lid === 'string' && o.lid ? mine.find((p) => p.id === o.lid) : null;
         const src = own ? own.src : (okSrc(o.s) ? o.s : '');
@@ -922,7 +927,7 @@
     ];
     const loading = load();
     return {
-      C, mine, P, WALLS, body, print, toggle, flipSelfie, snap, tick, viewCam, afterRender, hud, openAlbum, closeAlbum, develop, aim, drawWalls, drawWall: drawWalls,
+      C, mine, P, WALLS, levelLoaded, body, print, toggle, flipSelfie, snap, tick, viewCam, afterRender, hud, openAlbum, closeAlbum, develop, aim, drawWalls, drawWall: drawWalls,
       isOn: () => C.on, pres, onE, keepPhoto: (url) => addMine(url), setZoom, stickBusy, drawLcd, pcam, eyeG, theirs, pressSlot, takePrint, placeHeld, pickUp, binHeld, setKept, removeMine, shareOne, unshareOne, download, loading,
       get photos() { return mine.map((p) => p.src); },
     };

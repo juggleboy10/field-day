@@ -171,10 +171,7 @@
     state.colorIdx = i;
     const hex = PLAYER_COLORS[i].hex;
     myHandMat.color.set(hex);
-    discgolf.setColor(hex);
-    minigolf.setColor(hex);
-    bowling.setColor(hex);
-    karts.setColor(hex);
+    for (const Lv of LEVELS) if (Lv && Lv.setColor) Lv.setColor(hex);
     drawPreview();
     savePrefs();
     state.dirtyBoard = true;

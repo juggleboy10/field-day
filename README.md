@@ -42,6 +42,13 @@ The tests open the page with `?test`, which makes the game expose its insides as
 
 Each file is its own ordinary script, run in the order listed in `src/order.txt`. They share the page's top level: a file can use any `const` or function declared at the top of a file above it. So top-level names must be unique across the game (`python3 tools/check_scope.py`, after `cd tools && npm install` once).
 
+**Places are built on demand.** Only the core and the clubhouse run when the page opens. Every other place's files sit
+in `index.html` as text, and `src/js/app/loader.js` runs them the first time you go to that place (`LEVELS[i]` is empty
+until then). `src/manifest.json` says which files each place needs; `python3 tools/manifest.py` rewrites it from the
+code, and the scope check fails if it's out of date. A game file can use anything in the core, but the core can't use
+names from a game file. `?eager` in the address builds everything at startup; so does `?test`, unless `?lazy` is there
+too (`tests/v101.py` tests the on-demand path). `python3 tools/build.py --single` builds the old way.
+
 ## Build and test
 
 ```

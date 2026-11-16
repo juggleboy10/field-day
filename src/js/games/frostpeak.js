@@ -2,7 +2,8 @@
   // New enemies (snow goblins, frost archers, yetis, ice bats, frost sprites and the Frost King) and a new projectile:
   // ice shards, glowing pale blue.
   PROJ.ice = { code: 4, speed: 11, gravity: 1.0, color: 0xcfefff, glow: 0x7ad8ff, size: 0.2, dmg: 1 };
-  PROJ_BY_CODE.push(PROJ.ice);
+  PROJ_BY_CODE[4] = PROJ.ice;
+  enemySlot(24);
   defEnemy('snowgob', { hp: 3, r: 0.42, h: 1.35, speed: 1.8, ai: 'melee', reach: 1.15, windup: 0.55, cool: 1.3, dmg: 1,
     mesh(g, arm, M) {
       const skin = M(0x9ac8e8), fur = M(0xf4f8ff), dark = M(0x4a6a8a);

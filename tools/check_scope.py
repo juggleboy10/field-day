@@ -8,6 +8,7 @@ to the browser as a whole. This fails if:
     anything on `window` (it would replace it), or a const/let/class with the name of something on `window` that
     can't be replaced (the script wouldn't load at all)
   - a file has a `return` outside any function
+  - an always-loaded file uses something from a game file, or src/manifest.json (which files each place needs) is stale
 
 Needs node with acorn (cd tools && npm install) and Playwright.   Usage: python3 tools/check_scope.py
 """
@@ -52,6 +53,11 @@ def main():
     print(f"{len(seen)} shared names in {len(files)} files" + (f"; these hide a browser name of the same name (allowed): {', '.join(shadows)}" if shadows else ""))
     if problems:
         print("\n".join(problems))
+        sys.exit(1)
+    # and the list of files each place needs still matches the code
+    m = subprocess.run([sys.executable, str(TOOLS / "manifest.py"), "--check"], capture_output=True, text=True)
+    print((m.stdout or m.stderr).strip())
+    if m.returncode:
         sys.exit(1)
     print("scope check passed")
 

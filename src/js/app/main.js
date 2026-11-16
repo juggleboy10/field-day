@@ -1,10 +1,5 @@
   // ---------------------------------------------------------------- main loop
-  hoops.throwSpeed = [3, 12, 0.2];
-  baseball.throwSpeed = [4, 24, 0.08];
-  baseball.lockWhileHolding = true;
-  discgolf.walkSpeed = 3.4;
-  // the places where a little hop is on (J in a browser; A or X, or the right stick pushed up, in VR)
-  for (const id of ['hoops', 'baseball', 'lasertag', 'hub', 'hideseek', 'paintball', 'dodgeball', 'ctf']) { const Lv = LEVELS.find((l) => l && l.id === id); if (Lv) { Lv.canHop = true; Lv.vrHop = true; } }
+  LOADER.boot();
   curLevel().group.visible = true;
   applyEnv(curLevel().env);
 
@@ -62,5 +57,5 @@
   // the shared records board (the Claude page's database, or records.php on your own site), if there is one
   RECORDS.shared.start();
   PHOTOS.start();
-  try { if (new URLSearchParams(location.search).has('test')) window.__fd = { LEVELS, vrHands, CAMERA, PHOTOS, prizeFx: PRIZE_FX, BOTLV, watch: { press: watchPress, btns: watchBtns, draw: () => { panelKey = ''; drawPanel(); return panelC.g.canvas.toDataURL(); } }, state, dolly, camera, myHead, myHands, RECORDS, APLUS, switchLevel, startGame, voice: { VOICE, voiceWatch, voiceResend, remotes, buildPresence, createRemote, bodyFollow }, audio: { snd, tone, sfx, ensureAudio, MUSIC } }; } catch (e) { /* ignore */ }
+  try { if (new URLSearchParams(location.search).has('test')) window.__fd = { get APLUS() { return typeof APLUS === 'undefined' ? null : APLUS; }, LEVELS, LOADER, load: (i) => LOADER.sync(i), vrHands, CAMERA, PHOTOS, prizeFx: PRIZE_FX, BOTLV, watch: { press: watchPress, btns: watchBtns, draw: () => { panelKey = ''; drawPanel(); return panelC.g.canvas.toDataURL(); } }, state, dolly, camera, myHead, myHands, RECORDS, switchLevel, startGame, voice: { VOICE, voiceWatch, voiceResend, remotes, buildPresence, createRemote, bodyFollow }, audio: { snd, tone, sfx, ensureAudio, MUSIC } }; } catch (e) { /* ignore */ }
   window.__fdReady = true;

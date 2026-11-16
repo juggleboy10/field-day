@@ -1,7 +1,8 @@
   // ---------------- Pirate Cove: a jungle island, a wrecked ship, smugglers' caves, and Captain Saltbeard's treasure
   // Its crew are new enemies, and the gunners fire a new projectile: lead shot, with a puff of a muzzle flash.
   PROJ.shot = { code: 3, speed: 12, gravity: 1.6, color: 0x2a2a2a, glow: 0xffd890, size: 0.18, dmg: 1 };
-  PROJ_BY_CODE.push(PROJ.shot);
+  PROJ_BY_CODE[3] = PROJ.shot;
+  enemySlot(18);
   defEnemy('pirate', { hp: 3, r: 0.4, h: 1.65, speed: 1.8, ai: 'melee', reach: 1.2, windup: 0.5, cool: 1.3, dmg: 1,
     mesh(g, arm, M) {
       const skin = M(0xd8a878), shirt = M(0xf2ece0), sash = M(0xc23a3a), pants = M(0x3a3a52), band = M(0xd83a3a);

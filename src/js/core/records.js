@@ -21,6 +21,7 @@
       L.recDefs = defs; L.recAt = at || null;
       if (L.kioskAt || at) build(L); else L.recPending = true;
       L.recHud = { label: () => '\u{1F3C6} Records', run: () => showPanel(L) };
+      SHARED.late(L);
     }
     const better = (d, a, b) => (d.low ? a < b : a > b);
     const fmtOf = (d) => (typeof d.fmt === 'function' ? d.fmt : FMT[d.fmt || 'int'] || FMT.int);
@@ -132,20 +133,23 @@
     // entry per device). Each player's document holds their best for every record: { n: name, b: { "game.key": value } }.
     // Without either, the boards are just this device's (plus friends met in the room).
     const SHARED = (() => {
-      const S = { mode: 'off', db: null, uid: '', dev: '', pushT: 0, timer: 0, lastPush: '', note: '' };
+      const S = { mode: 'off', db: null, uid: '', dev: '', pushT: 0, timer: 0, lastPush: '', note: '', players: [] };
       const byId = () => { const m = {}; for (const L of LEVELS) if (L && L.recDefs) m[L.id] = L; return m; };
-      // all my bests, as one map
+      // All my bests, as one map. It's read from what this device has saved, not from the places that happen to be
+      // built: a place you haven't visited this time still has your records in it. (Each saved list is in order, best
+      // first, so my first entry in it is my best.)
       function myBests() {
-        const me = state.name || 'You', b = {};
-        for (const L of LEVELS) {
-          if (!L || !L.recDefs) continue;
-          for (const d of L.recDefs) { const e = listOf(L, d.k).find((x) => x[1] === me); if (e) b[`${L.id}.${d.k}`] = e[0]; }
+        const me = state.name || 'You', b = {}, s = store();
+        for (const id of Object.keys(s)) {
+          if (!s[id] || typeof s[id] !== 'object') continue;
+          for (const k of Object.keys(s[id])) { const e = listOf({ id }, k).find((x) => x[1] === me); if (e) b[`${id}.${k}`] = e[0]; }
         }
         return b;
       }
-      // put everyone's bests onto the boards
-      function absorb(players) {
-        const levels = byId();
+      // put everyone's bests onto the boards (kept, so a place built later gets them too: see late)
+      function absorb(players, only) {
+        if (!only) S.players = players;
+        const levels = only ? { [only.id]: only } : byId();
         for (const p of players) {
           if (!p || typeof p.n !== 'string' || !p.n || !p.b || typeof p.b !== 'object') continue;
           const name = p.n.slice(0, 24);
@@ -168,6 +172,8 @@
           S.lastPush = key;
         } catch (e) { S.note = 'couldn\u2019t save to the shared board just now'; }
       }
+      // a place that's just been built: put what the shared board last said onto it
+      function late(L) { if (S.players.length) absorb(S.players, L); }
       // a moment after a new result (several in a row go up together)
       function soon() { if (S.mode === 'off' || S.timer) return; S.timer = setTimeout(push, 2500); }
       async function pull() {
@@ -204,7 +210,7 @@
           } catch (e) { /* no records.php here */ }
         }
       }
-      return { start, soon, pull, push, absorb, myBests, get mode() { return S.mode; }, S };
+      return { start, soon, pull, push, absorb, late, myBests, get mode() { return S.mode; }, S };
     })();
     return { def, add, mine, merge, build, draw, hidePanel, list: listOf, fmtTime, shared: SHARED };
   })();

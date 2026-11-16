@@ -18,7 +18,9 @@
     if (state.mode !== 'vr') camera.rotation.set(state.pitch, state.yaw, 0, 'YXZ');
   }
   function switchLevel(i) {
-    if (i === state.level || !LEVELS[i]) return;
+    if (i === state.level || !LEVEL_META[i]) { LOADER.want = -1; return; }
+    if (!LEVELS[i]) { LOADER.go(i); return; }     // (not built yet: it's loaded, then this runs again)
+    LOADER.want = -1;
     const old = curLevel();
     dropMine();
     old.onExit(); RECORDS.hidePanel();

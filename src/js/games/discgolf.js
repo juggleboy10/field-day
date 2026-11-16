@@ -844,4 +844,4 @@
     ENDGAME.on(L, { active: () => true, end: () => { restartRound(); return 'Back to the first tee.'; } });
     return L;
   })();
-
+  discgolf.walkSpeed = 3.4;

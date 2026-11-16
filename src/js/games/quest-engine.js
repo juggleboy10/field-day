@@ -1369,7 +1369,7 @@
       const seen = new Set();
       if (Array.isArray(dh.e)) {
         for (const a of dh.e.slice(0, 30)) {
-          if (!Array.isArray(a) || (a.length !== 11 && a.length !== 12) || !int(a[0], 0, 1e9) || !int(a[1], 0, ENEMIES.length - 1) || !num(a[2], 300) || !num(a[3], 300) || !num(a[4], 50) || !int(a[5], 0, 999) || !int(a[6], 1, 999) || !int(a[7], 0, 5) || !int(a[8], 0, 1e9) || !num(a[9], 30) || !int(a[10], 0, 1)) continue;
+          if (!Array.isArray(a) || (a.length !== 11 && a.length !== 12) || !int(a[0], 0, 1e9) || !int(a[1], 0, ENEMIES.length - 1) || !ENEMIES[a[1]] || !num(a[2], 300) || !num(a[3], 300) || !num(a[4], 50) || !int(a[5], 0, 999) || !int(a[6], 1, 999) || !int(a[7], 0, 5) || !int(a[8], 0, 1e9) || !num(a[9], 30) || !int(a[10], 0, 1)) continue;
           let e = L.enemies.get(a[0]);
           if (!e) { e = makeEnemy(a[0], a[1], a[2], a[3], a[9]); e.lastAc = a[8]; }
           if (a[11] === 1) makeChamp(e);
@@ -1386,7 +1386,7 @@
       }
       if (Array.isArray(dh.p)) {
         for (const a of dh.p.slice(0, 14)) {
-          if (!Array.isArray(a) || a.length !== 8 || !int(a[0], 0, 1e9) || !a.slice(1, 7).every((x) => num(x, 300)) || !int(a[7], 0, PROJ_BY_CODE.length - 1)) continue;
+          if (!Array.isArray(a) || a.length !== 8 || !int(a[0], 0, 1e9) || !a.slice(1, 7).every((x) => num(x, 300)) || !PROJ_BY_CODE[a[7]] || !int(a[7], 0, PROJ_BY_CODE.length - 1)) continue;
           if (seenProj.has(a[0])) continue;
           seenProj.add(a[0]);
           L.spawnProjectile(a[0], new V3(a[1], a[2], a[3]), new V3(a[4], a[5], a[6]), a[7]);

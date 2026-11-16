@@ -143,7 +143,7 @@
     }
 
     // backstop
-    const linkT = hoops.linkTex.clone();
+    const linkT = linkTex().clone();
     linkT.needsUpdate = true;
     linkT.repeat.set(16 / 0.14, 6 / 0.14);
     const back = new THREE.Mesh(new THREE.PlaneGeometry(16, 6), new THREE.MeshBasicMaterial({ map: linkT, transparent: true, opacity: 0.6, side: THREE.DoubleSide, depthWrite: false, color: 0x9aa0b8 }));
@@ -1388,4 +1388,5 @@
     ENDGAME.on(L, { active: () => gameOn(), end: () => { gameRequest(2); return 'Start a new game when everyone’s ready.'; } });
     return L;
   })();
-
+  baseball.throwSpeed = [4, 24, 0.08];
+  baseball.lockWhileHolding = true;

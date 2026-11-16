@@ -64,6 +64,11 @@ tool and loses live `let` bindings (only a handful of core `let`s exist), but no
 
 ### Steps
 
+**Where this stands (v101):** 1.0 to 1.3 are done, and 1.4 in a simple form: places stay inside the one `index.html` as
+text and are run on first visit (startup script time about 3 s to 0.4 s on the test machine). Still to do from 1.4: a
+fade and a VR "Loading" card, and warming up likely places. 1.5 (separate files) is now optional: it would cut the
+download, not the startup time.
+
 **1.0 Guard rails (no behaviour change).**
 - Replace `build.sh` with `tools/build.py` (same output for now), so later steps can emit several files.
 - Add `tools/check_scope.py`, which fails the build on:
