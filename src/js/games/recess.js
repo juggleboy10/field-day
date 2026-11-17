@@ -27,13 +27,16 @@
     const rand = mulberry32(2424);
 
     // ---------------------------------------------------------------- the schoolyard
+    // (all of it stands still: it's built in a group of its own and merged at the end of this part, so the fence's
+    // six hundred pickets and the rest cost a handful of draw calls)
+    const Y = new THREE.Group(); G.add(Y);
     const grassT = canvasTexture(256, 256, (g) => {
       g.fillStyle = '#6aaa3a'; g.fillRect(0, 0, 256, 256);
       for (let i = 0; i < 2600; i++) { g.fillStyle = rand() < 0.5 ? 'rgba(255,255,180,0.08)' : 'rgba(20,60,10,0.12)'; g.fillRect(rand() * 256, rand() * 256, 2, 3); }
     }).tex;
     grassT.wrapS = grassT.wrapT = THREE.RepeatWrapping; grassT.repeat.set(30, 40);
     const ground = new THREE.Mesh(new THREE.PlaneGeometry(160, 220), new THREE.MeshLambertMaterial({ map: grassT }));
-    ground.rotation.x = -Math.PI / 2; ground.position.set(0, -0.01, -45); G.add(ground);
+    ground.rotation.x = -Math.PI / 2; ground.position.set(0, -0.01, -45); Y.add(ground);
     // the lane: soft blue rubber matting, with white edge lines
     const matT = canvasTexture(128, 128, (g) => {
       g.fillStyle = '#4a8ad8'; g.fillRect(0, 0, 128, 128);
@@ -41,58 +44,59 @@
     }).tex;
     matT.wrapS = matT.wrapT = THREE.RepeatWrapping; matT.repeat.set(3, 55);
     const lane = new THREE.Mesh(new THREE.PlaneGeometry(LANE * 2 + 0.4, 136), new THREE.MeshLambertMaterial({ map: matT, polygonOffset: true, polygonOffsetFactor: -1 }));
-    lane.rotation.x = -Math.PI / 2; lane.position.set(0, 0.002, -60); G.add(lane);
+    lane.rotation.x = -Math.PI / 2; lane.position.set(0, 0.002, -60); Y.add(lane);
     const white = lam(0xffffff);
-    for (const s of [-1, 1]) addBox(G, 0.08, 0.01, 136, white, s * (LANE + 0.16), 0.008, -60);
+    for (const s of [-1, 1]) addBox(Y, 0.08, 0.01, 136, white, s * (LANE + 0.16), 0.008, -60);
     // a low picket fence down both sides, in rainbow colours
     {
       const cols = [0xff5a5a, 0xffa23a, 0xffd23f, 0x6ad04a, 0x4ab0ff, 0xa07aff].map(lam);
       for (const s of [-1, 1]) for (let z = 5; z > -128; z -= 0.45) {
-        const p = addBox(G, 0.1, 0.75, 0.06, cols[Math.floor((5 - z) / 0.45) % cols.length], s * (LANE + 0.45), 0.375, z);
+        const p = addBox(Y, 0.1, 0.75, 0.06, cols[Math.floor((5 - z) / 0.45) % cols.length], s * (LANE + 0.45), 0.375, z);
         void p;
       }
-      for (const s of [-1, 1]) for (const y of [0.25, 0.6]) addBox(G, 0.04, 0.06, 133, white, s * (LANE + 0.42), y, -61.5);
+      for (const s of [-1, 1]) for (const y of [0.25, 0.6]) addBox(Y, 0.04, 0.06, 133, white, s * (LANE + 0.42), y, -61.5);
     }
     // the school, trees, a swing set and a seesaw out on the grass
     {
       const brick = lam(0xc8684a), trim = lam(0xf2ead8), roof = lam(0x5a6a7a), glass = lam(0x9ad0ff);
-      addBox(G, 30, 8, 10, brick, -26, 4, -40);
-      addBox(G, 30.6, 0.6, 10.6, roof, -26, 8.3, -40);
-      for (let i = 0; i < 6; i++) for (const y of [2.4, 5.6]) { addBox(G, 2.2, 1.6, 0.1, glass, -38 + i * 4.8, y, -34.95); addBox(G, 2.5, 0.12, 0.14, trim, -38 + i * 4.8, y - 0.86, -34.92); }
-      addBox(G, 2.4, 3, 0.1, lam(0x2a5a9a), -14, 1.5, -34.95);
-      makePlate(G, 'MAPLE STREET SCHOOL', 7, 0.8, new V3(-26, 7.1, -34.88), 0, { bg: '#f2ead8', fg: '#7a2a1a', size: 0.6 });
+      addBox(Y, 30, 8, 10, brick, -26, 4, -40);
+      addBox(Y, 30.6, 0.6, 10.6, roof, -26, 8.3, -40);
+      for (let i = 0; i < 6; i++) for (const y of [2.4, 5.6]) { addBox(Y, 2.2, 1.6, 0.1, glass, -38 + i * 4.8, y, -34.95); addBox(Y, 2.5, 0.12, 0.14, trim, -38 + i * 4.8, y - 0.86, -34.92); }
+      addBox(Y, 2.4, 3, 0.1, lam(0x2a5a9a), -14, 1.5, -34.95);
+      makePlate(Y, 'MAPLE STREET SCHOOL', 7, 0.8, new V3(-26, 7.1, -34.88), 0, { bg: '#f2ead8', fg: '#7a2a1a', size: 0.6 });
       const trunk = lam(0x7a5a3a), leaves = [lam(0x4a9a3a), lam(0x5aaa44), lam(0x3a8a2a)];
       for (let k = 0; k < 28; k++) {
         const side = k % 2 ? 1 : -1, x = side * (8 + rand() * 30), z = 10 - rand() * 120;
         if (x < -9 && z < -32 && z > -48) continue;
         const h = 2.4 + rand() * 2;
-        addCyl(G, 0.22, 0.3, h, 7, trunk, x, h / 2, z);
-        const c = new THREE.Mesh(new THREE.IcosahedronGeometry(1.6 + rand() * 1.2, 1), leaves[k % 3]); c.position.set(x, h + 1.3, z); G.add(c);
+        addCyl(Y, 0.22, 0.3, h, 7, trunk, x, h / 2, z);
+        const c = new THREE.Mesh(new THREE.IcosahedronGeometry(1.6 + rand() * 1.2, 1), leaves[k % 3]); c.position.set(x, h + 1.3, z); Y.add(c);
       }
       // swings
       const metal = lam(0xff5a5a);
-      for (const s of [-1, 1]) for (const dz of [-1, 1]) { const leg = addBox(G, 0.1, 3.2, 0.1, metal, 12 + s * 3, 1.5, -20 + dz * 0.8); leg.rotation.x = dz * 0.25; }
-      addBox(G, 6.4, 0.12, 0.12, metal, 12, 3.05, -20);
-      for (const x of [10.6, 13.4]) { for (const s of [-1, 1]) addBox(G, 0.03, 2.2, 0.03, lam(0x444444), x + s * 0.3, 1.9, -20); addBox(G, 0.75, 0.06, 0.3, lam(0x3a3a4a), x, 0.8, -20); }
+      for (const s of [-1, 1]) for (const dz of [-1, 1]) { const leg = addBox(Y, 0.1, 3.2, 0.1, metal, 12 + s * 3, 1.5, -20 + dz * 0.8); leg.rotation.x = dz * 0.25; }
+      addBox(Y, 6.4, 0.12, 0.12, metal, 12, 3.05, -20);
+      for (const x of [10.6, 13.4]) { for (const s of [-1, 1]) addBox(Y, 0.03, 2.2, 0.03, lam(0x444444), x + s * 0.3, 1.9, -20); addBox(Y, 0.75, 0.06, 0.3, lam(0x3a3a4a), x, 0.8, -20); }
       // a seesaw
-      addBox(G, 0.4, 0.5, 0.4, lam(0xffd23f), 12, 0.25, -52);
-      const plank = addBox(G, 0.35, 0.08, 4.2, lam(0x4ab0ff), 12, 0.6, -52); plank.rotation.x = 0.18;
+      addBox(Y, 0.4, 0.5, 0.4, lam(0xffd23f), 12, 0.25, -52);
+      const plank = addBox(Y, 0.35, 0.08, 4.2, lam(0x4ab0ff), 12, 0.6, -52); plank.rotation.x = 0.18;
       // a sandbox
-      addBox(G, 4, 0.25, 4, lam(0xe8d8a0), -12, 0.12, -8);
-      for (const [x, z, w, d] of [[-12, -10, 4.2, 0.2], [-12, -6, 4.2, 0.2], [-14, -8, 0.2, 4], [-10, -8, 0.2, 4]]) addBox(G, w, 0.35, d, lam(0xa0703a), x, 0.17, z);
+      addBox(Y, 4, 0.25, 4, lam(0xe8d8a0), -12, 0.12, -8);
+      for (const [x, z, w, d] of [[-12, -10, 4.2, 0.2], [-12, -6, 4.2, 0.2], [-14, -8, 0.2, 4], [-10, -8, 0.2, 4]]) addBox(Y, w, 0.35, d, lam(0xa0703a), x, 0.17, z);
     }
     // bunting over the start
     {
-      for (const s of [-1, 1]) addCyl(G, 0.07, 0.07, 3.6, 8, lam(0xf2ead8), s * (LANE + 0.6), 1.8, -0.5);
+      for (const s of [-1, 1]) addCyl(Y, 0.07, 0.07, 3.6, 8, lam(0xf2ead8), s * (LANE + 0.6), 1.8, -0.5);
       const flagCols = [0xff5a5a, 0xffd23f, 0x4ab0ff, 0x6ad04a, 0xa07aff, 0xffa23a];
       const n = 14;
       for (let i = 0; i < n; i++) {
         const t = (i + 0.5) / n, x = -(LANE + 0.6) + t * (LANE + 0.6) * 2, y = 3.5 - Math.sin(t * Math.PI) * 0.5;
         const f = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.34, 3), new THREE.MeshLambertMaterial({ color: flagCols[i % flagCols.length], side: THREE.DoubleSide }));
-        f.rotation.x = Math.PI; f.position.set(x, y - 0.17, -0.5); G.add(f);
+        f.rotation.x = Math.PI; f.position.set(x, y - 0.17, -0.5); Y.add(f);
       }
-      makePlate(G, 'RECESS RUSH', 3.6, 0.6, new V3(0, 4.15, -0.5), 0, { bg: '#ffd23f', fg: '#2a3a8a', size: 0.7 });
+      makePlate(Y, 'RECESS RUSH', 3.6, 0.6, new V3(0, 4.15, -0.5), 0, { bg: '#ffd23f', fg: '#2a3a8a', size: 0.7 });
     }
+    mergeStatic(Y);
 
     // ---------------------------------------------------------------- solids, the slide, holds (as in Skyline Sprint)
     const SOL = [], RAMPS = [], HOLDS = [];

@@ -47,6 +47,7 @@
     netTick(now);
     renderer.render(scene, CAMERA.viewCam() || camera);   // (a browser selfie shows what the camera sees)
     perfFrame(now, raw * 1000);
+    mergeWatch(now);
     CAMERA.afterRender();
   });
 

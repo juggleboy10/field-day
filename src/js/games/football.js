@@ -81,6 +81,9 @@
       for (const sx of [-1, 1]) addCyl(field, 0.06, 0.06, 6, 8, postMat, sx * 2.82, 6.05, zz);
     }
     L.GOAL_FROM_LINE = 10;
+    // the field's markings and posts never move on the field (the whole field slides under you): a few meshes in place
+    // of hundreds of little lines
+    mergeStatic(field);
     // line of scrimmage (blue) and the first-down line (yellow): these stay with the ball, not the field
     const losLine = new THREE.Mesh(new THREE.PlaneGeometry(HALF_W * 2, 0.14), new THREE.MeshBasicMaterial({ color: 0x4f8aff, transparent: true, opacity: 0.85 }));
     losLine.rotation.x = -Math.PI / 2; losLine.position.y = 0.02; G.add(losLine);

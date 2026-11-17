@@ -119,6 +119,16 @@
     const m = mesh.material;
     return { e: Array.from(_mgM.elements, (x) => Math.round(x * 1000)), shown, layer: mesh.layers.mask, col: m.color ? m.color.getHex() : 0, op: m.opacity, vis: m.visible, attached: mesh.parent !== null };
   }
+  // (test mode) every two seconds: if anything merged has changed, say so as a page error, which every test catches
+  let mergeWatchT = 0, mergeWatchSaid = false;
+  function mergeWatch(now) {
+    if (!MERGE_TEST || mergeWatchSaid || !MERGED.length || now < mergeWatchT) return;
+    mergeWatchT = now + 2000;
+    const bad = mergeCheck();
+    if (!bad.length) return;
+    mergeWatchSaid = true;
+    setTimeout(() => { throw new Error(`merged scenery changed: ${bad.slice(0, 4).map((b) => `${b.name} ${b.what}`).join('; ')}`); });
+  }
   function mergeCheck() {
     const bad = [];
     for (const r of MERGED) {

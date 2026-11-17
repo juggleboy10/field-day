@@ -115,6 +115,9 @@
     // a window in the foyer, for the lightning
     const win = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 1.8), new THREE.MeshBasicMaterial({ color: 0x1a2040 })); win.position.set(-RW / 2 + 0.02, 1.9, 2.5); win.rotation.y = Math.PI / 2; G.add(win);
     addBox(G, 0.05, 1.8, 0.06, lam(0x2a1a10), -RW / 2 + 0.04, 1.9, 2.5); addBox(G, 0.05, 0.06, 1.4, lam(0x2a1a10), -RW / 2 + 0.04, 1.9, 2.5);
+    // The house stands still, bar the doors (they swing open), the candle flames (they flicker) and the window (it
+    // flashes with the lightning): the rest goes into a few meshes. (The ghosts and flashlights come after this.)
+    mergeStatic(G, { keep: [...doors.map((d) => d.g), ...candles.map((c) => c.f), win] });
 
     // ---------------------------------------------------------------- flashlights
     function makeTorch() {

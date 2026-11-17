@@ -2,15 +2,15 @@
  "places": [
   {
    "id": "hoops",
-   "calls": 264,
-   "drawn": 14728,
+   "calls": 271,
+   "drawn": 15490,
    "meshes": 223,
    "mats": 102,
    "tris": 19218,
-   "calls_min": 263,
-   "drawn_min": 14726,
+   "calls_min": 259,
+   "drawn_min": 14688,
    "idx": 0,
-   "build_ms": 51
+   "build_ms": 38.5
   },
   {
    "id": "baseball",
@@ -22,7 +22,7 @@
    "calls_min": 68,
    "drawn_min": 15234,
    "idx": 1,
-   "build_ms": 47.6
+   "build_ms": 31.8
   },
   {
    "id": "discgolf",
@@ -34,43 +34,43 @@
    "calls_min": 45,
    "drawn_min": 32490,
    "idx": 2,
-   "build_ms": 65.9
+   "build_ms": 51.3
   },
   {
    "id": "dungeon",
-   "calls": 375,
-   "drawn": 20904,
-   "meshes": 298,
-   "mats": 81,
-   "tris": 6165,
-   "calls_min": 374,
-   "drawn_min": 20724,
+   "calls": 152,
+   "drawn": 21180,
+   "meshes": 310,
+   "mats": 89,
+   "tris": 7923,
+   "calls_min": 149,
+   "drawn_min": 20956,
    "idx": 3,
-   "build_ms": 44.3
+   "build_ms": 40.5
   },
   {
    "id": "lasertag",
-   "calls": 167,
-   "drawn": 13672,
+   "calls": 145,
+   "drawn": 10668,
    "meshes": 267,
    "mats": 149,
    "tris": 24830,
    "calls_min": 132,
    "drawn_min": 10546,
    "idx": 4,
-   "build_ms": 24
+   "build_ms": 20.1
   },
   {
    "id": "soccer",
    "calls": 110,
-   "drawn": 11650,
+   "drawn": 10236,
    "meshes": 213,
    "mats": 101,
    "tris": 24150,
-   "calls_min": 83,
-   "drawn_min": 9418,
+   "calls_min": 109,
+   "drawn_min": 9576,
    "idx": 5,
-   "build_ms": 27.6
+   "build_ms": 27
   },
   {
    "id": "minigolf",
@@ -79,10 +79,10 @@
    "meshes": 703,
    "mats": 447,
    "tris": 71529,
-   "calls_min": 462,
-   "drawn_min": 57872,
+   "calls_min": 457,
+   "drawn_min": 57502,
    "idx": 6,
-   "build_ms": 96.4
+   "build_ms": 106.9
   },
   {
    "id": "bowling",
@@ -94,7 +94,7 @@
    "calls_min": 173,
    "drawn_min": 14006,
    "idx": 7,
-   "build_ms": 38.9
+   "build_ms": 16.5
   },
   {
    "id": "hub",
@@ -115,70 +115,70 @@
    "meshes": 281,
    "mats": 113,
    "tris": 26036,
-   "calls_min": 105,
-   "drawn_min": 18922,
+   "calls_min": 114,
+   "drawn_min": 19344,
    "idx": 9,
-   "build_ms": 81.1
+   "build_ms": 41.2
   },
   {
    "id": "siege",
-   "calls": 402,
-   "drawn": 20064,
-   "meshes": 373,
-   "mats": 123,
-   "tris": 6318,
-   "calls_min": 399,
-   "drawn_min": 20060,
+   "calls": 81,
+   "drawn": 20826,
+   "meshes": 390,
+   "mats": 132,
+   "tris": 10254,
+   "calls_min": 76,
+   "drawn_min": 20816,
    "idx": 10,
-   "build_ms": 38.2
+   "build_ms": 37.8
   },
   {
    "id": "hexwood",
-   "calls": 317,
-   "drawn": 69548,
-   "meshes": 233,
-   "mats": 98,
-   "tris": 12859,
-   "calls_min": 313,
-   "drawn_min": 69264,
+   "calls": 104,
+   "drawn": 70384,
+   "meshes": 250,
+   "mats": 109,
+   "tris": 19971,
+   "calls_min": 100,
+   "drawn_min": 70326,
    "idx": 11,
-   "build_ms": 50.3
+   "build_ms": 35.7
   },
   {
    "id": "hideseek",
-   "calls": 129,
-   "drawn": 20030,
+   "calls": 130,
+   "drawn": 20042,
    "meshes": 202,
    "mats": 103,
    "tris": 5172,
-   "calls_min": 126,
-   "drawn_min": 20002,
+   "calls_min": 130,
+   "drawn_min": 20042,
    "idx": 12,
-   "build_ms": 29.6
+   "build_ms": 24
   },
   {
    "id": "charades",
-   "calls": 124,
-   "drawn": 4006,
+   "calls": 125,
+   "drawn": 4008,
    "meshes": 160,
    "mats": 107,
    "tris": 3948,
-   "calls_min": 124,
-   "drawn_min": 3996,
+   "calls_min": 123,
+   "drawn_min": 3994,
    "idx": 13,
-   "build_ms": 23.6
+   "build_ms": 15.7
   },
   {
    "id": "paintball",
-   "calls": 101,
-   "drawn": 5134,
+   "calls": 95,
+   "drawn": 4992,
    "meshes": 278,
    "mats": 165,
    "tris": 24690,
-   "calls_min": 101,
-   "drawn_min": 5134,
+   "calls_min": 95,
+   "drawn_min": 4992,
    "idx": 14,
-   "build_ms": 36.1
+   "build_ms": 19.6
   },
   {
    "id": "pickleball",
@@ -190,55 +190,55 @@
    "calls_min": 33,
    "drawn_min": 1922,
    "idx": 15,
-   "build_ms": 18
+   "build_ms": 40.9
   },
   {
    "id": "parkour",
-   "calls": 160,
-   "drawn": 8524,
+   "calls": 162,
+   "drawn": 8514,
    "meshes": 420,
    "mats": 291,
    "tris": 20072,
-   "calls_min": 160,
-   "drawn_min": 8524,
+   "calls_min": 162,
+   "drawn_min": 8514,
    "idx": 16,
-   "build_ms": 105.7
+   "build_ms": 29.8
   },
   {
    "id": "dodgeball",
-   "calls": 103,
-   "drawn": 13082,
+   "calls": 118,
+   "drawn": 14320,
    "meshes": 199,
    "mats": 112,
    "tris": 27192,
-   "calls_min": 102,
-   "drawn_min": 13070,
+   "calls_min": 118,
+   "drawn_min": 13650,
    "idx": 17,
-   "build_ms": 17.7
+   "build_ms": 27.2
   },
   {
    "id": "potato",
-   "calls": 145,
-   "drawn": 9890,
+   "calls": 163,
+   "drawn": 10480,
    "meshes": 387,
    "mats": 91,
    "tris": 26986,
-   "calls_min": 143,
-   "drawn_min": 9886,
+   "calls_min": 134,
+   "drawn_min": 10446,
    "idx": 18,
-   "build_ms": 71.9
+   "build_ms": 22.6
   },
   {
    "id": "kayak",
-   "calls": 54,
-   "drawn": 26820,
+   "calls": 56,
+   "drawn": 26822,
    "meshes": 165,
    "mats": 105,
    "tris": 27132,
-   "calls_min": 54,
-   "drawn_min": 26820,
+   "calls_min": 55,
+   "drawn_min": 26810,
    "idx": 19,
-   "build_ms": 36.1
+   "build_ms": 33
   },
   {
    "id": "cornhole",
@@ -250,31 +250,31 @@
    "calls_min": 58,
    "drawn_min": 2616,
    "idx": 20,
-   "build_ms": 17.5
+   "build_ms": 18.5
   },
   {
    "id": "ctf",
-   "calls": 168,
-   "drawn": 14070,
+   "calls": 196,
+   "drawn": 15740,
    "meshes": 372,
    "mats": 109,
    "tris": 35202,
-   "calls_min": 168,
-   "drawn_min": 14070,
+   "calls_min": 196,
+   "drawn_min": 15740,
    "idx": 21,
-   "build_ms": 32.4
+   "build_ms": 19
   },
   {
    "id": "pirate",
-   "calls": 375,
-   "drawn": 39318,
-   "meshes": 309,
-   "mats": 89,
-   "tris": 7618,
-   "calls_min": 375,
-   "drawn_min": 39318,
+   "calls": 158,
+   "drawn": 39204,
+   "meshes": 323,
+   "mats": 97,
+   "tris": 10618,
+   "calls_min": 158,
+   "drawn_min": 39204,
    "idx": 22,
-   "build_ms": 37.9
+   "build_ms": 34.1
   },
   {
    "id": "trivia",
@@ -286,19 +286,19 @@
    "calls_min": 95,
    "drawn_min": 4778,
    "idx": 23,
-   "build_ms": 57.6
+   "build_ms": 93.8
   },
   {
    "id": "recess",
-   "calls": 958,
-   "drawn": 106260,
+   "calls": 959,
+   "drawn": 106272,
    "meshes": 1091,
    "mats": 238,
    "tris": 46148,
-   "calls_min": 958,
-   "drawn_min": 106168,
+   "calls_min": 959,
+   "drawn_min": 106272,
    "idx": 24,
-   "build_ms": 267.8
+   "build_ms": 65.4
   },
   {
    "id": "beats",
@@ -310,7 +310,7 @@
    "calls_min": 34,
    "drawn_min": 1942,
    "idx": 25,
-   "build_ms": 17.7
+   "build_ms": 9.2
   },
   {
    "id": "juggle",
@@ -322,7 +322,7 @@
    "calls_min": 39,
    "drawn_min": 3898,
    "idx": 26,
-   "build_ms": 10.9
+   "build_ms": 11.6
   },
   {
    "id": "workout",
@@ -346,7 +346,7 @@
    "calls_min": 206,
    "drawn_min": 10480,
    "idx": 28,
-   "build_ms": 12.9
+   "build_ms": 49.6
   },
   {
    "id": "football",
@@ -358,19 +358,19 @@
    "calls_min": 480,
    "drawn_min": 28662,
    "idx": 29,
-   "build_ms": 44.3
+   "build_ms": 39.3
   },
   {
    "id": "frostpeak",
-   "calls": 352,
-   "drawn": 29583,
-   "meshes": 282,
-   "mats": 76,
-   "tris": 5781,
-   "calls_min": 351,
-   "drawn_min": 29383,
+   "calls": 170,
+   "drawn": 29671,
+   "meshes": 295,
+   "mats": 84,
+   "tris": 6713,
+   "calls_min": 166,
+   "drawn_min": 29435,
    "idx": 30,
-   "build_ms": 135.1
+   "build_ms": 37
   },
   {
    "id": "skeeball",
@@ -382,7 +382,7 @@
    "calls_min": 113,
    "drawn_min": 12854,
    "idx": 31,
-   "build_ms": 128.1
+   "build_ms": 50.9
   },
   {
    "id": "chairs",
@@ -394,7 +394,7 @@
    "calls_min": 67,
    "drawn_min": 3637,
    "idx": 32,
-   "build_ms": 28.8
+   "build_ms": 17.7
   },
   {
    "id": "boxing",
@@ -406,19 +406,19 @@
    "calls_min": 49,
    "drawn_min": 3520,
    "idx": 33,
-   "build_ms": 234.3
+   "build_ms": 34.1
   },
   {
    "id": "snowball",
-   "calls": 215,
-   "drawn": 17558,
+   "calls": 209,
+   "drawn": 16298,
    "meshes": 406,
    "mats": 284,
    "tris": 35258,
-   "calls_min": 209,
-   "drawn_min": 16298,
+   "calls_min": 192,
+   "drawn_min": 15730,
    "idx": 34,
-   "build_ms": 30.4
+   "build_ms": 22.5
   },
   {
    "id": "toboggan",
@@ -430,7 +430,7 @@
    "calls_min": 145,
    "drawn_min": 45272,
    "idx": 35,
-   "build_ms": 86.5
+   "build_ms": 30.3
   },
   {
    "id": "darts",
@@ -442,7 +442,7 @@
    "calls_min": 19,
    "drawn_min": 1596,
    "idx": 36,
-   "build_ms": 57.8
+   "build_ms": 15.2
   },
   {
    "id": "volleyball",
@@ -454,7 +454,7 @@
    "calls_min": 70,
    "drawn_min": 2580,
    "idx": 37,
-   "build_ms": 17.5
+   "build_ms": 17.7
   },
   {
    "id": "pillow",
@@ -466,7 +466,7 @@
    "calls_min": 26,
    "drawn_min": 2548,
    "idx": 38,
-   "build_ms": 24.6
+   "build_ms": 13
   },
   {
    "id": "haunted",
@@ -478,7 +478,7 @@
    "calls_min": 413,
    "drawn_min": 6710,
    "idx": 39,
-   "build_ms": 33.5
+   "build_ms": 19.9
   },
   {
    "id": "llama",
@@ -490,7 +490,7 @@
    "calls_min": 96,
    "drawn_min": 15679,
    "idx": 40,
-   "build_ms": 67.9
+   "build_ms": 29.1
   },
   {
    "id": "rps",
@@ -502,7 +502,7 @@
    "calls_min": 50,
    "drawn_min": 1862,
    "idx": 41,
-   "build_ms": 106.2
+   "build_ms": 30
   },
   {
    "id": "dance",
@@ -514,7 +514,7 @@
    "calls_min": 37,
    "drawn_min": 4152,
    "idx": 42,
-   "build_ms": 30.7
+   "build_ms": 40.9
   },
   {
    "id": "strongman",
@@ -526,19 +526,19 @@
    "calls_min": 129,
    "drawn_min": 5838,
    "idx": 43,
-   "build_ms": 39.2
+   "build_ms": 24.1
   },
   {
    "id": "duckshoot",
-   "calls": 243,
-   "drawn": 14860,
+   "calls": 242,
+   "drawn": 15044,
    "meshes": 1430,
    "mats": 853,
    "tris": 95410,
-   "calls_min": 235,
-   "drawn_min": 14326,
+   "calls_min": 229,
+   "drawn_min": 14000,
    "idx": 44,
-   "build_ms": 84.7
+   "build_ms": 53.6
   },
   {
    "id": "ringtoss",
@@ -550,7 +550,7 @@
    "calls_min": 117,
    "drawn_min": 5130,
    "idx": 45,
-   "build_ms": 40.3
+   "build_ms": 25.2
   },
   {
    "id": "whack",
@@ -562,19 +562,19 @@
    "calls_min": 56,
    "drawn_min": 5302,
    "idx": 46,
-   "build_ms": 20.6
+   "build_ms": 14.7
   },
   {
    "id": "lightspeed",
-   "calls": 118,
-   "drawn": 10764,
+   "calls": 119,
+   "drawn": 10812,
    "meshes": 347,
    "mats": 240,
    "tris": 27508,
    "calls_min": 118,
    "drawn_min": 10764,
    "idx": 47,
-   "build_ms": 26.6
+   "build_ms": 22.7
   },
   {
    "id": "quizblaster",
@@ -586,7 +586,7 @@
    "calls_min": 42,
    "drawn_min": 6600,
    "idx": 48,
-   "build_ms": 177.6
+   "build_ms": 61
   },
   {
    "id": "portsorter",
@@ -598,7 +598,7 @@
    "calls_min": 96,
    "drawn_min": 5216,
    "idx": 49,
-   "build_ms": 56.4
+   "build_ms": 36.6
   },
   {
    "id": "pcbuild",
@@ -610,7 +610,7 @@
    "calls_min": 156,
    "drawn_min": 8638,
    "idx": 50,
-   "build_ms": 104.2
+   "build_ms": 91.6
   },
   {
    "id": "helpdesk",
@@ -622,7 +622,7 @@
    "calls_min": 45,
    "drawn_min": 6640,
    "idx": 51,
-   "build_ms": 66.9
+   "build_ms": 62.1
   },
   {
    "id": "cmddojo",
@@ -634,7 +634,7 @@
    "calls_min": 48,
    "drawn_min": 6648,
    "idx": 52,
-   "build_ms": 76.3
+   "build_ms": 58.4
   },
   {
    "id": "mathsprint",
@@ -646,7 +646,7 @@
    "calls_min": 43,
    "drawn_min": 6564,
    "idx": 53,
-   "build_ms": 105
+   "build_ms": 52
   },
   {
    "id": "triggers",
@@ -658,7 +658,7 @@
    "calls_min": 39,
    "drawn_min": 6710,
    "idx": 54,
-   "build_ms": 125.5
+   "build_ms": 53
   },
   {
    "id": "fruit",
@@ -670,7 +670,7 @@
    "calls_min": 69,
    "drawn_min": 2708,
    "idx": 55,
-   "build_ms": 22.6
+   "build_ms": 9.3
   },
   {
    "id": "climb",
@@ -682,7 +682,7 @@
    "calls_min": 58,
    "drawn_min": 4192,
    "idx": 56,
-   "build_ms": 84.1
+   "build_ms": 24.3
   },
   {
    "id": "archery",
@@ -694,7 +694,7 @@
    "calls_min": 199,
    "drawn_min": 10514,
    "idx": 57,
-   "build_ms": 27.6
+   "build_ms": 18.5
   },
   {
    "id": "gorilla",
@@ -706,19 +706,19 @@
    "calls_min": 65,
    "drawn_min": 3342,
    "idx": 58,
-   "build_ms": 39.3
+   "build_ms": 19.4
   },
   {
    "id": "birdwatch",
-   "calls": 126,
-   "drawn": 44410,
-   "meshes": 186,
-   "mats": 72,
-   "tris": 48888,
-   "calls_min": 101,
-   "drawn_min": 41722,
+   "calls": 150,
+   "drawn": 46990,
+   "meshes": 197,
+   "mats": 89,
+   "tris": 49720,
+   "calls_min": 136,
+   "drawn_min": 45682,
    "idx": 59,
-   "build_ms": 178.9
+   "build_ms": 144.2
   },
   {
    "id": "brawl",
@@ -730,7 +730,7 @@
    "calls_min": 120,
    "drawn_min": 11566,
    "idx": 60,
-   "build_ms": 17
+   "build_ms": 18
   }
  ]
 }

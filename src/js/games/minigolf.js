@@ -473,6 +473,15 @@
       makePlate(G, 'Ducky says hi', 1.2, 0.2, new V3(dx, 0.4, dz + 1.2), 0, { size: 0.55, bg: '#ffffff', fg: '#1b1932' });
     }
 
+    // The courses stand still, bar the moving features: each feature keeps hold of its moving parts (f.mesh, f.group,
+    // f.blades, ...), so everything a feature holds is left alone and the rest goes into a few meshes.
+    {
+      const keep = [];
+      const grab = (v) => { if (v && v.isObject3D) keep.push(v); else if (Array.isArray(v)) v.forEach(grab); else if (v && typeof v === 'object' && !v.isVector3 && !(v instanceof Float32Array)) for (const w of Object.values(v)) if (w && (w.isObject3D || Array.isArray(w))) grab(w); };
+      for (const H of HOLES) for (const f of H.feats) for (const v of Object.values(f)) grab(v);
+      mergeStatic(G, { keep });
+    }
+
     // boards, kiosk
     L.board = makeBoard(G, 720, 460, 3.4, 2.17, 0, 2.6, -24.4, 0);
     const boardBack = makeBoard(G, 720, 460, 3.4, 2.17, 0, 2.6, -24.5, Math.PI, false);      // (the same card, for the last row)
