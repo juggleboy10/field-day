@@ -139,10 +139,17 @@
     const ctx = { L, G, ROOMS, PATHS, rand, torches, flameMat, coreMat, ironMat, inst, playable, groundY, onPath };
     const postGeo = new THREE.CylinderGeometry(0.06, 0.08, 1, 6), postMat = lam(0x3a2a20);
     const poleGeo = boxg(0.12, 1, 0.12), poleMat = lam(0x2a3040);
+    // (the wall lights' glows are drawn as two batches, one call each, in place of two Sprites apiece: see glowBatch)
+    const glowB = glowBatch(warmGlowTex, lightCol), coreB = glowBatch(paleSunTex, 0xffe6b0);
     function lightAt(x, z) {
       const y = TH.wallLight === 'neon' ? 2.3 : TH.wallLight === 'lantern' ? 2.4 : 2.0;
       if (TH.wallLight === 'neon') inst('npole', poleGeo, poleMat, x, 1.1, z, 1, 2.2, 1);
       else if (TH.wallLight !== 'lantern') inst('tpost', postGeo, postMat, x, 0.9, z, 1, 1.8, 1);
+      if (glowB) {
+        const ph = rand() * 100, fl = TH.wallLight === 'lantern';
+        glowB.add(x, y, z, 0.9, 0.9, ph, fl); coreB.add(x, y, z, 0.22, fl ? 0.22 : 0.3, ph, fl);
+        return;
+      }
       const glow = new THREE.Sprite(flameMat); glow.position.set(x, y, z); glow.scale.set(0.9, 0.9, 1);
       const core = new THREE.Sprite(coreMat); core.position.set(x, y, z); core.scale.set(0.22, 0.3, 1);
       G.add(glow, core);
@@ -256,6 +263,10 @@
     }
     L.SOLIDS = SOLIDS;
     flushInstances();
+    // Everything built so far stands still, bar the gates and the weapons on the racks: bake it into a few meshes.
+    // (After the solid parts are worked out from the separate meshes, which stay where they are, just not drawn.)
+    if (glowB) { glowB.done(G); coreB.done(G); }
+    L.merged = mergeStatic(G, { keep: [...L.gates.map((gt) => gt.g), ...L.tools.map((t) => t.g)] });
     addCyl(G, 0.32, 0.42, 1.0, 16, lam(TH.pedestal || 0x4a4552), VAULT0.cx, 0.5, VAULT0.cz);
     const goal = cfg.goal.make(ctx);
     goal.mesh.position.set(VAULT0.cx, 1.32, VAULT0.cz);
@@ -1613,7 +1624,7 @@
         const open = L.q.pg > i;
         const target = open ? -CORR_H - 0.2 : 0;
         gt.y += (target - gt.y) * Math.min(1, dt * 1.6);
-        if (gt.g.userData.ward) { gt.g.userData.ward.material.opacity = open ? Math.max(0, gt.g.userData.ward.material.opacity - dt) : 0.35 + Math.sin(now * 0.004) * 0.12; gt.g.visible = gt.g.userData.ward.material.opacity > 0.01; }
+        if (gt.g.userData.ward) { gt.g.userData.ward.material.opacity = open ? Math.max(0, gt.g.userData.ward.material.opacity - dt) : 0.35 + (FX_STILL ? 0 : Math.sin(now * 0.004) * 0.12); gt.g.visible = gt.g.userData.ward.material.opacity > 0.01; }
         else gt.g.position.y = gt.y;
       });
       const camNow = new V3(); camera.getWorldPosition(camNow);
@@ -1624,14 +1635,15 @@
           t.glow.position.x = t.bx + (dx / d) * k; t.glow.position.z = t.bz + (dz / d) * k;
           if (t.core) { t.core.position.x = t.glow.position.x; t.core.position.z = t.glow.position.z; }
         }
+        if (FX_STILL && (t.blink || t.beacon || t.firefly)) continue;
         if (t.blink) { t.glow.visible = Math.sin(now * 0.004 + t.phase) > 0.2; continue; }
         if (t.beacon) { t.glow.scale.setScalar(22 + Math.sin(now * 0.003) * 5); continue; }
         if (t.firefly) { const k = now * 0.0006 + t.phase; t.glow.position.set(t.x0 + Math.sin(k * 1.3) * 1.2, t.y0 + Math.sin(k * 2.1) * 0.5, t.z0 + Math.cos(k) * 1.2); t.glow.material.opacity = 0.5 + 0.5 * Math.sin(k * 7); continue; }
-        const f = 0.9 + 0.1 * Math.sin(now * 0.017 + t.phase) + 0.06 * Math.sin(now * 0.043 + t.phase * 2);
+        const f = FX_STILL ? 1 : 0.9 + 0.1 * Math.sin(now * 0.017 + t.phase) + 0.06 * Math.sin(now * 0.043 + t.phase * 2);
         if (t.sx) t.glow.scale.set(t.sx * f, t.sy, 1);
         else t.glow.scale.setScalar((t.big ? 1.7 : 0.9) * f);
         if (t.core) t.core.scale.set(0.22 * f, (t.float ? 0.22 : 0.3) * f, 1);
-        if (t.float) { const y = t.y0 + Math.sin(now * 0.0015 + t.phase) * 0.12; t.glow.position.y = y; if (t.core) t.core.position.y = y; }
+        if (t.float) { const y = t.y0 + (FX_STILL ? 0 : Math.sin(now * 0.0015 + t.phase) * 0.12); t.glow.position.y = y; if (t.core) t.core.position.y = y; }
       }
       for (const r of ROOMS) r.light.intensity = (TH.lightIntensity || 1.5) * (0.94 + 0.06 * Math.sin(now * 0.011 + r.cz));
       const sun = L.sunstone;

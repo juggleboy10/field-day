@@ -7,6 +7,7 @@
   //     skipped when drawing.
   //   - The originals stay where they are, on a layer nothing draws or hits (31), so anything that refers to them, and
   //     anything hung under them, carries on as before.
+  // (An InstancedMesh calls itself a 'Mesh' too in this three.js: it's already one draw call, and is left alone.)
   // Left alone: anything marked with userData.live (or under something marked), anything hidden, transparent, with
   // several materials or a special render order, and anything in opts.keep (and what's under it).
   // Call it once the scenery's built and before anything moves. Merging something that later moves, hides or changes
@@ -36,7 +37,7 @@
     const picked = [];
     (function walk(obj, ok) {
       if (obj !== root && (!obj.visible || keep.has(obj) || (obj.userData && obj.userData.live))) ok = false;
-      if (ok && obj !== root && obj.type === 'Mesh' && obj.layers.mask === 1 && !Array.isArray(obj.material) && obj.material && MERGE_KINDS[obj.material.type]
+      if (ok && obj !== root && obj.isMesh && !obj.isInstancedMesh && !obj.isSkinnedMesh && obj.type === 'Mesh' && obj.layers.mask === 1 && !Array.isArray(obj.material) && obj.material && MERGE_KINDS[obj.material.type]
         && !obj.material.transparent && obj.material.opacity === 1 && obj.material.visible && obj.renderOrder === 0 && !obj.onBeforeRender.length
         && obj.geometry && obj.geometry.isBufferGeometry && obj.geometry.attributes.position && obj.geometry.attributes.normal && !obj.geometry.morphAttributes.position) {
         const mk = mergeKey(obj.material);
@@ -133,4 +134,77 @@
       }
     }
     return bad;
+  }
+
+  // ================================================================ GLOW BATCH: many flickering glows drawn as one mesh
+  // A glow drawn as a Sprite costs a draw call each, and a quest has a hundred wall lights with two glows apiece. This
+  // draws a whole set of them (same picture, same colour) in one go: each is a little square that turns to face you,
+  // and the flicker, the bob of a floating lantern and the lean toward you (so a wall at an angle can't slice the
+  // glow in half) are worked out on the graphics card, exactly as the quest's Sprites used to do them.
+  //   const b = glowBatch(tex, color); b.add(x, y, z, sx, sy, phase, float); ...; b.done(group)
+  // ?nomerge turns these off too (the place then uses Sprites as before); ?still (test mode) stops the flicker, so
+  // pictures of a place can be compared.
+  const FX_STILL = MERGE_TEST && (() => { try { return new URLSearchParams(location.search).has('still'); } catch (e) { return false; } })();
+  const GLOW_VS = `
+    uniform float time; uniform float still;
+    attribute vec3 center; attribute vec4 prm;
+    varying vec2 vUv;
+    #include <fog_pars_vertex>
+    void main() {
+      vUv = uv;
+      float f = still > 0.5 ? 1.0 : 0.9 + 0.1 * sin(time * 0.017 + prm.z) + 0.06 * sin(time * 0.043 + prm.z * 2.0);
+      vec3 c = center;
+      if (prm.w > 0.5 && still < 0.5) c.y += sin(time * 0.0015 + prm.z) * 0.12;
+      vec3 wc = (modelMatrix * vec4(c, 1.0)).xyz;
+      vec2 d = cameraPosition.xz - wc.xz; float len = max(length(d), 1e-4);
+      wc.xz += d / len * min(0.25, len * 0.5);
+      vec4 mvPosition = viewMatrix * vec4(wc, 1.0);
+      mvPosition.xy += (uv - 0.5) * prm.xy * f;
+      gl_Position = projectionMatrix * mvPosition;
+      #include <fog_vertex>
+    }`;
+  const GLOW_FS = `
+    uniform sampler2D map; uniform vec3 diffuse;
+    varying vec2 vUv;
+    #include <fog_pars_fragment>
+    void main() {
+      gl_FragColor = vec4(diffuse, 1.0) * texture2D(map, vUv);
+      #include <fog_fragment>
+    }`;
+  function glowBatch(tex, color) {
+    if (MERGE_OFF) return null;
+    const items = [];
+    return {
+      add(x, y, z, sx, sy, phase, float) { items.push([x, y, z, sx, sy, phase || 0, float ? 1 : 0]); },
+      get count() { return items.length; },
+      done(group) {
+        if (!items.length) return null;
+        const n = items.length, pos = new Float32Array(n * 12), uv = new Float32Array(n * 8), cen = new Float32Array(n * 12), prm = new Float32Array(n * 16), idx = new Uint16Array(n * 6);
+        const UV = [0, 0, 1, 0, 1, 1, 0, 1];
+        items.forEach(([x, y, z, sx, sy, ph, fl], i) => {
+          for (let k = 0; k < 4; k++) {
+            const j = i * 4 + k;
+            pos[j * 3] = x; pos[j * 3 + 1] = y; pos[j * 3 + 2] = z;     // (only for the bounds: the shader places the corners)
+            cen[j * 3] = x; cen[j * 3 + 1] = y; cen[j * 3 + 2] = z;
+            uv[j * 2] = UV[k * 2]; uv[j * 2 + 1] = UV[k * 2 + 1];
+            prm[j * 4] = sx; prm[j * 4 + 1] = sy; prm[j * 4 + 2] = ph; prm[j * 4 + 3] = fl;
+          }
+          idx.set([i * 4, i * 4 + 1, i * 4 + 2, i * 4, i * 4 + 2, i * 4 + 3], i * 6);
+        });
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+        geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+        geo.setAttribute('center', new THREE.BufferAttribute(cen, 3));
+        geo.setAttribute('prm', new THREE.BufferAttribute(prm, 4));
+        geo.setIndex(new THREE.BufferAttribute(idx, 1));
+        const uni = THREE.UniformsUtils.merge([THREE.UniformsLib.fog, { time: { value: 0 }, still: { value: FX_STILL ? 1 : 0 }, map: { value: null }, diffuse: { value: new THREE.Color(color) } }]);
+        uni.map.value = tex;
+        const mat = new THREE.ShaderMaterial({ uniforms: uni, vertexShader: GLOW_VS, fragmentShader: GLOW_FS, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, fog: true });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.name = 'glows'; mesh.frustumCulled = false; mesh.matrixAutoUpdate = false;
+        mesh.onBeforeRender = () => { uni.time.value = performance.now(); };
+        group.add(mesh); mesh.updateMatrixWorld(true);
+        return mesh;
+      },
+    };
   }
