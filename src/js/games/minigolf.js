@@ -479,6 +479,8 @@
       const keep = [];
       const grab = (v) => { if (v && v.isObject3D) keep.push(v); else if (Array.isArray(v)) v.forEach(grab); else if (v && typeof v === 'object' && !v.isVector3 && !(v instanceof Float32Array)) for (const w of Object.values(v)) if (w && (w.isObject3D || Array.isArray(w))) grab(w); };
       for (const H of HOLES) for (const f of H.feats) for (const v of Object.values(f)) grab(v);
+      // (and everything in the lists the moving features keep for the per-frame update)
+      for (const list of [spinners, mills, ponds, moles, sharks, frogs, walkers, belts, ufos, kicks, camels, volcanos]) for (const it of list) { grab(it); if (it && !it.isObject3D) for (const v of Object.values(it)) grab(v); }
       mergeStatic(G, { keep });
     }
 
