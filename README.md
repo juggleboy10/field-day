@@ -17,7 +17,7 @@ src/
   js/app/              controls (VR and browser), switching places, networking, the menu, the HUD, the main loop
 build.sh               builds index.html from src/ (tools/build.py)
 tools/check_scope.py   checks the names the files share (no duplicates, nothing the browser already has)
-tools/measure.py       what each place costs to build and to draw
+tools/measure.py       what each place costs to build and to draw (--record sets tests/budgets.json, which tests/budgets.py checks)
 docs/PLAN.md           the plan for loading places on demand, the match kit and Quest frame rate
 tests/smoke.py         plays every place for a few seconds and fails on any page error
 tests/parkour.py       Skyline Sprint physics: landing on the stepping stones, climbing over the walls

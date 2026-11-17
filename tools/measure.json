@@ -1,113 +1,16 @@
 {
- "build_ms": {
-  "js/core/sound.js": 0.0,
-  "js/core/shared.js": 4.2,
-  "js/core/records.js": 0.0,
-  "js/core/botlevel.js": 0.1,
-  "js/core/endgame.js": 0.0,
-  "js/core/music.js": 1.7,
-  "js/core/voice.js": 1.8,
-  "js/core/watch.js": 17.8,
-  "js/core/remotes.js": 0.0,
-  "js/core/bodies.js": 0.1,
-  "js/core/claims.js": 0.0,
-  "js/core/quest-registry.js": 0.2,
-  "js/core/prizes.js": 0.6,
-  "js/games/hoops.js": 43.3,
-  "js/games/baseball.js": 33.0,
-  "js/games/discgolf.js": 46.3,
-  "js/games/quest-engine.js": 0,
-  "js/games/quest-shared.js": 0.4,
-  "js/games/dungeon.js": 39.8,
-  "js/games/siege.js": 31.1,
-  "js/games/hexwood.js": 41.7,
-  "js/games/piratecove.js": 20.1,
-  "js/games/frostpeak.js": 18.5,
-  "js/core/teams.js": 0.0,
-  "js/games/lasertag.js": 22.1,
-  "js/games/soccer.js": 16.5,
-  "js/games/minigolf.js": 79.3,
-  "js/games/drivingrange.js": 11.3,
-  "js/games/bowling.js": 13.9,
-  "js/games/clubhouse/hub.js": 28.4,
-  "js/games/clubhouse/airhockey.js": 4.5,
-  "js/games/clubhouse/pingpong.js": 3.2,
-  "js/games/clubhouse/jukebox.js": 11.0,
-  "js/games/clubhouse/foosball.js": 3.6,
-  "js/games/clubhouse/popashot.js": 2.8,
-  "js/games/clubhouse/d20.js": 1.8,
-  "js/games/karts.js": 32.2,
-  "js/games/hideseek.js": 20.2,
-  "js/games/charades.js": 11.6,
-  "js/games/paintball.js": 15.4,
-  "js/games/pickleball.js": 11.7,
-  "js/games/parkour.js": 25.3,
-  "js/games/dodgeball.js": 9.9,
-  "js/games/hotpotato.js": 16.7,
-  "js/games/kayak.js": 24.2,
-  "js/games/cornhole.js": 11.3,
-  "js/games/ctf.js": 53.2,
-  "js/games/trivia-questions.js": 0.0,
-  "js/games/trivia.js": 51.6,
-  "js/games/recess.js": 39.9,
-  "js/games/beats.js": 5.1,
-  "js/games/juggle.js": 6.5,
-  "js/games/workout.js": 5.2,
-  "js/games/wallrush.js": 6.3,
-  "js/games/football.js": 26.7,
-  "js/games/skeeball.js": 25.1,
-  "js/games/chairs.js": 14.3,
-  "js/games/boxing.js": 24.1,
-  "js/games/snowball.js": 16.7,
-  "js/games/toboggan.js": 31.0,
-  "js/games/darts.js": 17.4,
-  "js/games/volleyball.js": 9.1,
-  "js/games/pillow.js": 9.0,
-  "js/games/haunted.js": 13.2,
-  "js/games/llama.js": 12,
-  "js/games/rps.js": 27.7,
-  "js/games/dance.js": 10.9,
-  "js/games/carnival.js": 0.1,
-  "js/games/strongman.js": 15.1,
-  "js/games/duckshoot.js": 44.3,
-  "js/games/ringtoss.js": 23.6,
-  "js/games/whack.js": 13.6,
-  "js/games/lightspeed.js": 13.7,
-  "js/games/study-content.js": 0.1,
-  "js/games/study.js": 0.7,
-  "js/games/quizblaster.js": 14.3,
-  "js/games/portsorter.js": 12.1,
-  "js/games/pcbuild.js": 36.3,
-  "js/games/helpdesk.js": 13.5,
-  "js/games/cmddojo.js": 11.3,
-  "js/games/mathsprint.js": 9.4,
-  "js/games/triggers-content.js": 0.0,
-  "js/games/triggers.js": 26.5,
-  "js/games/fruit.js": 4.6,
-  "js/games/climb.js": 10.6,
-  "js/games/archery.js": 16.1,
-  "js/games/gorilla.js": 12.3,
-  "js/games/birdwatch.js": 120.4,
-  "js/games/brawl.js": 5.7,
-  "js/app/photoshare.js": 0.1,
-  "js/app/camera.js": 3.8,
-  "js/app/vr-controls.js": 0.4,
-  "js/app/flat-controls.js": 0.1,
-  "js/app/modes.js": 0.0,
-  "js/app/net.js": 0.2,
-  "js/app/menu.js": 2.2,
-  "js/app/hud.js": 12.6
- },
  "places": [
   {
    "id": "hoops",
-   "calls": 268,
-   "drawn": 15484,
+   "calls": 270,
+   "drawn": 15488,
    "meshes": 223,
-   "mats": 100,
+   "mats": 102,
    "tris": 19218,
-   "textures": 44,
-   "geometries": 202
+   "calls_min": 265,
+   "drawn_min": 14750,
+   "idx": 0,
+   "build_ms": 42.2
   },
   {
    "id": "baseball",
@@ -116,48 +19,58 @@
    "meshes": 195,
    "mats": 82,
    "tris": 13536,
-   "textures": 54,
-   "geometries": 253
+   "calls_min": 68,
+   "drawn_min": 15234,
+   "idx": 1,
+   "build_ms": 33.7
   },
   {
    "id": "discgolf",
    "calls": 45,
    "drawn": 32490,
    "meshes": 162,
-   "mats": 98,
+   "mats": 100,
    "tris": 8826,
-   "textures": 68,
-   "geometries": 293
+   "calls_min": 45,
+   "drawn_min": 32490,
+   "idx": 2,
+   "build_ms": 68.9
   },
   {
    "id": "dungeon",
-   "calls": 375,
-   "drawn": 20904,
+   "calls": 378,
+   "drawn": 21128,
    "meshes": 298,
    "mats": 81,
    "tris": 6165,
-   "textures": 74,
-   "geometries": 506
+   "calls_min": 376,
+   "drawn_min": 20816,
+   "idx": 3,
+   "build_ms": 35.9
   },
   {
    "id": "lasertag",
-   "calls": 139,
-   "drawn": 10608,
+   "calls": 167,
+   "drawn": 13672,
    "meshes": 263,
    "mats": 145,
    "tris": 24774,
-   "textures": 88,
-   "geometries": 601
+   "calls_min": 155,
+   "drawn_min": 13152,
+   "idx": 4,
+   "build_ms": 20.6
   },
   {
    "id": "soccer",
-   "calls": 83,
-   "drawn": 9418,
+   "calls": 132,
+   "drawn": 12332,
    "meshes": 213,
    "mats": 101,
    "tris": 24150,
-   "textures": 99,
-   "geometries": 655
+   "calls_min": 110,
+   "drawn_min": 10236,
+   "idx": 5,
+   "build_ms": 48.9
   },
   {
    "id": "minigolf",
@@ -166,8 +79,10 @@
    "meshes": 703,
    "mats": 447,
    "tris": 71529,
-   "textures": 135,
-   "geometries": 1107
+   "calls_min": 462,
+   "drawn_min": 57872,
+   "idx": 6,
+   "build_ms": 94.3
   },
   {
    "id": "bowling",
@@ -176,78 +91,94 @@
    "meshes": 230,
    "mats": 61,
    "tris": 16758,
-   "textures": 145,
-   "geometries": 1161
+   "calls_min": 173,
+   "drawn_min": 14006,
+   "idx": 7,
+   "build_ms": 16.4
   },
   {
    "id": "hub",
-   "calls": 124,
-   "drawn": 10040,
+   "calls": 128,
+   "drawn": 10088,
    "meshes": 1228,
    "mats": 760,
    "tris": 65321,
-   "textures": 145,
-   "geometries": 1161
+   "calls_min": 125,
+   "drawn_min": 10052,
+   "idx": 8,
+   "build_ms": 0.0
   },
   {
    "id": "karts",
-   "calls": 105,
-   "drawn": 18922,
+   "calls": 144,
+   "drawn": 22582,
    "meshes": 281,
    "mats": 113,
    "tris": 26036,
-   "textures": 161,
-   "geometries": 1237
+   "calls_min": 116,
+   "drawn_min": 19410,
+   "idx": 9,
+   "build_ms": 36.6
   },
   {
    "id": "siege",
-   "calls": 398,
-   "drawn": 20048,
+   "calls": 406,
+   "drawn": 20132,
    "meshes": 373,
    "mats": 123,
    "tris": 6318,
-   "textures": 171,
-   "geometries": 1484
+   "calls_min": 402,
+   "drawn_min": 20124,
+   "idx": 10,
+   "build_ms": 28
   },
   {
    "id": "hexwood",
    "calls": 315,
-   "drawn": 69416,
+   "drawn": 69436,
    "meshes": 233,
    "mats": 98,
    "tris": 12859,
-   "textures": 178,
-   "geometries": 1560
+   "calls_min": 314,
+   "drawn_min": 69414,
+   "idx": 11,
+   "build_ms": 46.8
   },
   {
    "id": "hideseek",
-   "calls": 127,
-   "drawn": 20004,
+   "calls": 130,
+   "drawn": 20042,
    "meshes": 202,
    "mats": 103,
    "tris": 5172,
-   "textures": 184,
-   "geometries": 1679
+   "calls_min": 130,
+   "drawn_min": 20042,
+   "idx": 12,
+   "build_ms": 34.9
   },
   {
    "id": "charades",
-   "calls": 122,
-   "drawn": 3992,
+   "calls": 123,
+   "drawn": 3994,
    "meshes": 160,
    "mats": 107,
    "tris": 3948,
-   "textures": 194,
-   "geometries": 1781
+   "calls_min": 123,
+   "drawn_min": 3994,
+   "idx": 13,
+   "build_ms": 15.8
   },
   {
    "id": "paintball",
-   "calls": 95,
-   "drawn": 4992,
+   "calls": 101,
+   "drawn": 5134,
    "meshes": 278,
    "mats": 165,
    "tris": 24690,
-   "textures": 203,
-   "geometries": 1875
+   "calls_min": 101,
+   "drawn_min": 5134,
+   "idx": 14,
+   "build_ms": 30.2
   },
   {
    "id": "pickleball",
@@ -256,48 +187,58 @@
    "meshes": 147,
    "mats": 106,
    "tris": 11516,
-   "textures": 210,
-   "geometries": 1907
+   "calls_min": 33,
+   "drawn_min": 1922,
+   "idx": 15,
+   "build_ms": 23.2
   },
   {
    "id": "parkour",
-   "calls": 164,
-   "drawn": 8596,
+   "calls": 163,
+   "drawn": 8594,
    "meshes": 420,
    "mats": 291,
    "tris": 20072,
-   "textures": 221,
-   "geometries": 2063
+   "calls_min": 159,
+   "drawn_min": 8468,
+   "idx": 16,
+   "build_ms": 42.5
   },
   {
    "id": "dodgeball",
-   "calls": 102,
-   "drawn": 13070,
+   "calls": 103,
+   "drawn": 13082,
    "meshes": 199,
    "mats": 112,
    "tris": 27192,
-   "textures": 230,
-   "geometries": 2122
+   "calls_min": 103,
+   "drawn_min": 13082,
+   "idx": 17,
+   "build_ms": 17.7
   },
   {
    "id": "potato",
-   "calls": 123,
-   "drawn": 9508,
+   "calls": 160,
+   "drawn": 11808,
    "meshes": 387,
    "mats": 91,
    "tris": 26986,
-   "textures": 242,
-   "geometries": 2210
+   "calls_min": 126,
+   "drawn_min": 9614,
+   "idx": 18,
+   "build_ms": 31.5
   },
   {
    "id": "kayak",
-   "calls": 55,
-   "drawn": 26832,
+   "calls": 54,
+   "drawn": 26820,
    "meshes": 165,
    "mats": 105,
    "tris": 27132,
-   "textures": 249,
-   "geometries": 2254
+   "calls_min": 53,
+   "drawn_min": 26796,
+   "idx": 19,
+   "build_ms": 47.4
   },
   {
    "id": "cornhole",
@@ -306,28 +247,34 @@
    "meshes": 123,
    "mats": 61,
    "tris": 5846,
-   "textures": 256,
-   "geometries": 2297
+   "calls_min": 58,
+   "drawn_min": 2616,
+   "idx": 20,
+   "build_ms": 15.9
   },
   {
    "id": "ctf",
-   "calls": 167,
-   "drawn": 14058,
+   "calls": 200,
+   "drawn": 15864,
    "meshes": 372,
    "mats": 109,
    "tris": 35202,
-   "textures": 265,
-   "geometries": 2424
+   "calls_min": 167,
+   "drawn_min": 14058,
+   "idx": 21,
+   "build_ms": 25.2
   },
   {
    "id": "pirate",
-   "calls": 374,
-   "drawn": 39118,
+   "calls": 376,
+   "drawn": 39318,
    "meshes": 309,
    "mats": 89,
    "tris": 7618,
-   "textures": 271,
-   "geometries": 2637
+   "calls_min": 375,
+   "drawn_min": 39318,
+   "idx": 22,
+   "build_ms": 30.4
   },
   {
    "id": "trivia",
@@ -336,28 +283,34 @@
    "meshes": 351,
    "mats": 195,
    "tris": 29760,
-   "textures": 281,
-   "geometries": 2674
+   "calls_min": 95,
+   "drawn_min": 4778,
+   "idx": 23,
+   "build_ms": 56.6
   },
   {
    "id": "recess",
-   "calls": 963,
-   "drawn": 106323,
+   "calls": 964,
+   "drawn": 106332,
    "meshes": 1091,
    "mats": 238,
    "tris": 46148,
-   "textures": 337,
-   "geometries": 3578
+   "calls_min": 958,
+   "drawn_min": 106279,
+   "idx": 24,
+   "build_ms": 69.6
   },
   {
    "id": "beats",
    "calls": 34,
    "drawn": 1942,
    "meshes": 216,
-   "mats": 138,
+   "mats": 139,
    "tris": 4040,
-   "textures": 341,
-   "geometries": 3611
+   "calls_min": 34,
+   "drawn_min": 1942,
+   "idx": 25,
+   "build_ms": 8
   },
   {
    "id": "juggle",
@@ -366,8 +319,10 @@
    "meshes": 166,
    "mats": 93,
    "tris": 7096,
-   "textures": 350,
-   "geometries": 3647
+   "calls_min": 39,
+   "drawn_min": 3898,
+   "idx": 26,
+   "build_ms": 15.2
   },
   {
    "id": "workout",
@@ -376,8 +331,10 @@
    "meshes": 149,
    "mats": 139,
    "tris": 10816,
-   "textures": 355,
-   "geometries": 3685
+   "calls_min": 49,
+   "drawn_min": 4778,
+   "idx": 27,
+   "build_ms": 7.3
   },
   {
    "id": "wallrush",
@@ -386,8 +343,10 @@
    "meshes": 217,
    "mats": 212,
    "tris": 7364,
-   "textures": 361,
-   "geometries": 3872
+   "calls_min": 206,
+   "drawn_min": 10480,
+   "idx": 28,
+   "build_ms": 14.9
   },
   {
    "id": "football",
@@ -396,18 +355,22 @@
    "meshes": 720,
    "mats": 195,
    "tris": 40850,
-   "textures": 375,
-   "geometries": 4242
+   "calls_min": 480,
+   "drawn_min": 28662,
+   "idx": 29,
+   "build_ms": 70.6
   },
   {
    "id": "frostpeak",
-   "calls": 353,
-   "drawn": 29287,
+   "calls": 352,
+   "drawn": 29383,
    "meshes": 282,
    "mats": 76,
    "tris": 5781,
-   "textures": 381,
-   "geometries": 4433
+   "calls_min": 351,
+   "drawn_min": 29383,
+   "idx": 30,
+   "build_ms": 25.3
   },
   {
    "id": "skeeball",
@@ -416,8 +379,10 @@
    "meshes": 188,
    "mats": 95,
    "tris": 15538,
-   "textures": 394,
-   "geometries": 4545
+   "calls_min": 113,
+   "drawn_min": 12854,
+   "idx": 31,
+   "build_ms": 31.7
   },
   {
    "id": "chairs",
@@ -426,8 +391,10 @@
    "meshes": 214,
    "mats": 129,
    "tris": 20620,
-   "textures": 398,
-   "geometries": 4611
+   "calls_min": 67,
+   "drawn_min": 3637,
+   "idx": 32,
+   "build_ms": 16.1
   },
   {
    "id": "boxing",
@@ -436,28 +403,34 @@
    "meshes": 156,
    "mats": 133,
    "tris": 7276,
-   "textures": 401,
-   "geometries": 4657
+   "calls_min": 49,
+   "drawn_min": 3520,
+   "idx": 33,
+   "build_ms": 40.3
   },
   {
    "id": "snowball",
-   "calls": 206,
-   "drawn": 16296,
+   "calls": 209,
+   "drawn": 16298,
    "meshes": 406,
    "mats": 284,
    "tris": 35258,
-   "textures": 416,
-   "geometries": 4819
+   "calls_min": 194,
+   "drawn_min": 15768,
+   "idx": 34,
+   "build_ms": 24.8
   },
   {
    "id": "toboggan",
-   "calls": 142,
-   "drawn": 45224,
+   "calls": 145,
+   "drawn": 45272,
    "meshes": 222,
    "mats": 171,
    "tris": 33170,
-   "textures": 421,
-   "geometries": 4950
+   "calls_min": 145,
+   "drawn_min": 45272,
+   "idx": 35,
+   "build_ms": 27
   },
   {
    "id": "darts",
@@ -466,8 +439,10 @@
    "meshes": 127,
    "mats": 111,
    "tris": 3600,
-   "textures": 426,
-   "geometries": 4968
+   "calls_min": 19,
+   "drawn_min": 1596,
+   "idx": 36,
+   "build_ms": 11.6
   },
   {
    "id": "volleyball",
@@ -476,8 +451,10 @@
    "meshes": 193,
    "mats": 157,
    "tris": 12478,
-   "textures": 433,
-   "geometries": 5037
+   "calls_min": 70,
+   "drawn_min": 2580,
+   "idx": 37,
+   "build_ms": 82.4
   },
   {
    "id": "pillow",
@@ -486,8 +463,10 @@
    "meshes": 302,
    "mats": 91,
    "tris": 25166,
-   "textures": 437,
-   "geometries": 5062
+   "calls_min": 26,
+   "drawn_min": 2548,
+   "idx": 38,
+   "build_ms": 18.4
   },
   {
    "id": "haunted",
@@ -496,8 +475,10 @@
    "meshes": 477,
    "mats": 375,
    "tris": 12881,
-   "textures": 472,
-   "geometries": 5436
+   "calls_min": 413,
+   "drawn_min": 6710,
+   "idx": 39,
+   "build_ms": 27
   },
   {
    "id": "llama",
@@ -506,8 +487,10 @@
    "meshes": 301,
    "mats": 223,
    "tris": 20416,
-   "textures": 478,
-   "geometries": 5521
+   "calls_min": 96,
+   "drawn_min": 15679,
+   "idx": 40,
+   "build_ms": 27.6
   },
   {
    "id": "rps",
@@ -516,8 +499,10 @@
    "meshes": 160,
    "mats": 110,
    "tris": 17196,
-   "textures": 504,
-   "geometries": 5566
+   "calls_min": 50,
+   "drawn_min": 1862,
+   "idx": 41,
+   "build_ms": 58.8
   },
   {
    "id": "dance",
@@ -526,8 +511,10 @@
    "meshes": 57,
    "mats": 47,
    "tris": 3672,
-   "textures": 509,
-   "geometries": 5593
+   "calls_min": 37,
+   "drawn_min": 4152,
+   "idx": 42,
+   "build_ms": 10
   },
   {
    "id": "strongman",
@@ -536,28 +523,34 @@
    "meshes": 242,
    "mats": 135,
    "tris": 10270,
-   "textures": 517,
-   "geometries": 5708
+   "calls_min": 129,
+   "drawn_min": 5838,
+   "idx": 43,
+   "build_ms": 21.4
   },
   {
    "id": "duckshoot",
-   "calls": 222,
-   "drawn": 13474,
+   "calls": 242,
+   "drawn": 14860,
    "meshes": 1430,
    "mats": 853,
    "tris": 95410,
-   "textures": 522,
-   "geometries": 5996
+   "calls_min": 232,
+   "drawn_min": 14112,
+   "idx": 44,
+   "build_ms": 83
   },
   {
    "id": "ringtoss",
-   "calls": 118,
-   "drawn": 5178,
+   "calls": 119,
+   "drawn": 5190,
    "meshes": 472,
    "mats": 152,
    "tris": 21244,
-   "textures": 524,
-   "geometries": 6132
+   "calls_min": 117,
+   "drawn_min": 5130,
+   "idx": 45,
+   "build_ms": 77.4
   },
   {
    "id": "whack",
@@ -566,18 +559,22 @@
    "meshes": 359,
    "mats": 225,
    "tris": 20602,
-   "textures": 528,
-   "geometries": 6187
+   "calls_min": 56,
+   "drawn_min": 5302,
+   "idx": 46,
+   "build_ms": 18.1
   },
   {
    "id": "lightspeed",
-   "calls": 118,
-   "drawn": 10764,
+   "calls": 119,
+   "drawn": 10812,
    "meshes": 347,
    "mats": 240,
    "tris": 27508,
-   "textures": 533,
-   "geometries": 6304
+   "calls_min": 118,
+   "drawn_min": 10764,
+   "idx": 47,
+   "build_ms": 16
   },
   {
    "id": "quizblaster",
@@ -586,18 +583,22 @@
    "meshes": 544,
    "mats": 473,
    "tris": 7462,
-   "textures": 542,
-   "geometries": 6560
+   "calls_min": 257,
+   "drawn_min": 4666,
+   "idx": 48,
+   "build_ms": 100.6
   },
   {
    "id": "portsorter",
    "calls": 117,
    "drawn": 3160,
    "meshes": 414,
-   "mats": 321,
+   "mats": 322,
    "tris": 6252,
-   "textures": 550,
-   "geometries": 6671
+   "calls_min": 116,
+   "drawn_min": 3148,
+   "idx": 49,
+   "build_ms": 32.5
   },
   {
    "id": "pcbuild",
@@ -606,8 +607,10 @@
    "meshes": 680,
    "mats": 608,
    "tris": 10328,
-   "textures": 567,
-   "geometries": 6979
+   "calls_min": 309,
+   "drawn_min": 6032,
+   "idx": 50,
+   "build_ms": 39.7
   },
   {
    "id": "helpdesk",
@@ -616,8 +619,10 @@
    "meshes": 569,
    "mats": 498,
    "tris": 7742,
-   "textures": 577,
-   "geometries": 7241
+   "calls_min": 263,
+   "drawn_min": 4622,
+   "idx": 51,
+   "build_ms": 26.4
   },
   {
    "id": "cmddojo",
@@ -626,8 +631,10 @@
    "meshes": 562,
    "mats": 491,
    "tris": 7688,
-   "textures": 584,
-   "geometries": 7505
+   "calls_min": 265,
+   "drawn_min": 4676,
+   "idx": 52,
+   "build_ms": 22.5
   },
   {
    "id": "mathsprint",
@@ -636,8 +643,10 @@
    "meshes": 551,
    "mats": 480,
    "tris": 7556,
-   "textures": 591,
-   "geometries": 7765
+   "calls_min": 261,
+   "drawn_min": 4628,
+   "idx": 53,
+   "build_ms": 34.3
   },
   {
    "id": "triggers",
@@ -646,8 +655,10 @@
    "meshes": 572,
    "mats": 501,
    "tris": 7798,
-   "textures": 599,
-   "geometries": 8030
+   "calls_min": 266,
+   "drawn_min": 4678,
+   "idx": 54,
+   "build_ms": 40.9
   },
   {
    "id": "fruit",
@@ -656,8 +667,10 @@
    "meshes": 142,
    "mats": 134,
    "tris": 3456,
-   "textures": 603,
-   "geometries": 8098
+   "calls_min": 69,
+   "drawn_min": 2708,
+   "idx": 55,
+   "build_ms": 14.9
   },
   {
    "id": "climb",
@@ -666,8 +679,10 @@
    "meshes": 205,
    "mats": 200,
    "tris": 17960,
-   "textures": 607,
-   "geometries": 8141
+   "calls_min": 58,
+   "drawn_min": 4192,
+   "idx": 56,
+   "build_ms": 14
   },
   {
    "id": "archery",
@@ -676,8 +691,10 @@
    "meshes": 401,
    "mats": 395,
    "tris": 11704,
-   "textures": 615,
-   "geometries": 8339
+   "calls_min": 199,
+   "drawn_min": 10514,
+   "idx": 57,
+   "build_ms": 23
   },
   {
    "id": "gorilla",
@@ -686,18 +703,22 @@
    "meshes": 262,
    "mats": 52,
    "tris": 12556,
-   "textures": 616,
-   "geometries": 8403
+   "calls_min": 65,
+   "drawn_min": 3342,
+   "idx": 58,
+   "build_ms": 17.5
   },
   {
    "id": "birdwatch",
-   "calls": 136,
-   "drawn": 46042,
-   "meshes": 201,
-   "mats": 84,
-   "tris": 51360,
-   "textures": 622,
-   "geometries": 8452
+   "calls": 164,
+   "drawn": 48510,
+   "meshes": 180,
+   "mats": 88,
+   "tris": 48048,
+   "calls_min": 92,
+   "drawn_min": 41426,
+   "idx": 59,
+   "build_ms": 137.2
   },
   {
    "id": "brawl",
@@ -706,8 +727,10 @@
    "meshes": 151,
    "mats": 112,
    "tris": 11954,
-   "textures": 624,
-   "geometries": 8571
+   "calls_min": 120,
+   "drawn_min": 11566,
+   "idx": 60,
+   "build_ms": 14.8
   }
  ]
 }

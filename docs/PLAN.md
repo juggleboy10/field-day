@@ -246,6 +246,11 @@ playing within 2 seconds, at the same score.
 
 ### 4a: measure and the cheap wins (do right after overhaul 1)
 
+**Where this stands (v102):** done. `tools/measure.py` measures through the loader (first-visit build time and draw
+cost per place); `tests/budgets.json` holds each place to today's numbers (`tests/budgets.py`), 24 places are over 150
+calls; the watch has a frame-rate readout (Settings); VR uses full fixed foveation and a sharpness setting; the eyepiece
+draws every other frame in a place over 150 calls. Waiting on: the owner's readings from a Quest 2.
+
 - `tools/measure.py` is in the repo and gives the ranking above. Add `tests/budgets.json` and a check in the smoke test
   that fails when a place goes over. **Proposed budget: 150 draw calls and 120,000 triangles per place** from its spawn
   point. Start by recording today's numbers as each place's ceiling, so nothing gets worse, then lower them as places

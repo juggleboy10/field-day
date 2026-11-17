@@ -889,7 +889,7 @@
           const gp2 = vrHands[C.hand].source && vrHands[C.hand].source.gamepad, ax = gp2 && gp2.axes;
           const y = ax ? (ax.length >= 4 ? ax[3] : ax[1]) : 0;
           if (Math.abs(y) > 0.2) setZoom(C.zoom * Math.exp(-y * dt * 1.6));
-          if (aim()) renderTo(eyeRT);
+          if ((!state.heavy || C.frame % 2 === 0) && aim()) renderTo(eyeRT);    // (every other frame where the place is heavy to draw)
           eyeG.position.copy(myHead.pos); eyeG.quaternion.copy(myHead.quat); eyeG.visible = true;
           body.visible = false; drawEyeHud();
         } else {

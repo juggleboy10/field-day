@@ -216,5 +216,7 @@
   if (ui.voiceToggle) ui.voiceToggle.addEventListener('change', () => setVoice(ui.voiceToggle.checked));
   if (ui.micBtn) ui.micBtn.addEventListener('click', () => { ui.micBtn.blur(); setMuted(!VOICE.muted); });
   if (ui.musicBtn) ui.musicBtn.addEventListener('click', () => { ui.musicBtn.blur(); ensureAudio(); musicTheme(curLevel().meta.id); setMusicOn(!MUSIC.on); });
+  { const pt = document.getElementById('perf-toggle'); if (pt) { pt.checked = PERF.on; pt.addEventListener('change', () => setPerf(pt.checked)); } }
+  { const vs = document.getElementById('vr-scale'); if (vs) { vs.value = ['fast', 'normal', 'sharp'].includes(prefs.vrScale) ? prefs.vrScale : 'normal'; vs.addEventListener('change', () => { prefs.vrScale = vs.value; savePrefs(); }); } }
   if (ui.musicToggle) { ui.musicToggle.checked = MUSIC.on; ui.musicToggle.addEventListener('change', () => setMusicOn(ui.musicToggle.checked, true)); }
 

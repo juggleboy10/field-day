@@ -102,6 +102,8 @@
         : 'This browser can\u2019t run VR. Open this page in your headset\u2019s browser, or play here in the browser.');
     });
   }
+  // VR sharpness (Settings): how many pixels the headset draws. Fewer is faster.
+  const VR_SCALES = { fast: 0.8, normal: 1, sharp: 1.2 };
   function enterVR() {
     ensureAudio();
     if (!navigator.xr || state.mode === 'vr') return;
@@ -112,12 +114,13 @@
       .then((s) => {
         session = s;
         session.addEventListener('end', onVREnd);
+        try { renderer.xr.setFramebufferScaleFactor(VR_SCALES[prefs.vrScale] || 1); } catch (e) { /* optional */ }
         return renderer.xr.setSession(session);
       })
       .then(() => {
         try {
           const layer = session.renderState.baseLayer;
-          if (layer && 'fixedFoveation' in layer) layer.fixedFoveation = 0.5;
+          if (layer && 'fixedFoveation' in layer) layer.fixedFoveation = 1;    // (the edges of the view drawn more coarsely: a big saving on a Quest, hard to notice)
         } catch (e) { /* optional */ }
         startGame('vr');
       })

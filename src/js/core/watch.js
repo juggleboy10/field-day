@@ -3,6 +3,37 @@
   // a game with bots, a Bots button for how good they are): poke a button with your other hand, or point at it and
   // pull that hand's trigger. Look away and it goes back to sleep.
   const HUB_IDX = 8;
+  // ---------------------------------------------------------------- the frame-rate readout (off unless it's turned on)
+  // The main loop calls perfFrame every frame. Once a second it works out the frames that second, the slowest frame
+  // and the draw calls (per eye, in VR). With the readout on, the watch face shows the frame rate, the watch panel
+  // shows all three, and in the browser they sit in the top corner. state.heavy (a place drawing more than the budget)
+  // is worked out whether it's on or not: the camera's eyepiece uses it.
+  const PERF_BUDGET = 150;
+  const PERF = { on: prefs.perf === true, sec: 0, n: 0, t0: 0, worstNow: 0, fps: 0, worst: 0, calls: 0, tris: 0, el: null };
+  function perfFrame(now, ms) {
+    const R = renderer.info.render, eyes = renderer.xr.isPresenting ? 2 : 1;
+    PERF.calls = Math.round(R.calls / eyes); PERF.tris = Math.round(R.triangles / eyes);
+    state.heavy = PERF.calls > PERF_BUDGET;
+    PERF.n += 1; PERF.worstNow = Math.max(PERF.worstNow, ms);
+    if (!PERF.t0) PERF.t0 = now;
+    if (now - PERF.t0 < 1000) return;
+    PERF.fps = Math.round(PERF.n * 1000 / (now - PERF.t0)); PERF.worst = Math.round(PERF.worstNow);
+    PERF.n = 0; PERF.worstNow = 0; PERF.t0 = now; PERF.sec += 1;
+    if (!PERF.on) return;
+    if (!PERF.el) {
+      PERF.el = document.createElement('div'); PERF.el.id = 'perf';
+      Object.assign(PERF.el.style, { position: 'fixed', top: '8px', right: '8px', zIndex: 30, padding: '4px 9px', borderRadius: '8px', background: 'rgba(16,14,30,0.78)', color: '#fff', font: '600 13px system-ui, sans-serif', pointerEvents: 'none' });
+      document.body.appendChild(PERF.el);
+    }
+    PERF.el.hidden = state.mode !== 'flat';
+    PERF.el.textContent = perfLine();
+  }
+  const perfLine = () => `${PERF.fps} fps \u00B7 worst ${PERF.worst} ms \u00B7 ${PERF.calls} draws`;
+  function setPerf(on) {
+    PERF.on = !!on; prefs.perf = PERF.on; savePrefs();
+    if (PERF.el) PERF.el.hidden = !PERF.on || state.mode !== 'flat';
+    WATCH.minute = -1; panelKey = '';
+  }
   const WATCH = { awake: false, lookT: 0, awayT: 0, cool: 0, trigPrev: false, hover: false, minute: -1, pressed: 0 };
   const watchG = new THREE.Group();
   const watchBand = new THREE.Mesh(new THREE.TorusGeometry(0.036, 0.008, 6, 22), new THREE.MeshLambertMaterial({ color: 0x2b2d42 }));
@@ -16,6 +47,15 @@
   scene.add(watchG);
   function drawWatchFace(awake) {
     const g = faceC.g, d = new Date();
+    if (PERF.on) {
+      // (green at a Quest's 72 frames a second, yellow when it's slipping, red when it's well short)
+      g.fillStyle = PERF.fps >= 68 ? '#3fbf5f' : PERF.fps >= 55 ? '#ffd23f' : '#ff5a5a'; g.beginPath(); g.arc(64, 64, 62, 0, Math.PI * 2); g.fill();
+      g.fillStyle = '#10121e'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.font = `800 50px ${DISPLAY}`; g.fillText(String(PERF.fps), 64, 58);
+      g.font = `800 20px ${BODY}`; g.fillText('fps', 64, 94);
+      faceC.tex.needsUpdate = true;
+      return;
+    }
     g.fillStyle = awake ? '#ffd23f' : '#1b1932'; g.beginPath(); g.arc(64, 64, 62, 0, Math.PI * 2); g.fill();
     g.fillStyle = awake ? '#1b1932' : '#f4f2ff'; g.font = `800 38px ${DISPLAY}`; g.textAlign = 'center'; g.textBaseline = 'middle';
     g.fillText(`${d.getHours() % 12 || 12}:${String(d.getMinutes()).padStart(2, '0')}`, 64, 66);
@@ -48,7 +88,7 @@
   const toCanvasY = (y) => (PH / 2 - y) / PH * WCH;
   function drawPanel() {
     const L = curLevel(), atHub = state.level === HUB_IDX, bots = L && L.botLv ? BOTLV.name(L) : '', btns = watchBtns();
-    const key = `${atHub}|${WATCH.hover}|${bots}|${btns.map((b) => b.id).join(',')}|${ENDGAME.armed()}|${camOn()}`;
+    const key = `${atHub}|${WATCH.hover}|${bots}|${btns.map((b) => b.id).join(',')}|${ENDGAME.armed()}|${camOn()}|${PERF.on ? PERF.sec : ''}`;
     if (key === panelKey) return;
     panelKey = key;
     const g = panelC.g;
@@ -56,7 +96,8 @@
     const bottom = WCH - 4;
     rr(g, 4, 4, WCW - 8, bottom - 4, 34); g.fillStyle = 'rgba(20,16,32,0.92)'; g.fill();
     g.textAlign = 'center'; g.textBaseline = 'middle';
-    g.fillStyle = '#ffd23f'; g.font = `800 44px ${DISPLAY}`; g.fillText('Field Day', WCW / 2, toCanvasY(0.042));
+    if (PERF.on) { g.fillStyle = PERF.fps >= 68 ? '#7ee08f' : PERF.fps >= 55 ? '#ffd23f' : '#ff8a8a'; g.font = `800 30px ${BODY}`; g.textAlign = 'left'; g.fillText(perfLine(), 26, toCanvasY(0.042), WCW - 130); g.textAlign = 'center'; }
+    else { g.fillStyle = '#ffd23f'; g.font = `800 44px ${DISPLAY}`; g.fillText('Field Day', WCW / 2, toCanvasY(0.042)); }
     g.fillStyle = '#8a84a8'; g.font = `700 22px ${BODY}`; g.textAlign = 'right'; g.fillText(`v${VERSION}`, WCW - 30, toCanvasY(0.042) + 4); g.textAlign = 'center';
     // the buttons: drawn where they say they are
     for (const B of btns) {
@@ -125,6 +166,7 @@
     WATCH.awake = false; panel.visible = false;
     switchLevel(HUB_IDX);
   }
+  const _watchUp = new V3(), _watchToEye = new V3(), _watchN = new V3(), _watchT = new V3(), _watchQi = new Q4();
   const _watchWp = new V3(), _watchWn = new V3(), _watchEye = new V3(), _watchGaze = new V3(), _watchCq = new Q4(), _watchTip = new V3(), _watchInv = new THREE.Matrix4(), _watchLoc = new V3(), _watchRd = new V3();
   // which button a point on the panel is over (or null)
   function onButton(local) { const B = watchBtns().find((b) => Math.abs(local.x - b.x) < b.w / 2 && Math.abs(local.y - b.y) < b.h / 2); return B ? B.id : null; }
@@ -149,17 +191,17 @@
     _watchWn.set(0, 1, 0).applyQuaternion(lh.quat);
     camera.getWorldPosition(_watchEye); camera.getWorldQuaternion(_watchCq);
     _watchGaze.set(0, 0, -1).applyQuaternion(_watchCq);
-    const _up = new V3(0, 1, 0).applyQuaternion(_watchCq);
+    const _up = _watchUp.set(0, 1, 0).applyQuaternion(_watchCq);
     _up.addScaledVector(_watchWn, -_up.dot(_watchWn));
-    if (_up.lengthSq() > 1e-4) { _up.applyQuaternion(watchG.quaternion.clone().invert()); watchFace.rotation.y = Math.atan2(-_up.z, _up.x); }
-    const toEye = _watchEye.clone().sub(_watchWp), dist = toEye.length();
+    if (_up.lengthSq() > 1e-4) { _up.applyQuaternion(_watchQi.copy(watchG.quaternion).invert()); watchFace.rotation.y = Math.atan2(-_up.z, _up.x); }
+    const toEye = _watchToEye.copy(_watchEye).sub(_watchWp), dist = toEye.length();
     toEye.multiplyScalar(1 / Math.max(1e-4, dist));
     // looking at it: the face turned toward you, and you looking at the face
     const looking = dist < 0.65 && _watchWn.dot(toEye) > 0.5 && -_watchGaze.dot(toEye) > Math.cos(0.5);
     if (looking) { WATCH.lookT += dt; WATCH.awayT = 0; } else { WATCH.lookT = 0; if (WATCH.awake) WATCH.awayT += dt; }
     if (!WATCH.awake && WATCH.lookT > 0.25) { WATCH.awake = true; haptic(vrHands[side], 0.15, 20); }
     if (WATCH.awake && WATCH.awayT > 0.8) WATCH.awake = false;
-    const minute = Math.floor(Date.now() / 60000) * 2 + (WATCH.awake ? 1 : 0);
+    const minute = (PERF.on ? PERF.sec : Math.floor(Date.now() / 60000)) * 2 + (WATCH.awake ? 1 : 0);
     if (minute !== WATCH.minute) { WATCH.minute = minute; drawWatchFace(WATCH.awake); }
     panel.visible = WATCH.awake;
     const rh = myHands[other];   // you press it with your other hand
@@ -177,10 +219,10 @@
       if (Math.abs(_watchLoc.z) < 0.03 && onButton(_watchLoc)) { hover = onButton(_watchLoc); watchPress(hover); }
       // or point at it and pull the trigger
       _watchRd.set(0, 0, -1).applyQuaternion(rh.quat);
-      const n = new V3(0, 0, 1).applyQuaternion(panel.quaternion);
+      const n = _watchN.set(0, 0, 1).applyQuaternion(panel.quaternion);
       const den = _watchRd.dot(n);
       if (Math.abs(den) > 1e-3) {
-        const t = panel.position.clone().sub(rh.pos).dot(n) / den;
+        const t = _watchT.copy(panel.position).sub(rh.pos).dot(n) / den;
         if (t > 0 && t < 1.2) { _watchLoc.copy(rh.pos).addScaledVector(_watchRd, t).applyMatrix4(_watchInv); if (onButton(_watchLoc)) hover = onButton(_watchLoc); }
       }
       const gp = vrHands[other].source && vrHands[other].source.gamepad;
