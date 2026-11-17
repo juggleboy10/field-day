@@ -110,7 +110,8 @@
     ui.vrBtn.disabled = true;
     showVRNote('');
     let session;
-    navigator.xr.requestSession('immersive-vr', { optionalFeatures: ['local-floor', 'bounded-floor'] })
+    // (only local-floor: asking for bounded-floor too made the Quest ask about a roomscale boundary, and nothing used it)
+    navigator.xr.requestSession('immersive-vr', { optionalFeatures: ['local-floor'] })
       .then((s) => {
         session = s;
         session.addEventListener('end', onVREnd);

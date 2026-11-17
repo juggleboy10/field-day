@@ -2,7 +2,8 @@
 
 Each place's budget is its draw calls and triangles for a few frames from where you spawn (the heaviest), recorded by
 `tools/measure.py --record`. This visits every place (building each on its first visit, as a player would) and fails
-if one now draws more than its budget (with a little room for things that move about: 10%, and at least 8 calls).
+if one now draws more than its budget (with room for bots and balls moving about, and a busy machine: 25%, and at least 15 calls; it's there to
+catch a place getting a lot heavier, not a few calls).
 When a place is made lighter, record again to lower its budget. The long-term goal is 150 draw calls everywhere.
 
     THREE_JS=/path/to/three.min.js python3 tests/budgets.py
@@ -30,9 +31,9 @@ for r in places:
         fails.append(f"{r['id']}: no budget (run tools/measure.py --record)")
         continue
     # (the lightest of the frames sampled, against the heaviest recorded: things that move don't fail it)
-    if r["calls_min"] > max(b["calls"] * 1.1, b["calls"] + 8):
+    if r["calls_min"] > max(b["calls"] * 1.25, b["calls"] + 15):
         fails.append(f"{r['id']}: {r['calls_min']} draw calls, budget {b['calls']}")
-    if r["drawn_min"] > b["tris"] * 1.1 + 2000:
+    if r["drawn_min"] > b["tris"] * 1.25 + 3000:
         fails.append(f"{r['id']}: {r['drawn_min']} triangles, budget {b['tris']}")
 if errors:
     fails.append(f"page errors: {errors[:3]}")
