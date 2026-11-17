@@ -36,7 +36,9 @@
       return g;
     }
     // the room: o = { w, d, h, z (centre), shelves }
-    function room(G, rand, o) {
+    function room(G0, rand, o) {
+      // (the room is built in a group of its own, so it can be merged without touching anything else in the place)
+      const G = new THREE.Group(); G0.add(G);
       const W = o.w || 14, D = o.d || 12, H = o.h || 4.2, Z = o.z || 0;
       const z0 = Z - D / 2, z1 = Z + D / 2;
       const fl = new THREE.Mesh(new THREE.PlaneGeometry(W, D), new THREE.MeshLambertMaterial({ map: floorTex })); fl.rotation.x = -Math.PI / 2; fl.position.set(0, 0, Z); G.add(fl);
@@ -79,6 +81,8 @@
         addCyl(G, 0.22, 0.17, 0.4, 12, lam(0xc06a3a), px, 0.2, pz);
         for (let k = 0; k < 7; k++) { const a = k / 7 * Math.PI * 2; const lf = new THREE.Mesh(new THREE.SphereGeometry(0.16, 6, 5), lam(0x3a8a3a)); lf.scale.set(0.6, 1.6, 0.6); lf.position.set(px + Math.cos(a) * 0.12, 0.65 + (k % 2) * 0.1, pz + Math.sin(a) * 0.12); lf.rotation.set(Math.sin(a) * 0.5, 0, Math.cos(a) * 0.5); G.add(lf); }
       }
+      // the room never moves (bar the clock's hands): one mesh per kind of surface, in place of hundreds of boxes
+      mergeStatic(G, { keep: [clock] });
       return {
         tick() {
           const d = new Date(), s = d.getSeconds() + d.getMilliseconds() / 1000, m = d.getMinutes() + s / 60, h = (d.getHours() % 12) + m / 60;
