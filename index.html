@@ -357,7 +357,7 @@ window.addEventListener('error', function (e) {
   const FWD = new V3(0, 0, -1);
   const GRAVITY = 9.8;
   // which build this is (shown on the start screen and on the VR watch, so you can tell a fresh copy from a stale one)
-  const VERSION = 102;
+  const VERSION = 103;
   const PLAYER_COLORS = [
     { hex: '#4fc3f7', label: 'Sky blue' },
     { hex: '#ff5c8a', label: 'Pink' },
@@ -42250,7 +42250,8 @@ window.addEventListener('error', function (e) {
     ui.vrBtn.disabled = true;
     showVRNote('');
     let session;
-    navigator.xr.requestSession('immersive-vr', { optionalFeatures: ['local-floor', 'bounded-floor'] })
+    // (only local-floor: asking for bounded-floor too made the Quest ask about a roomscale boundary, and nothing used it)
+    navigator.xr.requestSession('immersive-vr', { optionalFeatures: ['local-floor'] })
       .then((s) => {
         session = s;
         session.addEventListener('end', onVREnd);

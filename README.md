@@ -42,6 +42,10 @@ The tests open the page with `?test`, which makes the game expose its insides as
 
 Each file is its own ordinary script, run in the order listed in `src/order.txt`. They share the page's top level: a file can use any `const` or function declared at the top of a file above it. So top-level names must be unique across the game (`python3 tools/check_scope.py`, after `cd tools && npm install` once).
 
+**Which tests to run.** For a release: the tests for whatever changed, plus the short check (`v101` opens every
+place, `v102` the settings, `multiplayer` two players), about 10 minutes. The whole suite (about an hour; `smoke` is
+the long one) every fifth release or so, and after any change to how the game is built or loaded.
+
 **Places are built on demand.** Only the core and the clubhouse run when the page opens. Every other place's files sit
 in `index.html` as text, and `src/js/app/loader.js` runs them the first time you go to that place (`LEVELS[i]` is empty
 until then). `src/manifest.json` says which files each place needs; `python3 tools/manifest.py` rewrites it from the
