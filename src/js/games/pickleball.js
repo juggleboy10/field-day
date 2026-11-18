@@ -173,7 +173,10 @@
     function slots() {
       const at = [null, null, null, null];
       if (PB.mySlot >= 0) at[PB.mySlot] = state.myPeer;
-      for (const rec of remotes.values()) { const st = rec.lvState[L.id]; if (rec.lv === L.idx && st && st.pbSlot >= 0 && !at[st.pbSlot]) at[st.pbSlot] = rec.peer; }
+      // (only players whose page is alive: a headset taken off, or a frozen browser, frees the spot for the court bot, and
+      // if they had the ball, whoever's left takes it on: see core/referee.js)
+      const now = performance.now();
+      for (const rec of remotes.values()) { const st = rec.lvState[L.id]; if (liveIn(rec, L, now) && st && st.pbSlot >= 0 && !at[st.pbSlot]) at[st.pbSlot] = rec.peer; }
       return at;
     }
     // the first person on each side

@@ -228,6 +228,11 @@ The kit provides:
 - 2.3 and 2.4 for Brawl (v109): `MATCH.timeline` draws other fighters 100 ms behind, between snapshots stamped with the
   referee's clock; your own fighter's movement is predicted (`PRED` turns off hits, shots, KOs and sounds while
   predicting) and reconciled from the referee's acks (`ba`, against `bi[10]`). `tests/v109.py`.
+- v110: dodgeball and snowball draw their bots from the timeline, and a new referee carries on the round clock.
+  `MATCH.timeline` adapts how far behind it draws (100 to 400 ms) to how unevenly snapshots arrive, easing changes.
+  Your own movement in those games is already your own page's, as are your hits: nothing to predict there.
+- v111: pickleball already hands the ball to whoever it's heading for (own hits never lag); its court now counts only
+  live players, so a frozen player's spot goes to the bot and the ball moves on.
 - Not yet: games don't all keep everything a new referee needs in their shared state (timers, bot plans). Each game's
   move onto the kit (2.5) checks that with a referee hand-over in its two-page test.
 
