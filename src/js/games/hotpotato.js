@@ -279,6 +279,12 @@
       if (RS.ph === 'play') {
         if (!H.fuseEnd) { H.fuseTotal = 15000; H.fuseEnd = now + Math.max(2500, (1 - RS.heat) * 15000); }   // took over as host mid-round
         RS.heat = clamp(1 - (H.fuseEnd - now) / H.fuseTotal, 0, 1);
+        // (a safety net, for a referee who took over at an awkward moment: play is on but nobody has the potato and
+        // none is in the air, so someone still in gets it, on the same fuse)
+        if (!RS.holder && !RS.fl && RS.alive.length > 1) {
+          RS.holder = RS.alive[Math.floor(Math.random() * RS.alive.length)]; H.catchT = now; H.botHoldUntil = now + 600;
+          forcePresence();
+        }
         // a potato in the air lands in the hands it was thrown to
         if (RS.fl && now - RS.fl.t0 >= RS.fl.T) {
           RS.holder = RS.fl.to; RS.fl = null; H.catchT = now;

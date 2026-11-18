@@ -27,7 +27,7 @@ def check(name, ok, extra=""):
 
 REF = f"() => {{ const fd = window.__fd, L = fd.LEVELS[{LV}]; return fd.refereeOf(L); }}"
 POT = f"""() => {{ const fd = window.__fd, I = fd.LEVELS[{LV}].potatoInternals, RS = I.RS;
-  return {{ host: I.isHost(), round: RS.round, ph: RS.ph, holder: RS.holder, alive: RS.alive.length, ep: fd.LIVE.ep, ref: fd.LIVE.ref }}; }}"""
+  return {{ host: I.isHost(), round: RS.round, ph: RS.ph, holder: RS.holder, flying: !!RS.fl, heat: Math.round(RS.heat * 100), alive: RS.alive.length, ep: fd.LIVE.ep, ref: fd.LIVE.ref }}; }}"""
 
 port = free_port()
 server = subprocess.Popen([sys.executable, "-m", "http.server", str(port), "--bind", "127.0.0.1"], cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -76,7 +76,8 @@ try:
         r0 = A.evaluate(POT)
         A.wait_for_timeout(7000)
         r1 = A.evaluate(POT)
-        check("the game goes on under A", (r1["round"], r1["ph"], r1["holder"]) != (r0["round"], r0["ph"], r0["holder"]), f"{r0} -> {r1}")
+        # (the round, the phase, who holds it, the fuse's heat: something moves on within 7 seconds)
+        check("the game goes on under A", (r1["round"], r1["ph"], r1["holder"], r1["heat"]) != (r0["round"], r0["ph"], r0["holder"], r0["heat"]), f"{r0} -> {r1}")
         # B reconnects: A keeps it
         B.evaluate("() => window.__netGo()")
         A.wait_for_timeout(2500)
