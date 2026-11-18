@@ -354,6 +354,7 @@
       const rec = remotes.get(id);
       return rec && rec.hasH ? out.copy(rec.cur.h.pos) : null;
     }
+    const FOL = MATCH.follow(bots, (b) => [b.x, b.z]);
     L.update = (dt, now) => {
       const here = state.level === L.idx && state.mode !== 'menu';
       if (!here) { hudPlate.visible = false; return; }
@@ -366,12 +367,15 @@
       vrTags();
       // the bots
       const k = 1 - Math.exp(-dt * (isHost() ? 30 : 10));
+      // (other screens draw the referee's bots from its snapshots, a little in the past: core/match.js; the facing
+      // still comes from where each is heading)
+      const tl = !isHost() && FOL.draw((b, x, z) => { b.tx = x; b.tz = z; });
       for (const b of bots) {
         b.g.visible = b.active && RS.ph !== 'idle';
         if (!b.g.visible) continue;
         if (Math.hypot(b.rx - b.x, b.rz - b.z) > 6) { b.rx = b.x; b.rz = b.z; }
-        const mx = b.x - b.rx, mz = b.z - b.rz;
-        b.rx += mx * k; b.rz += mz * k;
+        const mx = (tl ? b.tx : b.x) - b.rx, mz = (tl ? b.tz : b.z) - b.rz;
+        if (tl) { b.rx = b.tx; b.rz = b.tz; } else { b.rx += mx * k; b.rz += mz * k; }
         const moving = Math.hypot(mx, mz) > 0.02;
         if (moving) b.face = Math.atan2(-mx, -mz);
         b.g.position.set(b.rx, 1.5 + (moving ? Math.abs(Math.sin(now * 0.016 + b.k)) * 0.06 : 0), b.rz);
@@ -423,6 +427,7 @@
       if (isHost()) {
         p.fh = [PH[RS.ph], RS.score[0], RS.score[1], RS.winner, RS.match];
         p.ff = RS.carrier.slice();
+        p.fbt = MATCH.clock();
         p.fb = bots.map((b) => [b.active ? 1 : 0, Math.round(b.x * 10), Math.round(b.z * 10)]);
         p.fe = H.events.slice();
       }
@@ -441,6 +446,7 @@
       if (Array.isArray(h) && h.length === 5 && h.every(Number.isInteger)) Object.assign(RS, { ph: PH_N[clamp(h[0], 0, 3)], score: [h[1], h[2]], winner: h[3], match: h[4] });
       if (Array.isArray(f) && f.length === 2 && f.every((x) => typeof x === 'string' && x.length < 64)) RS.carrier = f.slice();
       if (Array.isArray(fb) && fb.length === bots.length) fb.forEach((x, k) => { if (Array.isArray(x) && x.length === 3 && x.every(Number.isFinite)) { const b = bots[k]; if (!b.active && x[0]) { b.rx = x[1] / 10; b.rz = x[2] / 10; } b.active = x[0] === 1; b.x = x[1] / 10; b.z = x[2] / 10; } });
+      FOL.push(pres.fbt);
       if (Array.isArray(fe)) {
         const ok = fe.filter((e) => Array.isArray(e) && e.length === 4 && Number.isInteger(e[0]) && Number.isInteger(e[1]) && typeof e[2] === 'string' && typeof e[3] === 'string');
         if (me.evSeen < 0 && ok.length) me.evSeen = ok[ok.length - 1][0];      // arriving: don't replay old news
@@ -455,7 +461,7 @@
     };
     L.onExit = () => { hudPlate.visible = false; if (ui.status) ui.status.hidden = true; statusKey = ''; for (const b of bots) b.g.visible = false; };
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.00008) * 0.5; camera.position.set(Math.sin(a) * 16 + 10, 9, 18); camera.lookAt(0, 0, 0); };
-    L.ctfInternals = { fillBots, RS, H, me, bots, HOME, COVER, hostStep, tag, validTag, everyone, isHost, startPlay, pushOut, requestTag, ownHalf };
+    L.ctfInternals = { FOL, fillBots, RS, H, me, bots, HOME, COVER, hostStep, tag, validTag, everyone, isHost, startPlay, pushOut, requestTag, ownHalf };
     ENDGAME.on(L, { shared: true, active: () => RS.ph !== 'idle', end: () => { if (isHost()) { RS.ph = 'idle'; RS.score = [0, 0]; RS.winner = -1; H.events = []; } toBase(); forcePresence(); return 'Starting over with everyone here.'; } });
     return L;
   })();

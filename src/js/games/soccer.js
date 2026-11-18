@@ -620,6 +620,8 @@
     // everyone draws the bots (smoothed); the host moves them
     let fillT = 0;
     const baseUpdate = L.update;
+    // (the bots are the referee's: other screens draw them from its snapshots, a little in the past: core/match.js)
+    const FOL = MATCH.follow(sbots, (b) => [b.x, b.z]);
     L.update = (dt, now) => {
       baseUpdate(dt, now);
       const here = state.mode !== 'menu' && state.level === L.idx;
@@ -628,7 +630,7 @@
         if (now - fillT > 800) { fillT = now; fillSocBots(); }
         if (!L.paused) stepSocBots(Math.min(dt, 0.05), now);
         for (const b of sbots) { b.rx = b.x; b.rz = b.z; }
-      } else for (const b of sbots) { const k = 1 - Math.exp(-dt * 10); b.rx += (b.x - b.rx) * k; b.rz += (b.z - b.rz) * k; }
+      } else if (!FOL.draw((b, x, z) => { b.rx = x; b.rz = z; })) for (const b of sbots) { const k = 1 - Math.exp(-dt * 10); b.rx += (b.x - b.rx) * k; b.rz += (b.z - b.rz) * k; }
       for (const b of sbots) {
         b.g.visible = b.active;
         if (!b.active) continue;
@@ -642,6 +644,7 @@
       const r1 = (x) => Math.round(x * 10);
       L.presence = () => {
         const p = baseP();
+        if (socHost()) p.sbs = MATCH.clock();
         if (socHost()) p.sbt = sbots.filter((b) => b.active).map((b) => [b.k, r1(b.x), r1(b.z), Math.round(b.yaw * 100), r1(b.vx), r1(b.vz)]);
         return p;
       };
@@ -656,10 +659,11 @@
           Object.assign(b, { active: true, x: clamp(a[1] / 10, -HW, HW), z: clamp(a[2] / 10, -HL, HL), yaw: a[3] / 100, vx: a[4] / 10, vz: a[5] / 10 });
         }
         for (const b of sbots) if (!seen.has(b.k)) b.active = false;
+        FOL.push(pres.sbs);
       };
     }
     L.onExit = ((base) => () => { base(); for (const b of sbots) b.g.visible = false; })(L.onExit);
-    L.socInternals = { physics: (dt, now) => updateBodies(L, dt, now), me, scores, sbots, fillSocBots, stepSocBots, assignRoles, botKick, socHost, SOC, ball, HW, HL, GW };
+    L.socInternals = { FOL, physics: (dt, now) => updateBodies(L, dt, now), me, scores, sbots, fillSocBots, stepSocBots, assignRoles, botKick, socHost, SOC, ball, HW, HL, GW };
     // End game: a new match, 0-0 (the newer round reaches everyone's page by itself)
     ENDGAME.on(L, { active: () => me.team >= 0, end: () => { me.round += 1; me.goals = [0, 0]; me.scoredBy = 0; me.winT = 0; if (ball.owner === state.myPeer || ball.owner === null) { reclaimToSlot(ball); ball.sleeping = false; } state.dirtyBoard = true; forcePresence(); return 'A new match: 0-0.'; } });
     return L;

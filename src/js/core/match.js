@@ -157,7 +157,22 @@
       T.size = () => buf.length;
       return T;
     }
+    // ------------------------------------------------ the common case: a list of things the referee moves about
+    // (bots, enemies) that every other page draws. The referee stamps its snapshot with MATCH.clock(); others push
+    // each snapshot after reading it, and each frame draw() sets every item's drawn position from the timeline.
+    //   const FOL = MATCH.follow(bots, (b) => [b.x, b.z]);
+    //   reading the snapshot: FOL.push(pres.xt)       every frame (not the referee): FOL.draw((b, x, z) => { b.rx = x; b.rz = z; })
+    // draw() returns false until it has two stamped snapshots (or from an older page that doesn't stamp them): the
+    // game's own easing carries on then.
+    function follow(list, get, delay) {
+      const T = timeline(delay || 100), v = [];
+      return {
+        T,
+        push(rt) { if (typeof rt !== 'number' || !Number.isFinite(rt)) return; const vals = []; for (const o of list) { const xz = get(o); vals.push(xz[0], xz[1]); } T.push(rt, vals); },
+        draw(set) { if (!T.at(v)) return false; for (let i = 0; i < list.length; i++) set(list[i], v[i * 2], v[i * 2 + 1]); return true; },
+      };
+    }
     // the referee's clock, for stamping snapshots (whole milliseconds, wrapping every few hours)
     const clock = () => Math.round(performance.now()) % 10000000;
-    return { define, PH, timeline, clock };
+    return { define, PH, timeline, follow, clock };
   })();

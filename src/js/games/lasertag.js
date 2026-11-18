@@ -760,6 +760,8 @@
     L.ltBotTags = () => { const s = [0, 0]; for (const b of lbots) if (b.active) s[b.team] += b.tags; return s; };
     let fillT = 0;
     const baseUpdate = L.update;
+    // (the bots are the referee's: other screens draw them from its snapshots, a little in the past: core/match.js)
+    const FOL = MATCH.follow(lbots, (b) => [b.x, b.z]);
     L.update = (dt, now) => {
       const here = state.mode !== 'menu' && state.level === L.idx;
       if (here && ltHost()) {
@@ -767,7 +769,7 @@
         if (now - fillT > 800) { fillT = now; fillLtBots(); }
         if (!L.paused) stepLtBots(Math.min(dt, 0.05), now);
         for (const b of lbots) { b.rx = b.x; b.rz = b.z; }
-      } else for (const b of lbots) { const k = 1 - Math.exp(-dt * 10); b.rx += (b.x - b.rx) * k; b.rz += (b.z - b.rz) * k; if (b.tagged && now > b.taggedUntil + 400) b.tagged = false; }
+      } else { const tl = FOL.draw((b, x, z) => { b.rx = x; b.rz = z; }); for (const b of lbots) { if (!tl) { const k = 1 - Math.exp(-dt * 10); b.rx += (b.x - b.rx) * k; b.rz += (b.z - b.rz) * k; } if (b.tagged && now > b.taggedUntil + 400) b.tagged = false; } }
       baseUpdate(dt, now);
       for (const b of lbots) {
         b.g.visible = here && b.active;
@@ -783,7 +785,7 @@
       const r1 = (x) => Math.round(x * 10);
       L.presence = () => {
         const p = baseP();
-        if (ltHost()) { p.lbt = lbots.filter((b) => b.active).map((b) => [b.k, r1(b.x), r1(b.z), Math.round(b.yaw * 100), b.tagged ? 1 : 0, b.tags, r1(b.vx), r1(b.vz)]); p.lbs = LB.shots.slice(); }
+        if (ltHost()) { p.lbtc = MATCH.clock(); p.lbt = lbots.filter((b) => b.active).map((b) => [b.k, r1(b.x), r1(b.z), Math.round(b.yaw * 100), b.tagged ? 1 : 0, b.tags, r1(b.vx), r1(b.vz)]); p.lbs = LB.shots.slice(); }
         p.lbh = LB.hits.slice();     // always sent (even empty), so the host has seen it before our first hit
         return p;
       };
@@ -812,6 +814,7 @@
             Object.assign(b, { active: true, x: clamp(a[1] / 10, AR.minX, AR.maxX), z: clamp(a[2] / 10, AR.minZ, AR.maxZ), yaw: a[3] / 100, tagged, tags: clamp(a[5] | 0, 0, 9999), vx: a[6] / 10, vz: a[7] / 10 });
           }
           for (const b of lbots) if (!seen.has(b.k)) b.active = false;
+          FOL.push(pres.lbtc);
           state.dirtyBoard = true;
         }
         // the bots' shots: beams, and a tag if one names us
@@ -831,7 +834,7 @@
       };
     }
     L.onExit = ((base) => () => { base(); for (const b of lbots) b.g.visible = false; })(L.onExit);
-    L.ltInternals = { AR, BASE_Z, startGame, counting: (now) => counting(now), beams, lbots, fillLtBots, stepLtBots, rayHitsBot, botFire, ltHost, LB, me, scores, fire: (now) => fire(now), clearLine };
+    L.ltInternals = { FOL, AR, BASE_Z, startGame, counting: (now) => counting(now), beams, lbots, fillLtBots, stepLtBots, rayHitsBot, botFire, ltHost, LB, me, scores, fire: (now) => fire(now), clearLine };
     // End game: a new game for everyone (the newer round reaches everyone's page by itself)
     ENDGAME.on(L, { active: () => me.round > 0, end: () => { startGame(); return 'New game: everyone back to base.'; } });
     return L;
