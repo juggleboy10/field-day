@@ -217,6 +217,16 @@ The kit provides:
 
 ### Steps
 
+**Where this stands (v107):** 2.0 and 2.1 are done.
+- Carrier: match messages stay in presence for now (Brawl's snapshot already fits, at 20 a second); no permissions
+  change and no probe needed. A separate channel can come in behind the same interface later if a game needs more.
+- `FAKE_ROOM` takes `?lag=`, `&jitter=`, `&drop=`, and `__netStop()` / `__netGo()` for a page that goes silent.
+- `core/referee.js`: heartbeat, away flag, a sticky referee and hand-over numbers (see the comments there).
+  `playersHere(L)`, `refereeOf(L)`, `amReferee(L)`; `L.refPool` for games where only some players may referee.
+  About 30 games use it in place of their own copies. `tests/v107.py` checks the hand-overs under 120 ms of delay.
+- Not yet: games don't all keep everything a new referee needs in their shared state (timers, bot plans). Each game's
+  move onto the kit (2.5) checks that with a referee hand-over in its two-page test.
+
 **2.0** Probe the Claude page's sub-rooms and events; choose the carrier. Extend `FAKE_ROOM` in the tests with delay,
 jitter, drops and "this page stops", so every later step is tested under 120 ms of delay.
 **2.1** The referee rule and heartbeat in the core; replace the copies in the 17 games one at a time (behaviour stays
