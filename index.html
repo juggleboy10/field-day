@@ -357,7 +357,7 @@ window.addEventListener('error', function (e) {
   const FWD = new V3(0, 0, -1);
   const GRAVITY = 9.8;
   // which build this is (shown on the start screen and on the VR watch, so you can tell a fresh copy from a stale one)
-  const VERSION = 112;
+  const VERSION = 113;
   const PLAYER_COLORS = [
     { hex: '#4fc3f7', label: 'Sky blue' },
     { hex: '#ff5c8a', label: 'Pink' },
@@ -21899,7 +21899,14 @@ window.addEventListener('error', function (e) {
       if (!target || !canThrow(now)) return false;
       me.pendingUntil = now + 700;
       if (isHost()) hostThrow(state.myPeer, target, now);
-      else { me.tseq += 1; me.tTarget = idx(target); forcePresence(); }
+      else {
+        me.tseq += 1; me.tTarget = idx(target); forcePresence();
+        // (it leaves my hand now, on my screen: the referee's own flight, when it comes back, carries on from this one;
+        // if the referee says no, its numbers put the potato right again)
+        const a = handPos(state.myPeer, new V3()), d = a.distanceTo(handPos(target, _b));
+        RS.fl = { fromId: state.myPeer, to: target, from: a, t0: now, T: 380 + d * 95, arc: 0.5 + d * 0.12 };
+        RS.holder = ''; me.pred = { fseq: RS.fseq + 1, until: now + 900, fl: RS.fl };
+      }
       sfx('whoosh', 0.7);
       return true;
     }
@@ -22187,11 +22194,18 @@ window.addEventListener('error', function (e) {
       const now = performance.now();
       RS.round = h[0]; RS.ph = PH_N[clamp(h[1], 0, 4)]; RS.heat = clamp(h[2], 0, 100) / 100;
       RS.order = po.slice(); RS.alive = po.filter((_, i) => pa[i] === 1);
-      RS.holder = at(h[6]); RS.winner = at(h[9]); RS.popped = at(h[10]); RS.phLeft = h[12];
-      if (h[4] >= 0 && at(h[7]) && at(h[8])) {
-        if (!RS.fl || h[3] !== RS.fseq) RS.fl = { fromId: at(h[7]), to: at(h[8]), from: handPos(at(h[7]), new V3()), t0: now - h[4], T: Math.max(100, h[5]), arc: 0 };
+      // (my own throw, already flying on my screen, until the referee's snapshot catches up with it)
+      const waiting = me.pred && now < me.pred.until && h[3] < me.pred.fseq && at(h[6]) === state.myPeer;
+      // (and when it does: if it's the same throw, my flight carries on as it is, no hitch)
+      const mine = me.pred && h[3] === me.pred.fseq && RS.fl === me.pred.fl && RS.fl.to === at(h[8]) && RS.fl.fromId === at(h[7]);
+      if (!waiting) me.pred = null;
+      RS.winner = at(h[9]); RS.popped = at(h[10]); RS.phLeft = h[12];
+      if (waiting) { /* keep my throw in the air */ }
+      else if (h[4] >= 0 && at(h[7]) && at(h[8])) {
+        RS.holder = at(h[6]);
+        if (!mine && (!RS.fl || h[3] !== RS.fseq || RS.fl.to !== at(h[8]) || RS.fl.fromId !== at(h[7]))) RS.fl = { fromId: at(h[7]), to: at(h[8]), from: handPos(at(h[7]), new V3()), t0: now - h[4], T: Math.max(100, h[5]), arc: 0 };
         const d = RS.fl.from.distanceTo(handPos(RS.fl.to, _b)); RS.fl.arc = 0.5 + d * 0.12;
-      } else RS.fl = null;
+      } else { RS.holder = at(h[6]); RS.fl = null; }
       RS.fseq = h[3];
       RS.popSeq = h[11];
       me.heardHost = true;
@@ -22206,7 +22220,7 @@ window.addEventListener('error', function (e) {
     };
     L.onExit = () => { hudPlate.visible = false; potato.visible = false; if (ui.status) ui.status.hidden = true; statusKey = ''; for (const b of bots) b.g.visible = false; };
     L.attract = (now) => { const a = reduceMotion ? 0 : now * 0.00006; camera.position.set(Math.sin(a) * 11, 4.2, Math.cos(a) * 11); camera.lookAt(0, 1, 0); };
-    L.potatoInternals = { RS, H, me, FUSE, bots, hostStep, hostThrow, throwAt, pickTarget, spotPos, ringR, handPos, isHost };
+    L.potatoInternals = { potato, RS, H, me, FUSE, bots, hostStep, hostThrow, throwAt, pickTarget, spotPos, ringR, handPos, isHost };
     ENDGAME.on(L, { shared: true, active: () => RS.ph !== 'idle', end: () => { if (isHost()) { RS.ph = 'idle'; RS.holder = ''; RS.fl = null; } forcePresence(); return 'Starting over with everyone here.'; } });
     return L;
   })();

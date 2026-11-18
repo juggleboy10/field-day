@@ -66,7 +66,9 @@ try:
         t0 = time.time()
         A.wait_for_function(f"() => window.__fd.LEVELS[{LV}].potatoInternals.isHost()", timeout=6000)
         took = time.time() - t0
-        check(f"B's connection drops: A takes over ({took:.1f} s)", took < 2.6, f"{took:.1f} s")
+        # (2 s of silence, the delay, and a frame or two: headless pages here run at about 5 frames a second)
+        check(f"B's connection drops: A takes over ({took:.1f} s)", took < 3.2, f"{took:.1f} s")
+        A.wait_for_timeout(400)     # (a frame for A's own hand-over number to be set)
         after = A.evaluate(POT)
         check("A carries on from where the game was (not reset)", after["round"] >= before["round"], f"{before} -> {after}")
         check("A took a higher hand-over number", after["ep"] > before["ep"], f"{before['ep']} -> {after['ep']}")
