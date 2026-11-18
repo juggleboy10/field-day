@@ -408,49 +408,29 @@
     const isHost = () => hostId() === state.myPeer;
     const myFighter = () => { const v = Number(prefs.brawlFighter); return Number.isInteger(v) && v >= 0 && v < 4 ? v : 0; };
     const total = () => { const v = Number(prefs.brawlPlayers); return Number.isInteger(v) && v >= 2 && v <= 4 ? v : 4; };
-    // the host fills the places: friends first (in a steady order), then bots
-    function seat() {
-      const hs = humans().slice(0, 4);
-      // friends keep the place they have; someone who's left frees theirs
-      for (const f of F) {
-        if (f.peer && !hs.includes(f.peer)) { f.peer = ''; f.on = false; }
-        else if (f.peer && !f.on) { f.on = true; f.bot = false; place(f, f.slot); f.pct = 0; f.stocks = ROUND_STOCKS; f.kos = 0; }
-      }
-      for (const p of hs) if (!F.some((f) => f.peer === p)) {
-        const k = F.findIndex((f) => !f.peer && !f.on); const free = k >= 0 ? F[k] : F.find((f) => f.bot);
-        if (free) { Object.assign(free, { peer: p, on: true, bot: false }); free.fi = p === state.myPeer ? myFighter() : remoteFighter(p); place(free, free.slot); free.pct = 0; free.stocks = ROUND_STOCKS; free.kos = 0; }
-      }
-      // the rest are bots, up to how many fighters there should be
-      const n = Math.max(hs.length, total());
-      let count = F.filter((f) => f.peer).length;
-      for (const f of F) {
-        if (f.peer) { if (H.ph === 'lobby') f.fi = f.peer === state.myPeer ? myFighter() : remoteFighter(f.peer); continue; }
-        const want = count < n; if (want) count += 1;
-        if (want && !f.on) {
-          // a bot plays someone nobody else is playing, if it can
-          const used = F.filter((o) => o.on && o !== f).map((o) => o.fi), free = [0, 1, 2, 3].filter((i) => !used.includes(i));
-          Object.assign(f, { on: true, bot: true }); f.fi = free.length ? free[Math.floor(rnd() * free.length)] : Math.floor(rnd() * 4);
-          place(f, f.slot); f.pct = 0; f.stocks = ROUND_STOCKS; f.kos = 0;
-        }
-        else if (!want && f.on) { f.on = false; f.bot = false; }
-      }
-    }
     function remoteFighter(peer) { const rec = remotes.get(peer), st = rec && rec.lvState[L.id]; return st && Number.isInteger(st.fi) ? st.fi : 0; }
-    function startMatch() {
-      if (!isHost()) { me.startSeq += 1; forcePresence(); showToast('Asking the host to start the match'); return; }
-      seat();
-      F.forEach((f, k) => { if (f.on) { place(f, k); f.pct = 0; f.stocks = ROUND_STOCKS; f.kos = 0; f.dead = 0; f.cloud = 0; } });
-      H.proj = []; H.bombs = []; H.nextBomb = 12 + rnd() * 6;
-      H.ph = 'count'; H.t = 3; H.winner = -1;
-      sfx('whistle', 0.5); state.hudDirty = true; forcePresence();
-    }
-    function toLobby() { H.ph = 'lobby'; H.t = 0; H.winner = -1; H.proj = []; H.bombs = []; F.forEach((f, k) => { if (f.on) { place(f, k); f.pct = 0; f.stocks = ROUND_STOCKS; } }); state.hudDirty = true; forcePresence(); }
+    const freshF = (f) => { place(f, f.slot); f.pct = 0; f.stocks = ROUND_STOCKS; f.kos = 0; };
+    // the match machinery (seats, start, countdown, results, back to the lobby, start requests): core/match.js
+    const M = MATCH.define(L, {
+      H, play: 'fight', count: 3, over: 5,
+      players: humans,
+      seats: { list: F, total },
+      onSeat(f, peer) { f.fi = peer === state.myPeer ? myFighter() : remoteFighter(peer); freshF(f); },
+      // a bot plays someone nobody else is playing, if it can
+      onBot(f) { const used = F.filter((o) => o.on && o !== f).map((o) => o.fi), free = [0, 1, 2, 3].filter((i) => !used.includes(i)); f.fi = free.length ? free[Math.floor(rnd() * free.length)] : Math.floor(rnd() * 4); freshF(f); },
+      onStart() { F.forEach((f, k) => { if (f.on) { place(f, k); f.pct = 0; f.stocks = ROUND_STOCKS; f.kos = 0; f.dead = 0; f.cloud = 0; } }); H.proj = []; H.bombs = []; H.nextBomb = 12 + rnd() * 6; H.winner = -1; },
+      onLobby() { H.winner = -1; H.proj = []; H.bombs = []; F.forEach((f, k) => { if (f.on) { place(f, k); f.pct = 0; f.stocks = ROUND_STOCKS; } }); },
+      onPhase(ph) { if (ph === 'count') sfx('whistle', 0.5); if (ph === 'fight') sfx('beep2', 0.6); if (ph === 'over') matchOver(); },
+      ask: () => showToast('Asking the host to start the match'),
+    });
+    const seat = () => M.seat();
+    const startMatch = () => M.start();
+    const toLobby = () => M.toLobby();
     L.startMatch = startMatch; L.toLobby = toLobby;
     function hostStep(dt) {
-      seat();
-      if (H.ph === 'count') { H.t -= dt; if (H.t <= 0) { H.ph = 'fight'; H.t = 0; sfx('beep2', 0.6); } }
-      else if (H.ph === 'fight') H.t = Math.max(-5, H.t - dt);
-      else if (H.ph === 'over') { H.t -= dt; if (H.t <= 0) toLobby(); }
+      M.step(dt);
+      // (in the lobby, friends' places follow the fighter they've picked)
+      if (H.ph === 'lobby') for (const f of F) if (f.on && f.peer) f.fi = f.peer === state.myPeer ? myFighter() : remoteFighter(f.peer);
       const frozen = H.ph === 'count' || H.ph === 'over';
       for (const f of F) {
         if (!f.on) continue;
@@ -461,14 +441,14 @@
       if (H.ph === 'fight') {
         H.nextBomb -= dt; if (H.nextBomb <= 0) { H.nextBomb = 14 + rnd() * 8; if (H.bombs.length < 2) dropBomb(); }
         const live = F.filter((f) => f.on && f.stocks > 0);
-        if (live.length <= 1) { H.ph = 'over'; H.t = 5; H.winner = live.length ? live[0].slot : -1; matchOver(); }
+        if (live.length <= 1) { H.winner = live.length ? live[0].slot : -1; M.over(); }
       }
     }
     const IDLE = { mx: 0, my: 0, jump: false, atk: false, sp: false, smash: null };
 
     // ---------------------------------------------------------------- my buttons (and friends', for the host)
     // edges (a press) are counted, so the host never misses one between messages
-    const me = { jump: 0, atk: 0, sp: 0, smash: 0, sdx: 0, sdy: 0, sc: 0, mx: 0, my: 0, startSeq: 0, used: { jump: 0, atk: 0, sp: 0, smash: 0 } };
+    const me = { jump: 0, atk: 0, sp: 0, smash: 0, sdx: 0, sdy: 0, sc: 0, mx: 0, my: 0, used: { jump: 0, atk: 0, sp: 0, smash: 0 } };
     function takeMine() {
       const i = { mx: me.mx, my: me.my, jump: me.jump > me.used.jump, atk: me.atk > me.used.atk, sp: me.sp > me.used.sp, smash: me.smash > me.used.smash ? { dx: me.sdx, dy: me.sdy, c: me.sc } : null };
       me.used = { jump: me.jump, atk: me.atk, sp: me.sp, smash: me.smash };
@@ -670,20 +650,14 @@
       sfx(mine && H.winner === mine.slot ? 'fanfare' : 'chime', 0.8);
       state.hudDirty = true; forcePresence();
     }
-    let seenPh = 'lobby';
-    function phaseSounds() {
-      if (H.ph === seenPh) return;
-      if (!isHost()) { if (H.ph === 'count') sfx('whistle', 0.5); if (H.ph === 'fight') sfx('beep2', 0.6); if (H.ph === 'over') matchOver(); }
-      seenPh = H.ph; state.hudDirty = true;
-    }
+    const phaseSounds = () => M.watch();
 
     // ---------------------------------------------------------------- network
-    const ST = ['lobby', 'count', 'fight', 'over'];
     const r2 = (x) => Math.round(x * 100);
     L.presence = () => {
-      const p = { bi: [myFighter(), Math.round(me.mx * 10), Math.round(me.my * 10), me.jump, me.atk, me.sp, me.smash, Math.round(me.sdx * 10), Math.round(me.sdy * 10), Math.round(me.sc * 10), me.startSeq] };
+      const p = Object.assign(M.presence(), { bi: [myFighter(), Math.round(me.mx * 10), Math.round(me.my * 10), me.jump, me.atk, me.sp, me.smash, Math.round(me.sdx * 10), Math.round(me.sdy * 10), Math.round(me.sc * 10), 0] });
       if (isHost()) {
-        p.bh = [ST.indexOf(H.ph), Math.round(H.t * 10), H.winner];
+        p.bw = H.winner;
         p.bs = F.map((f) => (f.on ? (f.bot ? '~' : f.peer) : ''));
         p.bf = F.map((f) => (f.on ? [f.fi, r2(f.x), r2(f.y), Math.round(f.vx * 10), Math.round(f.vy * 10), f.face, Math.round(f.pct), f.stocks, MOVE_IDS.indexOf(f.mv), r2(f.mt), (f.ground ? 1 : 0) | (f.dead > 0 ? 2 : 0) | (f.inv > 0 ? 4 : 0) | (f.stun > 0.15 ? 8 : 0) | (f.cloud > 0 ? 16 : 0), f.kos] : 0));
         p.bp = H.proj.slice(0, 8).map((q) => [q.k, r2(q.x), r2(q.y), Math.round(q.vx)]);
@@ -697,13 +671,11 @@
       const a = pres.bi;
       if (Array.isArray(a) && a.length === 11 && a.every(num)) {
         st.in = true; st.fi = clamp(a[0] | 0, 0, 3); st.inp = a;
-        // they asked for a match to start (only the host acts on it)
-        if (st.startSeen === undefined) st.startSeen = a[10];
-        else if (a[10] > st.startSeen) { st.startSeen = a[10]; if (isHost() && H.ph === 'lobby') startMatch(); }
       } else st.in = false;
+      M.read(rec, pres, st);
       if (rec.peer !== hostId() || isHost()) return;
-      const h = pres.bh, s = pres.bs, bf = pres.bf;
-      if (Array.isArray(h) && h.length === 3 && h.every(num)) { H.ph = ST[clamp(h[0] | 0, 0, 3)]; H.t = h[1] / 10; H.winner = h[2] | 0; }
+      const s = pres.bs, bf = pres.bf;
+      if (num(pres.bw)) H.winner = pres.bw | 0;
       if (Array.isArray(s) && s.length === 4 && Array.isArray(bf) && bf.length === 4) {
         F.forEach((f, k) => {
           const e = bf[k], who = s[k];
@@ -741,7 +713,7 @@
       camera.rotation.set(-0.05, 0, 0, 'YXZ');
       return true;
     };
-    L.onEnter = () => { H.ph = 'lobby'; seenPh = 'lobby'; boardKey = ''; bannerKey = ''; for (const f of F) { f.on = false; f.peer = ''; f.bot = false; } };
+    L.onEnter = () => { H.ph = 'lobby'; M.seenPh = 'lobby'; boardKey = ''; bannerKey = ''; for (const f of F) { f.on = false; f.peer = ''; f.bot = false; } };
     L.onExit = () => { if (ui.status) ui.status.hidden = true; for (const f of F) f.on = false; };
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.4; camera.position.set(Math.sin(a) * 1.4, 1.5, 1.6); camera.lookAt(0, 1.2, 0); };
     ENDGAME.on(L, { active: () => H.ph !== 'lobby', shared: true, end: () => { if (isHost()) toLobby(); else H.ph = 'lobby'; return 'Back to the lobby: press Start match when everyone’s ready.'; } });
@@ -765,6 +737,6 @@
         if (ui.status.textContent !== txt) ui.status.textContent = txt;
       }
     };
-    L.brawlInternals = { F, H, FIGHTERS, MOVES, step, hostStep, startMatch, toLobby, me, isHost, humans, botThink, hurt, ko, place, takeMine, buildModel, PLATS, BLAST, dropBomb };
+    L.brawlInternals = { M, F, H, FIGHTERS, MOVES, step, hostStep, startMatch, toLobby, me, isHost, humans, botThink, hurt, ko, place, takeMine, buildModel, PLATS, BLAST, dropBomb };
     return L;
   })();
