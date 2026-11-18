@@ -40,6 +40,7 @@
     }
     PRIZE_FX.tick(dt * steps, now);
     CAMERA.tick(dt * steps, now);
+    VR_TOAST.tick(dt * steps, now);
     if (L.picker) L.picker.tick();
     if (L.sitOut) L.sitOut.tick(dt * steps);
     updateButtons(L, now);
@@ -60,5 +61,5 @@
   // the shared records board (the Claude page's database, or records.php on your own site), if there is one
   RECORDS.shared.start();
   PHOTOS.start();
-  try { if (new URLSearchParams(location.search).has('test')) window.__fd = { get APLUS() { return typeof APLUS === 'undefined' ? null : APLUS; }, LEVELS, renderer, PERF, setPerf, mergeCheck, MERGED, LIVE, refereeOf, playersHere, setAway, MATCH, LOADER, load: (i) => LOADER.sync(i), vrHands, CAMERA, PHOTOS, prizeFx: PRIZE_FX, BOTLV, watch: { press: watchPress, btns: watchBtns, draw: () => { panelKey = ''; drawPanel(); return panelC.g.canvas.toDataURL(); } }, state, dolly, camera, myHead, myHands, RECORDS, switchLevel, startGame, voice: { VOICE, voiceWatch, voiceResend, remotes, buildPresence, createRemote, bodyFollow }, audio: { snd, tone, sfx, ensureAudio, MUSIC } }; } catch (e) { /* ignore */ }
+  try { if (new URLSearchParams(location.search).has('test')) window.__fd = { get APLUS() { return typeof APLUS === 'undefined' ? null : APLUS; }, LEVELS, renderer, PERF, setPerf, mergeCheck, MERGED, LIVE, refereeOf, playersHere, setAway, MATCH, VR_TOAST, LOADER, load: (i) => LOADER.sync(i), vrHands, CAMERA, PHOTOS, prizeFx: PRIZE_FX, BOTLV, watch: { press: watchPress, btns: watchBtns, draw: () => { panelKey = ''; drawPanel(); return panelC.g.canvas.toDataURL(); } }, state, dolly, camera, myHead, myHands, RECORDS, switchLevel, startGame, voice: { VOICE, voiceWatch, voiceResend, remotes, buildPresence, createRemote, bodyFollow }, audio: { snd, tone, sfx, ensureAudio, MUSIC } }; } catch (e) { /* ignore */ }
   window.__fdReady = true;

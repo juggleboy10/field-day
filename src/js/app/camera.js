@@ -187,12 +187,13 @@
       if (Math.abs(pcam.aspect - W / H) > 1e-3) { pcam.aspect = W / H; pcam.updateProjectionMatrix(); }
       if (showMe) myAvatar().visible = true;
       body.visible = false;
+      const tm = VR_TOAST.mesh, tv = tm && tm.visible; if (tm) tm.visible = false;     // (no game messages in photos)
       renderer.xr.enabled = false;
       renderer.setRenderTarget(rt);
       renderer.render(scene, pcam);
       renderer.setRenderTarget(before);
       renderer.xr.enabled = xr;
-      body.visible = bodyVis; eyeG.visible = eyeVis;
+      body.visible = bodyVis; eyeG.visible = eyeVis; if (tm) tm.visible = tv;
       if (me) me.visible = false;
     }
     // ---------------------------------------------------------------- the eyepiece (VR): hold the camera up to your eye

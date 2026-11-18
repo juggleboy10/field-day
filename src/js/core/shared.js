@@ -48,7 +48,81 @@
     ui.toast.classList.add('show');
     clearTimeout(showToast.t);
     showToast.t = setTimeout(() => ui.toast.classList.remove('show'), 2000);
+    try { VR_TOAST.show(text); } catch (e) { /* (before the headset panel exists, at load) */ }
   }
+
+  // ---------------------------------------------------------------- the same messages, inside the headset
+  // (the page's toast is HTML, which a headset never shows: in VR every "GO!", "you're out" and "Blue wins" is drawn
+  // on a panel a little below eye level that drifts after your gaze, so you can look around without losing it)
+  const VR_TOAST = (() => {
+    let tc = null, mesh = null, until = 0, shown = '', fade = 0;
+    const want = new V3(), fwd = new V3(), cur = new V3(), lookQ = new Q4(), tmp = new V3(), lookM = new THREE.Matrix4();
+    function build() {
+      tc = canvasTexture(1024, 256);
+      mesh = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.225),
+        new THREE.MeshBasicMaterial({ map: tc.tex, transparent: true, depthTest: false, depthWrite: false, fog: false, opacity: 0 }));
+      mesh.renderOrder = 999; mesh.visible = false; mesh.frustumCulled = false; mesh.name = 'vr-toast';
+      scene.add(mesh);
+    }
+    function draw(text) {
+      const g = tc.g, W = 1024, H = 256;
+      g.clearRect(0, 0, W, H);
+      // (wrap to at most three lines, shrinking the type for long messages)
+      let size = 64, lines = [];
+      for (; size >= 34; size -= 6) {
+        g.font = `bold ${size}px system-ui, sans-serif`;
+        lines = []; let line = '';
+        for (const w of String(text).split(/\s+/)) {
+          const t = line ? `${line} ${w}` : w;
+          if (g.measureText(t).width > W - 80 && line) { lines.push(line); line = w; } else line = t;
+        }
+        if (line) lines.push(line);
+        if (lines.length * size * 1.15 <= H - 40) break;
+      }
+      const lh = size * 1.15, h = lines.length * lh + 40, y0 = (H - h) / 2;
+      g.fillStyle = 'rgba(20,18,46,0.86)';
+      g.beginPath(); if (g.roundRect) g.roundRect(20, y0, W - 40, h, 36); else g.rect(20, y0, W - 40, h); g.fill();
+      g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      lines.forEach((l, i) => g.fillText(l, W / 2, y0 + 20 + lh * (i + 0.5)));
+      tc.tex.needsUpdate = true;
+    }
+    // where it wants to be: 1.2 m out along your gaze (level-ish), a little below the eyes
+    function target(out) {
+      fwd.set(0, 0, -1).applyQuaternion(myHead.quat);
+      fwd.y = Math.max(-0.6, Math.min(0.4, fwd.y)); fwd.normalize();
+      return out.copy(myHead.pos).addScaledVector(fwd, 1.2).add(tmp.set(0, -0.22, 0));
+    }
+    return {
+      show(text) {
+        if (!text) return;
+        if (!tc) build();
+        if (text !== shown) { shown = text; draw(text); }
+        if (!mesh.visible) { target(cur); mesh.position.copy(cur); }
+        until = performance.now() + 2200;
+      },
+      tick(dt, now) {
+        if (!mesh) return;
+        const on = state.mode === 'vr' && now < until;
+        fade = Math.max(0, Math.min(1, fade + (on ? dt * 8 : -dt * 4)));
+        mesh.visible = fade > 0;
+        if (!mesh.visible) return;
+        mesh.material.opacity = fade;
+        if (state.mode !== 'vr') return;
+        // (follow the gaze lazily: still while you glance about, catching up when you've really turned)
+        target(want);
+        const d = want.distanceTo(cur);
+        if (d > 3) cur.copy(want);                                  // (moved somewhere new: just be there)
+        else if (d > 0.35 || mesh.userData.chase) { mesh.userData.chase = d > 0.05; cur.lerp(want, Math.min(1, dt * 5)); }
+        mesh.position.copy(cur);
+        // (its face, +z, turned to the eyes: lookAt's z runs from the target back to the eye)
+        lookQ.setFromRotationMatrix(lookM.lookAt(myHead.pos, cur, THREE.Object3D.DefaultUp));
+        mesh.quaternion.copy(lookQ);
+      },
+      get mesh() { return mesh; },
+      get text() { return shown; },
+      get until() { return until; },
+    };
+  })();
 
   // ---------------------------------------------------------------- shared meshes
   function makeShadow(parent, size) {
