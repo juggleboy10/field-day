@@ -57,10 +57,15 @@ def measure(browser):
         page.wait_for_function(f"() => window.__fd.state.level === {i}", timeout=20000)
         page.wait_for_timeout(700)
         # a few frames apart: things that move come in and out of view, so keep the lightest and heaviest
+        # (and from a few starts: some places put you somewhere random, like either end of the soccer pitch)
         samples = []
-        for _ in range(5):
-            page.wait_for_timeout(250)
-            samples.append(page.evaluate(COUNT))
+        for k in range(3):
+            if k:
+                page.evaluate(f"() => {{ const L = window.__fd.LEVELS[{i}]; if (L.spawn) L.spawn(); }}")
+                page.wait_for_timeout(300)
+            for _ in range(3):
+                page.wait_for_timeout(200)
+                samples.append(page.evaluate(COUNT))
         r = max(samples, key=lambda x: x["calls"])
         r["calls_min"] = min(x["calls"] for x in samples)
         r["drawn_min"] = min(x["drawn"] for x in samples)

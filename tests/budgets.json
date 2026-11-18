@@ -12,8 +12,8 @@
   "tris": 1942
  },
  "birdwatch": {
-  "calls": 150,
-  "tris": 46990
+  "calls": 123,
+  "tris": 44362
  },
  "bowling": {
   "calls": 173,
@@ -48,36 +48,36 @@
   "tris": 2616
  },
  "ctf": {
-  "calls": 196,
-  "tris": 15740
+  "calls": 205,
+  "tris": 18860
  },
  "dance": {
   "calls": 37,
   "tris": 4152
  },
  "darts": {
-  "calls": 19,
-  "tris": 1596
+  "calls": 26,
+  "tris": 1924
  },
  "discgolf": {
   "calls": 45,
   "tris": 32490
  },
  "dodgeball": {
-  "calls": 118,
-  "tris": 14320
+  "calls": 104,
+  "tris": 13084
  },
  "duckshoot": {
-  "calls": 242,
-  "tris": 15044
+  "calls": 244,
+  "tris": 15000
  },
  "dungeon": {
-  "calls": 152,
-  "tris": 21180
+  "calls": 153,
+  "tris": 21192
  },
  "football": {
-  "calls": 480,
-  "tris": 28662
+  "calls": 244,
+  "tris": 28876
  },
  "frostpeak": {
   "calls": 170,
@@ -88,12 +88,12 @@
   "tris": 2708
  },
  "gorilla": {
-  "calls": 65,
+  "calls": 66,
   "tris": 3342
  },
  "haunted": {
-  "calls": 413,
-  "tris": 6710
+  "calls": 106,
+  "tris": 6802
  },
  "helpdesk": {
   "calls": 45,
@@ -104,12 +104,12 @@
   "tris": 70384
  },
  "hideseek": {
-  "calls": 130,
-  "tris": 20042
+  "calls": 131,
+  "tris": 20044
  },
  "hoops": {
   "calls": 271,
-  "tris": 15490
+  "tris": 16208
  },
  "hub": {
   "calls": 128,
@@ -124,12 +124,12 @@
   "tris": 22582
  },
  "kayak": {
-  "calls": 56,
-  "tris": 26822
+  "calls": 57,
+  "tris": 26824
  },
  "lasertag": {
-  "calls": 145,
-  "tris": 10668
+  "calls": 148,
+  "tris": 10690
  },
  "lightspeed": {
   "calls": 119,
@@ -144,16 +144,16 @@
   "tris": 6564
  },
  "minigolf": {
-  "calls": 462,
-  "tris": 57872
+  "calls": 200,
+  "tris": 66725
  },
  "paintball": {
-  "calls": 95,
-  "tris": 4992
+  "calls": 101,
+  "tris": 5134
  },
  "parkour": {
-  "calls": 162,
-  "tris": 8514
+  "calls": 161,
+  "tris": 8604
  },
  "pcbuild": {
   "calls": 156,
@@ -168,28 +168,28 @@
   "tris": 2548
  },
  "pirate": {
-  "calls": 158,
-  "tris": 39204
+  "calls": 162,
+  "tris": 39440
  },
  "portsorter": {
   "calls": 97,
   "tris": 5228
  },
  "potato": {
-  "calls": 163,
-  "tris": 10480
+  "calls": 138,
+  "tris": 10304
  },
  "quizblaster": {
   "calls": 42,
   "tris": 6600
  },
  "recess": {
-  "calls": 959,
-  "tris": 106272
+  "calls": 297,
+  "tris": 107310
  },
  "ringtoss": {
-  "calls": 119,
-  "tris": 5190
+  "calls": 124,
+  "tris": 5276
  },
  "rps": {
   "calls": 50,
@@ -197,19 +197,19 @@
  },
  "siege": {
   "calls": 81,
-  "tris": 20826
+  "tris": 20864
  },
  "skeeball": {
   "calls": 113,
   "tris": 12854
  },
  "snowball": {
-  "calls": 209,
-  "tris": 16298
+  "calls": 221,
+  "tris": 18462
  },
  "soccer": {
-  "calls": 110,
-  "tris": 10236
+  "calls": 134,
+  "tris": 12414
  },
  "strongman": {
   "calls": 129,
@@ -224,8 +224,8 @@
   "tris": 6710
  },
  "trivia": {
-  "calls": 95,
-  "tris": 4778
+  "calls": 211,
+  "tris": 14208
  },
  "volleyball": {
   "calls": 70,
