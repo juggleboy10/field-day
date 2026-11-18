@@ -388,20 +388,28 @@
     L.hintsFor = () => (state.mode === 'flat' ? [['E', 'grab a snowball (from the piles at the back)'], ['Hold Space', 'charge, let go to throw'], ['WASD', 'move, hide behind a fort'], ['Drag', 'aim']] : L.hints);
 
     // ---------------------------------------------------------------- per frame
+    // (the bots are the referee's: other screens draw them 100 ms in the past, between its snapshots, so they move
+    // smoothly however unevenly the snapshots arrive)
+    const TL = MATCH.timeline(100), tlv = [];
     L.update = (dt, now) => {
       const here = state.level === L.idx && state.mode !== 'menu';
+      const haveTL = here && !isHost() && TL.at(tlv);
       for (const bt of bots) {
         bt.g.visible = here && bt.active;
         if (!bt.g.visible) continue;
         if (!isHost()) { /* positions come from the host */ }
         const faceZ = bt.out ? 0 : (bt.team === 0 ? -1 : 1);
-        bt.g.position.set(bt.x, 1.5 + (bt.out ? -0.3 : Math.abs(Math.sin(now * 0.008 + bt.k)) * 0.04), bt.z);
+        bt.g.position.set(haveTL ? tlv[bt.k * 2] : bt.x, 1.5 + (bt.out ? -0.3 : Math.abs(Math.sin(now * 0.008 + bt.k)) * 0.04), haveTL ? tlv[bt.k * 2 + 1] : bt.z);
         bt.g.rotation.y = bt.team === 0 ? 0 : Math.PI; void faceZ;
       }
       if (!here) { hudPlate.visible = false; return; }
       autoBalance(L, me, now, switchTeam);
       if (me.team < 0) me.team = pickTeam(L);
-      if (isHost()) hostStep(dt, now);
+      // (taking over as referee: the round's clock was the old referee's; carry on from the time left we last heard)
+      const ref = isHost();
+      if (ref && !H.wasRef && RS.st !== 'idle') H.t0 = now - ((RS.st === 'play' ? ROUND_MS : RS.st === 'count' ? COUNT_MS : 0) - RS.left);
+      H.wasRef = ref;
+      if (ref) hostStep(dt, now);
       else if (RS.st !== 'idle' && RS.st === 'play') RS.left = Math.max(0, RS.left - dt * 1000);
       if (RS.round !== me.round) { me.round = RS.round; if (RS.round > 0) { newRoundLocal(); showToast(RS.round > 0 ? `Round ${RS.round}: get ready!` : ''); } }
       if (RS.st !== ST_N[me.st]) {
@@ -428,6 +436,7 @@
       const p = { sw: [me.team, me.out ? 1 : 0, me.evSeq, me.evType, me.evA] };
       if (isHost()) {
         p.dh = [RS.round, ST[RS.st], Math.round(RS.left), RS.score[0], RS.score[1], RS.matchWin];
+        p.dt = MATCH.clock();
         p.db = bots.map((b) => [b.active ? 1 : 0, Math.round(b.x * 10), Math.round(b.z * 10), b.out ? 1 : 0, b.ball ? b.ball.idx : -1, b.hp]);
         p.he = H.events.slice();
       }
@@ -447,10 +456,11 @@
           RS.round = h[0]; RS.st = ST_N[clamp(h[1] | 0, 0, 3)]; RS.left = h[2]; RS.recvT = performance.now(); RS.score = [h[3] | 0, h[4] | 0]; RS.matchWin = h[5] | 0;
         }
         if (Array.isArray(bb) && bb.length === bots.length) bb.forEach((x, k) => { if (Array.isArray(x) && x.length === 6 && x.every((n) => typeof n === 'number' && isFinite(n))) { const bt = bots[k]; bt.active = x[0] === 1; bt.x = x[1] / 10; bt.z = x[2] / 10; bt.out = x[3] === 1; bt.hp = x[5] | 0; const bi = x[4] | 0; if (bi >= 0 && bi < balls.length) balls[bi].dbCarrier = k; } });
+        if (typeof pres.dt === 'number' && isFinite(pres.dt)) { const v = []; for (const bt of bots) v.push(bt.x, bt.z); TL.push(pres.dt, v); }
         if (Array.isArray(he)) for (const e of he) if (Array.isArray(e) && e.length === 3 && typeof e[0] === 'number' && typeof e[1] === 'number') applyEvent(e[0], e[1], e[2], false);
       }
     };
-    L.swInternals = { FORTS, splat, snowStep, RS, H, bots, balls, me, humans, isHost, hostStep, botStep, beginCount, endRound, aliveCount, checkMyHit, trackBall, reviveFor, sendOut, throwBall, toSpot, goOut, switchTeam, onCatch, teamOf, nearestEnemy };
+    L.swInternals = { TL, FORTS, splat, snowStep, RS, H, bots, balls, me, humans, isHost, hostStep, botStep, beginCount, endRound, aliveCount, checkMyHit, trackBall, reviveFor, sendOut, throwBall, toSpot, goOut, switchTeam, onCatch, teamOf, nearestEnemy };
     ENDGAME.on(L, { shared: true, active: () => RS.st !== 'idle', end: () => { if (isHost()) { RS.st = 'idle'; startMatchLocal(); } forcePresence(); return 'Starting over with everyone here.'; } });
     return L;
   })();

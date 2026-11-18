@@ -108,20 +108,41 @@
     function timeline(DELAY) {
       const buf = [], offs = [];
       const T = { delay: DELAY || 100 };
-      T.push = (rt, vals) => {
-        const now = performance.now();
+      T.push = (rt, vals, nowMs) => {
+        const now = nowMs === undefined ? performance.now() : nowMs;
         if (!Number.isFinite(rt)) return;
         const last = buf[buf.length - 1];
         if (last && rt < last.rt - 4000) { buf.length = 0; offs.length = 0; }    // (the referee changed, or its clock wrapped)
         else if (last && rt <= last.rt) return;
-        offs.push(now - rt); if (offs.length > 40) offs.shift();
+        offs.push(now - rt); if (offs.length > 80) offs.shift();
         buf.push({ rt, vals: vals.slice() }); if (buf.length > 40) buf.shift();
       };
-      T.reset = () => { buf.length = 0; offs.length = 0; };
-      T.at = (out, jump) => {
+      T.reset = () => { buf.length = 0; offs.length = 0; cur = -1; };
+      // (how far behind to draw: at least the delay asked for, and enough to cover how unevenly the snapshots arrive
+      // (the spread between the quickest and slowest lately) plus the gap between them, so there's nearly always a
+      // snapshot on each side of the moment drawn: a referee on a shaky connection or a struggling headset is drawn
+      // a little further behind, smoothly, rather than in stops and leaps; at most 0.4 s)
+      T.behind = () => {
+        if (buf.length < 3) return T.delay;
+        const n = Math.min(buf.length - 1, 12), gap = (buf[buf.length - 1].rt - buf[buf.length - 1 - n].rt) / n;
+        let lo = Infinity, hi = -Infinity; for (const o of offs) { if (o < lo) lo = o; if (o > hi) hi = o; }
+        return Math.min(400, Math.max(T.delay, gap * 1.5, hi - lo + gap + 20));
+      };
+      // (and it changes gently: drawing runs at most 10% faster, or 30% slower, than real time while it adjusts, so
+      // nothing visibly leaps or stops)
+      let cur = -1, lastNow = -1;
+      T.at = (out, jump, nowMs) => {
         if (buf.length < 2) return false;
         let off = Infinity; for (const o of offs) if (o < off) off = o;
-        const rt = performance.now() - off - T.delay;
+        // (the gap to the referee's clock and how far behind to draw move as snapshots come and go: both go into one
+        // number that eases, so the moment drawn never jumps)
+        const now = nowMs === undefined ? performance.now() : nowMs, want = off + T.behind();
+        if (cur < 0 || lastNow < 0 || now - lastNow > 1000) cur = want;
+        // (growing quicker than shrinking, as running dry is the worse of the two; and only for a real change, not every
+        // few milliseconds' wobble)
+        else if (want > cur + 8 || want < cur - 30) { const dt = now - lastNow; cur += Math.max(-dt * 0.1, Math.min(dt * 0.3, want - cur)); }
+        lastNow = now;
+        const rt = now - cur;
         let a = buf[0], b = buf[1];
         if (rt <= a.rt) { for (let i = 0; i < a.vals.length; i++) out[i] = a.vals[i]; return true; }
         for (let i = 1; i < buf.length; i++) { a = buf[i - 1]; b = buf[i]; if (b.rt >= rt) break; }
