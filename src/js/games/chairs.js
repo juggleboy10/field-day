@@ -63,6 +63,8 @@
     // players: ids, 'b0'.. for bots or a peer id. alive: still in. seats: which player has each chair (-1 none).
     const S = { g: 0, ph: 'lobby', round: 0, ids: [], alive: [], seats: [], n: 0, t: 0, stopAt: 0, outName: '', winner: '', tempo: 1, req: 0 };
     L.mc = S;
+    // (my claim on a chair, and when each chair's first claim came in: see myClaim and the referee's step)
+    const CL = { stopT: 0, claim: null, first: [], gt: 0 };
     const humansHere = () => playersHere(L);
     const isHost = () => amReferee(L);
     const nameOf = (id) => { if (id[0] === 'b' && id.length <= 2) return BOT_NAMES[Number(id.slice(1))]; if (id === state.myPeer) return state.name || 'You'; const rec = remotes.get(id); return rec ? rec.name : 'Someone'; };
@@ -107,8 +109,11 @@
       const n = S.n, ring = R(n) + 1.25;
       if (S.ph === 'walk') {
         for (const id of aliveIds()) { const b = botOf(id); if (!b) continue; b.ang += dt * (0.62 * S.tempo) * (1.2 / ring) * 2.2; b.x = Math.cos(b.ang) * ring; b.z = Math.sin(b.ang) * ring; }
-        if (now >= S.stopAt) { S.ph = 'grab'; S.t = now; forcePresence(); }
+        if (now >= S.stopAt) { S.ph = 'grab'; S.t = now; CL.gt = 0; CL.first = []; CL.claim = null; forcePresence(); }
       } else if (S.ph === 'grab') {
+        // (the race is timed in game time from when the music stopped here: the bots, my own player, and the wait)
+        CL.gt += dt * 1000;
+        hostClaim();
         // bots: a moment to react, then dash for the nearest free chair
         for (const id of aliveIds()) {
           const b = botOf(id); if (!b || S.seats.includes(id)) continue;
@@ -117,18 +122,35 @@
           for (let c = 0; c < n; c++) { if (S.seats[c]) continue; const p = chairPos(c, n), d = Math.hypot(p.x - b.x, p.z - b.z); if (d < bd) { bd = d; best = c; } }
           if (best < 0) continue;
           const p = chairPos(best, n), dx = p.x - b.x, dz = p.z - b.z, d = Math.hypot(dx, dz), s = BOT_SPEED[b.i] * BOTLV.pick(L, [0.82, 1, 1.15]) * dt;
-          if (d <= 0.25) { claim(id, best); continue; }
+          if (d <= 0.25) { if (b.arrT === undefined || b.arrChair !== best) { b.arrT = CL.gt; b.arrChair = best; } continue; }
+          b.arrT = undefined;
           b.x += dx / d * Math.min(d, s); b.z += dz / d * Math.min(d, s);
         }
-        // people: standing right at a free chair takes it
+        // Who gets each chair: the quickest to it, each timed from when the music stopped for them (people on their own
+        // device, bots and the referee here), so nobody's network makes them slower. A chair's given out a quarter of a
+        // second after its first claim, in case a quicker one is still on its way.
+        const cand = Array.from({ length: n }, () => []);
         for (const id of aliveIds()) {
-          if (botOf(id) || S.seats.includes(id)) continue;
+          if (S.seats.includes(id)) continue;
+          const b = botOf(id);
+          if (b) { if (b.arrT !== undefined && b.arrChair < n && !S.seats[b.arrChair]) cand[b.arrChair].push([b.arrT, id]); continue; }
+          if (id === state.myPeer) { if (CL.claim && CL.claim.r === S.round) cand[CL.claim.chair].push([CL.claim.react, id]); continue; }
+          const rec = remotes.get(id), st = rec && rec.lvState[L.id];
+          if (st && st.mclv) { const m = st.mcl; if (m && m[0] === S.round && m[1] < n && !S.seats[m[1]]) cand[m[1]].push([m[2], id]); continue; }
+          // (a player on an older page that doesn't send claims: standing right at a free chair takes it, as before)
           const p = posOf(id); if (!p) continue;
-          for (let c = 0; c < n; c++) { if (S.seats[c]) continue; const q = chairPos(c, n); if (Math.hypot(q.x - p.x, q.z - p.z) < 0.55) { claim(id, c); break; } }
+          for (let c = 0; c < n; c++) { if (S.seats[c]) continue; const q = chairPos(c, n); if (Math.hypot(q.x - p.x, q.z - p.z) < 0.55) { cand[c].push([CL.gt, id]); break; } }
+        }
+        for (let c = 0; c < n && S.ph === 'grab'; c++) {
+          if (S.seats[c] || !cand[c].length) { CL.first[c] = undefined; continue; }
+          if (CL.first[c] === undefined) CL.first[c] = CL.gt;
+          if (CL.gt - CL.first[c] < 250) continue;
+          cand[c].sort((a, b) => a[0] - b[0] || (a[1] < b[1] ? -1 : 1));
+          claim(cand[c][0][1], c);
         }
       } else if (S.ph === 'result' && now - S.t > 3200) { nextRound(); forcePresence(); }
     }
-    L.mcInternals = { S, startGame, hostStep, claim, chairPos, R, bots, nextRound };
+    L.mcInternals = { CL, S, startGame, hostStep, claim, chairPos, R, bots, nextRound };
 
     // ---------------------------------------------------------------- the tune (its own, so it really stops)
     const TUNE = [72, 76, 79, 76, 72, 76, 79, 84, 81, 79, 77, 76, 74, 76, 72, 67, 72, 76, 79, 76, 72, 76, 79, 84, 83, 81, 79, 77, 76, 74, 72, 72];
@@ -151,15 +173,19 @@
     const int = (x, lo, hi) => Number.isInteger(x) && x >= lo && x <= hi;
     const PH = ['lobby', 'walk', 'grab', 'result', 'won'];
     L.presence = () => {
-      const p = { mr: S.req };
+      const p = { mr: S.req, mcl: CL.claim ? [S.round, CL.claim.chair, Math.round(CL.claim.react)] : null };
       if (isHost()) p.mc = { g: S.g, ph: PH.indexOf(S.ph), r: S.round, n: S.n, ids: S.ids, al: S.alive.map((a) => (a ? 1 : 0)), se: S.seats, sa: S.stopAt, o: S.outName, w: S.winner, tp: Math.round(S.tempo * 100), b: bots.map((b) => [Math.round(b.x * 100) / 100, Math.round(b.z * 100) / 100]) };
       return p;
     };
     L.readPresence = (rec, pres, st) => {
       // someone pressed Start: the host starts a game
       if (int(pres.mr, 0, 1e9) && pres.mr !== st.mr) { const was = st.mr; st.mr = pres.mr; if (was !== undefined && isHost() && (S.ph === 'lobby' || S.ph === 'won')) startGame(); }
+      // their claim on a chair: [round, chair, how long after their music stopped they got there (ms)]
+      const m = pres.mcl;
+      st.mclv = true;
+      st.mcl = Array.isArray(m) && m.length === 3 && int(m[0], 0, 99) && int(m[1], 0, 7) && int(m[2], 0, 60000) ? m.slice() : null;
       const q = pres.mc;
-      if (!q || isHost() || rec.peer !== humansHere()[0]) return;
+      if (!q || isHost() || rec.peer !== refereeOf(L)) return;
       if (!(int(q.g, 0, 1e14) && int(q.ph, 0, 4) && int(q.r, 0, 99) && int(q.n, 0, 8) && Array.isArray(q.ids) && q.ids.length <= 9 && q.ids.every((x) => typeof x === 'string' && x.length < 80)
         && Array.isArray(q.al) && q.al.length === q.ids.length && Array.isArray(q.se) && q.se.length === q.n && q.se.every((x) => typeof x === 'string') && Number.isFinite(q.sa) && Array.isArray(q.b) && q.b.length === bots.length)) return;
       const prevPh = S.ph, wasAlive = S.alive[S.ids.indexOf(state.myPeer)];
@@ -167,13 +193,28 @@
       bots.forEach((b, i) => { const a = q.b[i]; if (Array.isArray(a) && Number.isFinite(a[0]) && Number.isFinite(a[1])) { b.tx = a[0]; b.tz = a[1]; } });
       announce(prevPh, wasAlive);
     };
+    // My claim on a chair (every page, the referee's too): when the music stops for me I start timing; standing right at
+    // a free chair, I claim it with how long I took. If someone quicker gets it, I look for another.
+    function myClaim(now, react) {
+      const i = S.ids.indexOf(state.myPeer);
+      if (S.ph !== 'grab' || i < 0 || !S.alive[i] || S.seats.includes(state.myPeer)) { if (S.ph !== 'grab') CL.claim = null; return; }
+      if (CL.claim && S.seats[CL.claim.chair] && S.seats[CL.claim.chair] !== state.myPeer) CL.claim = null;     // (taken by someone quicker)
+      if (CL.claim) return;
+      const p = myHead.pos;
+      for (let c = 0; c < S.n; c++) {
+        if (S.seats[c]) continue;
+        const q = chairPos(c, S.n);
+        if (Math.hypot(q.x - p.x, q.z - p.z) < 0.55) { CL.claim = CL.last = { r: S.round, chair: c, react: react === undefined ? now - CL.stopT : react }; forcePresence(); break; }
+      }
+    }
+    const hostClaim = () => myClaim(0, CL.gt);
     // what's happening, for everyone (the host calls this too)
     let lastPh = 'lobby', lastRound = 0, saidSafe = false;
     function announce(prevPh) {
       if (S.ph === lastPh && S.round === lastRound) return;
       const meIn = S.ids.includes(state.myPeer);
       if (S.ph === 'walk') { showToast(S.round === 1 ? `Round 1: ${S.n} chairs for ${S.n + 1} players. Walk round until the music stops!` : `Round ${S.round}: ${S.n} chair${S.n === 1 ? '' : 's'} left. Walk!`); saidSafe = false; }
-      else if (S.ph === 'grab') { showToast('The music stopped! Grab a chair!'); sfx('buzzer', 0.4); if (state.mode === 'vr' && meIn) for (const s of SIDES) haptic(vrHands[s], 0.7, 120); }
+      else if (S.ph === 'grab') { CL.stopT = performance.now(); if (!isHost()) CL.claim = null; showToast('The music stopped! Grab a chair!'); sfx('buzzer', 0.4); if (state.mode === 'vr' && meIn) for (const s of SIDES) haptic(vrHands[s], 0.7, 120); }
       else if (S.ph === 'result') { const iOut = S.outName && meIn && !S.alive[S.ids.indexOf(state.myPeer)] && S.outName === (state.name || 'You'); showToast(iOut ? 'No chair for you! You’re out' : `${S.outName} is out!`); sfx(iOut ? 'buzzer' : 'poof', 0.7); }
       else if (S.ph === 'won') { const iWon = S.winner === state.myPeer; showToast(iWon ? 'You win musical chairs!' : `${nameOf(S.winner)} wins!`); sfx(iWon ? 'fanfare' : 'cheer', 1); if (iWon) spawnFloat('Winner!', new V3(0, 2.2, 0), '#ffd23f'); }
       lastPh = S.ph; lastRound = S.round;
@@ -187,6 +228,7 @@
       const here = state.level === L.idx && state.mode !== 'menu';
       if (here && isHost() && S.ph !== 'lobby' && S.ph !== 'won') hostStep(dt);
       if (here) announce();
+      if (here && !isHost()) myClaim(performance.now());
       if (here && S.ph === 'won' && isHost() && Date.now() - S.t > 9000) { S.ph = 'lobby'; forcePresence(); }
       const n = S.n;
       // chairs
