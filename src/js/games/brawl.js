@@ -165,7 +165,7 @@
     const newF = (slot) => ({ slot, on: false, fi: 0, peer: '', bot: false, x: 0, y: 0, vx: 0, vy: 0, face: 1, ground: false, jumpsLeft: 1, usedUp: false,
       pct: 0, stocks: 3, kos: 0, mv: '', mt: 0, hit: [], charge: 0, stun: 0, inv: 0, dead: 0, drop: 0, fast: false, held: null, cloud: 0, lastHitBy: -1, think: 0, plan: null });
     const F = [0, 1, 2, 3].map(newF);
-    const H = { ph: 'lobby', t: 0, winner: -1, proj: [], bombs: [], nextBomb: 0, startSeen: {}, inputs: {}, spectate: false };
+    const H = { ph: 'lobby', t: 0, winner: -1, proj: [], bombs: [], nextBomb: 0, startSeen: {}, inputs: {}, acks: {}, spectate: false };
     const ROUND_STOCKS = 3;
 
     // spawn spots along the island
@@ -174,6 +174,7 @@
 
     // ---------------------------------------------------------------- physics
     const HURT_H = 1.7, HURT_W = 0.5;
+    let PRED = false;
     function step(f, inp, dt) {
       const D = FIGHTERS[f.fi];
       if (f.dead > 0) {
@@ -265,6 +266,7 @@
     function begin(f, mv) { f.mv = mv; f.mt = 0; f.hit = []; f.charge = 0; f.fired = false; if (mv !== 'upb') sfxAt(f, 'whoosh', 0.18); }
     const box = (f, m) => ({ x: f.x + f.face * m.box[0], y: f.y + m.box[1], w: m.box[2] / 2, h: m.box[3] / 2 });
     function hitCheck(f, m) {
+      if (PRED) return;
       const b = box(f, m);
       for (const o of F) {
         if (!o.on || o === f || o.dead > 0 || o.inv > 0 || o.cloud > 0 || f.hit.includes(o.slot)) continue;
@@ -286,6 +288,7 @@
       sfxAt(o, kb > 18 ? 'slam' : 'hit', kb > 18 ? 0.7 : 0.5);
     }
     function ko(f) {
+      if (PRED) return;
       if (f.dead > 0) return;
       burst(f.x, f.y, f.slot);
       sfxAt(f, 'slam', 1); sfx('cheer', 0.3);
@@ -296,6 +299,7 @@
     }
     // ---------------------------------------------------------------- shots and bombs
     function shoot(f) {
+      if (PRED) return;
       if (f.mv === 'rocket') H.proj.push({ k: 0, x: f.x + f.face * 0.9, y: f.y + 1.0, vx: f.face * 12, vy: 0, owner: f.slot, t: 0, life: 1.1, m: { dmg: 9, base: 7, grow: 0.1, ang: 25 } });
       else H.proj.push({ k: 1, x: f.x + f.face * 0.8, y: f.y + 1.1, vx: f.face * 8, vy: 5, owner: f.slot, t: 0, life: 1.7, b: 0, m: { dmg: 6, base: 5, grow: 0.08, ang: 35 } });
       sfxAt(f, f.mv === 'rocket' ? 'shoot' : 'zap', 0.4);
@@ -448,7 +452,7 @@
 
     // ---------------------------------------------------------------- my buttons (and friends', for the host)
     // edges (a press) are counted, so the host never misses one between messages
-    const me = { jump: 0, atk: 0, sp: 0, smash: 0, sdx: 0, sdy: 0, sc: 0, mx: 0, my: 0, used: { jump: 0, atk: 0, sp: 0, smash: 0 } };
+    const me = { jump: 0, atk: 0, sp: 0, smash: 0, sdx: 0, sdy: 0, sc: 0, mx: 0, my: 0, seq: 0, used: { jump: 0, atk: 0, sp: 0, smash: 0 } };
     function takeMine() {
       const i = { mx: me.mx, my: me.my, jump: me.jump > me.used.jump, atk: me.atk > me.used.atk, sp: me.sp > me.used.sp, smash: me.smash > me.used.smash ? { dx: me.sdx, dy: me.sdy, c: me.sc } : null };
       me.used = { jump: me.jump, atk: me.atk, sp: me.sp, smash: me.smash };
@@ -460,6 +464,7 @@
       if (!a) return IDLE;
       // (bi: fighter, stick x, stick y, then the press counts: jump, attack, special, smash, and the smash's way and strength)
       const u = H.inputs[peer] || (H.inputs[peer] = { jump: a[3], atk: a[4], sp: a[5], smash: a[6] });
+      H.acks[peer] = a[10] | 0;
       const i = { mx: clamp(a[1] / 10, -1, 1), my: clamp(a[2] / 10, -1, 1), jump: a[3] > u.jump, atk: a[4] > u.atk, sp: a[5] > u.sp, smash: a[6] > u.smash ? { dx: a[7] / 10, dy: a[8] / 10, c: a[9] / 10 } : null };
       Object.assign(u, { jump: a[3], atk: a[4], sp: a[5], smash: a[6] });
       return i;
@@ -518,7 +523,7 @@
     const fx = [];
     const sparkGeo = new THREE.OctahedronGeometry(0.5, 0);
     function spark(x, y, s) { const m = new THREE.Mesh(sparkGeo, new THREE.MeshBasicMaterial({ color: 0xffe066, transparent: true })); m.position.set(x, y, 0.6); arena.add(m); fx.push({ m, t: 0, life: 0.25, s: s || 1, kind: 'spark' }); }
-    function puff(x, y) { const m = new THREE.Mesh(new THREE.SphereGeometry(0.4, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.7 })); m.position.set(x, y + 0.1, 0); arena.add(m); fx.push({ m, t: 0, life: 0.3, s: 1, kind: 'puff' }); }
+    function puff(x, y) { if (PRED) return; const m = new THREE.Mesh(new THREE.SphereGeometry(0.4, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.7 })); m.position.set(x, y + 0.1, 0); arena.add(m); fx.push({ m, t: 0, life: 0.3, s: 1, kind: 'puff' }); }
     function burst(x, y, slot) {
       const m = new THREE.Mesh(new THREE.ConeGeometry(1.2, 9, 16, 1, true), new THREE.MeshBasicMaterial({ color: slot >= 0 ? SLOT_COLS[slot] : 0xffa040, transparent: true, opacity: 0.85, side: THREE.DoubleSide, depthWrite: false }));
       const cx = clamp(x, -BLAST.x + 1, BLAST.x - 1), cy = clamp(y, BLAST.lo + 1, BLAST.hi - 1);
@@ -537,7 +542,44 @@
       }
       for (let i = fx.length - 1; i >= 0; i--) if (fx[i].t >= fx[i].life) fx.splice(i, 1);
     }
-    function sfxAt(f, kind, v) { if (here()) sfx(kind, v); }
+    function sfxAt(f, kind, v) { if (here() && !PRED) sfx(kind, v); }
+
+    // ---------------------------------------------------------------- your own fighter, the moment you press (not the referee)
+    // Your page runs your fighter's movement itself (running, jumping, falling, platforms) on your own controls, every
+    // frame. Hits, attacks, knockouts and lives stay the referee's. Each snapshot says which of your inputs (bi[10]) the
+    // referee has used: we start again from where the referee has you, replay the frames it hasn't had yet, and ease
+    // out any difference over a tenth of a second rather than jump.
+    const TL = MATCH.timeline(100), tlv = [];
+    const P = { f: null, k: -1, hist: [], jumpUsed: 0, ex: 0, ey: 0 };
+    const predOn = () => !isHost() && here() && (H.ph === 'lobby' || H.ph === 'fight');
+    function predInput() {
+      const jump = me.jump > P.jumpUsed; P.jumpUsed = me.jump;
+      return { mx: me.mx, my: me.my, jump, atk: false, sp: false, smash: null };
+    }
+    function predStep(dt) {
+      const k = F.findIndex((f) => f.on && f.peer === state.myPeer);
+      if (!predOn() || k < 0) { P.f = null; P.k = -1; P.hist.length = 0; P.jumpUsed = me.jump; return; }
+      const auth = F[k];
+      // (knocked out, on the cloud, or flying from a hit: that's the referee's to show)
+      if (auth.dead > 0 || auth.cloud > 0) { P.f = null; P.k = k; P.hist.length = 0; return; }
+      if (!P.f || P.k !== k) { P.f = Object.assign({}, auth, { hit: [] }); P.k = k; P.ex = 0; P.ey = 0; }
+      const inp = predInput();
+      P.hist.push({ seq: me.seq, inp, dt }); if (P.hist.length > 90) P.hist.shift();
+      PRED = true; try { step(P.f, inp, dt); } finally { PRED = false; }
+      const e = Math.exp(-dt / 0.1); P.ex *= e; P.ey *= e;
+    }
+    function reconcile(ba) {
+      if (!P.f || P.k < 0) return;
+      const auth = F[P.k], ack = ba[P.k];
+      if (!auth || !auth.on || !num(ack)) return;
+      const ox = P.f.x + P.ex, oy = P.f.y + P.ey;
+      P.hist = P.hist.filter((h) => h.seq >= ack);
+      P.f = Object.assign({}, auth, { hit: [] });
+      PRED = true; try { for (const h of P.hist) step(P.f, h.inp, h.dt); } finally { PRED = false; }
+      // (a small difference eases out; a big one, like a hit we didn't predict, is shown straight away)
+      P.ex = ox - P.f.x; P.ey = oy - P.f.y;
+      if (Math.hypot(P.ex, P.ey) > 1.5) { P.ex = 0; P.ey = 0; }
+    }
 
     // ---------------------------------------------------------------- drawing the match (the host's numbers, smoothed)
     const view = F.map(() => ({ x: 0, y: 0, models: [], seen: { pct: 0, stocks: ROUND_STOCKS, dead: false } }));
@@ -546,13 +588,18 @@
     const rocketMat = lm(0x6a7280), fireMat = new THREE.MeshBasicMaterial({ color: 0xff7a2a }), bombMat = lm(0x222230);
     function modelFor(k, fi) { const v = view[k]; if (!v.models[fi]) { v.models[fi] = buildModel(fi); arena.add(v.models[fi].root); } return v.models[fi]; }
     function draw(dt, t) {
+      const haveTL = !isHost() && TL.at(tlv);
       F.forEach((f, k) => {
         const v = view[k];
         for (let i = 0; i < 4; i++) if (v.models[i] && (i !== f.fi || !f.on)) v.models[i].root.visible = false;
         if (!f.on) return;
         const M = modelFor(k, f.fi);
-        // (a friend's screen eases toward the host's numbers)
-        if (isHost()) { v.x = f.x; v.y = f.y; } else { const a = 1 - Math.exp(-dt * 18); v.x += (f.x - v.x) * a; v.y += (f.y - v.y) * a; if (Math.abs(f.x - v.x) > 4 || Math.abs(f.y - v.y) > 4) { v.x = f.x; v.y = f.y; } }
+        // (the referee draws its own numbers; everyone else draws other fighters 100 ms in the past, between the two
+        // snapshots either side, and their own fighter where their own controls have it, the moment they press)
+        if (isHost()) { v.x = f.x; v.y = f.y; }
+        else if (P.f && P.k === k) { v.x = P.f.x + P.ex; v.y = P.f.y + P.ey; }
+        else if (haveTL) { v.x = tlv[k * 2]; v.y = tlv[k * 2 + 1]; }
+        else { const a = 1 - Math.exp(-dt * 18); v.x += (f.x - v.x) * a; v.y += (f.y - v.y) * a; if (Math.abs(f.x - v.x) > 4 || Math.abs(f.y - v.y) > 4) { v.x = f.x; v.y = f.y; } }
         M.root.visible = f.dead <= 0 && !(f.inv > 0 && Math.floor(t * 14) % 2 === 0);
         M.root.position.set(v.x, v.y, 0);
         M.root.rotation.y = f.face > 0 ? Math.PI / 2 - 0.45 : -Math.PI / 2 + 0.45;
@@ -655,9 +702,11 @@
     // ---------------------------------------------------------------- network
     const r2 = (x) => Math.round(x * 100);
     L.presence = () => {
-      const p = Object.assign(M.presence(), { bi: [myFighter(), Math.round(me.mx * 10), Math.round(me.my * 10), me.jump, me.atk, me.sp, me.smash, Math.round(me.sdx * 10), Math.round(me.sdy * 10), Math.round(me.sc * 10), 0] });
+      const p = Object.assign(M.presence(), { bi: [myFighter(), Math.round(me.mx * 10), Math.round(me.my * 10), me.jump, me.atk, me.sp, me.smash, Math.round(me.sdx * 10), Math.round(me.sdy * 10), Math.round(me.sc * 10), (me.seq = (me.seq + 1) % 1000000)] });
       if (isHost()) {
         p.bw = H.winner;
+        p.bt = MATCH.clock();
+        p.ba = F.map((f) => (f.on && f.peer && f.peer !== state.myPeer ? H.acks[f.peer] | 0 : 0));
         p.bs = F.map((f) => (f.on ? (f.bot ? '~' : f.peer) : ''));
         p.bf = F.map((f) => (f.on ? [f.fi, r2(f.x), r2(f.y), Math.round(f.vx * 10), Math.round(f.vy * 10), f.face, Math.round(f.pct), f.stocks, MOVE_IDS.indexOf(f.mv), r2(f.mt), (f.ground ? 1 : 0) | (f.dead > 0 ? 2 : 0) | (f.inv > 0 ? 4 : 0) | (f.stun > 0.15 ? 8 : 0) | (f.cloud > 0 ? 16 : 0), f.kos] : 0));
         p.bp = H.proj.slice(0, 8).map((q) => [q.k, r2(q.x), r2(q.y), Math.round(q.vx)]);
@@ -684,6 +733,8 @@
             ground: !!(e[10] & 1), dead: e[10] & 2 ? 1 : 0, inv: e[10] & 4 ? 1 : 0, stun: e[10] & 8 ? 1 : 0, cloud: e[10] & 16 ? 1 : 0, kos: e[11] });
         });
       }
+      if (num(pres.bt)) { const v = []; F.forEach((f) => v.push(f.x, f.y)); TL.push(pres.bt, v); }
+      if (Array.isArray(pres.ba)) reconcile(pres.ba);
       if (Array.isArray(pres.bp)) H.proj = pres.bp.filter((q) => Array.isArray(q) && q.length === 4 && q.every(num)).map((q) => ({ k: q[0], x: q[1] / 100, y: q[2] / 100, vx: q[3], vy: 0 }));
       if (Array.isArray(pres.bb)) H.bombs = pres.bb.filter((q) => Array.isArray(q) && q.length === 2 && q.every(num)).map((q) => ({ x: q[0] / 100, y: q[1] / 100, holder: -1, thrown: -1 }));
     };
@@ -725,7 +776,7 @@
       const t = now / 1000;
       readControls(dt, now);
       if (isHost()) hostStep(dt);
-      else for (const f of F) if (f.on && f.mv) f.mt += dt;
+      else { for (const f of F) if (f.on && f.mv) f.mt += dt; predStep(dt); }
       phaseSounds();
       draw(dt, t);
       fxStep(dt);
@@ -737,6 +788,6 @@
         if (ui.status.textContent !== txt) ui.status.textContent = txt;
       }
     };
-    L.brawlInternals = { M, F, H, FIGHTERS, MOVES, step, hostStep, startMatch, toLobby, me, isHost, humans, botThink, hurt, ko, place, takeMine, buildModel, PLATS, BLAST, dropBomb };
+    L.brawlInternals = { M, P, TL, view, F, H, FIGHTERS, MOVES, step, hostStep, startMatch, toLobby, me, isHost, humans, botThink, hurt, ko, place, takeMine, buildModel, PLATS, BLAST, dropBomb };
     return L;
   })();

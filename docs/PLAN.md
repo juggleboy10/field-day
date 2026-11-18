@@ -224,6 +224,10 @@ The kit provides:
 - `core/referee.js`: heartbeat, away flag, a sticky referee and hand-over numbers (see the comments there).
   `playersHere(L)`, `refereeOf(L)`, `amReferee(L)`; `L.refPool` for games where only some players may referee.
   About 30 games use it in place of their own copies. `tests/v107.py` checks the hand-overs under 120 ms of delay.
+- 2.2 (v108): `core/match.js` (`MATCH.define`: seats, lifecycle, start requests, the phase in presence); Brawl uses it.
+- 2.3 and 2.4 for Brawl (v109): `MATCH.timeline` draws other fighters 100 ms behind, between snapshots stamped with the
+  referee's clock; your own fighter's movement is predicted (`PRED` turns off hits, shots, KOs and sounds while
+  predicting) and reconciled from the referee's acks (`ba`, against `bi[10]`). `tests/v109.py`.
 - Not yet: games don't all keep everything a new referee needs in their shared state (timers, bot plans). Each game's
   move onto the kit (2.5) checks that with a referee hand-over in its two-page test.
 

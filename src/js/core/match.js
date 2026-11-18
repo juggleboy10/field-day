@@ -99,5 +99,44 @@
       Object.assign(M, { start, toLobby, over, step, watch, seat, presence, read, isRef, names });
       return M;
     }
-    return { define, PH };
+    // ------------------------------------------------ drawing others a little in the past, smoothly
+    // The referee stamps each snapshot with its own clock (never compared with ours directly). We keep the last second
+    // or so, work out the gap between its clock and ours from the quickest snapshots (the lowest delay seen lately),
+    // and draw at "now, less that gap, less DELAY": between the two snapshots either side of that moment. Snapshots
+    // arriving unevenly (jitter) then make no difference to how smoothly things move.
+    //   const tl = MATCH.timeline(100); tl.push(refClockMs, [x0, y0, x1, y1, ...]); tl.at(out) -> true if out was filled
+    function timeline(DELAY) {
+      const buf = [], offs = [];
+      const T = { delay: DELAY || 100 };
+      T.push = (rt, vals) => {
+        const now = performance.now();
+        if (!Number.isFinite(rt)) return;
+        const last = buf[buf.length - 1];
+        if (last && rt < last.rt - 4000) { buf.length = 0; offs.length = 0; }    // (the referee changed, or its clock wrapped)
+        else if (last && rt <= last.rt) return;
+        offs.push(now - rt); if (offs.length > 40) offs.shift();
+        buf.push({ rt, vals: vals.slice() }); if (buf.length > 40) buf.shift();
+      };
+      T.reset = () => { buf.length = 0; offs.length = 0; };
+      T.at = (out, jump) => {
+        if (buf.length < 2) return false;
+        let off = Infinity; for (const o of offs) if (o < off) off = o;
+        const rt = performance.now() - off - T.delay;
+        let a = buf[0], b = buf[1];
+        if (rt <= a.rt) { for (let i = 0; i < a.vals.length; i++) out[i] = a.vals[i]; return true; }
+        for (let i = 1; i < buf.length; i++) { a = buf[i - 1]; b = buf[i]; if (b.rt >= rt) break; }
+        if (rt >= b.rt) { for (let i = 0; i < b.vals.length; i++) out[i] = b.vals[i]; return true; }
+        const u = (rt - a.rt) / Math.max(1, b.rt - a.rt), J = jump || 4;
+        for (let i = 0; i < b.vals.length; i++) {
+          const x = a.vals[i], y = b.vals[i];
+          out[i] = Math.abs(y - x) > J ? (u < 0.5 ? x : y) : x + (y - x) * u;     // (a big jump, like a knockout: no sliding across)
+        }
+        return true;
+      };
+      T.size = () => buf.length;
+      return T;
+    }
+    // the referee's clock, for stamping snapshots (whole milliseconds, wrapping every few hours)
+    const clock = () => Math.round(performance.now()) % 10000000;
+    return { define, PH, timeline, clock };
   })();
