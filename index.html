@@ -357,7 +357,7 @@ window.addEventListener('error', function (e) {
   const FWD = new V3(0, 0, -1);
   const GRAVITY = 9.8;
   // which build this is (shown on the start screen and on the VR watch, so you can tell a fresh copy from a stale one)
-  const VERSION = 106;
+  const VERSION = 107;
   const PLAYER_COLORS = [
     { hex: '#4fc3f7', label: 'Sky blue' },
     { hex: '#ff5c8a', label: 'Pink' },
@@ -2900,6 +2900,83 @@ window.addEventListener('error', function (e) {
   }
 </script>
 <script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
+  // ================================================================ WHO'S PLAYING, AND WHO REFEREES
+  // In a game where one page runs things (the rounds, the bots, the clock), that page is the referee. The rule, the same
+  // on every page:
+  //   - Only players who are really there count: in this game, and their page alive. Every page bumps a heartbeat (hb)
+  //     in its presence twice a second; a page that's gone quiet for 2 seconds (a headset taken off, a frozen browser)
+  //     is skipped. A page that knows it's going (the tab hidden, the headset's view hidden) says so at once (aw).
+  //   - The referee keeps the job while it's there: each page says which game it's refereeing (rf), and if anyone here
+  //     is, they stay referee. Only when nobody is does the lowest player take it on. So someone joining (or coming
+  //     back) never snatches the game from the page that has the latest state of it.
+  //   - Each new referee takes a hand-over number (re) one higher than any it has seen there, and if two pages both say
+  //     they're refereeing (one lost its connection for a while, and the other took over), the higher number wins
+  //     (then the lower id). The page with the old number gives way at once, and takes the game as it now stands.
+  // Players from pages older than this rule (no hb) count as alive, as before.
+  //   playersHere(L): the ids of the players in L, sorted (always including me)
+  //   refereeOf(L), amReferee(L)
+  const LIVE = { hb: 0, hbT: 0, away: false, ref: -1, ep: 0 };
+  const LIVE_MS = 2000;
+  function liveIn(rec, L, now) {
+    return rec.inGame && rec.lv === L.idx && !rec.away && (rec.hb === undefined || now - rec.hbT < LIVE_MS);
+  }
+  function playersHere(L) {
+    const now = performance.now(), ids = [state.myPeer];
+    for (const rec of remotes.values()) if (liveIn(rec, L, now)) ids.push(rec.peer);
+    return ids.sort();
+  }
+  // (a game can say who may referee, L.refPool() giving their ids: Brawl's fighters, say, not its spectators; if none of
+  // them is here, it's me)
+  function refereeOf(L) {
+    const now = performance.now(), pool = L.refPool ? new Set(L.refPool()) : null, all = [];
+    let best = null, bestEp = -1;
+    const consider = (id, ep) => { if (ep > bestEp || (ep === bestEp && id < best)) { best = id; bestEp = ep; } };
+    if (!pool || pool.has(state.myPeer)) { all.push(state.myPeer); if (LIVE.ref === L.idx && !LIVE.away) consider(state.myPeer, LIVE.ep); }
+    for (const rec of remotes.values()) {
+      if (!liveIn(rec, L, now) || (pool && !pool.has(rec.peer))) continue;
+      all.push(rec.peer);
+      if (rec.rf === L.idx) consider(rec.peer, rec.re || 0);
+    }
+    return best || all.sort()[0] || state.myPeer;
+  }
+  const amReferee = (L) => refereeOf(L) === state.myPeer;
+  // every frame: the heartbeat, and whether I'm refereeing the game I'm in (for my presence)
+  function liveTick(now) {
+    if (now - LIVE.hbT >= 500) { LIVE.hbT = now; LIVE.hb = (LIVE.hb + 1) % 1000; }
+    const L = curLevel();
+    const was = LIVE.ref;
+    LIVE.ref = L && state.mode !== 'menu' && !LIVE.away && refereeOf(L) === state.myPeer ? L.idx : -1;
+    // (taking over: one higher than any hand-over number seen here)
+    if (LIVE.ref >= 0 && was !== LIVE.ref) {
+      let top = 0;
+      for (const rec of remotes.values()) if (rec.lv === L.idx && Number.isInteger(rec.re)) top = Math.max(top, rec.re);
+      LIVE.ep = top + 1;
+    }
+  }
+  // what goes in my presence
+  const livePresence = () => ({ hb: LIVE.hb, aw: LIVE.away ? 1 : 0, rf: LIVE.ref, re: LIVE.ep });
+  // a friend's presence: when their heartbeat last moved, whether they're away, what they referee
+  function liveRead(rec, pres) {
+    const now = performance.now();
+    if (rec.hbT === undefined) rec.hbT = now;
+    if (Number.isInteger(pres.hb) && pres.hb !== rec.hb) { rec.hb = pres.hb; rec.hbT = now; }
+    rec.away = pres.aw === 1;
+    rec.rf = Number.isInteger(pres.rf) ? pres.rf : -1;
+    rec.re = Number.isInteger(pres.re) ? pres.re : 0;
+  }
+  // going away (the tab hidden, the headset's view hidden): say so now, as the frame loop is about to stop; and give up
+  // refereeing, so whoever takes over keeps it when I come back
+  function setAway(on) {
+    on = !!on;
+    if (LIVE.away === on) return;
+    LIVE.away = on;
+    if (on) LIVE.ref = -1;
+    try { if (state.room) state.room.presence({ aw: on ? 1 : 0, rf: -1 }).catch(() => {}); } catch (e) { /* not connected */ }
+    forcePresence();
+  }
+  document.addEventListener('visibilitychange', () => setAway(document.hidden));
+</script>
+<script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
   // ---------------------------------------------------------------- balls (sphere bodies)
   function makeBody(L, o) {
     const mat = new THREE.MeshLambertMaterial({ map: o.tex, emissive: 0x000000 });
@@ -4259,12 +4336,8 @@ window.addEventListener('error', function (e) {
     const ltMe = { req: null, reqSeq: 0, reports: [], repSeq: 0, k: -1, giveSeen: -1, held: false, shots: 0 };
     L.ltMe = ltMe;
     const GAME_BALLS = [0, 1];
-    const herePeersLT = () => {
-      const ids = [state.myPeer];
-      for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer);
-      return ids.sort();
-    };
-    const ltHost = () => herePeersLT()[0] === state.myPeer;
+    const herePeersLT = () => playersHere(L);
+    const ltHost = () => amReferee(L);
     const isBot = (id) => typeof id === 'string' && id.startsWith('bot:');
     const nameLT = (id) => (isBot(id) ? (LT_BOTS[Number(id.slice(4))] || {}).name || 'Bot' : id === state.myPeer ? state.name : (remotes.get(id) || {}).name || 'Someone');
     const holderOf = (k) => Object.keys(LT.ballOf).find((id) => LT.ballOf[id] === k);
@@ -5122,12 +5195,8 @@ window.addEventListener('error', function (e) {
     const GM = { def: 0, gid: 0, ph: 0, inn: 1, outs: 0, b: 0, s: 0, bases: [0, 0, 0], r: [0, 0], h: [0, 0], line: [[0, 0, 0], [0, 0, 0]], bi: 0, order: [], ev: [0, 0, 0, 0, ''], cpuT: 0, endT: 0 };
     L.game = GM;
     const gameOn = () => GM.ph === 1 || GM.ph === 2;
-    const herePeers = () => {
-      const ids = [state.myPeer];
-      for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer);
-      return ids.sort();
-    };
-    const gameHost = () => herePeers()[0] === state.myPeer;
+    const herePeers = () => playersHere(L);
+    const gameHost = () => amReferee(L);
     const nameOf = (peer) => (peer === state.myPeer ? state.name : (remotes.get(peer) || {}).name || 'Someone');
     const ZONE = { x: 0.25, y0: 0.45, y1: 1.2 };
 
@@ -6638,12 +6707,8 @@ window.addEventListener('error', function (e) {
     finnBody.add(finnLabel);
     finnBody.visible = false;
     G.add(finnBody);
-    const herePeersDG = () => {
-      const ids = [state.myPeer];
-      for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer);
-      return ids.sort();
-    };
-    const finnHost = () => herePeersDG()[0] === state.myPeer;
+    const herePeersDG = () => playersHere(L);
+    const finnHost = () => amReferee(L);
     BOTLV.on(L);
     const finnGauss = () => (rand() + rand() + rand() - 1.5) / 0.5;
     const _fv = new V3(), _fh = new V3(), _fq = new Q4(), _fqs = new Q4();
@@ -7596,12 +7661,7 @@ window.addEventListener('error', function (e) {
     L.me = { maxHp: MAX_HP, might: 0, ward: 0, vamp: 0, vampN: 0, lucky: 0, chests: new Set(), relics: new Set(), hp: MAX_HP, coins: 0, kills: 0, down: false, downT: 0, invT: 0, hxSeq: 0, hx: [], shSeq: 0, sh: [], pc: [], dr: [-1, -1, -1], swordCool: new Map(), lastTool: null, ff: [], ffSeq: 0 };
     const me = L.me;
     L.allowRecall = true;
-    const hostId = () => {
-      const ids = [state.myPeer];
-      for (const rec of remotes.values()) if (rec.lv === L.idx) ids.push(rec.peer);
-      ids.sort();
-      return ids[0];
-    };
+    const hostId = () => refereeOf(L);
     L.isHost = () => hostId() === state.myPeer;
     const inGameHere = () => state.mode !== 'menu' && state.level === L.idx;
     const C = cfg.colors, TX = cfg.text;
@@ -8139,7 +8199,7 @@ window.addEventListener('error', function (e) {
         const allDown = me.down && peers.every((p) => p === state.myPeer || (remotes.get(p).lvState[L.id] || {}).down);
         if (allDown && !overT) { overT = now; showToast(peers.length > 1 ? 'Everyone\u2019s down. Game over! The quest starts again' : 'Game over! The quest starts again'); sfx('buzzer', 0.8); }
         if (!allDown) overT = 0;
-        if (overT && now - overT > 3000 && peers.slice().sort()[0] === state.myPeer) { overT = 0; resetRun(); }
+        if (overT && now - overT > 3000 && L.isHost()) { overT = 0; resetRun(); }
       }
     }
     L.onUse = () => { if (state.mode !== 'flat' || me.down) return me.down; for (const rec of remotes.values()) { const st = rec.lvState[L.id]; if (rec.lv === L.idx && rec.hasH && st && st.down && Math.hypot(rec.cur.h.pos.x - myHead.pos.x, rec.cur.h.pos.z - myHead.pos.z) < 1.6) return true; } return false; };
@@ -10195,7 +10255,7 @@ window.addEventListener('error', function (e) {
       g.visible = false; G.add(g);
       return { id: `bot:${k}`, k, team, name, g, gun, active: false, x: 0, z: 0, rx: 0, rz: 0, yaw: 0, vx: 0, vz: 0, tagged: false, taggedUntil: 0, invUntil: 0, tags: 0, cool: 0, goal: null, goalT: 0, skill: 0.85 + rand() * 0.3 };
     });
-    const ltHost = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort()[0] === state.myPeer; };
+    const ltHost = () => amReferee(L);
     const ltHumans = () => { const out = state.mode !== 'menu' ? [{ id: state.myPeer, team: me.team, head: myHead.pos, tagged: me.tagged }] : []; for (const rec of remotes.values()) { const st = rec.lvState[L.id]; if (inMyLevel(rec) && rec.hasH && st && (st.team === 0 || st.team === 1)) out.push({ id: rec.peer, team: st.team, head: rec.cur.h.pos, tagged: st.tagged }); } return out; };
     const LB = { seq: 0, shots: [], hitSeq: 0, hits: [], round: -1 };
     L.ltBots = lbots;
@@ -10367,8 +10427,7 @@ window.addEventListener('error', function (e) {
           }
           st.lbhInit = true;
         }
-        const ids = [state.myPeer]; for (const r of remotes.values()) if (r.lv === L.idx && r.inGame) ids.push(r.peer);
-        if (rec.peer !== ids.sort()[0]) return;
+        if (rec.peer !== refereeOf(L)) return;
         if (Array.isArray(pres.lbt)) {
           const seen = new Set();
           for (const a of pres.lbt.slice(0, lbots.length)) {
@@ -10896,7 +10955,7 @@ window.addEventListener('error', function (e) {
       return { id: `bot:${k}`, k, team, j: k % 5, name, g, active: false, x: 0, z: 0, rx: 0, rz: 0, yaw: 0, vx: 0, vz: 0, role: 'sup', kickCool: 0, skill: 0.85 + rand() * 0.3 };
     });
     const socHumans = () => { const ids = state.mode !== 'menu' ? [{ id: state.myPeer, team: me.team }] : []; for (const rec of remotes.values()) { const st = rec.lvState[L.id]; if (rec.lv === L.idx && rec.inGame && st && (st.team === 0 || st.team === 1)) ids.push({ id: rec.peer, team: st.team }); } return ids; };
-    const socHost = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort()[0] === state.myPeer; };
+    const socHost = () => amReferee(L);
     L.socBots = { list: sbots, byId: (id) => (typeof id === 'string' && id.startsWith('bot:') ? sbots[Number(id.slice(4))] || null : null) };
     const attackZ = (t) => (t === 0 ? -HL : HL), ownZ = (t) => (t === 0 ? HL : -HL);
     function homeSpot(b, out) {
@@ -11055,8 +11114,7 @@ window.addEventListener('error', function (e) {
       };
       L.readPresence = (rec, pres, st) => {
         baseR(rec, pres, st);
-        const ids = [state.myPeer]; for (const r of remotes.values()) if (r.lv === L.idx && r.inGame) ids.push(r.peer);
-        if (rec.peer !== ids.sort()[0] || !Array.isArray(pres.sbt)) return;
+        if (rec.peer !== refereeOf(L) || !Array.isArray(pres.sbt)) return;
         const seen = new Set();
         for (const a of pres.sbt.slice(0, sbots.length)) {
           if (!Array.isArray(a) || a.length !== 6 || !a.every(Number.isFinite) || !sbots[a[0]]) continue;
@@ -12350,12 +12408,8 @@ window.addEventListener('error', function (e) {
     bea.add(beaPutter);
     bea.visible = false; beaMesh.visible = false;
     G.add(bea);
-    const herePeersMG = () => {
-      const ids = [state.myPeer];
-      for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer);
-      return ids.sort();
-    };
-    const beaHost = () => herePeersMG()[0] === state.myPeer;
+    const herePeersMG = () => playersHere(L);
+    const beaHost = () => amReferee(L);
 
     // ---------------------------------------------------------------- planning a putt
     // is there a wall between this spot and the cup? (a clear look at the cup is worth a lot)
@@ -13431,12 +13485,8 @@ window.addEventListener('error', function (e) {
     L.bowlBot = BOT;
     const freshPins = () => SPOTS.flatMap(([x, z]) => [x, z, 0]);
     BOT.pins = freshPins();
-    const herePeers = () => {
-      const ids = [state.myPeer];
-      for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer);
-      return ids.sort();
-    };
-    const isHost = () => herePeers()[0] === state.myPeer;
+    const herePeers = () => playersHere(L);
+    const isHost = () => amReferee(L);
     function humanLanes() {
       const used = new Set();
       if (me.lane >= 0) used.add(me.lane);
@@ -16098,11 +16148,7 @@ window.addEventListener('error', function (e) {
       }
       return best;
     }
-    function racers() {
-      const ids = [state.myPeer];
-      for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer);
-      return ids.sort();
-    }
+    function racers() { return playersHere(L); }
     function placeOnGrid() {
       const slot = Math.max(0, racers().indexOf(state.myPeer));
       const back = Math.round((3.5 + Math.floor(slot / 2) * 4) / DS);
@@ -16803,7 +16849,7 @@ window.addEventListener('error', function (e) {
       return Math.atan2(a.x * b.z - a.z * b.x, a.x * b.x + a.z * b.z);
     });
     const humanCount = () => racers().length;
-    const isHost = () => racers()[0] === state.myPeer;
+    const isHost = () => amReferee(L);
     makePlayerPicker(L, { min: 1, max: 1 + BOT_NAMES.length, def: 4, label: 'Racers', stand: false });
     const wantBots = () => clamp(L.picker.n - humanCount(), 0, BOT_NAMES.length);
     function botKarts() { return bots.filter((b) => b.active); }
@@ -17538,12 +17584,8 @@ window.addEventListener('error', function (e) {
     L.bots = bots;
     const me = { finds: 0, wins: 0, crouch: false, tagSeq: 0, tags: [], tagCool: 0, req: null };
     L.me = me;
-    const herePeers = () => {
-      const ids = [state.myPeer];
-      for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer);
-      return ids.sort();
-    };
-    const isHost = () => herePeers()[0] === state.myPeer;
+    const herePeers = () => playersHere(L);
+    const isHost = () => amReferee(L);
     L.isHost = isHost;
     const isBot = (id) => typeof id === 'string' && id[0] === 'b' && bots.has(id);
     function nameOf(id) {
@@ -18375,12 +18417,8 @@ window.addEventListener('error', function (e) {
     L.ch = CH;
     const me = { card: null, used: new Set(), skips: 0, guessSeq: 0, guess: null, req: null, reqSeq: 0, reports: [], repSeq: 0, lastPh: -1, lastRound: 0 };
     L.chMe = me;
-    const herePeersCH = () => {
-      const ids = [state.myPeer];
-      for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer);
-      return ids.sort();
-    };
-    const chHost = () => herePeersCH()[0] === state.myPeer;
+    const herePeersCH = () => playersHere(L);
+    const chHost = () => amReferee(L);
     const nameOfCH = (p) => (p === state.myPeer ? state.name : (remotes.get(p) || {}).name || 'Someone');
     const myTeam = () => (CH.teams.has(state.myPeer) ? CH.teams.get(state.myPeer) : -1);
     const iAmActor = () => CH.actor === state.myPeer && (CH.ph === 1 || CH.ph === 2);
@@ -18942,8 +18980,8 @@ window.addEventListener('error', function (e) {
     const me = { team: -1, out: false, outBy: '', roundSeen: -1, shots: [], shotSeq: 0, hits: [], hitSeq: 0, coolOf: {}, holding: false, chargeT: 0, req: null, reqSeq: 0 };
     L.me = me;
     L.teams = true; L.teamKey = 'pbt';
-    const herePeersPB = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort(); };
-    const pbHost = () => herePeersPB()[0] === state.myPeer;
+    const herePeersPB = () => playersHere(L);
+    const pbHost = () => amReferee(L);
     const nameOfPB = (id) => (typeof id === 'string' && id.startsWith('bot:') ? (bots[Number(id.slice(4))] || {}).name || 'A bot' : id === state.myPeer ? 'You' : (remotes.get(id) || {}).name || 'Someone');
     function teamOf(id) {
       if (id === state.myPeer) return me.team;
@@ -20969,7 +21007,8 @@ window.addEventListener('error', function (e) {
       }
       return out;
     };
-    const hostId = () => humans().map((h) => h.peer).sort()[0];
+    L.refPool = () => humans().map((h) => h.peer);
+    const hostId = () => refereeOf(L);
     const isHost = () => hostId() === state.myPeer;
     const teamOf = (peer) => { if (peer === state.myPeer) return me.team; if (typeof peer === 'string' && peer.startsWith('bot:')) { const b = bots[Number(peer.slice(4))]; return b ? b.team : -1; } const rec = remotes.get(peer), st = rec && rec.lvState[L.id]; return st && (st.team === 0 || st.team === 1) ? st.team : -1; };
 
@@ -21488,7 +21527,7 @@ window.addEventListener('error', function (e) {
       for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame && !SIT.out(rec)) ids.push(rec.peer);
       return ids.sort();
     };
-    const hostId = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort()[0]; };
+    const hostId = () => refereeOf(L);
     const isHost = () => hostId() === state.myPeer;
     const nameOf = (id) => (id === state.myPeer ? 'You' : isBot(id) ? botOf(id).name : (remotes.get(id) || {}).name || 'Someone');
     const idx = (id) => RS.order.indexOf(id);
@@ -22233,7 +22272,7 @@ window.addEventListener('error', function (e) {
     const RACE = { id: 0, state: 'idle', startAt: 0, botsOn: false, botsN: 0, myFinish: 0 };
     L.race = RACE;
     const raceNow = () => (RACE.state === 'idle' ? 0 : Date.now() - RACE.startAt);
-    const racers = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort(); };
+    const racers = () => playersHere(L);
     const GRID = [-3.2, -1.1, 1.1, 3.2, -5.4, 5.4];
     function toGrid() {
       const k = Math.max(0, racers().indexOf(state.myPeer));
@@ -22890,7 +22929,7 @@ window.addEventListener('error', function (e) {
     const me = { done: 0, doneRound: 0, doneTurn: -1, wins: 0, round: -1, game: -1, thrownTurn: -1, thrownT: 0, ph: '' };
     L.ch = { RS, H, me };
     const humans = () => { const ids = state.mode !== 'menu' ? [state.myPeer] : []; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort(); };
-    const hostId = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort()[0]; };
+    const hostId = () => refereeOf(L);
     const isHost = () => hostId() === state.myPeer;
     const BOT = 'bot';
     const nameOf = (id) => (id === BOT ? 'Corny Carl' : id === state.myPeer ? 'You' : (remotes.get(id) || {}).name || 'Someone');
@@ -23295,7 +23334,7 @@ window.addEventListener('error', function (e) {
       }
       return out;
     };
-    const hostId = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort()[0]; };
+    const hostId = () => refereeOf(L);
     const isHost = () => hostId() === state.myPeer;
     const nameOf = (id) => (id === state.myPeer ? 'You' : isBot(id) ? botOf(id).name : (remotes.get(id) || {}).name || 'Someone');
     const teamOf = (id) => { if (id === state.myPeer) return me.team; if (isBot(id)) return botOf(id).team; const rec = remotes.get(id), st = rec && rec.lvState[L.id]; return st && (st.team === 0 || st.team === 1) ? st.team : -1; };
@@ -24152,7 +24191,7 @@ window.addEventListener('error', function (e) {
       for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame && !SIT.out(rec)) ids.push(rec.peer);
       return ids.sort();
     };
-    const hostId = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort()[0]; };
+    const hostId = () => refereeOf(L);
     const isHost = () => hostId() === state.myPeer;
     const nameOf = (id) => (id === state.myPeer ? 'You' : isBot(id) ? botOf(id).name : (remotes.get(id) || {}).name || 'Someone');
     const kOf = (id) => (id ? RS.order.indexOf(id) : -1);
@@ -29329,8 +29368,8 @@ window.addEventListener('error', function (e) {
     // players: ids, 'b0'.. for bots or a peer id. alive: still in. seats: which player has each chair (-1 none).
     const S = { g: 0, ph: 'lobby', round: 0, ids: [], alive: [], seats: [], n: 0, t: 0, stopAt: 0, outName: '', winner: '', tempo: 1, req: 0 };
     L.mc = S;
-    const humansHere = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort(); };
-    const isHost = () => humansHere()[0] === state.myPeer;
+    const humansHere = () => playersHere(L);
+    const isHost = () => amReferee(L);
     const nameOf = (id) => { if (id[0] === 'b' && id.length <= 2) return BOT_NAMES[Number(id.slice(1))]; if (id === state.myPeer) return state.name || 'You'; const rec = remotes.get(id); return rec ? rec.name : 'Someone'; };
     makePlayerPicker(L, { min: 3, max: 8, def: 6, label: 'Players', note: 'bots make up the numbers' });
     function startGame() {
@@ -29963,7 +30002,8 @@ window.addEventListener('error', function (e) {
       }
       return out;
     };
-    const hostId = () => humans().map((h) => h.peer).sort()[0];
+    L.refPool = () => humans().map((h) => h.peer);
+    const hostId = () => refereeOf(L);
     const isHost = () => hostId() === state.myPeer;
     const teamOf = (peer) => { if (peer === state.myPeer) return me.team; if (typeof peer === 'string' && peer.startsWith('bot:')) { const b = bots[Number(peer.slice(4))]; return b ? b.team : -1; } const rec = remotes.get(peer), st = rec && rec.lvState[L.id]; return st && (st.team === 0 || st.team === 1) ? st.team : -1; };
 
@@ -30481,7 +30521,7 @@ window.addEventListener('error', function (e) {
     try { if (Number.isFinite(prefs.sledBest)) RACE.best = prefs.sledBest; } catch (e) { /* none */ }
     L.sled = K; L.sledRace = RACE;
     const laneLat = (k) => [-2.7, -0.9, 0.9, 2.7][k % 4];
-    function racers() { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort(); }
+    function racers() { return playersHere(L); }
     function toGrid() {
       RIDE.on = false;
       const k = Math.max(0, racers().indexOf(state.myPeer));
@@ -31214,8 +31254,8 @@ window.addEventListener('error', function (e) {
     const inPlay = (sl) => !V.solo || sl % 2 === 0;
     L.vb = V;
     const P = [0, 1, 2, 3].map((s) => ({ x: sgn(teamOf(s)) * 4, z: s % 2 ? 2 : -2 }));   // where each spot's player is
-    const humansHere = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort(); };
-    const isHost = () => humansHere()[0] === state.myPeer;
+    const humansHere = () => playersHere(L);
+    const isHost = () => amReferee(L);
     // the people fill the spots in turn: one on each side, then the second on each side
     function assignPeople() {
       const ids = humansHere().filter((id) => { if (id === state.myPeer) return !(L.sitOut && L.sitOut.on); const st = remotes.get(id).lvState[L.id]; return !(st && st.sitOut); });
@@ -31833,8 +31873,8 @@ window.addEventListener('error', function (e) {
     // ph: lobby, fight, done. ids: everyone in the round ('b0'.. bots or peer ids). tm: their team. hp: bonks left.
     const S = { g: 0, ph: 'lobby', ids: [], tm: [], hp: [], wins: [0, 0], wt: -1, t: 0, msg: '', msgSeq: 0, inv: [], seen: {} };
     L.pf = S;
-    const humansHere = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort(); };
-    const isHost = () => humansHere()[0] === state.myPeer;
+    const humansHere = () => playersHere(L);
+    const isHost = () => amReferee(L);
     const botOf = (id) => (id && id[0] === 'b' && id.length <= 2 ? bots[Number(id.slice(1))] : null);
     const nameOf = (id) => { const b = botOf(id); if (b) return b.name; if (id === state.myPeer) return 'You'; const rec = remotes.get(id); return rec ? rec.name : 'Someone'; };
     const myIdx = () => S.ids.indexOf(state.myPeer);
@@ -32320,8 +32360,8 @@ window.addEventListener('error', function (e) {
     const H = { g: 0, ph: 'idle', room: 0, ghosts: [], bossHp: 0, t0: 0, msg: '', msgSeq: 0, boo: [0, ''], caught: 0, time: 0, best: 0, open: [] };
     try { if (Number.isFinite(prefs.hauntBest)) H.best = prefs.hauntBest; } catch (e) { /* none */ }
     L.haunt = H;
-    const humansHere = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort(); };
-    const isHost = () => humansHere()[0] === state.myPeer;
+    const humansHere = () => playersHere(L);
+    const isHost = () => amReferee(L);
     function say(m) { H.msg = m; H.msgSeq += 1; showToast(m); }
     function fillRoom(i) {
       const r = ROOMS[i];
@@ -32779,7 +32819,7 @@ window.addEventListener('error', function (e) {
     try { if (Number.isFinite(prefs.llamaBest)) RACE.best = prefs.llamaBest; } catch (e) { /* none */ }
     L.ll = K; L.llRace = RACE;
     const laneLat = (k) => [-2.4, -0.8, 0.8, 2.4][k % 4];
-    function racers() { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort(); }
+    function racers() { return playersHere(L); }
     function toGrid() {
       RIDE.on = false;
       const k = Math.max(0, racers().indexOf(state.myPeer));
@@ -33123,8 +33163,8 @@ window.addEventListener('error', function (e) {
     // ids: 8 entrants ('b0'.. bots, or peer ids). mt: this round's matches [a, b, winsA, winsB, lastA, lastB, winner].
     const S = { g: 0, ph: 'lobby', rnd: 0, ids: [], mt: [], seq: 0, shootAt: 0, t: 0, champ: '', got: {}, prev: {}, msg: '', msgSeq: 0 };
     L.rp = S;
-    const humansHere = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort(); };
-    const isHost = () => humansHere()[0] === state.myPeer;
+    const humansHere = () => playersHere(L);
+    const isHost = () => amReferee(L);
     const botOf = (id) => (id && id[0] === 'b' && id.length <= 2 ? Number(id.slice(1)) : -1);
     const nameOf = (id) => { const b = botOf(id); if (b >= 0) return BOTS[b].name; if (id === state.myPeer) return state.name || 'You'; const rec = remotes.get(id); return rec ? rec.name : 'Someone'; };
     function say(m) { S.msg = m; S.msgSeq += 1; showToast(m); }
@@ -38828,8 +38868,8 @@ window.addEventListener('error', function (e) {
     const S = { g: 0, ph: 'lobby', ids: [], inf: [], t: ROUND_T, msg: '', msgSeq: 0, seen: {}, tagsMe: 0, survive: 0, start: 0, wins: 0 };
     L.gt = S;
     const ME = { claim: [0, -1], startReq: 0, aPrev: false };
-    const humansHere = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort(); };
-    const isHost = () => humansHere()[0] === state.myPeer;
+    const humansHere = () => playersHere(L);
+    const isHost = () => amReferee(L);
     const nameOf = (id) => { const b = botOf(id); if (b) return b.name; if (id === state.myPeer) return 'You'; const rec = remotes.get(id); return rec ? rec.name : 'Someone'; };
     const myIdx = () => S.ids.indexOf(state.myPeer);
     const amLava = () => myIdx() >= 0 && S.inf[myIdx()] === 1;
@@ -40321,7 +40361,8 @@ window.addEventListener('error', function (e) {
       for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame && rec.lvState[L.id] && rec.lvState[L.id].in) out.push(rec.peer);
       return out.sort();
     };
-    const hostId = () => humans()[0] || state.myPeer;
+    L.refPool = humans;
+    const hostId = () => refereeOf(L);
     const isHost = () => hostId() === state.myPeer;
     const myFighter = () => { const v = Number(prefs.brawlFighter); return Number.isInteger(v) && v >= 0 && v < 4 ? v : 0; };
     const total = () => { const v = Number(prefs.brawlPlayers); return Number.isInteger(v) && v >= 2 && v <= 4 ? v : 4; };
@@ -42514,6 +42555,8 @@ window.addEventListener('error', function (e) {
       .then((s) => {
         session = s;
         session.addEventListener('end', onVREnd);
+        // (the headset taken off, or another app over the top: hand the game over at once)
+        session.addEventListener('visibilitychange', () => setAway(session.visibilityState === 'hidden'));
         try { renderer.xr.setFramebufferScaleFactor(VR_SCALES[prefs.vrScale] || 1); } catch (e) { /* optional */ }
         return renderer.xr.setSession(session);
       })
@@ -42572,6 +42615,7 @@ window.addEventListener('error', function (e) {
       if (t.owner !== state.myPeer) continue;
       p.t.push([t.i, t.v, t.held ? (t.held.side === 'left' ? 1 : 2) : 0]);
     }
+    Object.assign(p, livePresence());
     Object.assign(p, L.presence());
     if (L.picker) p.pc = [L.picker.n, L.picker.t];
     { const r = RECORDS.mine(L); if (r) p.rcd = r; }
@@ -42630,6 +42674,7 @@ window.addEventListener('error', function (e) {
     const look = Array.isArray(pres.a) ? pres.a : [];
     const pick = (v, n) => (Number.isInteger(v) && v >= 0 && v < n ? v : 0);
     setLook(rec, pick(look[0], HATS.length), pick(look[1], FACES.length), pick(look[2], SHIRTS.length), pick(look[3], SHIRT_COLORS.length));
+    liveRead(rec, pres);
     const wasHere = rec.lv === state.level, wasIn = rec.inGame;
     rec.inGame = pres.p === 1;
     rec.lv = Number.isInteger(pres.lv) && pres.lv >= 0 && pres.lv < LEVEL_META.length ? pres.lv : 0;
@@ -43261,6 +43306,7 @@ window.addEventListener('error', function (e) {
     const steps = Math.max(1, Math.ceil(raw / 0.05 - 1e-6)), dt = raw / steps;
     state.frameSteps = steps;
     state.frameMs = (state.frameMs || 16) * 0.95 + Math.min(100, raw * 1000) * 0.05;     // a running average of the frame time
+    liveTick(now);
     pollPeers();
     const L = curLevel();
     if (state.mode === 'menu') L.attract(now);
@@ -43303,7 +43349,7 @@ window.addEventListener('error', function (e) {
   // the shared records board (the Claude page's database, or records.php on your own site), if there is one
   RECORDS.shared.start();
   PHOTOS.start();
-  try { if (new URLSearchParams(location.search).has('test')) window.__fd = { get APLUS() { return typeof APLUS === 'undefined' ? null : APLUS; }, LEVELS, renderer, PERF, setPerf, mergeCheck, MERGED, LOADER, load: (i) => LOADER.sync(i), vrHands, CAMERA, PHOTOS, prizeFx: PRIZE_FX, BOTLV, watch: { press: watchPress, btns: watchBtns, draw: () => { panelKey = ''; drawPanel(); return panelC.g.canvas.toDataURL(); } }, state, dolly, camera, myHead, myHands, RECORDS, switchLevel, startGame, voice: { VOICE, voiceWatch, voiceResend, remotes, buildPresence, createRemote, bodyFollow }, audio: { snd, tone, sfx, ensureAudio, MUSIC } }; } catch (e) { /* ignore */ }
+  try { if (new URLSearchParams(location.search).has('test')) window.__fd = { get APLUS() { return typeof APLUS === 'undefined' ? null : APLUS; }, LEVELS, renderer, PERF, setPerf, mergeCheck, MERGED, LIVE, refereeOf, playersHere, setAway, LOADER, load: (i) => LOADER.sync(i), vrHands, CAMERA, PHOTOS, prizeFx: PRIZE_FX, BOTLV, watch: { press: watchPress, btns: watchBtns, draw: () => { panelKey = ''; drawPanel(); return panelC.g.canvas.toDataURL(); } }, state, dolly, camera, myHead, myHands, RECORDS, switchLevel, startGame, voice: { VOICE, voiceWatch, voiceResend, remotes, buildPresence, createRemote, bodyFollow }, audio: { snd, tone, sfx, ensureAudio, MUSIC } }; } catch (e) { /* ignore */ }
   window.__fdReady = true;
 </script>
 </body>

@@ -628,7 +628,7 @@
       g.visible = false; G.add(g);
       return { id: `bot:${k}`, k, team, name, g, gun, active: false, x: 0, z: 0, rx: 0, rz: 0, yaw: 0, vx: 0, vz: 0, tagged: false, taggedUntil: 0, invUntil: 0, tags: 0, cool: 0, goal: null, goalT: 0, skill: 0.85 + rand() * 0.3 };
     });
-    const ltHost = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort()[0] === state.myPeer; };
+    const ltHost = () => amReferee(L);
     const ltHumans = () => { const out = state.mode !== 'menu' ? [{ id: state.myPeer, team: me.team, head: myHead.pos, tagged: me.tagged }] : []; for (const rec of remotes.values()) { const st = rec.lvState[L.id]; if (inMyLevel(rec) && rec.hasH && st && (st.team === 0 || st.team === 1)) out.push({ id: rec.peer, team: st.team, head: rec.cur.h.pos, tagged: st.tagged }); } return out; };
     const LB = { seq: 0, shots: [], hitSeq: 0, hits: [], round: -1 };
     L.ltBots = lbots;
@@ -800,8 +800,7 @@
           }
           st.lbhInit = true;
         }
-        const ids = [state.myPeer]; for (const r of remotes.values()) if (r.lv === L.idx && r.inGame) ids.push(r.peer);
-        if (rec.peer !== ids.sort()[0]) return;
+        if (rec.peer !== refereeOf(L)) return;
         if (Array.isArray(pres.lbt)) {
           const seen = new Set();
           for (const a of pres.lbt.slice(0, lbots.length)) {

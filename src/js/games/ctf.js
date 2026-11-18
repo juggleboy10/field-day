@@ -130,7 +130,7 @@
       }
       return out;
     };
-    const hostId = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort()[0]; };
+    const hostId = () => refereeOf(L);
     const isHost = () => hostId() === state.myPeer;
     const nameOf = (id) => (id === state.myPeer ? 'You' : isBot(id) ? botOf(id).name : (remotes.get(id) || {}).name || 'Someone');
     const teamOf = (id) => { if (id === state.myPeer) return me.team; if (isBot(id)) return botOf(id).team; const rec = remotes.get(id), st = rec && rec.lvState[L.id]; return st && (st.team === 0 || st.team === 1) ? st.team : -1; };

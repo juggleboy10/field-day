@@ -88,7 +88,8 @@
       }
       return out;
     };
-    const hostId = () => humans().map((h) => h.peer).sort()[0];
+    L.refPool = () => humans().map((h) => h.peer);
+    const hostId = () => refereeOf(L);
     const isHost = () => hostId() === state.myPeer;
     const teamOf = (peer) => { if (peer === state.myPeer) return me.team; if (typeof peer === 'string' && peer.startsWith('bot:')) { const b = bots[Number(peer.slice(4))]; return b ? b.team : -1; } const rec = remotes.get(peer), st = rec && rec.lvState[L.id]; return st && (st.team === 0 || st.team === 1) ? st.team : -1; };
 

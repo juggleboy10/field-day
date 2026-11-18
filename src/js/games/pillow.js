@@ -93,8 +93,8 @@
     // ph: lobby, fight, done. ids: everyone in the round ('b0'.. bots or peer ids). tm: their team. hp: bonks left.
     const S = { g: 0, ph: 'lobby', ids: [], tm: [], hp: [], wins: [0, 0], wt: -1, t: 0, msg: '', msgSeq: 0, inv: [], seen: {} };
     L.pf = S;
-    const humansHere = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort(); };
-    const isHost = () => humansHere()[0] === state.myPeer;
+    const humansHere = () => playersHere(L);
+    const isHost = () => amReferee(L);
     const botOf = (id) => (id && id[0] === 'b' && id.length <= 2 ? bots[Number(id.slice(1))] : null);
     const nameOf = (id) => { const b = botOf(id); if (b) return b.name; if (id === state.myPeer) return 'You'; const rec = remotes.get(id); return rec ? rec.name : 'Someone'; };
     const myIdx = () => S.ids.indexOf(state.myPeer);

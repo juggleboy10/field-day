@@ -403,7 +403,8 @@
       for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame && rec.lvState[L.id] && rec.lvState[L.id].in) out.push(rec.peer);
       return out.sort();
     };
-    const hostId = () => humans()[0] || state.myPeer;
+    L.refPool = humans;
+    const hostId = () => refereeOf(L);
     const isHost = () => hostId() === state.myPeer;
     const myFighter = () => { const v = Number(prefs.brawlFighter); return Number.isInteger(v) && v >= 0 && v < 4 ? v : 0; };
     const total = () => { const v = Number(prefs.brawlPlayers); return Number.isInteger(v) && v >= 2 && v <= 4 ? v : 4; };

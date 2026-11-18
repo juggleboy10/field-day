@@ -648,12 +648,8 @@
     finnBody.add(finnLabel);
     finnBody.visible = false;
     G.add(finnBody);
-    const herePeersDG = () => {
-      const ids = [state.myPeer];
-      for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer);
-      return ids.sort();
-    };
-    const finnHost = () => herePeersDG()[0] === state.myPeer;
+    const herePeersDG = () => playersHere(L);
+    const finnHost = () => amReferee(L);
     BOTLV.on(L);
     const finnGauss = () => (rand() + rand() + rand() - 1.5) / 0.5;
     const _fv = new V3(), _fh = new V3(), _fq = new Q4(), _fqs = new Q4();

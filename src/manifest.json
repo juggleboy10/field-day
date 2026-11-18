@@ -11,6 +11,7 @@
   "js/core/voice.js",
   "js/core/watch.js",
   "js/core/remotes.js",
+  "js/core/referee.js",
   "js/core/bodies.js",
   "js/core/claims.js",
   "js/core/quest-registry.js",

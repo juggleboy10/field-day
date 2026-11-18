@@ -313,12 +313,8 @@
     L.ch = CH;
     const me = { card: null, used: new Set(), skips: 0, guessSeq: 0, guess: null, req: null, reqSeq: 0, reports: [], repSeq: 0, lastPh: -1, lastRound: 0 };
     L.chMe = me;
-    const herePeersCH = () => {
-      const ids = [state.myPeer];
-      for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer);
-      return ids.sort();
-    };
-    const chHost = () => herePeersCH()[0] === state.myPeer;
+    const herePeersCH = () => playersHere(L);
+    const chHost = () => amReferee(L);
     const nameOfCH = (p) => (p === state.myPeer ? state.name : (remotes.get(p) || {}).name || 'Someone');
     const myTeam = () => (CH.teams.has(state.myPeer) ? CH.teams.get(state.myPeer) : -1);
     const iAmActor = () => CH.actor === state.myPeer && (CH.ph === 1 || CH.ph === 2);

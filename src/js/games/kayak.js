@@ -264,7 +264,7 @@
     const RACE = { id: 0, state: 'idle', startAt: 0, botsOn: false, botsN: 0, myFinish: 0 };
     L.race = RACE;
     const raceNow = () => (RACE.state === 'idle' ? 0 : Date.now() - RACE.startAt);
-    const racers = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort(); };
+    const racers = () => playersHere(L);
     const GRID = [-3.2, -1.1, 1.1, 3.2, -5.4, 5.4];
     function toGrid() {
       const k = Math.max(0, racers().indexOf(state.myPeer));

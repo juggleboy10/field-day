@@ -149,7 +149,7 @@
     try { if (Number.isFinite(prefs.sledBest)) RACE.best = prefs.sledBest; } catch (e) { /* none */ }
     L.sled = K; L.sledRace = RACE;
     const laneLat = (k) => [-2.7, -0.9, 0.9, 2.7][k % 4];
-    function racers() { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort(); }
+    function racers() { return playersHere(L); }
     function toGrid() {
       RIDE.on = false;
       const k = Math.max(0, racers().indexOf(state.myPeer));

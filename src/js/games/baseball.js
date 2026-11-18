@@ -526,12 +526,8 @@
     const GM = { def: 0, gid: 0, ph: 0, inn: 1, outs: 0, b: 0, s: 0, bases: [0, 0, 0], r: [0, 0], h: [0, 0], line: [[0, 0, 0], [0, 0, 0]], bi: 0, order: [], ev: [0, 0, 0, 0, ''], cpuT: 0, endT: 0 };
     L.game = GM;
     const gameOn = () => GM.ph === 1 || GM.ph === 2;
-    const herePeers = () => {
-      const ids = [state.myPeer];
-      for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer);
-      return ids.sort();
-    };
-    const gameHost = () => herePeers()[0] === state.myPeer;
+    const herePeers = () => playersHere(L);
+    const gameHost = () => amReferee(L);
     const nameOf = (peer) => (peer === state.myPeer ? state.name : (remotes.get(peer) || {}).name || 'Someone');
     const ZONE = { x: 0.25, y0: 0.45, y1: 1.2 };
 

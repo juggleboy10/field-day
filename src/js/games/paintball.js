@@ -154,8 +154,8 @@
     const me = { team: -1, out: false, outBy: '', roundSeen: -1, shots: [], shotSeq: 0, hits: [], hitSeq: 0, coolOf: {}, holding: false, chargeT: 0, req: null, reqSeq: 0 };
     L.me = me;
     L.teams = true; L.teamKey = 'pbt';
-    const herePeersPB = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort(); };
-    const pbHost = () => herePeersPB()[0] === state.myPeer;
+    const herePeersPB = () => playersHere(L);
+    const pbHost = () => amReferee(L);
     const nameOfPB = (id) => (typeof id === 'string' && id.startsWith('bot:') ? (bots[Number(id.slice(4))] || {}).name || 'A bot' : id === state.myPeer ? 'You' : (remotes.get(id) || {}).name || 'Someone');
     function teamOf(id) {
       if (id === state.myPeer) return me.team;

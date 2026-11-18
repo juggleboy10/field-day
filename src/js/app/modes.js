@@ -115,6 +115,8 @@
       .then((s) => {
         session = s;
         session.addEventListener('end', onVREnd);
+        // (the headset taken off, or another app over the top: hand the game over at once)
+        session.addEventListener('visibilitychange', () => setAway(session.visibilityState === 'hidden'));
         try { renderer.xr.setFramebufferScaleFactor(VR_SCALES[prefs.vrScale] || 1); } catch (e) { /* optional */ }
         return renderer.xr.setSession(session);
       })

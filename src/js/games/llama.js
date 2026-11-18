@@ -160,7 +160,7 @@
     try { if (Number.isFinite(prefs.llamaBest)) RACE.best = prefs.llamaBest; } catch (e) { /* none */ }
     L.ll = K; L.llRace = RACE;
     const laneLat = (k) => [-2.4, -0.8, 0.8, 2.4][k % 4];
-    function racers() { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort(); }
+    function racers() { return playersHere(L); }
     function toGrid() {
       RIDE.on = false;
       const k = Math.max(0, racers().indexOf(state.myPeer));

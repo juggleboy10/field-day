@@ -63,8 +63,8 @@
     // players: ids, 'b0'.. for bots or a peer id. alive: still in. seats: which player has each chair (-1 none).
     const S = { g: 0, ph: 'lobby', round: 0, ids: [], alive: [], seats: [], n: 0, t: 0, stopAt: 0, outName: '', winner: '', tempo: 1, req: 0 };
     L.mc = S;
-    const humansHere = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort(); };
-    const isHost = () => humansHere()[0] === state.myPeer;
+    const humansHere = () => playersHere(L);
+    const isHost = () => amReferee(L);
     const nameOf = (id) => { if (id[0] === 'b' && id.length <= 2) return BOT_NAMES[Number(id.slice(1))]; if (id === state.myPeer) return state.name || 'You'; const rec = remotes.get(id); return rec ? rec.name : 'Someone'; };
     makePlayerPicker(L, { min: 3, max: 8, def: 6, label: 'Players', note: 'bots make up the numbers' });
     function startGame() {

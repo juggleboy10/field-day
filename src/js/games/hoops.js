@@ -416,12 +416,8 @@
     const ltMe = { req: null, reqSeq: 0, reports: [], repSeq: 0, k: -1, giveSeen: -1, held: false, shots: 0 };
     L.ltMe = ltMe;
     const GAME_BALLS = [0, 1];
-    const herePeersLT = () => {
-      const ids = [state.myPeer];
-      for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer);
-      return ids.sort();
-    };
-    const ltHost = () => herePeersLT()[0] === state.myPeer;
+    const herePeersLT = () => playersHere(L);
+    const ltHost = () => amReferee(L);
     const isBot = (id) => typeof id === 'string' && id.startsWith('bot:');
     const nameLT = (id) => (isBot(id) ? (LT_BOTS[Number(id.slice(4))] || {}).name || 'Bot' : id === state.myPeer ? state.name : (remotes.get(id) || {}).name || 'Someone');
     const holderOf = (k) => Object.keys(LT.ballOf).find((id) => LT.ballOf[id] === k);

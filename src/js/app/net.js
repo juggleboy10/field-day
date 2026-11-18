@@ -25,6 +25,7 @@
       if (t.owner !== state.myPeer) continue;
       p.t.push([t.i, t.v, t.held ? (t.held.side === 'left' ? 1 : 2) : 0]);
     }
+    Object.assign(p, livePresence());
     Object.assign(p, L.presence());
     if (L.picker) p.pc = [L.picker.n, L.picker.t];
     { const r = RECORDS.mine(L); if (r) p.rcd = r; }
@@ -83,6 +84,7 @@
     const look = Array.isArray(pres.a) ? pres.a : [];
     const pick = (v, n) => (Number.isInteger(v) && v >= 0 && v < n ? v : 0);
     setLook(rec, pick(look[0], HATS.length), pick(look[1], FACES.length), pick(look[2], SHIRTS.length), pick(look[3], SHIRT_COLORS.length));
+    liveRead(rec, pres);
     const wasHere = rec.lv === state.level, wasIn = rec.inGame;
     rec.inGame = pres.p === 1;
     rec.lv = Number.isInteger(pres.lv) && pres.lv >= 0 && pres.lv < LEVEL_META.length ? pres.lv : 0;

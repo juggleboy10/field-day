@@ -757,12 +757,7 @@
     L.me = { maxHp: MAX_HP, might: 0, ward: 0, vamp: 0, vampN: 0, lucky: 0, chests: new Set(), relics: new Set(), hp: MAX_HP, coins: 0, kills: 0, down: false, downT: 0, invT: 0, hxSeq: 0, hx: [], shSeq: 0, sh: [], pc: [], dr: [-1, -1, -1], swordCool: new Map(), lastTool: null, ff: [], ffSeq: 0 };
     const me = L.me;
     L.allowRecall = true;
-    const hostId = () => {
-      const ids = [state.myPeer];
-      for (const rec of remotes.values()) if (rec.lv === L.idx) ids.push(rec.peer);
-      ids.sort();
-      return ids[0];
-    };
+    const hostId = () => refereeOf(L);
     L.isHost = () => hostId() === state.myPeer;
     const inGameHere = () => state.mode !== 'menu' && state.level === L.idx;
     const C = cfg.colors, TX = cfg.text;
@@ -1300,7 +1295,7 @@
         const allDown = me.down && peers.every((p) => p === state.myPeer || (remotes.get(p).lvState[L.id] || {}).down);
         if (allDown && !overT) { overT = now; showToast(peers.length > 1 ? 'Everyone\u2019s down. Game over! The quest starts again' : 'Game over! The quest starts again'); sfx('buzzer', 0.8); }
         if (!allDown) overT = 0;
-        if (overT && now - overT > 3000 && peers.slice().sort()[0] === state.myPeer) { overT = 0; resetRun(); }
+        if (overT && now - overT > 3000 && L.isHost()) { overT = 0; resetRun(); }
       }
     }
     L.onUse = () => { if (state.mode !== 'flat' || me.down) return me.down; for (const rec of remotes.values()) { const st = rec.lvState[L.id]; if (rec.lv === L.idx && rec.hasH && st && st.down && Math.hypot(rec.cur.h.pos.x - myHead.pos.x, rec.cur.h.pos.z - myHead.pos.z) < 1.6) return true; } return false; };

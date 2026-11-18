@@ -99,8 +99,8 @@
     const inPlay = (sl) => !V.solo || sl % 2 === 0;
     L.vb = V;
     const P = [0, 1, 2, 3].map((s) => ({ x: sgn(teamOf(s)) * 4, z: s % 2 ? 2 : -2 }));   // where each spot's player is
-    const humansHere = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort(); };
-    const isHost = () => humansHere()[0] === state.myPeer;
+    const humansHere = () => playersHere(L);
+    const isHost = () => amReferee(L);
     // the people fill the spots in turn: one on each side, then the second on each side
     function assignPeople() {
       const ids = humansHere().filter((id) => { if (id === state.myPeer) return !(L.sitOut && L.sitOut.on); const st = remotes.get(id).lvState[L.id]; return !(st && st.sitOut); });

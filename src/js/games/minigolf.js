@@ -1273,12 +1273,8 @@
     bea.add(beaPutter);
     bea.visible = false; beaMesh.visible = false;
     G.add(bea);
-    const herePeersMG = () => {
-      const ids = [state.myPeer];
-      for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer);
-      return ids.sort();
-    };
-    const beaHost = () => herePeersMG()[0] === state.myPeer;
+    const herePeersMG = () => playersHere(L);
+    const beaHost = () => amReferee(L);
 
     // ---------------------------------------------------------------- planning a putt
     // is there a wall between this spot and the cup? (a clear look at the cup is worth a lot)

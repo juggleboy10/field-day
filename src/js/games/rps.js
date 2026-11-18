@@ -71,8 +71,8 @@
     // ids: 8 entrants ('b0'.. bots, or peer ids). mt: this round's matches [a, b, winsA, winsB, lastA, lastB, winner].
     const S = { g: 0, ph: 'lobby', rnd: 0, ids: [], mt: [], seq: 0, shootAt: 0, t: 0, champ: '', got: {}, prev: {}, msg: '', msgSeq: 0 };
     L.rp = S;
-    const humansHere = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort(); };
-    const isHost = () => humansHere()[0] === state.myPeer;
+    const humansHere = () => playersHere(L);
+    const isHost = () => amReferee(L);
     const botOf = (id) => (id && id[0] === 'b' && id.length <= 2 ? Number(id.slice(1)) : -1);
     const nameOf = (id) => { const b = botOf(id); if (b >= 0) return BOTS[b].name; if (id === state.myPeer) return state.name || 'You'; const rec = remotes.get(id); return rec ? rec.name : 'Someone'; };
     function say(m) { S.msg = m; S.msgSeq += 1; showToast(m); }

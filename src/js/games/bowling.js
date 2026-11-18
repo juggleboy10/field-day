@@ -667,12 +667,8 @@
     L.bowlBot = BOT;
     const freshPins = () => SPOTS.flatMap(([x, z]) => [x, z, 0]);
     BOT.pins = freshPins();
-    const herePeers = () => {
-      const ids = [state.myPeer];
-      for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer);
-      return ids.sort();
-    };
-    const isHost = () => herePeers()[0] === state.myPeer;
+    const herePeers = () => playersHere(L);
+    const isHost = () => amReferee(L);
     function humanLanes() {
       const used = new Set();
       if (me.lane >= 0) used.add(me.lane);

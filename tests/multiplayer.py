@@ -22,19 +22,35 @@ THREE_JS = os.environ.get("THREE_JS")
 # A stand-in for window.claude's room: presence() merges and broadcasts, peers() lists everyone.
 FAKE_ROOM = """
 (() => {
-  const id = new URLSearchParams(location.search).get('peer') || ('p' + Math.random().toString(36).slice(2, 7));
+  // A poor connection, set in the address: ?lag=120 (ms, each way), &jitter=30 (ms either side), &drop=0.05 (the share
+  // of updates lost). Updates from one page still arrive in the order they were sent. window.__netStop() makes this
+  // page go silent without saying goodbye (a headset taken off, a browser frozen); window.__netGo() brings it back.
+  const q = new URLSearchParams(location.search);
+  const id = q.get('peer') || ('p' + Math.random().toString(36).slice(2, 7));
+  const LAG = Number(q.get('lag')) || 0, JIT = Number(q.get('jitter')) || 0, DROP = Number(q.get('drop')) || 0;
   const bc = new BroadcastChannel('field-day-test');
-  let mine = Object.freeze({}), snap = null;
-  const others = new Map(), listeners = [];
+  let mine = Object.freeze({}), snap = null, silent = false;
+  const others = new Map(), listeners = [], lastAt = new Map();
   const notify = () => { snap = null; for (const f of listeners) { try { f(); } catch (e) {} } };
-  const send = () => bc.postMessage({ id, presence: mine });
-  bc.onmessage = (e) => {
-    const m = e.data; if (!m || m.id === id) return;
+  const send = () => { if (!silent) bc.postMessage({ id, presence: mine }); };
+  window.__netStop = () => { silent = true; };
+  window.__netGo = () => { silent = false; send(); };
+  window.__netCfg = { LAG, JIT, DROP };
+  const take = (m) => {
     if (m.bye) { others.delete(m.id); notify(); return; }
     const isNew = !others.has(m.id);
     others.set(m.id, { presence: Object.freeze(m.presence || {}), t: Date.now() });
     if (isNew) send();
     notify();
+  };
+  bc.onmessage = (e) => {
+    const m = e.data; if (!m || m.id === id) return;
+    if (!LAG && !JIT && !DROP) { take(m); return; }
+    if (!m.bye && DROP && Math.random() < DROP) return;
+    // (in order: never before the last one from the same page)
+    const at = Math.max(Date.now() + LAG + (Math.random() * 2 - 1) * JIT, lastAt.get(m.id) || 0);
+    lastAt.set(m.id, at);
+    setTimeout(() => take(m), Math.max(0, at - Date.now()));
   };
   setInterval(send, 1000);
   const room = {

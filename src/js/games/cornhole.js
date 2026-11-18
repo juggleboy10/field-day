@@ -219,7 +219,7 @@
     const me = { done: 0, doneRound: 0, doneTurn: -1, wins: 0, round: -1, game: -1, thrownTurn: -1, thrownT: 0, ph: '' };
     L.ch = { RS, H, me };
     const humans = () => { const ids = state.mode !== 'menu' ? [state.myPeer] : []; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort(); };
-    const hostId = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort()[0]; };
+    const hostId = () => refereeOf(L);
     const isHost = () => hostId() === state.myPeer;
     const BOT = 'bot';
     const nameOf = (id) => (id === BOT ? 'Corny Carl' : id === state.myPeer ? 'You' : (remotes.get(id) || {}).name || 'Someone');

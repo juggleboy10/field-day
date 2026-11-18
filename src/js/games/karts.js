@@ -202,11 +202,7 @@
       }
       return best;
     }
-    function racers() {
-      const ids = [state.myPeer];
-      for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer);
-      return ids.sort();
-    }
+    function racers() { return playersHere(L); }
     function placeOnGrid() {
       const slot = Math.max(0, racers().indexOf(state.myPeer));
       const back = Math.round((3.5 + Math.floor(slot / 2) * 4) / DS);
@@ -907,7 +903,7 @@
       return Math.atan2(a.x * b.z - a.z * b.x, a.x * b.x + a.z * b.z);
     });
     const humanCount = () => racers().length;
-    const isHost = () => racers()[0] === state.myPeer;
+    const isHost = () => amReferee(L);
     makePlayerPicker(L, { min: 1, max: 1 + BOT_NAMES.length, def: 4, label: 'Racers', stand: false });
     const wantBots = () => clamp(L.picker.n - humanCount(), 0, BOT_NAMES.length);
     function botKarts() { return bots.filter((b) => b.active); }

@@ -165,8 +165,8 @@
     const H = { g: 0, ph: 'idle', room: 0, ghosts: [], bossHp: 0, t0: 0, msg: '', msgSeq: 0, boo: [0, ''], caught: 0, time: 0, best: 0, open: [] };
     try { if (Number.isFinite(prefs.hauntBest)) H.best = prefs.hauntBest; } catch (e) { /* none */ }
     L.haunt = H;
-    const humansHere = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort(); };
-    const isHost = () => humansHere()[0] === state.myPeer;
+    const humansHere = () => playersHere(L);
+    const isHost = () => amReferee(L);
     function say(m) { H.msg = m; H.msgSeq += 1; showToast(m); }
     function fillRoom(i) {
       const r = ROOMS[i];

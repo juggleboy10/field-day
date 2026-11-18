@@ -488,7 +488,7 @@
       return { id: `bot:${k}`, k, team, j: k % 5, name, g, active: false, x: 0, z: 0, rx: 0, rz: 0, yaw: 0, vx: 0, vz: 0, role: 'sup', kickCool: 0, skill: 0.85 + rand() * 0.3 };
     });
     const socHumans = () => { const ids = state.mode !== 'menu' ? [{ id: state.myPeer, team: me.team }] : []; for (const rec of remotes.values()) { const st = rec.lvState[L.id]; if (rec.lv === L.idx && rec.inGame && st && (st.team === 0 || st.team === 1)) ids.push({ id: rec.peer, team: st.team }); } return ids; };
-    const socHost = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort()[0] === state.myPeer; };
+    const socHost = () => amReferee(L);
     L.socBots = { list: sbots, byId: (id) => (typeof id === 'string' && id.startsWith('bot:') ? sbots[Number(id.slice(4))] || null : null) };
     const attackZ = (t) => (t === 0 ? -HL : HL), ownZ = (t) => (t === 0 ? HL : -HL);
     function homeSpot(b, out) {
@@ -647,8 +647,7 @@
       };
       L.readPresence = (rec, pres, st) => {
         baseR(rec, pres, st);
-        const ids = [state.myPeer]; for (const r of remotes.values()) if (r.lv === L.idx && r.inGame) ids.push(r.peer);
-        if (rec.peer !== ids.sort()[0] || !Array.isArray(pres.sbt)) return;
+        if (rec.peer !== refereeOf(L) || !Array.isArray(pres.sbt)) return;
         const seen = new Set();
         for (const a of pres.sbt.slice(0, sbots.length)) {
           if (!Array.isArray(a) || a.length !== 6 || !a.every(Number.isFinite) || !sbots[a[0]]) continue;

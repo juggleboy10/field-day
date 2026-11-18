@@ -273,12 +273,8 @@
     L.bots = bots;
     const me = { finds: 0, wins: 0, crouch: false, tagSeq: 0, tags: [], tagCool: 0, req: null };
     L.me = me;
-    const herePeers = () => {
-      const ids = [state.myPeer];
-      for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer);
-      return ids.sort();
-    };
-    const isHost = () => herePeers()[0] === state.myPeer;
+    const herePeers = () => playersHere(L);
+    const isHost = () => amReferee(L);
     L.isHost = isHost;
     const isBot = (id) => typeof id === 'string' && id[0] === 'b' && bots.has(id);
     function nameOf(id) {

@@ -114,8 +114,8 @@
     const S = { g: 0, ph: 'lobby', ids: [], inf: [], t: ROUND_T, msg: '', msgSeq: 0, seen: {}, tagsMe: 0, survive: 0, start: 0, wins: 0 };
     L.gt = S;
     const ME = { claim: [0, -1], startReq: 0, aPrev: false };
-    const humansHere = () => { const ids = [state.myPeer]; for (const rec of remotes.values()) if (rec.lv === L.idx && rec.inGame) ids.push(rec.peer); return ids.sort(); };
-    const isHost = () => humansHere()[0] === state.myPeer;
+    const humansHere = () => playersHere(L);
+    const isHost = () => amReferee(L);
     const nameOf = (id) => { const b = botOf(id); if (b) return b.name; if (id === state.myPeer) return 'You'; const rec = remotes.get(id); return rec ? rec.name : 'Someone'; };
     const myIdx = () => S.ids.indexOf(state.myPeer);
     const amLava = () => myIdx() >= 0 && S.inf[myIdx()] === 1;
