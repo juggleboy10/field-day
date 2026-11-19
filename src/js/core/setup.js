@@ -8,7 +8,7 @@
     hud: $('#hud'), hudTitle: $('#hud-title'), hudScores: $('#hud-scores'), hudLevelActions: $('#hud-level-actions'), menuBtn: $('#btn-menu'), musicBtn: $('#btn-music'), musicToggle: $('#music-toggle'), micBtn: $('#btn-mic'), voiceToggle: $('#voice-toggle'), voiceNote: $('#voice-note'),
     cross: $('#crosshair'), power: $('#power'), powerFill: $('#power-fill'), hints: $('#hints'),
     touch: $('#touch'), stick: $('#stick'), knob: $('#stick-knob'), grabBtn: $('#btn-grab'), throwBtn: $('#btn-throw'),
-    toast: $('#toast'), status: $('#hud-status'), hurt: $('#hurt'),
+    toast: $('#toast'), bigMsg: $('#big-msg'), status: $('#hud-status'), hurt: $('#hurt'),
     levelBlurb: $('#level-blurb'), lookPreview: $('#look-preview'), hatChips: $('#hat-chips'), faceChips: $('#face-chips'), shirtChips: $('#shirt-chips'), shirtColorChips: $('#shirtc-chips'),
   };
   function fail(msg) {
@@ -27,7 +27,7 @@
   const FWD = new V3(0, 0, -1);
   const GRAVITY = 9.8;
   // which build this is (shown on the start screen and on the VR watch, so you can tell a fresh copy from a stale one)
-  const VERSION = 115;
+  const VERSION = 116;
   const PLAYER_COLORS = [
     { hex: '#4fc3f7', label: 'Sky blue' },
     { hex: '#ff5c8a', label: 'Pink' },

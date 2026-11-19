@@ -432,8 +432,8 @@
     function showEventPB(ev) {
       const [, code, a] = ev;
       if (code === 1) { me.out = false; if (me.team >= 0 && state.level === L.idx) toBase(); for (const b of balls) G.remove(b.m); balls.length = 0; showToast(`Round ${PB.round}: get ready!`); sfx('chime', 0.6); }
-      else if (code === 2) { showToast('Go! Go! Go!'); sfx('fanfare', 0.5); }
-      else if (code === 3) { const w = Number(a); showToast(w < 0 ? 'Everyone\u2019s out! A draw' : w === me.team ? `${L.TEAM_NAME[w]} wins the round!` : `${L.TEAM_NAME[w]} wins the round`); sfx(w === me.team ? 'cheer' : 'buzzer', 0.6); }
+      else if (code === 2) ANNOUNCE.go();
+      else if (code === 3) { const w = Number(a); ANNOUNCE.win(w < 0 ? 'A draw!' : `${L.TEAM_NAME[w]} wins!`, w < 0 || me.team < 0 ? 'draw' : w === me.team ? 'win' : 'lose'); }
       else if (code === 4) { showToast('Paintball ended'); me.out = false; }
       state.dirtyBoard = true; state.hudDirty = true;
     }

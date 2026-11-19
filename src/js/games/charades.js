@@ -525,7 +525,7 @@
       else if (code === EVC.GOT) { showToast(`${a === CH.actor ? 'Got it' : nameOfCH(a) + ' got it'}! Point to ${TEAM_NAME[Number(b)]}`); sfx('cheer', 0.8); }
       else if (code === EVC.TIMEUP) { showToast('Time\u2019s up!'); sfx('buzzer', 0.6); }
       else if (code === EVC.SKIP) showToast(`${nameOfCH(a)} skipped a card`);
-      else if (code === EVC.FINAL) { const [r, bl] = CH.score; showToast(r === bl ? `It\u2019s a tie, ${r} to ${bl}!` : `${r > bl ? 'Red' : 'Blue'} team wins ${Math.max(r, bl)} to ${Math.min(r, bl)}!`); sfx('fanfare', 0.9); }
+      else if (code === EVC.FINAL) { const [r, bl] = CH.score; ANNOUNCE.win(r === bl ? `Tied ${r}-${bl}!` : `${r > bl ? 'Red' : 'Blue'} wins ${Math.max(r, bl)}-${Math.min(r, bl)}!`, 'draw'); sfx('cheer', 0.6); }
       else if (code === EVC.ENDED) showToast('Charades ended');
       state.dirtyBoard = true; state.hudDirty = true;
     }

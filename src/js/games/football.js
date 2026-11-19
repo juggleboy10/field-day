@@ -235,7 +235,7 @@
       S.gid = Date.now();
       Object.assign(S, { phase: 'pre', clock: 120, running: false, score: 0, tos: 3, drives: 0, completions: 0, attempts: 0, passYds: 0, rushYds: 0, tds: 0, ints: 0 });
       newDrive(); standQB();
-      showToast('Two minutes on the clock. Ball on your 25. Go!');
+      ANNOUNCE.go(); showToast('Two minutes on the clock. Ball on your 25');
       sfx('whistle', 1); forcePresence();
     }
     L.startGame = startGame;

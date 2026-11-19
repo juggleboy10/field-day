@@ -104,7 +104,7 @@
         RECORDS.add(L, `ko${B.lv}`, secs);
         showToast(`KNOCKOUT! You beat the ${LV().name} in ${secs.toFixed(1)} s${isBest ? ' (your best!)' : ''}. ${B.landed} punches landed, ${B.dodges} dodged`);
         sfx('fanfare', 1); setTimeout(() => sfx('cheer', 1), 300);
-      } else { showToast(`Down you go! The ${LV().name} wins this one. Try again`); sfx('buzzer', 0.8); }
+      } else { ANNOUNCE.win('Knocked out!', 'lose'); showToast(`The ${LV().name} wins this one. Try again`); }
       forcePresence(); state.dirtyBoard = true;
     }
     const rr2 = (a) => a[0] + rand() * (a[1] - a[0]);

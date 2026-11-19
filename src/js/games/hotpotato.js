@@ -438,8 +438,8 @@
       state.dirtyBoard = true;
     }
     function showWinner(id) {
-      if (id === state.myPeer) { me.wins += 1; showToast('You’re the last one standing!'); sfx('fanfare', 0.9); sfx('cheer', 0.7); forcePresence(); }
-      else if (id) { showToast(`${nameOf(id)} wins the round!`); sfx('cheer', 0.5); }
+      if (id === state.myPeer) { me.wins += 1; ANNOUNCE.win('You win!', 'win'); sfx('cheer', 0.7); showToast('You’re the last one standing!'); forcePresence(); }
+      else if (id) { ANNOUNCE.win(`${nameOf(id)} wins!`, 'lose'); }
       state.dirtyBoard = true;
     }
 

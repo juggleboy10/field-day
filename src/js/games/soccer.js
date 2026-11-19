@@ -396,8 +396,7 @@
       if (!me.winT && (s[0] >= WIN || s[1] >= WIN)) {
         me.winT = now;
         const w = s[0] >= WIN ? 0 : 1;
-        sfx(w === me.team ? 'fanfare' : 'buzzer', 1);
-        showToast(`${TEAM_NAMES[w]} team wins ${s[w]} to ${s[1 - w]}!`);
+        ANNOUNCE.win(`${TEAM_NAMES[w]} wins ${s[w]}-${s[1 - w]}!`, me.team < 0 ? 'draw' : w === me.team ? 'win' : 'lose');
       }
       if (me.winT && now - me.winT > 7000) {
         me.round += 1; me.goals = [0, 0]; me.scoredBy = 0; me.winT = 0;

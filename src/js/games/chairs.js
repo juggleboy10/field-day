@@ -216,7 +216,7 @@
       if (S.ph === 'walk') { showToast(S.round === 1 ? `Round 1: ${S.n} chairs for ${S.n + 1} players. Walk round until the music stops!` : `Round ${S.round}: ${S.n} chair${S.n === 1 ? '' : 's'} left. Walk!`); saidSafe = false; }
       else if (S.ph === 'grab') { CL.stopT = performance.now(); if (!isHost()) CL.claim = null; showToast('The music stopped! Grab a chair!'); sfx('buzzer', 0.4); if (state.mode === 'vr' && meIn) for (const s of SIDES) haptic(vrHands[s], 0.7, 120); }
       else if (S.ph === 'result') { const iOut = S.outName && meIn && !S.alive[S.ids.indexOf(state.myPeer)] && S.outName === (state.name || 'You'); showToast(iOut ? 'No chair for you! You’re out' : `${S.outName} is out!`); sfx(iOut ? 'buzzer' : 'poof', 0.7); }
-      else if (S.ph === 'won') { const iWon = S.winner === state.myPeer; showToast(iWon ? 'You win musical chairs!' : `${nameOf(S.winner)} wins!`); sfx(iWon ? 'fanfare' : 'cheer', 1); if (iWon) spawnFloat('Winner!', new V3(0, 2.2, 0), '#ffd23f'); }
+      else if (S.ph === 'won') { const iWon = S.winner === state.myPeer; ANNOUNCE.win(iWon ? 'You win!' : `${nameOf(S.winner)} wins!`, iWon ? 'win' : S.ids.includes(state.myPeer) ? 'lose' : 'draw'); if (iWon) spawnFloat('Winner!', new V3(0, 2.2, 0), '#ffd23f'); }
       lastPh = S.ph; lastRound = S.round;
       state.hudDirty = true; state.dirtyBoard = true;
       void prevPh;

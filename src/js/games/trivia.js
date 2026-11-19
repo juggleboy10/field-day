@@ -680,8 +680,8 @@
         me.finalSeen = RS.game;
         const top = standings()[0];
         { const mine = standings().find((r) => r.id === state.myPeer); if (mine) RECORDS.add(L, 'score', mine.score); }
-        if (top && top.id === state.myPeer) { me.wins += 1; sfx('fanfare', 0.9); sfx('cheer', 0.7); showToast('You win Trivia Night!'); forcePresence(); }
-        else if (top) { sfx('cheer', 0.5); showToast(`${top.name} wins Trivia Night!`); }
+        if (top && top.id === state.myPeer) { me.wins += 1; ANNOUNCE.win('You win!', 'win'); sfx('cheer', 0.7); forcePresence(); }
+        else if (top) { ANNOUNCE.win(`${top.name} wins!`, standings().some((r) => r.id === state.myPeer) ? 'lose' : 'draw'); }
       }
     }
 

@@ -232,9 +232,8 @@
     }
     function announce(winner, why) {
       const mine = winner === PB.mySide, [a, b] = PB.score;
-      sfx(mine ? 'chime' : 'buzzer', 0.5);
-      if (PB.winner >= 0) showToast(PB.winner === PB.mySide ? `You win ${Math.max(a, b)}-${Math.min(a, b)}!` : `${nameOfSide(PB.winner)} wins ${Math.max(a, b)}-${Math.min(a, b)}`);
-      else showToast(`${why ? why + ': ' : ''}${mine ? 'your point' : `point to ${nameOfSide(winner)}`}. ${a}-${b}`);
+      if (PB.winner >= 0) ANNOUNCE.win(PB.winner === PB.mySide ? `You win ${Math.max(a, b)}-${Math.min(a, b)}!` : `${nameOfSide(PB.winner)} wins ${Math.max(a, b)}-${Math.min(a, b)}`, PB.winner === PB.mySide ? 'win' : 'lose');
+      else { sfx(mine ? 'chime' : 'buzzer', 0.5); showToast(`${why ? why + ': ' : ''}${mine ? 'your point' : `point to ${nameOfSide(winner)}`}. ${a}-${b}`); }
       state.dirtyBoard = true;
     }
     function onHit(side, slot) {

@@ -424,7 +424,14 @@
       onBot(f) { const used = F.filter((o) => o.on && o !== f).map((o) => o.fi), free = [0, 1, 2, 3].filter((i) => !used.includes(i)); f.fi = free.length ? free[Math.floor(rnd() * free.length)] : Math.floor(rnd() * 4); freshF(f); },
       onStart() { F.forEach((f, k) => { if (f.on) { place(f, k); f.pct = 0; f.stocks = ROUND_STOCKS; f.kos = 0; f.dead = 0; f.cloud = 0; } }); H.proj = []; H.bombs = []; H.nextBomb = 12 + rnd() * 6; H.winner = -1; },
       onLobby() { H.winner = -1; H.proj = []; H.bombs = []; F.forEach((f, k) => { if (f.on) { place(f, k); f.pct = 0; f.stocks = ROUND_STOCKS; } }); },
-      onPhase(ph) { if (ph === 'count') sfx('whistle', 0.5); if (ph === 'fight') sfx('beep2', 0.6); if (ph === 'over') matchOver(); },
+      onPhase(ph) { if (ph === 'over') matchOver(); },
+      goText: 'FIGHT!',
+      result() {
+        const mine = myF();
+        if (H.winner < 0) return { text: 'Draw!', outcome: 'draw' };
+        if (mine && H.winner === mine.slot) return { text: 'You win!', outcome: 'win' };
+        return { text: `${nameOf(F[H.winner])} wins!`, outcome: mine ? 'lose' : 'draw' };
+      },
       ask: () => showToast('Asking the host to start the match'),
     });
     const seat = () => M.seat();
@@ -694,7 +701,6 @@
         if (H.winner === mine.slot) { RECORDS.add(L, 'wins', (Number(prefs.brawlWins) || 0) + 1); prefs.brawlWins = (Number(prefs.brawlWins) || 0) + 1; savePrefs(); }
         RECORDS.add(L, 'kos', mine.kos);
       }
-      sfx(mine && H.winner === mine.slot ? 'fanfare' : 'chime', 0.8);
       state.hudDirty = true; forcePresence();
     }
     const phaseSounds = () => M.watch();

@@ -692,8 +692,8 @@
       // the race clock
       if (RACE.state === 'count') {
         const left = RACE.startAt - Date.now(), n = Math.ceil(left / 1000);
-        if (left <= 0) { RACE.state = 'run'; gateSign.userData.draw('GO!'); sfx('whistle', 1); tone(1200, 1200, 0.4, 'square', 0.2); showToast('GO!'); }
-        else if (n !== lastCount) { lastCount = n; gateSign.userData.draw(String(n)); tone(660, 660, 0.15, 'square', 0.15); }
+        if (left <= 0) { RACE.state = 'run'; gateSign.userData.draw('GO!'); ANNOUNCE.go(); tone(1200, 1200, 0.4, 'square', 0.2); }
+        else if (n !== lastCount) { lastCount = n; gateSign.userData.draw(String(n)); ANNOUNCE.count(left / 1000); }
       } else if (RACE.state === 'run' && raceNow() > 4000) { if (gateSign.userData.text !== 'RACE ON') { gateSign.userData.text = 'RACE ON'; gateSign.userData.draw('RACE ON'); } }
       else if (RACE.state === 'idle' && gateSign.userData.text !== 'Press START') { gateSign.userData.text = 'Press START'; gateSign.userData.draw('Press START'); }
       if (here) step(dt, now);

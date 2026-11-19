@@ -461,8 +461,7 @@
         me.winT = now;
         if (me.round > 0 && me.team >= 0) RECORDS.add(L, 'tags', me.tags);
         const w = s[0] >= WIN ? 0 : 1;
-        sfx(w === me.team ? 'fanfare' : 'buzzer', 1);
-        showToast(`${TEAM_NAMES[w]} team wins ${s[w]} to ${s[1 - w]}!`);
+        ANNOUNCE.win(`${TEAM_NAMES[w]} wins ${s[w]}-${s[1 - w]}!`, me.team < 0 ? 'draw' : w === me.team ? 'win' : 'lose');
         spawnFloat(`${TEAM_NAMES[w]} wins!`, myHead.pos.clone().add(new V3(0, 0.6, 0).add(new V3(0, 0, -2).applyQuaternion(myHead.quat))), TEAM_HEX[w]);
       }
       if (me.winT && now - me.winT > 6000) { me.round += 1; beginRound(now); }

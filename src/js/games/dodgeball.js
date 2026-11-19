@@ -376,9 +376,10 @@
       if (RS.round !== me.round) { me.round = RS.round; if (RS.round > 0) { newRoundLocal(); showToast(RS.round > 0 ? `Round ${RS.round}: get ready!` : ''); } }
       if (RS.st !== ST_N[me.st]) {
         const was = ST_N[me.st]; me.st = ST[RS.st];
-        if (RS.st === 'play') { sfx('whistle', 1); showToast('GO! Grab a ball'); }
-        if (RS.st === 'over' && was === 'play') { const w = RS.score[0] > me.lastScore[0] ? 0 : RS.score[1] > me.lastScore[1] ? 1 : -1; me.lastScore = RS.score.slice(); showToast(RS.matchWin >= 0 ? `${TEAM_NAMES[RS.matchWin]} wins the match!` : w >= 0 ? `${TEAM_NAMES[w]} wins the round!` : 'Round drawn'); sfx(w === me.team ? 'fanfare' : 'buzzer', 0.9); }
+        if (RS.st === 'play') { ANNOUNCE.go(); showToast('Grab a ball'); }
+        if (RS.st === 'over' && was === 'play') { const w = RS.score[0] > me.lastScore[0] ? 0 : RS.score[1] > me.lastScore[1] ? 1 : -1; me.lastScore = RS.score.slice(); const ww = RS.matchWin >= 0 ? RS.matchWin : w; ANNOUNCE.win(RS.matchWin >= 0 ? `${TEAM_NAMES[RS.matchWin]} wins the match!` : w >= 0 ? `${TEAM_NAMES[w]} wins the round!` : 'Round drawn', ww < 0 ? 'draw' : ww === me.team ? 'win' : 'lose'); }
       }
+      if (RS.st === 'count') ANNOUNCE.count(RS.left / 1000);
       if (RS.score[0] < me.lastScore[0] || RS.score[1] < me.lastScore[1]) me.lastScore = RS.score.slice();
       checkMyHit();
       drawBoard();

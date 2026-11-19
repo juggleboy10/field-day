@@ -55,7 +55,7 @@
   // (the page's toast is HTML, which a headset never shows: in VR every "GO!", "you're out" and "Blue wins" is drawn
   // on a panel a little below eye level that drifts after your gaze, so you can look around without losing it)
   const VR_TOAST = (() => {
-    let tc = null, mesh = null, until = 0, shown = '', fade = 0;
+    let tc = null, mesh = null, until = 0, shown = '', shownKind, bigUntil = 0, fade = 0;
     const want = new V3(), fwd = new V3(), cur = new V3(), lookQ = new Q4(), tmp = new V3(), lookM = new THREE.Matrix4();
     function build() {
       tc = canvasTexture(1024, 256);
@@ -64,9 +64,19 @@
       mesh.renderOrder = 999; mesh.visible = false; mesh.frustumCulled = false; mesh.name = 'vr-toast';
       scene.add(mesh);
     }
-    function draw(text) {
+    const BIG_CSS = { count: '#ffd23f', go: '#ffd23f', win: '#ffd23f', lose: '#ff8a7a', draw: '#e8e6ff' };
+    function draw(text, kind) {
       const g = tc.g, W = 1024, H = 256;
       g.clearRect(0, 0, W, H);
+      if (kind) {
+        // (the countdown and who won: big outlined letters, no box)
+        let size = 190; g.font = `900 ${size}px ${DISPLAY}`;
+        while (size > 70 && g.measureText(text).width > W - 60) { size -= 10; g.font = `900 ${size}px ${DISPLAY}`; }
+        g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineJoin = 'round';
+        g.lineWidth = Math.round(size / 9); g.strokeStyle = '#1b1932'; g.strokeText(text, W / 2, H / 2 + 6, W - 40);
+        g.fillStyle = BIG_CSS[kind] || '#ffd23f'; g.fillText(text, W / 2, H / 2 + 6, W - 40);
+        tc.tex.needsUpdate = true; return;
+      }
       // (wrap to at most three lines, shrinking the type for long messages)
       let size = 64, lines = [];
       for (; size >= 34; size -= 6) {
@@ -93,12 +103,14 @@
       return out.copy(myHead.pos).addScaledVector(fwd, 1.2).add(tmp.set(0, -0.22, 0));
     }
     return {
-      show(text) {
+      show(text, kind, ms) {
         if (!text) return;
+        if (performance.now() < bigUntil && !kind) return;      // (a countdown or a winner isn't covered by a small message)
         if (!tc) build();
-        if (text !== shown) { shown = text; draw(text); }
+        if (text !== shown || kind !== shownKind) { shown = text; shownKind = kind; draw(text, kind); }
         if (!mesh.visible) { target(cur); mesh.position.copy(cur); }
-        until = performance.now() + 2200;
+        until = performance.now() + (ms || 2200);
+        if (kind) bigUntil = until;
       },
       tick(dt, now) {
         if (!mesh) return;
@@ -120,8 +132,44 @@
       },
       get mesh() { return mesh; },
       get text() { return shown; },
+      get kind() { return shownKind; },
       get until() { return until; },
     };
+  })();
+
+  // ---------------------------------------------------------------- the countdown and who won, the same in every game
+  //   ANNOUNCE.count(secondsLeft)   every frame of a countdown: "3", "2", "1", a beep on each
+  //   ANNOUNCE.go(text?)            the start: "GO!" and the whistle
+  //   ANNOUNCE.win(text, outcome)   the end: outcome 'win' (fanfare), 'lose' (buzzer) or 'draw'; for 3 seconds
+  // Big in the middle of the screen, and on the panel in front of you in the headset. MATCH calls these itself.
+  const ANNOUNCE = (() => {
+    let lastN = -1, hideT = 0;
+    function big(text, kind, ms) {
+      const el = ui.bigMsg;
+      if (el) {
+        el.textContent = text; el.className = `${kind}${text.length > 7 ? ' long' : ''}`;
+        void el.offsetWidth; el.classList.add('show');
+        clearTimeout(hideT); hideT = setTimeout(() => el.classList.remove('show'), ms);
+      }
+      try { VR_TOAST.show(text, kind, ms); } catch (e) { /* (at load) */ }
+      A.last = { text, kind, at: performance.now() };
+    }
+    const A = {
+      last: null,
+      count(t) {
+        const n = Math.ceil(t);
+        if (!(n >= 1) || n === lastN) return;
+        lastN = n; big(String(n), 'count', 900); sfx('beep', 0.7);
+      },
+      go(text) { lastN = -1; big(text || 'GO!', 'go', 1000); sfx('whistle', 0.8); },
+      win(text, outcome) {
+        lastN = -1;
+        const k = outcome === 'win' || outcome === 'lose' ? outcome : 'draw';
+        big(text, k, 3000); sfx(k === 'win' ? 'fanfare' : k === 'lose' ? 'buzzer' : 'chime', 0.85);
+      },
+      reset() { lastN = -1; },
+    };
+    return A;
   })();
 
   // ---------------------------------------------------------------- shared meshes

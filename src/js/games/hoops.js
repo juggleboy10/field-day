@@ -620,7 +620,7 @@
       if (code === 1) { showToast(`Lightning! ${nameLT(a)} shoots first`); sfx('fanfare', 0.6); }
       else if (code === 2) { swishLT(); showToast(a === state.myPeer ? 'Safe! Back of the line' : `${nameLT(a)} is safe`); }
       else if (code === 3) { swishLT(); showToast(b === state.myPeer ? `${nameLT(a)} knocked you out!` : `${nameLT(a)} knocks out ${nameLT(b)}!`); sfx('buzzer', 0.5); }
-      else if (code === 4) { swishLT(); showToast(a === state.myPeer ? 'You win Lightning!' : `${nameLT(a)} wins Lightning!`); sfx('cheer', 0.9); }
+      else if (code === 4) { swishLT(); ANNOUNCE.win(a === state.myPeer ? 'You win!' : `${nameLT(a)} wins!`, a === state.myPeer ? 'win' : 'lose'); sfx('cheer', 0.6); }
       else if (code === 5) showToast(a === state.myPeer ? 'Your first shot has to be from the line' : `${nameLT(a)}: first shot has to be from the line`);
       else if (code === 6) showToast('Lightning ended');
       state.dirtyBoard = true; state.hudDirty = true;

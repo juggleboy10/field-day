@@ -266,8 +266,8 @@
       for (const rec of remotes.values()) { const st = rec.lvState[L.id]; if (here && rec.lv === L.idx && st && st.tg && st.tg[0] > RACE.id && st.tg[2] > Date.now() - 500) { RACE.id = st.tg[0]; RACE.startAt = st.tg[2]; RACE.st = 'count'; RACE.botsOn = racers().length < 4; toGrid(); showToast(`${rec.name} started a race! Get ready…`); } }
       if (RACE.st === 'count') {
         const left = RACE.startAt - Date.now(), n = Math.ceil(left / 1000);
-        if (left <= 0) { RACE.st = 'run'; sfx('whistle', 1); showToast('GO!'); K.v = 2.5; for (const b of BOTS) b.v = 2.2; }
-        else if (n !== lastCount) { lastCount = n; tone(660, 660, 0.15, 'square', 0.15); }
+        if (left <= 0) { RACE.st = 'run'; ANNOUNCE.go(); K.v = 2.5; for (const b of BOTS) b.v = 2.2; }
+        else if (n !== lastCount) { lastCount = n; ANNOUNCE.count(left / 1000); }
       }
       if (here) {
         const inp = inputs();

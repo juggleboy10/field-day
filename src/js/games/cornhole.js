@@ -383,8 +383,8 @@
         if (RS.ph === 'over' && RS.winner >= 0) {
           const w = RS.players[RS.winner];
           if (w === state.myPeer) RECORDS.add(L, 'rounds', RS.round);
-          if (w === state.myPeer) { me.wins += 1; showToast(`You win ${RS.score[RS.winner]} to ${RS.score[1 - RS.winner]}!`); sfx('fanfare', 0.9); }
-          else showToast(`${nameOf(w)} wins ${RS.score[RS.winner]} to ${RS.score[1 - RS.winner]}`);
+          if (w === state.myPeer) { me.wins += 1; ANNOUNCE.win(`You win ${RS.score[RS.winner]}-${RS.score[1 - RS.winner]}!`, 'win'); }
+          else ANNOUNCE.win(`${nameOf(w)} wins ${RS.score[RS.winner]}-${RS.score[1 - RS.winner]}`, RS.players.includes(state.myPeer) ? 'lose' : 'draw');
         }
         if (RS.ph === 'play' && myTurn() && RS.turn < 2) sfx('beep', 0.6);
         me.ph = RS.ph; state.dirtyBoard = true; state.hudDirty = true;

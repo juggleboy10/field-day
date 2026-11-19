@@ -231,6 +231,16 @@ kbd {
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
+/* the countdown and who won: big, in the middle, for a moment (ANNOUNCE in core/shared.js) */
+#big-msg {
+  position: fixed; left: 50%; top: 38%; transform: translate(-50%, -50%) scale(0.6); opacity: 0; pointer-events: none;
+  font-family: var(--display); font-weight: 900; font-size: clamp(56px, 14vw, 150px); line-height: 1; text-align: center;
+  color: #ffd23f; -webkit-text-stroke: 3px #1b1932; text-shadow: 0 6px 0 #1b1932, 0 10px 30px rgba(0,0,0,0.45);
+  max-width: 92vw; white-space: normal; transition: opacity 0.15s ease, transform 0.25s cubic-bezier(.2,1.6,.4,1);
+}
+#big-msg.long { font-size: clamp(36px, 7vw, 80px); }
+#big-msg.win { color: #ffd23f; } #big-msg.lose { color: #ff8a7a; } #big-msg.draw { color: #e8e6ff; }
+#big-msg.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 @media (max-width: 560px) {
   .panel { left: 10px; right: 10px; width: auto; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); padding: 20px 18px 18px; }
   .panel h1 { font-size: 54px; }
@@ -242,7 +252,7 @@ kbd {
   .hud-status .obj { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
-  #crosshair, #toast { transition: none; }
+  #crosshair, #toast, #big-msg { transition: none; }
 }
 </style>
 </head>
@@ -315,6 +325,7 @@ kbd {
 </div>
 <div id="hurt" aria-hidden="true"></div>
 <div id="toast" role="status" aria-live="polite"></div>
+<div id="big-msg" aria-live="assertive"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
@@ -338,7 +349,7 @@ window.addEventListener('error', function (e) {
     hud: $('#hud'), hudTitle: $('#hud-title'), hudScores: $('#hud-scores'), hudLevelActions: $('#hud-level-actions'), menuBtn: $('#btn-menu'), musicBtn: $('#btn-music'), musicToggle: $('#music-toggle'), micBtn: $('#btn-mic'), voiceToggle: $('#voice-toggle'), voiceNote: $('#voice-note'),
     cross: $('#crosshair'), power: $('#power'), powerFill: $('#power-fill'), hints: $('#hints'),
     touch: $('#touch'), stick: $('#stick'), knob: $('#stick-knob'), grabBtn: $('#btn-grab'), throwBtn: $('#btn-throw'),
-    toast: $('#toast'), status: $('#hud-status'), hurt: $('#hurt'),
+    toast: $('#toast'), bigMsg: $('#big-msg'), status: $('#hud-status'), hurt: $('#hurt'),
     levelBlurb: $('#level-blurb'), lookPreview: $('#look-preview'), hatChips: $('#hat-chips'), faceChips: $('#face-chips'), shirtChips: $('#shirt-chips'), shirtColorChips: $('#shirtc-chips'),
   };
   function fail(msg) {
@@ -357,7 +368,7 @@ window.addEventListener('error', function (e) {
   const FWD = new V3(0, 0, -1);
   const GRAVITY = 9.8;
   // which build this is (shown on the start screen and on the VR watch, so you can tell a fresh copy from a stale one)
-  const VERSION = 115;
+  const VERSION = 116;
   const PLAYER_COLORS = [
     { hex: '#4fc3f7', label: 'Sky blue' },
     { hex: '#ff5c8a', label: 'Pink' },
@@ -740,7 +751,7 @@ window.addEventListener('error', function (e) {
   // (the page's toast is HTML, which a headset never shows: in VR every "GO!", "you're out" and "Blue wins" is drawn
   // on a panel a little below eye level that drifts after your gaze, so you can look around without losing it)
   const VR_TOAST = (() => {
-    let tc = null, mesh = null, until = 0, shown = '', fade = 0;
+    let tc = null, mesh = null, until = 0, shown = '', shownKind, bigUntil = 0, fade = 0;
     const want = new V3(), fwd = new V3(), cur = new V3(), lookQ = new Q4(), tmp = new V3(), lookM = new THREE.Matrix4();
     function build() {
       tc = canvasTexture(1024, 256);
@@ -749,9 +760,19 @@ window.addEventListener('error', function (e) {
       mesh.renderOrder = 999; mesh.visible = false; mesh.frustumCulled = false; mesh.name = 'vr-toast';
       scene.add(mesh);
     }
-    function draw(text) {
+    const BIG_CSS = { count: '#ffd23f', go: '#ffd23f', win: '#ffd23f', lose: '#ff8a7a', draw: '#e8e6ff' };
+    function draw(text, kind) {
       const g = tc.g, W = 1024, H = 256;
       g.clearRect(0, 0, W, H);
+      if (kind) {
+        // (the countdown and who won: big outlined letters, no box)
+        let size = 190; g.font = `900 ${size}px ${DISPLAY}`;
+        while (size > 70 && g.measureText(text).width > W - 60) { size -= 10; g.font = `900 ${size}px ${DISPLAY}`; }
+        g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineJoin = 'round';
+        g.lineWidth = Math.round(size / 9); g.strokeStyle = '#1b1932'; g.strokeText(text, W / 2, H / 2 + 6, W - 40);
+        g.fillStyle = BIG_CSS[kind] || '#ffd23f'; g.fillText(text, W / 2, H / 2 + 6, W - 40);
+        tc.tex.needsUpdate = true; return;
+      }
       // (wrap to at most three lines, shrinking the type for long messages)
       let size = 64, lines = [];
       for (; size >= 34; size -= 6) {
@@ -778,12 +799,14 @@ window.addEventListener('error', function (e) {
       return out.copy(myHead.pos).addScaledVector(fwd, 1.2).add(tmp.set(0, -0.22, 0));
     }
     return {
-      show(text) {
+      show(text, kind, ms) {
         if (!text) return;
+        if (performance.now() < bigUntil && !kind) return;      // (a countdown or a winner isn't covered by a small message)
         if (!tc) build();
-        if (text !== shown) { shown = text; draw(text); }
+        if (text !== shown || kind !== shownKind) { shown = text; shownKind = kind; draw(text, kind); }
         if (!mesh.visible) { target(cur); mesh.position.copy(cur); }
-        until = performance.now() + 2200;
+        until = performance.now() + (ms || 2200);
+        if (kind) bigUntil = until;
       },
       tick(dt, now) {
         if (!mesh) return;
@@ -805,8 +828,44 @@ window.addEventListener('error', function (e) {
       },
       get mesh() { return mesh; },
       get text() { return shown; },
+      get kind() { return shownKind; },
       get until() { return until; },
     };
+  })();
+
+  // ---------------------------------------------------------------- the countdown and who won, the same in every game
+  //   ANNOUNCE.count(secondsLeft)   every frame of a countdown: "3", "2", "1", a beep on each
+  //   ANNOUNCE.go(text?)            the start: "GO!" and the whistle
+  //   ANNOUNCE.win(text, outcome)   the end: outcome 'win' (fanfare), 'lose' (buzzer) or 'draw'; for 3 seconds
+  // Big in the middle of the screen, and on the panel in front of you in the headset. MATCH calls these itself.
+  const ANNOUNCE = (() => {
+    let lastN = -1, hideT = 0;
+    function big(text, kind, ms) {
+      const el = ui.bigMsg;
+      if (el) {
+        el.textContent = text; el.className = `${kind}${text.length > 7 ? ' long' : ''}`;
+        void el.offsetWidth; el.classList.add('show');
+        clearTimeout(hideT); hideT = setTimeout(() => el.classList.remove('show'), ms);
+      }
+      try { VR_TOAST.show(text, kind, ms); } catch (e) { /* (at load) */ }
+      A.last = { text, kind, at: performance.now() };
+    }
+    const A = {
+      last: null,
+      count(t) {
+        const n = Math.ceil(t);
+        if (!(n >= 1) || n === lastN) return;
+        lastN = n; big(String(n), 'count', 900); sfx('beep', 0.7);
+      },
+      go(text) { lastN = -1; big(text || 'GO!', 'go', 1000); sfx('whistle', 0.8); },
+      win(text, outcome) {
+        lastN = -1;
+        const k = outcome === 'win' || outcome === 'lose' ? outcome : 'draw';
+        big(text, k, 3000); sfx(k === 'win' ? 'fanfare' : k === 'lose' ? 'buzzer' : 'chime', 0.85);
+      },
+      reset() { lastN = -1; },
+    };
+    return A;
   })();
 
   // ---------------------------------------------------------------- shared meshes
@@ -3064,6 +3123,8 @@ window.addEventListener('error', function (e) {
   //     onStart(), onLobby(),                // the referee is starting a match / going back to the lobby
   //     onPhase(ph, was),                    // every page: the phase changed (sounds, the board)
   //     ask: () => showToast('...'),         // a page that isn't the referee pressed Start
+  //     result: () => ({ text: 'Blue wins!', outcome: 'win' | 'lose' | 'draw' }),   // what to announce at the end
+  //     goText: 'FIGHT!', announce: false,   // (the word at the start; or no countdown and winner announcements)
   //   });
   //   M.start(), M.toLobby(), M.over(), M.step(dt) (the referee, every frame), M.seat() (the referee),
   //   M.watch() (every page, every frame), M.presence() / M.read(rec, pres, st) (from L.presence / L.readPresence),
@@ -3124,9 +3185,17 @@ window.addEventListener('error', function (e) {
         else if (H.ph === 'over') { H.t -= dt; if (H.t <= 0) toLobby(); }
       }
       // every page, every frame: tell the game when the phase changes
+      // (and announce it the same way in every game: the countdown, GO, and who won, unless cfg.announce is false)
+      const say = cfg.announce !== false;
       function watch() {
+        if (say && H.ph === 'count' && M.seenPh === 'count') ANNOUNCE.count(H.t);
         if (H.ph === M.seenPh) return;
         const was = M.seenPh; M.seenPh = H.ph; state.hudDirty = true;
+        if (say) {
+          if (H.ph === 'count') { ANNOUNCE.reset(); ANNOUNCE.count(H.t); }
+          else if (H.ph === PLAY && was === 'count') ANNOUNCE.go(cfg.goText);
+          else if (H.ph === 'over' && cfg.result) { const r = cfg.result(); if (r && r.text) ANNOUNCE.win(r.text, r.outcome); }
+        }
         if (cfg.onPhase) cfg.onPhase(H.ph, was);
       }
       // ------------------------------------------------ presence
@@ -4794,7 +4863,7 @@ window.addEventListener('error', function (e) {
       if (code === 1) { showToast(`Lightning! ${nameLT(a)} shoots first`); sfx('fanfare', 0.6); }
       else if (code === 2) { swishLT(); showToast(a === state.myPeer ? 'Safe! Back of the line' : `${nameLT(a)} is safe`); }
       else if (code === 3) { swishLT(); showToast(b === state.myPeer ? `${nameLT(a)} knocked you out!` : `${nameLT(a)} knocks out ${nameLT(b)}!`); sfx('buzzer', 0.5); }
-      else if (code === 4) { swishLT(); showToast(a === state.myPeer ? 'You win Lightning!' : `${nameLT(a)} wins Lightning!`); sfx('cheer', 0.9); }
+      else if (code === 4) { swishLT(); ANNOUNCE.win(a === state.myPeer ? 'You win!' : `${nameLT(a)} wins!`, a === state.myPeer ? 'win' : 'lose'); sfx('cheer', 0.6); }
       else if (code === 5) showToast(a === state.myPeer ? 'Your first shot has to be from the line' : `${nameLT(a)}: first shot has to be from the line`);
       else if (code === 6) showToast('Lightning ended');
       state.dirtyBoard = true; state.hudDirty = true;
@@ -10342,8 +10411,7 @@ window.addEventListener('error', function (e) {
         me.winT = now;
         if (me.round > 0 && me.team >= 0) RECORDS.add(L, 'tags', me.tags);
         const w = s[0] >= WIN ? 0 : 1;
-        sfx(w === me.team ? 'fanfare' : 'buzzer', 1);
-        showToast(`${TEAM_NAMES[w]} team wins ${s[w]} to ${s[1 - w]}!`);
+        ANNOUNCE.win(`${TEAM_NAMES[w]} wins ${s[w]}-${s[1 - w]}!`, me.team < 0 ? 'draw' : w === me.team ? 'win' : 'lose');
         spawnFloat(`${TEAM_NAMES[w]} wins!`, myHead.pos.clone().add(new V3(0, 0.6, 0).add(new V3(0, 0, -2).applyQuaternion(myHead.quat))), TEAM_HEX[w]);
       }
       if (me.winT && now - me.winT > 6000) { me.round += 1; beginRound(now); }
@@ -11120,8 +11188,7 @@ window.addEventListener('error', function (e) {
       if (!me.winT && (s[0] >= WIN || s[1] >= WIN)) {
         me.winT = now;
         const w = s[0] >= WIN ? 0 : 1;
-        sfx(w === me.team ? 'fanfare' : 'buzzer', 1);
-        showToast(`${TEAM_NAMES[w]} team wins ${s[w]} to ${s[1 - w]}!`);
+        ANNOUNCE.win(`${TEAM_NAMES[w]} wins ${s[w]}-${s[1 - w]}!`, me.team < 0 ? 'draw' : w === me.team ? 'win' : 'lose');
       }
       if (me.winT && now - me.winT > 7000) {
         me.round += 1; me.goals = [0, 0]; me.scoredBy = 0; me.winT = 0;
@@ -13841,7 +13908,7 @@ window.addEventListener('error', function (e) {
       if (BOT.done && bowlAnalyze(me.rolls).done && !BOT.toldResult) {
         BOT.toldResult = true;
         const mine = bowlAnalyze(me.rolls).total, hers = bowlAnalyze(BOT.rolls).total;
-        showToast(mine > hers ? `You beat Strike Sally ${mine} to ${hers}!` : mine < hers ? `Strike Sally wins ${hers} to ${mine}` : `A ${mine} to ${hers} tie with Strike Sally`);
+        ANNOUNCE.win(mine > hers ? `You win ${mine}-${hers}!` : mine < hers ? `Sally wins ${hers}-${mine}` : `Tied ${mine}-${hers}`, mine > hers ? 'win' : mine < hers ? 'lose' : 'draw');
       }
     }
     function crashAt(x, n) {
@@ -18890,7 +18957,7 @@ window.addEventListener('error', function (e) {
       else if (code === EVC.GOT) { showToast(`${a === CH.actor ? 'Got it' : nameOfCH(a) + ' got it'}! Point to ${TEAM_NAME[Number(b)]}`); sfx('cheer', 0.8); }
       else if (code === EVC.TIMEUP) { showToast('Time\u2019s up!'); sfx('buzzer', 0.6); }
       else if (code === EVC.SKIP) showToast(`${nameOfCH(a)} skipped a card`);
-      else if (code === EVC.FINAL) { const [r, bl] = CH.score; showToast(r === bl ? `It\u2019s a tie, ${r} to ${bl}!` : `${r > bl ? 'Red' : 'Blue'} team wins ${Math.max(r, bl)} to ${Math.min(r, bl)}!`); sfx('fanfare', 0.9); }
+      else if (code === EVC.FINAL) { const [r, bl] = CH.score; ANNOUNCE.win(r === bl ? `Tied ${r}-${bl}!` : `${r > bl ? 'Red' : 'Blue'} wins ${Math.max(r, bl)}-${Math.min(r, bl)}!`, 'draw'); sfx('cheer', 0.6); }
       else if (code === EVC.ENDED) showToast('Charades ended');
       state.dirtyBoard = true; state.hudDirty = true;
     }
@@ -19519,8 +19586,8 @@ window.addEventListener('error', function (e) {
     function showEventPB(ev) {
       const [, code, a] = ev;
       if (code === 1) { me.out = false; if (me.team >= 0 && state.level === L.idx) toBase(); for (const b of balls) G.remove(b.m); balls.length = 0; showToast(`Round ${PB.round}: get ready!`); sfx('chime', 0.6); }
-      else if (code === 2) { showToast('Go! Go! Go!'); sfx('fanfare', 0.5); }
-      else if (code === 3) { const w = Number(a); showToast(w < 0 ? 'Everyone\u2019s out! A draw' : w === me.team ? `${L.TEAM_NAME[w]} wins the round!` : `${L.TEAM_NAME[w]} wins the round`); sfx(w === me.team ? 'cheer' : 'buzzer', 0.6); }
+      else if (code === 2) ANNOUNCE.go();
+      else if (code === 3) { const w = Number(a); ANNOUNCE.win(w < 0 ? 'A draw!' : `${L.TEAM_NAME[w]} wins!`, w < 0 || me.team < 0 ? 'draw' : w === me.team ? 'win' : 'lose'); }
       else if (code === 4) { showToast('Paintball ended'); me.out = false; }
       state.dirtyBoard = true; state.hudDirty = true;
     }
@@ -19871,9 +19938,8 @@ window.addEventListener('error', function (e) {
     }
     function announce(winner, why) {
       const mine = winner === PB.mySide, [a, b] = PB.score;
-      sfx(mine ? 'chime' : 'buzzer', 0.5);
-      if (PB.winner >= 0) showToast(PB.winner === PB.mySide ? `You win ${Math.max(a, b)}-${Math.min(a, b)}!` : `${nameOfSide(PB.winner)} wins ${Math.max(a, b)}-${Math.min(a, b)}`);
-      else showToast(`${why ? why + ': ' : ''}${mine ? 'your point' : `point to ${nameOfSide(winner)}`}. ${a}-${b}`);
+      if (PB.winner >= 0) ANNOUNCE.win(PB.winner === PB.mySide ? `You win ${Math.max(a, b)}-${Math.min(a, b)}!` : `${nameOfSide(PB.winner)} wins ${Math.max(a, b)}-${Math.min(a, b)}`, PB.winner === PB.mySide ? 'win' : 'lose');
+      else { sfx(mine ? 'chime' : 'buzzer', 0.5); showToast(`${why ? why + ': ' : ''}${mine ? 'your point' : `point to ${nameOfSide(winner)}`}. ${a}-${b}`); }
       state.dirtyBoard = true;
     }
     function onHit(side, slot) {
@@ -21098,8 +21164,8 @@ window.addEventListener('error', function (e) {
       // the race clock
       if (RACE.state === 'count') {
         const left = RACE.startAt - Date.now(), n = Math.ceil(left / 1000);
-        if (left <= 0) { RACE.state = 'run'; gateSign.userData.draw('GO!'); sfx('whistle', 1); tone(1200, 1200, 0.4, 'square', 0.2); showToast('GO!'); }
-        else if (n !== lastCount) { lastCount = n; gateSign.userData.draw(String(n)); tone(660, 660, 0.15, 'square', 0.15); }
+        if (left <= 0) { RACE.state = 'run'; gateSign.userData.draw('GO!'); ANNOUNCE.go(); tone(1200, 1200, 0.4, 'square', 0.2); }
+        else if (n !== lastCount) { lastCount = n; gateSign.userData.draw(String(n)); ANNOUNCE.count(left / 1000); }
       } else if (RACE.state === 'run' && raceNow() > 4000) { if (gateSign.userData.text !== 'RACE ON') { gateSign.userData.text = 'RACE ON'; gateSign.userData.draw('RACE ON'); } }
       else if (RACE.state === 'idle' && gateSign.userData.text !== 'Press START') { gateSign.userData.text = 'Press START'; gateSign.userData.draw('Press START'); }
       if (here) step(dt, now);
@@ -21568,9 +21634,10 @@ window.addEventListener('error', function (e) {
       if (RS.round !== me.round) { me.round = RS.round; if (RS.round > 0) { newRoundLocal(); showToast(RS.round > 0 ? `Round ${RS.round}: get ready!` : ''); } }
       if (RS.st !== ST_N[me.st]) {
         const was = ST_N[me.st]; me.st = ST[RS.st];
-        if (RS.st === 'play') { sfx('whistle', 1); showToast('GO! Grab a ball'); }
-        if (RS.st === 'over' && was === 'play') { const w = RS.score[0] > me.lastScore[0] ? 0 : RS.score[1] > me.lastScore[1] ? 1 : -1; me.lastScore = RS.score.slice(); showToast(RS.matchWin >= 0 ? `${TEAM_NAMES[RS.matchWin]} wins the match!` : w >= 0 ? `${TEAM_NAMES[w]} wins the round!` : 'Round drawn'); sfx(w === me.team ? 'fanfare' : 'buzzer', 0.9); }
+        if (RS.st === 'play') { ANNOUNCE.go(); showToast('Grab a ball'); }
+        if (RS.st === 'over' && was === 'play') { const w = RS.score[0] > me.lastScore[0] ? 0 : RS.score[1] > me.lastScore[1] ? 1 : -1; me.lastScore = RS.score.slice(); const ww = RS.matchWin >= 0 ? RS.matchWin : w; ANNOUNCE.win(RS.matchWin >= 0 ? `${TEAM_NAMES[RS.matchWin]} wins the match!` : w >= 0 ? `${TEAM_NAMES[w]} wins the round!` : 'Round drawn', ww < 0 ? 'draw' : ww === me.team ? 'win' : 'lose'); }
       }
+      if (RS.st === 'count') ANNOUNCE.count(RS.left / 1000);
       if (RS.score[0] < me.lastScore[0] || RS.score[1] < me.lastScore[1]) me.lastScore = RS.score.slice();
       checkMyHit();
       drawBoard();
@@ -22058,8 +22125,8 @@ window.addEventListener('error', function (e) {
       state.dirtyBoard = true;
     }
     function showWinner(id) {
-      if (id === state.myPeer) { me.wins += 1; showToast('You’re the last one standing!'); sfx('fanfare', 0.9); sfx('cheer', 0.7); forcePresence(); }
-      else if (id) { showToast(`${nameOf(id)} wins the round!`); sfx('cheer', 0.5); }
+      if (id === state.myPeer) { me.wins += 1; ANNOUNCE.win('You win!', 'win'); sfx('cheer', 0.7); showToast('You’re the last one standing!'); forcePresence(); }
+      else if (id) { ANNOUNCE.win(`${nameOf(id)} wins!`, 'lose'); }
       state.dirtyBoard = true;
     }
 
@@ -22819,8 +22886,8 @@ window.addEventListener('error', function (e) {
       // the race clock
       if (RACE.state === 'count') {
         const left = RACE.startAt - Date.now(), n = Math.ceil(left / 1000);
-        if (left <= 0) { RACE.state = 'run'; startSign.userData.draw('GO!'); sfx('whistle', 1); showToast('GO!'); }
-        else if (n !== lastCount) { lastCount = n; startSign.userData.draw(String(n)); tone(660, 660, 0.15, 'square', 0.15); }
+        if (left <= 0) { RACE.state = 'run'; startSign.userData.draw('GO!'); ANNOUNCE.go(); }
+        else if (n !== lastCount) { lastCount = n; startSign.userData.draw(String(n)); ANNOUNCE.count(left / 1000); }
       } else if (RACE.state === 'run' && raceNow() > 4000 && startSign.userData.text !== 'RACE ON') { startSign.userData.text = 'RACE ON'; startSign.userData.draw('RACE ON'); }
       else if (RACE.state !== 'run' && RACE.state !== 'count' && startSign.userData.text !== 'Press START') { startSign.userData.text = 'Press START'; startSign.userData.draw('Press START'); }
       if (here) {
@@ -23387,8 +23454,8 @@ window.addEventListener('error', function (e) {
         if (RS.ph === 'over' && RS.winner >= 0) {
           const w = RS.players[RS.winner];
           if (w === state.myPeer) RECORDS.add(L, 'rounds', RS.round);
-          if (w === state.myPeer) { me.wins += 1; showToast(`You win ${RS.score[RS.winner]} to ${RS.score[1 - RS.winner]}!`); sfx('fanfare', 0.9); }
-          else showToast(`${nameOf(w)} wins ${RS.score[RS.winner]} to ${RS.score[1 - RS.winner]}`);
+          if (w === state.myPeer) { me.wins += 1; ANNOUNCE.win(`You win ${RS.score[RS.winner]}-${RS.score[1 - RS.winner]}!`, 'win'); }
+          else ANNOUNCE.win(`${nameOf(w)} wins ${RS.score[RS.winner]}-${RS.score[1 - RS.winner]}`, RS.players.includes(state.myPeer) ? 'lose' : 'draw');
         }
         if (RS.ph === 'play' && myTurn() && RS.turn < 2) sfx('beep', 0.6);
         me.ph = RS.ph; state.dirtyBoard = true; state.hudDirty = true;
@@ -23895,7 +23962,7 @@ window.addEventListener('error', function (e) {
         const key = `${a}|${b}|${me.team}`;
         if (key !== statusKey) { statusKey = key; ui.status.hidden = false; ui.status.replaceChildren(); for (const [t, col] of [[me.team >= 0 ? TEAM_NAMES[me.team] : '', TEAM_STR[me.team]], [a, '#ffd23f'], [b, iHave ? '#8bd450' : null]]) { if (!t) continue; const s = document.createElement('span'); s.textContent = t; if (col) s.style.color = col; ui.status.append(s); } }
       }
-      if (RS.ph !== me.ph) { if (RS.ph === 'play' && me.ph === 'cap') { sfx('whistle', 0.9); showToast('Go!'); } me.ph = RS.ph; state.dirtyBoard = true; }
+      if (RS.ph !== me.ph) { if (RS.ph === 'play' && me.ph === 'cap') ANNOUNCE.go(); me.ph = RS.ph; state.dirtyBoard = true; }
     };
     L.drawBoard = () => {
       const key = JSON.stringify([RS.score, RS.ph, RS.winner, me.team]);
@@ -24909,8 +24976,8 @@ window.addEventListener('error', function (e) {
         me.finalSeen = RS.game;
         const top = standings()[0];
         { const mine = standings().find((r) => r.id === state.myPeer); if (mine) RECORDS.add(L, 'score', mine.score); }
-        if (top && top.id === state.myPeer) { me.wins += 1; sfx('fanfare', 0.9); sfx('cheer', 0.7); showToast('You win Trivia Night!'); forcePresence(); }
-        else if (top) { sfx('cheer', 0.5); showToast(`${top.name} wins Trivia Night!`); }
+        if (top && top.id === state.myPeer) { me.wins += 1; ANNOUNCE.win('You win!', 'win'); sfx('cheer', 0.7); forcePresence(); }
+        else if (top) { ANNOUNCE.win(`${top.name} wins!`, standings().some((r) => r.id === state.myPeer) ? 'lose' : 'draw'); }
       }
     }
 
@@ -26053,8 +26120,8 @@ window.addEventListener('error', function (e) {
       const here = state.level === L.idx && state.mode !== 'menu';
       if (RACE.state === 'count') {
         const left = RACE.startAt - Date.now(), n = Math.ceil(left / 1000);
-        if (left <= 0) { RACE.state = 'run'; countSign.userData.draw('GO!'); sfx('whistle', 1); showToast('GO!'); }
-        else if (n !== lastCount) { lastCount = n; countSign.userData.draw(String(n)); tone(660, 660, 0.15, 'square', 0.15); }
+        if (left <= 0) { RACE.state = 'run'; countSign.userData.draw('GO!'); ANNOUNCE.go(); }
+        else if (n !== lastCount) { lastCount = n; countSign.userData.draw(String(n)); ANNOUNCE.count(left / 1000); }
       } else if (RACE.state === 'run' && raceNow() > 4000) { if (countSign.userData.text !== 'RACE ON') { countSign.userData.text = 'RACE ON'; countSign.userData.draw('RACE ON'); } }
       else if (RACE.state === 'idle' && countSign.userData.text !== 'Press START') { countSign.userData.text = 'Press START'; countSign.userData.draw('Press START'); }
       if (here && !L.paused) step(dt);
@@ -28366,7 +28433,7 @@ window.addEventListener('error', function (e) {
       S.gid = Date.now();
       Object.assign(S, { phase: 'pre', clock: 120, running: false, score: 0, tos: 3, drives: 0, completions: 0, attempts: 0, passYds: 0, rushYds: 0, tds: 0, ints: 0 });
       newDrive(); standQB();
-      showToast('Two minutes on the clock. Ball on your 25. Go!');
+      ANNOUNCE.go(); showToast('Two minutes on the clock. Ball on your 25');
       sfx('whistle', 1); forcePresence();
     }
     L.startGame = startGame;
@@ -29821,7 +29888,7 @@ window.addEventListener('error', function (e) {
       if (S.ph === 'walk') { showToast(S.round === 1 ? `Round 1: ${S.n} chairs for ${S.n + 1} players. Walk round until the music stops!` : `Round ${S.round}: ${S.n} chair${S.n === 1 ? '' : 's'} left. Walk!`); saidSafe = false; }
       else if (S.ph === 'grab') { CL.stopT = performance.now(); if (!isHost()) CL.claim = null; showToast('The music stopped! Grab a chair!'); sfx('buzzer', 0.4); if (state.mode === 'vr' && meIn) for (const s of SIDES) haptic(vrHands[s], 0.7, 120); }
       else if (S.ph === 'result') { const iOut = S.outName && meIn && !S.alive[S.ids.indexOf(state.myPeer)] && S.outName === (state.name || 'You'); showToast(iOut ? 'No chair for you! You’re out' : `${S.outName} is out!`); sfx(iOut ? 'buzzer' : 'poof', 0.7); }
-      else if (S.ph === 'won') { const iWon = S.winner === state.myPeer; showToast(iWon ? 'You win musical chairs!' : `${nameOf(S.winner)} wins!`); sfx(iWon ? 'fanfare' : 'cheer', 1); if (iWon) spawnFloat('Winner!', new V3(0, 2.2, 0), '#ffd23f'); }
+      else if (S.ph === 'won') { const iWon = S.winner === state.myPeer; ANNOUNCE.win(iWon ? 'You win!' : `${nameOf(S.winner)} wins!`, iWon ? 'win' : S.ids.includes(state.myPeer) ? 'lose' : 'draw'); if (iWon) spawnFloat('Winner!', new V3(0, 2.2, 0), '#ffd23f'); }
       lastPh = S.ph; lastRound = S.round;
       state.hudDirty = true; state.dirtyBoard = true;
       void prevPh;
@@ -30023,7 +30090,7 @@ window.addEventListener('error', function (e) {
         RECORDS.add(L, `ko${B.lv}`, secs);
         showToast(`KNOCKOUT! You beat the ${LV().name} in ${secs.toFixed(1)} s${isBest ? ' (your best!)' : ''}. ${B.landed} punches landed, ${B.dodges} dodged`);
         sfx('fanfare', 1); setTimeout(() => sfx('cheer', 1), 300);
-      } else { showToast(`Down you go! The ${LV().name} wins this one. Try again`); sfx('buzzer', 0.8); }
+      } else { ANNOUNCE.win('Knocked out!', 'lose'); showToast(`The ${LV().name} wins this one. Try again`); }
       forcePresence(); state.dirtyBoard = true;
     }
     const rr2 = (a) => a[0] + rand() * (a[1] - a[0]);
@@ -30670,9 +30737,10 @@ window.addEventListener('error', function (e) {
       if (RS.round !== me.round) { me.round = RS.round; if (RS.round > 0) { newRoundLocal(); showToast(RS.round > 0 ? `Round ${RS.round}: get ready!` : ''); } }
       if (RS.st !== ST_N[me.st]) {
         const was = ST_N[me.st]; me.st = ST[RS.st];
-        if (RS.st === 'play') { sfx('whistle', 1); showToast('GO! Grab a ball'); }
-        if (RS.st === 'over' && was === 'play') { const w = RS.score[0] > me.lastScore[0] ? 0 : RS.score[1] > me.lastScore[1] ? 1 : -1; me.lastScore = RS.score.slice(); showToast(RS.matchWin >= 0 ? `${TEAM_NAMES[RS.matchWin]} wins the match!` : w >= 0 ? `${TEAM_NAMES[w]} wins the round!` : 'Round drawn'); sfx(w === me.team ? 'fanfare' : 'buzzer', 0.9); }
+        if (RS.st === 'play') { ANNOUNCE.go(); showToast('Grab a ball'); }
+        if (RS.st === 'over' && was === 'play') { const w = RS.score[0] > me.lastScore[0] ? 0 : RS.score[1] > me.lastScore[1] ? 1 : -1; me.lastScore = RS.score.slice(); const ww = RS.matchWin >= 0 ? RS.matchWin : w; ANNOUNCE.win(RS.matchWin >= 0 ? `${TEAM_NAMES[RS.matchWin]} wins the match!` : w >= 0 ? `${TEAM_NAMES[w]} wins the round!` : 'Round drawn', ww < 0 ? 'draw' : ww === me.team ? 'win' : 'lose'); }
       }
+      if (RS.st === 'count') ANNOUNCE.count(RS.left / 1000);
       if (RS.score[0] < me.lastScore[0] || RS.score[1] < me.lastScore[1]) me.lastScore = RS.score.slice();
       checkMyHit();
       snowStep(dt);
@@ -30990,8 +31058,8 @@ window.addEventListener('error', function (e) {
       for (const rec of remotes.values()) { const st = rec.lvState[L.id]; if (here && rec.lv === L.idx && st && st.tg && st.tg[0] > RACE.id && st.tg[2] > Date.now() - 500) { RACE.id = st.tg[0]; RACE.startAt = st.tg[2]; RACE.st = 'count'; RACE.botsOn = racers().length < 4; toGrid(); showToast(`${rec.name} started a race! Get ready…`); } }
       if (RACE.st === 'count') {
         const left = RACE.startAt - Date.now(), n = Math.ceil(left / 1000);
-        if (left <= 0) { RACE.st = 'run'; sfx('whistle', 1); showToast('GO!'); K.v = 2.5; for (const b of BOTS) b.v = 2.2; }
-        else if (n !== lastCount) { lastCount = n; tone(660, 660, 0.15, 'square', 0.15); }
+        if (left <= 0) { RACE.st = 'run'; ANNOUNCE.go(); K.v = 2.5; for (const b of BOTS) b.v = 2.2; }
+        else if (n !== lastCount) { lastCount = n; ANNOUNCE.count(left / 1000); }
       }
       if (here) {
         const inp = inputs();
@@ -31266,8 +31334,8 @@ window.addEventListener('error', function (e) {
     function endLeg(winner) {
       S.phase = 'over'; S.legs += 1;
       if (winner === 'me') RECORDS.add(L, isClock() ? 'clock' : 'd301', S.myDarts);
-      if (winner === 'me') { S.wins += 1; prefs.dartWins = S.wins; savePrefs(); showToast(isClock() ? 'Round the clock and the bull: you win!' : 'Checked out! You win the leg'); sfx('fanfare', 1); sfx('cheer', 0.7); }
-      else { showToast('Dart Dave wins this leg. Go again?'); sfx('buzzer', 0.5); }
+      if (winner === 'me') { S.wins += 1; prefs.dartWins = S.wins; savePrefs(); ANNOUNCE.win('You win!', 'win'); showToast(isClock() ? 'Round the clock and the bull!' : 'Checked out! You win the leg'); sfx('cheer', 0.7); }
+      else { ANNOUNCE.win('Dave wins', 'lose'); showToast('Dart Dave wins this leg. Go again?'); }
       forcePresence(); state.dirtyBoard = true;
     }
     // a dart lands: p is the thrower (0 me, 1 Dave)
@@ -33326,8 +33394,8 @@ window.addEventListener('error', function (e) {
       for (const rec of remotes.values()) { const st = rec.lvState[L.id]; if (here && rec.lv === L.idx && st && st.ll && st.ll[0] > RACE.id && st.ll[2] > Date.now() - 500) { RACE.id = st.ll[0]; RACE.startAt = st.ll[2]; RACE.st = 'count'; RACE.botsOn = racers().length < 4; toGrid(); showToast(`${rec.name} started a race! Get ready…`); } }
       if (RACE.st === 'count') {
         const left = RACE.startAt - Date.now(), n = Math.ceil(left / 1000);
-        if (left <= 0) { RACE.st = 'run'; sfx('whistle', 1); showToast('GO! Giddy-up!'); }
-        else if (n !== lastCount) { lastCount = n; tone(660, 660, 0.15, 'square', 0.15); }
+        if (left <= 0) { RACE.st = 'run'; ANNOUNCE.go('GIDDY-UP!'); }
+        else if (n !== lastCount) { lastCount = n; ANNOUNCE.count(left / 1000); }
       }
       if (here) {
         const inp = inputs(dt);
@@ -40734,7 +40802,14 @@ window.addEventListener('error', function (e) {
       onBot(f) { const used = F.filter((o) => o.on && o !== f).map((o) => o.fi), free = [0, 1, 2, 3].filter((i) => !used.includes(i)); f.fi = free.length ? free[Math.floor(rnd() * free.length)] : Math.floor(rnd() * 4); freshF(f); },
       onStart() { F.forEach((f, k) => { if (f.on) { place(f, k); f.pct = 0; f.stocks = ROUND_STOCKS; f.kos = 0; f.dead = 0; f.cloud = 0; } }); H.proj = []; H.bombs = []; H.nextBomb = 12 + rnd() * 6; H.winner = -1; },
       onLobby() { H.winner = -1; H.proj = []; H.bombs = []; F.forEach((f, k) => { if (f.on) { place(f, k); f.pct = 0; f.stocks = ROUND_STOCKS; } }); },
-      onPhase(ph) { if (ph === 'count') sfx('whistle', 0.5); if (ph === 'fight') sfx('beep2', 0.6); if (ph === 'over') matchOver(); },
+      onPhase(ph) { if (ph === 'over') matchOver(); },
+      goText: 'FIGHT!',
+      result() {
+        const mine = myF();
+        if (H.winner < 0) return { text: 'Draw!', outcome: 'draw' };
+        if (mine && H.winner === mine.slot) return { text: 'You win!', outcome: 'win' };
+        return { text: `${nameOf(F[H.winner])} wins!`, outcome: mine ? 'lose' : 'draw' };
+      },
       ask: () => showToast('Asking the host to start the match'),
     });
     const seat = () => M.seat();
@@ -41004,7 +41079,6 @@ window.addEventListener('error', function (e) {
         if (H.winner === mine.slot) { RECORDS.add(L, 'wins', (Number(prefs.brawlWins) || 0) + 1); prefs.brawlWins = (Number(prefs.brawlWins) || 0) + 1; savePrefs(); }
         RECORDS.add(L, 'kos', mine.kos);
       }
-      sfx(mine && H.winner === mine.slot ? 'fanfare' : 'chime', 0.8);
       state.hudDirty = true; forcePresence();
     }
     const phaseSounds = () => M.watch();
@@ -43726,7 +43800,7 @@ window.addEventListener('error', function (e) {
   // the shared records board (the Claude page's database, or records.php on your own site), if there is one
   RECORDS.shared.start();
   PHOTOS.start();
-  try { if (new URLSearchParams(location.search).has('test')) window.__fd = { get APLUS() { return typeof APLUS === 'undefined' ? null : APLUS; }, LEVELS, renderer, PERF, setPerf, mergeCheck, MERGED, LIVE, refereeOf, playersHere, setAway, MATCH, VR_TOAST, LOADER, load: (i) => LOADER.sync(i), vrHands, CAMERA, PHOTOS, prizeFx: PRIZE_FX, BOTLV, watch: { press: watchPress, btns: watchBtns, draw: () => { panelKey = ''; drawPanel(); return panelC.g.canvas.toDataURL(); } }, state, dolly, camera, myHead, myHands, RECORDS, switchLevel, startGame, voice: { VOICE, voiceWatch, voiceResend, remotes, buildPresence, createRemote, bodyFollow }, audio: { snd, tone, sfx, ensureAudio, MUSIC } }; } catch (e) { /* ignore */ }
+  try { if (new URLSearchParams(location.search).has('test')) window.__fd = { get APLUS() { return typeof APLUS === 'undefined' ? null : APLUS; }, LEVELS, renderer, PERF, setPerf, mergeCheck, MERGED, LIVE, refereeOf, playersHere, setAway, MATCH, VR_TOAST, ANNOUNCE, LOADER, load: (i) => LOADER.sync(i), vrHands, CAMERA, PHOTOS, prizeFx: PRIZE_FX, BOTLV, watch: { press: watchPress, btns: watchBtns, draw: () => { panelKey = ''; drawPanel(); return panelC.g.canvas.toDataURL(); } }, state, dolly, camera, myHead, myHands, RECORDS, switchLevel, startGame, voice: { VOICE, voiceWatch, voiceResend, remotes, buildPresence, createRemote, bodyFollow }, audio: { snd, tone, sfx, ensureAudio, MUSIC } }; } catch (e) { /* ignore */ }
   window.__fdReady = true;
 </script>
 </body>

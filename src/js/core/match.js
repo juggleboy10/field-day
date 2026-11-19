@@ -11,6 +11,8 @@
   //     onStart(), onLobby(),                // the referee is starting a match / going back to the lobby
   //     onPhase(ph, was),                    // every page: the phase changed (sounds, the board)
   //     ask: () => showToast('...'),         // a page that isn't the referee pressed Start
+  //     result: () => ({ text: 'Blue wins!', outcome: 'win' | 'lose' | 'draw' }),   // what to announce at the end
+  //     goText: 'FIGHT!', announce: false,   // (the word at the start; or no countdown and winner announcements)
   //   });
   //   M.start(), M.toLobby(), M.over(), M.step(dt) (the referee, every frame), M.seat() (the referee),
   //   M.watch() (every page, every frame), M.presence() / M.read(rec, pres, st) (from L.presence / L.readPresence),
@@ -71,9 +73,17 @@
         else if (H.ph === 'over') { H.t -= dt; if (H.t <= 0) toLobby(); }
       }
       // every page, every frame: tell the game when the phase changes
+      // (and announce it the same way in every game: the countdown, GO, and who won, unless cfg.announce is false)
+      const say = cfg.announce !== false;
       function watch() {
+        if (say && H.ph === 'count' && M.seenPh === 'count') ANNOUNCE.count(H.t);
         if (H.ph === M.seenPh) return;
         const was = M.seenPh; M.seenPh = H.ph; state.hudDirty = true;
+        if (say) {
+          if (H.ph === 'count') { ANNOUNCE.reset(); ANNOUNCE.count(H.t); }
+          else if (H.ph === PLAY && was === 'count') ANNOUNCE.go(cfg.goText);
+          else if (H.ph === 'over' && cfg.result) { const r = cfg.result(); if (r && r.text) ANNOUNCE.win(r.text, r.outcome); }
+        }
         if (cfg.onPhase) cfg.onPhase(H.ph, was);
       }
       // ------------------------------------------------ presence

@@ -397,7 +397,7 @@
         const key = `${a}|${b}|${me.team}`;
         if (key !== statusKey) { statusKey = key; ui.status.hidden = false; ui.status.replaceChildren(); for (const [t, col] of [[me.team >= 0 ? TEAM_NAMES[me.team] : '', TEAM_STR[me.team]], [a, '#ffd23f'], [b, iHave ? '#8bd450' : null]]) { if (!t) continue; const s = document.createElement('span'); s.textContent = t; if (col) s.style.color = col; ui.status.append(s); } }
       }
-      if (RS.ph !== me.ph) { if (RS.ph === 'play' && me.ph === 'cap') { sfx('whistle', 0.9); showToast('Go!'); } me.ph = RS.ph; state.dirtyBoard = true; }
+      if (RS.ph !== me.ph) { if (RS.ph === 'play' && me.ph === 'cap') ANNOUNCE.go(); me.ph = RS.ph; state.dirtyBoard = true; }
     };
     L.drawBoard = () => {
       const key = JSON.stringify([RS.score, RS.ph, RS.winner, me.team]);

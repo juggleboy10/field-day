@@ -762,7 +762,7 @@
       if (BOT.done && bowlAnalyze(me.rolls).done && !BOT.toldResult) {
         BOT.toldResult = true;
         const mine = bowlAnalyze(me.rolls).total, hers = bowlAnalyze(BOT.rolls).total;
-        showToast(mine > hers ? `You beat Strike Sally ${mine} to ${hers}!` : mine < hers ? `Strike Sally wins ${hers} to ${mine}` : `A ${mine} to ${hers} tie with Strike Sally`);
+        ANNOUNCE.win(mine > hers ? `You win ${mine}-${hers}!` : mine < hers ? `Sally wins ${hers}-${mine}` : `Tied ${mine}-${hers}`, mine > hers ? 'win' : mine < hers ? 'lose' : 'draw');
       }
     }
     function crashAt(x, n) {

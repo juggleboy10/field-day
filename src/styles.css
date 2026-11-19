@@ -221,6 +221,16 @@ kbd {
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
+/* the countdown and who won: big, in the middle, for a moment (ANNOUNCE in core/shared.js) */
+#big-msg {
+  position: fixed; left: 50%; top: 38%; transform: translate(-50%, -50%) scale(0.6); opacity: 0; pointer-events: none;
+  font-family: var(--display); font-weight: 900; font-size: clamp(56px, 14vw, 150px); line-height: 1; text-align: center;
+  color: #ffd23f; -webkit-text-stroke: 3px #1b1932; text-shadow: 0 6px 0 #1b1932, 0 10px 30px rgba(0,0,0,0.45);
+  max-width: 92vw; white-space: normal; transition: opacity 0.15s ease, transform 0.25s cubic-bezier(.2,1.6,.4,1);
+}
+#big-msg.long { font-size: clamp(36px, 7vw, 80px); }
+#big-msg.win { color: #ffd23f; } #big-msg.lose { color: #ff8a7a; } #big-msg.draw { color: #e8e6ff; }
+#big-msg.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 @media (max-width: 560px) {
   .panel { left: 10px; right: 10px; width: auto; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); padding: 20px 18px 18px; }
   .panel h1 { font-size: 54px; }
@@ -232,5 +242,5 @@ kbd {
   .hud-status .obj { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
-  #crosshair, #toast { transition: none; }
+  #crosshair, #toast, #big-msg { transition: none; }
 }

@@ -165,8 +165,8 @@
     function endLeg(winner) {
       S.phase = 'over'; S.legs += 1;
       if (winner === 'me') RECORDS.add(L, isClock() ? 'clock' : 'd301', S.myDarts);
-      if (winner === 'me') { S.wins += 1; prefs.dartWins = S.wins; savePrefs(); showToast(isClock() ? 'Round the clock and the bull: you win!' : 'Checked out! You win the leg'); sfx('fanfare', 1); sfx('cheer', 0.7); }
-      else { showToast('Dart Dave wins this leg. Go again?'); sfx('buzzer', 0.5); }
+      if (winner === 'me') { S.wins += 1; prefs.dartWins = S.wins; savePrefs(); ANNOUNCE.win('You win!', 'win'); showToast(isClock() ? 'Round the clock and the bull!' : 'Checked out! You win the leg'); sfx('cheer', 0.7); }
+      else { ANNOUNCE.win('Dave wins', 'lose'); showToast('Dart Dave wins this leg. Go again?'); }
       forcePresence(); state.dirtyBoard = true;
     }
     // a dart lands: p is the thrower (0 me, 1 Dave)
