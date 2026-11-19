@@ -514,12 +514,12 @@
       if (!here() || state.mode !== 'flat' || e.repeat || (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON'))) return;
       if (e.code === 'KeyW' || e.code === 'ArrowUp' || e.code === 'Space') me.jump += 1;
       else if (e.code === 'KeyK' || e.code === 'KeyL') me.sp += 1;
-      else if (e.code === 'KeyJ') jDown = performance.now();
+      else if (e.code === 'KeyJ') jDown = e.timeStamp || performance.now();
     });
     // J: a tap attacks; held and let go, it's a smash (charged by how long you held it)
     window.addEventListener('keyup', (e) => {
       if (!here() || state.mode !== 'flat' || e.code !== 'KeyJ' || !jDown) return;
-      const held = (performance.now() - jDown) / 1000; jDown = 0;
+      const held = ((e.timeStamp || performance.now()) - jDown) / 1000; jDown = 0;     // (the keys' own times: a slow frame between them doesn't turn a tap into a smash)
       if (held > 0.25) { const k = state.keys, mx = (k.KeyD || k.ArrowRight ? 1 : 0) - (k.KeyA || k.ArrowLeft ? 1 : 0); me.smash += 1; me.sdx = mx || (myF() ? myF().face : 1); me.sdy = k.KeyW || k.ArrowUp ? 1 : 0; me.sc = clamp((held - 0.25) / 0.8, 0, 1); }
       else me.atk += 1;
     });

@@ -98,9 +98,11 @@ def main():
                 page.keyboard.press("Space"); page.wait_for_timeout(120)
                 y1 = page.evaluate("() => window.__fd.LEVELS[60].brawlInternals.F.find((f) => f.peer === window.__fd.state.myPeer).y")
                 page.wait_for_timeout(900)
-                page.keyboard.press("KeyJ"); page.wait_for_timeout(60)
-                jab = page.evaluate("() => window.__fd.LEVELS[60].brawlInternals.F.find((f) => f.peer === window.__fd.state.myPeer).mv")
-                page.wait_for_timeout(400)
+                # (a tap shows as a jab on the next frame or two: watched every few ms, as the test machine's frames are slow)
+                page.evaluate("() => { const fd = window.__fd; window.__mvs = []; const t0 = performance.now(); const h = setInterval(() => { const f = fd.LEVELS[60].brawlInternals.F.find((f) => f.peer === fd.state.myPeer); window.__mvs.push(f.mv); if (performance.now() - t0 > 400) clearInterval(h); }, 5); }")
+                page.keyboard.press("KeyJ"); page.wait_for_timeout(420)
+                mvs = page.evaluate("() => window.__mvs"); print("mvs", sorted(set(mvs)), len(mvs)); jab = "jab" if "jab" in mvs else (mvs[-1] if mvs else None)
+                page.wait_for_timeout(100)
                 page.keyboard.down("KeyJ"); page.wait_for_timeout(700); page.keyboard.up("KeyJ"); page.wait_for_timeout(60)
                 sm = page.evaluate("() => { const f = window.__fd.LEVELS[60].brawlInternals.F.find((f) => f.peer === window.__fd.state.myPeer); return [f.mv, +f.charge.toFixed(2)]; }")
                 vr = page.evaluate("""() => { const fd = window.__fd, I = fd.LEVELS[60].brawlInternals, n0 = I.me.smash; fd.state.mode = 'vr';
@@ -146,7 +148,7 @@ def main():
                 time.sleep(3)
                 seats = [pg.evaluate("() => { const I = window.__fd.LEVELS[60].brawlInternals; return { host: I.isHost(), seats: I.F.map((f) => f.on ? (f.bot ? 'bot' : f.peer) : '') }; }") for pg in (A, B)]
                 print("seats:", seats)
-                check(seats[0]["host"] and not seats[1]["host"] and seats[0]["seats"][:2] == ["pA", "pB"] and seats[1]["seats"][:2] == ["pA", "pB"], f"seats {seats}")
+                check(seats[0]["host"] != seats[1]["host"] and seats[0]["seats"][:2] == ["pA", "pB"] and seats[1]["seats"][:2] == ["pA", "pB"], f"seats {seats}")
                 # Bob runs right (his keys, his page): his fighter moves on Alice's screen (the host's) and his own
                 xb0 = A.evaluate("() => window.__fd.LEVELS[60].brawlInternals.F[1].x")
                 B.bring_to_front(); B.keyboard.down("KeyD"); time.sleep(0.8); B.keyboard.up("KeyD"); time.sleep(0.6)

@@ -233,6 +233,13 @@ The kit provides:
   Your own movement in those games is already your own page's, as are your hits: nothing to predict there.
 - v111: pickleball already hands the ball to whoever it's heading for (own hits never lag); its court now counts only
   live players, so a frozen player's spot goes to the bot and the ball moves on.
+- v114: musical chairs times each player from when their own music stopped (fair on a slow connection).
+- From v115 the owner asked to leave the referee and hand-over work there and move on to the game kit (overhaul 3).
+- v115: `VR_TOAST` (core/shared.js): every `showToast` also shows on a panel in front of you in the headset (the HTML
+  toast never showed in VR). v116: `ANNOUNCE.count / go / win`, the same big countdown, GO and result (with sounds) on
+  screen and in the headset; `MATCH.define` calls it itself (`result`, `goText`, `announce: false`). About 20 games use
+  it: Brawl, dodgeball, snowball, the five races, chairs, cornhole, pickleball, laser tag, soccer, paintball, CTF, hot
+  potato, trivia, bowling, darts, hoops, charades, boxing, football.
 - Not yet: games don't all keep everything a new referee needs in their shared state (timers, bot plans). Each game's
   move onto the kit (2.5) checks that with a referee hand-over in its two-page test.
 

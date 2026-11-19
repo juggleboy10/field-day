@@ -57,7 +57,10 @@ try:
         A.evaluate(f"() => {{ const L = window.__fd.LEVELS[{LV}], I = L.brawlInternals, H = I.H; window.__counts = 0; let was = H.ph; setInterval(() => {{ if (H.ph === 'count' && was !== 'count') window.__counts += 1; was = H.ph; }}, 20); }}")
         B.evaluate(f"() => window.__fd.LEVELS[{LV}].startMatch()")
         B.wait_for_function(f"() => ['count', 'fight'].includes(window.__fd.LEVELS[{LV}].brawlInternals.H.ph)", timeout=5000)
-        A.wait_for_timeout(4500)
+        # (a 3-second countdown; the test machine's slow frames stretch it, so wait for the fight rather than a fixed time)
+        try:
+            for pg in (A, B): pg.wait_for_function(f"() => window.__fd.LEVELS[{LV}].brawlInternals.H.ph === 'fight'", timeout=8000)
+        except Exception: pass
         a, b = A.evaluate(ST), B.evaluate(ST)
         check("B asks: the match starts, into the fight on both screens", a["ph"] == "fight" and b["ph"] == "fight", f"{a['ph']} / {b['ph']}")
         check("it started once", A.evaluate("() => window.__counts") == 1, str(A.evaluate("() => window.__counts")))

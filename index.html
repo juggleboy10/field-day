@@ -235,11 +235,12 @@ kbd {
 #big-msg {
   position: fixed; left: 50%; top: 38%; transform: translate(-50%, -50%) scale(0.6); opacity: 0; pointer-events: none;
   font-family: var(--display); font-weight: 900; font-size: clamp(56px, 14vw, 150px); line-height: 1; text-align: center;
-  color: #ffd23f; -webkit-text-stroke: 3px #1b1932; text-shadow: 0 6px 0 #1b1932, 0 10px 30px rgba(0,0,0,0.45);
-  max-width: 92vw; white-space: normal; transition: opacity 0.15s ease, transform 0.25s cubic-bezier(.2,1.6,.4,1);
+  color: #ffd23f; -webkit-text-stroke: 3px #1b1932; text-shadow: 0 6px 0 #1b1932;
+  max-width: 92vw; white-space: normal; will-change: transform, opacity; transition: opacity 0.15s ease, transform 0.25s cubic-bezier(.2,1.6,.4,1);
 }
 #big-msg.long { font-size: clamp(36px, 7vw, 80px); }
 #big-msg.win { color: #ffd23f; } #big-msg.lose { color: #ff8a7a; } #big-msg.draw { color: #e8e6ff; }
+#big-msg:not(.show) { visibility: hidden; transition: opacity 0.15s ease, transform 0.25s, visibility 0s 0.25s; }
 #big-msg.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 @media (max-width: 560px) {
   .panel { left: 10px; right: 10px; width: auto; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); padding: 20px 18px 18px; }
@@ -40892,12 +40893,12 @@ window.addEventListener('error', function (e) {
       if (!here() || state.mode !== 'flat' || e.repeat || (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON'))) return;
       if (e.code === 'KeyW' || e.code === 'ArrowUp' || e.code === 'Space') me.jump += 1;
       else if (e.code === 'KeyK' || e.code === 'KeyL') me.sp += 1;
-      else if (e.code === 'KeyJ') jDown = performance.now();
+      else if (e.code === 'KeyJ') jDown = e.timeStamp || performance.now();
     });
     // J: a tap attacks; held and let go, it's a smash (charged by how long you held it)
     window.addEventListener('keyup', (e) => {
       if (!here() || state.mode !== 'flat' || e.code !== 'KeyJ' || !jDown) return;
-      const held = (performance.now() - jDown) / 1000; jDown = 0;
+      const held = ((e.timeStamp || performance.now()) - jDown) / 1000; jDown = 0;     // (the keys' own times: a slow frame between them doesn't turn a tap into a smash)
       if (held > 0.25) { const k = state.keys, mx = (k.KeyD || k.ArrowRight ? 1 : 0) - (k.KeyA || k.ArrowLeft ? 1 : 0); me.smash += 1; me.sdx = mx || (myF() ? myF().face : 1); me.sdy = k.KeyW || k.ArrowUp ? 1 : 0; me.sc = clamp((held - 0.25) / 0.8, 0, 1); }
       else me.atk += 1;
     });
