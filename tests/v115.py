@@ -45,7 +45,7 @@ with sync_playwright() as p:
     page.evaluate("__fd.startGame('flat')")
     i = page.evaluate("LEVEL_META.findIndex((m) => m.id === 'dodgeball')")
     page.evaluate(f"__fd.switchLevel({i})"); page.wait_for_function(f"__fd.state.level === {i}", timeout=20000)
-    page.wait_for_timeout(1500)
+    page.wait_for_timeout(7000)     # (past dodgeball's own countdown and GO: a big message isn't covered by a small one)
     page.evaluate("""(() => { const L = __fd.LEVELS[__fd.state.level]; L.hudActions.find((a) => /team/i.test(a.label())).run(); })()""")
     txt = page.evaluate("__fd.VR_TOAST.text")
     check("a game's own message reaches the headset panel", "on " in txt or "on" in txt and "now" in txt, txt)
