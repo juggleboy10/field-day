@@ -240,6 +240,10 @@ The kit provides:
   screen and in the headset; `MATCH.define` calls it itself (`result`, `goText`, `announce: false`). About 20 games use
   it: Brawl, dodgeball, snowball, the five races, chairs, cornhole, pickleball, laser tag, soccer, paintball, CTF, hot
   potato, trivia, bowling, darts, hoops, charades, boxing, football.
+- v117 (frame rate, 4b again): hoops 271 → 28 draws (each skyline building one material, then merged), duck shoot
+  244 → 82 (each duck merged within itself; the fairground merged; the Ferris wheel's turning parts merged within the
+  wheel, which helps every carnival place), football 244 → 101 (each player merged within itself, legs left out).
+  `tests/v117.py [place ...]`.
 - Not yet: games don't all keep everything a new referee needs in their shared state (timers, bot plans). Each game's
   move onto the kit (2.5) checks that with a referee hand-over in its two-page test.
 
