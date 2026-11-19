@@ -174,7 +174,7 @@
       const sign = makePlate(g, 'PRIZES', 1.6, 0.32, new V3(0, 2.85, -0.28), 0, { bg: '#ff4d8a', fg: '#ffffff', size: 0.62 }); void sign;
       const tc = canvasTexture(512, 128);
       const tb = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.35), new THREE.MeshBasicMaterial({ map: tc.tex })); tb.position.set(0, 2.4, -0.28); g.add(tb);
-      const meshes = PRIZES.map((p, i) => { const m = p.make(); m.position.set(-1.0 + i * 0.5, 1.04, -0.12); m.scale.setScalar(1.2); g.add(m); return m; });
+      const meshes = PRIZES.map((p, i) => { const m = p.make(); m.position.set(-1.0 + i * 0.5, 1.04, -0.12); m.scale.setScalar(1.2); m.userData.live = true; g.add(m); return m; });   // (they fade when not yet won: never merged)
       PRIZES.forEach((p, i) => makePlate(g, PRIZE_SHORT[p.id], 0.46, 0.09, new V3(-1.0 + i * 0.5, 0.82, 0.31), 0, { size: 0.55, bg: '#ffd23f', fg: '#2a1a44' }));
       PRIZES.forEach((p, i) => {
         const lx = -1.0 + i * 0.5, lz = 0.36;

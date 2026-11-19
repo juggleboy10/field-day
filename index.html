@@ -369,7 +369,7 @@ window.addEventListener('error', function (e) {
   const FWD = new V3(0, 0, -1);
   const GRAVITY = 9.8;
   // which build this is (shown on the start screen and on the VR watch, so you can tell a fresh copy from a stale one)
-  const VERSION = 116;
+  const VERSION = 117;
   const PLAYER_COLORS = [
     { hex: '#4fc3f7', label: 'Sky blue' },
     { hex: '#ff5c8a', label: 'Pink' },
@@ -4272,15 +4272,19 @@ window.addEventListener('error', function (e) {
     });
     win.tex.wrapS = win.tex.wrapT = THREE.RepeatWrapping;
     const sideMat = new THREE.MeshBasicMaterial({ map: win.tex, color: 0xd8d0ff });
-    const bMats = [sideMat, sideMat, new THREE.MeshBasicMaterial({ color: 0x1e1b36 }), new THREE.MeshBasicMaterial({ color: 0x1e1b36 }), sideMat, sideMat];
+    // (one material for every face: the roofs take their dark colour from a corner of the windows picture, so each
+    // building is a single plain mesh and the whole skyline merges into a few draw calls, not one per face)
+    const bMats = sideMat;
     function buildingGeo(w, h, d) {
       const geo = new THREE.BoxGeometry(w, h, d);
       const uv = geo.attributes.uv;
       const dims = [[d, h], [d, h], [w, d], [w, d], [w, h], [w, h]];
       for (let f = 0; f < 6; f++) for (let k = 0; k < 4; k++) {
         const i = f * 4 + k;
-        uv.setXY(i, uv.getX(i) * dims[f][0] / 12, uv.getY(i) * dims[f][1] / 24);
+        if (f === 2 || f === 3) uv.setXY(i, 0.008, 0.996);      // (roof and underside: the plain dark corner)
+        else uv.setXY(i, uv.getX(i) * dims[f][0] / 12, uv.getY(i) * dims[f][1] / 24);
       }
+      geo.clearGroups();
       return geo;
     }
     const beaconMat = new THREE.SpriteMaterial({ map: redGlowTex, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true });
@@ -4986,6 +4990,8 @@ window.addEventListener('error', function (e) {
     L.ltInternals = { startLightning, shooterMade, botShoot, give, FT, FT_D, LT_BOTS };
     // End game: Lightning stops (shoot-around carries on)
     ENDGAME.on(L, { active: () => LT.ph === 1, end: () => { requestLT(2); return 'Start Lightning again when everyone’s ready.'; } });
+    // the court, fence, buildings and lights never move: a few meshes in place of a couple of hundred (the net swings)
+    mergeStatic(G, { keep: [net] });
     return L;
   })();
   hoops.throwSpeed = [3, 12, 0.2];
@@ -28327,6 +28333,8 @@ window.addEventListener('error', function (e) {
       g.userData.legs = legs.children;
       if (crouch) legs.scale.y = 0.55, legs.position.y = 0.36;
       G.add(g);
+      // (a player's body, helmet and mask never move apart, only the legs: a few draw calls a player, not a dozen)
+      mergeStatic(g, { parts: 1, keep: [legs] });
       return { g, x: 0, z: 0, vx: 0, vz: 0, yaw: 0, crouch: !!crouch };
     }
     const LINE = [-2.4, -1.2, 0, 1.2, 2.4].map((x, i) => Object.assign(person(OFF, 4, 3, i % 4, true), { hx: x }));
@@ -29393,7 +29401,7 @@ window.addEventListener('error', function (e) {
       const sign = makePlate(g, 'PRIZES', 1.6, 0.32, new V3(0, 2.85, -0.28), 0, { bg: '#ff4d8a', fg: '#ffffff', size: 0.62 }); void sign;
       const tc = canvasTexture(512, 128);
       const tb = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.35), new THREE.MeshBasicMaterial({ map: tc.tex })); tb.position.set(0, 2.4, -0.28); g.add(tb);
-      const meshes = PRIZES.map((p, i) => { const m = p.make(); m.position.set(-1.0 + i * 0.5, 1.04, -0.12); m.scale.setScalar(1.2); g.add(m); return m; });
+      const meshes = PRIZES.map((p, i) => { const m = p.make(); m.position.set(-1.0 + i * 0.5, 1.04, -0.12); m.scale.setScalar(1.2); m.userData.live = true; g.add(m); return m; });   // (they fade when not yet won: never merged)
       PRIZES.forEach((p, i) => makePlate(g, PRIZE_SHORT[p.id], 0.46, 0.09, new V3(-1.0 + i * 0.5, 0.82, 0.31), 0, { size: 0.55, bg: '#ffd23f', fg: '#2a1a44' }));
       PRIZES.forEach((p, i) => {
         const lx = -1.0 + i * 0.5, lz = 0.36;
@@ -34232,6 +34240,10 @@ window.addEventListener('error', function (e) {
         const b = new THREE.Mesh(new THREE.SphereGeometry(0.22, 6, 5), bulbM[k % bulbM.length]); b.position.set(Math.cos(a) * 10, Math.sin(a) * 10, 0.2); wheel.add(b);
         const gond = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.0, 1.0), lam([0xe5453a, 0x4fc3f7, 0xffd23f, 0x8bd450][k % 4])); gond.userData.a = a; wheel.add(gond);
       }
+      // (the wheel turns: it's left out of a place's merged scenery, and its rim, spokes and bulbs, which turn together,
+      // are merged among themselves; the gondolas stay level, so they move on their own)
+      wheel.userData.live = true;
+      mergeStatic(wheel, { parts: 1, keep: wheel.children.filter((c) => c.userData.a !== undefined) });
       for (const sx of [-1, 1]) { const leg = new THREE.Mesh(new THREE.BoxGeometry(0.4, 15, 0.4), lam(0xd8d0c8)); leg.position.set(wheel.position.x + sx * 3.5, 6.5, wheel.position.z); leg.rotation.z = sx * 0.24; G.add(leg); }
       // tents in the distance
       for (let k = 0; k < 7; k++) {
@@ -34550,7 +34562,10 @@ window.addEventListener('error', function (e) {
           const ring = new THREE.Mesh(new THREE.RingGeometry(0.03, 0.05, 16), new THREE.MeshBasicMaterial({ color: 0xe5453a, side: THREE.DoubleSide })); ring.position.set(-0.02, 0, sz * 0.056); g.add(ring);
         }
       }
-      G.add(g); return g;
+      G.add(g);
+      // (a duck's parts never move apart: a duck is one or two meshes, not eight, as dozens are on show at once)
+      mergeStatic(g, { parts: 1 });
+      return g;
     }
     const booths = [];
     for (let k = 0; k < N; k++) {
@@ -34735,6 +34750,8 @@ window.addEventListener('error', function (e) {
     L.onEnter = () => { R.ph = 'idle'; };
     L.onExit = () => { if (ui.status) ui.status.hidden = true; gun.visible = false; R.ph = 'idle'; for (const c of corks) { c.on = false; c.m.visible = false; } };
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 3, 2.0, 4.5); camera.lookAt(0, 1.6, -2); };
+    // the fairground and booths never move (the ducks, the corks and the Ferris wheel do, and are left out)
+    mergeStatic(G, { keep: booths.flatMap((b) => b.ducks.flatMap((d) => d.meshes)) });
     L.duckInternals = { R, booths, fire, corkStep, duckPos, hitDuck, startRound, endRound, clock, corks, DZ };
     MUSIC_THEMES.duckshoot = { gain: 0.7, bpm: 126, swing: 0.15, chords: ['F', 'C', 'G', 'C'], comp: { inst: 'musicbox', at: [0, 2, 4, 6, 8, 10, 12, 14], dur: 0.1 }, bass: { at: [0, 4, 8, 12] }, drums: { k: 'x...x...x...x...', h: '..o...o...o...o.' }, cut: 4600 };
     ENDGAME.on(L, { active: () => R.ph === 'play', end: () => { R.ph = 'idle'; for (const c of corks) { c.on = false; c.m.visible = false; } forcePresence(); return 'Fire to start a new round.'; } });

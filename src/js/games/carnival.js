@@ -30,6 +30,10 @@
         const b = new THREE.Mesh(new THREE.SphereGeometry(0.22, 6, 5), bulbM[k % bulbM.length]); b.position.set(Math.cos(a) * 10, Math.sin(a) * 10, 0.2); wheel.add(b);
         const gond = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.0, 1.0), lam([0xe5453a, 0x4fc3f7, 0xffd23f, 0x8bd450][k % 4])); gond.userData.a = a; wheel.add(gond);
       }
+      // (the wheel turns: it's left out of a place's merged scenery, and its rim, spokes and bulbs, which turn together,
+      // are merged among themselves; the gondolas stay level, so they move on their own)
+      wheel.userData.live = true;
+      mergeStatic(wheel, { parts: 1, keep: wheel.children.filter((c) => c.userData.a !== undefined) });
       for (const sx of [-1, 1]) { const leg = new THREE.Mesh(new THREE.BoxGeometry(0.4, 15, 0.4), lam(0xd8d0c8)); leg.position.set(wheel.position.x + sx * 3.5, 6.5, wheel.position.z); leg.rotation.z = sx * 0.24; G.add(leg); }
       // tents in the distance
       for (let k = 0; k < 7; k++) {

@@ -28,15 +28,19 @@
     });
     win.tex.wrapS = win.tex.wrapT = THREE.RepeatWrapping;
     const sideMat = new THREE.MeshBasicMaterial({ map: win.tex, color: 0xd8d0ff });
-    const bMats = [sideMat, sideMat, new THREE.MeshBasicMaterial({ color: 0x1e1b36 }), new THREE.MeshBasicMaterial({ color: 0x1e1b36 }), sideMat, sideMat];
+    // (one material for every face: the roofs take their dark colour from a corner of the windows picture, so each
+    // building is a single plain mesh and the whole skyline merges into a few draw calls, not one per face)
+    const bMats = sideMat;
     function buildingGeo(w, h, d) {
       const geo = new THREE.BoxGeometry(w, h, d);
       const uv = geo.attributes.uv;
       const dims = [[d, h], [d, h], [w, d], [w, d], [w, h], [w, h]];
       for (let f = 0; f < 6; f++) for (let k = 0; k < 4; k++) {
         const i = f * 4 + k;
-        uv.setXY(i, uv.getX(i) * dims[f][0] / 12, uv.getY(i) * dims[f][1] / 24);
+        if (f === 2 || f === 3) uv.setXY(i, 0.008, 0.996);      // (roof and underside: the plain dark corner)
+        else uv.setXY(i, uv.getX(i) * dims[f][0] / 12, uv.getY(i) * dims[f][1] / 24);
       }
+      geo.clearGroups();
       return geo;
     }
     const beaconMat = new THREE.SpriteMaterial({ map: redGlowTex, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true });
@@ -742,6 +746,8 @@
     L.ltInternals = { startLightning, shooterMade, botShoot, give, FT, FT_D, LT_BOTS };
     // End game: Lightning stops (shoot-around carries on)
     ENDGAME.on(L, { active: () => LT.ph === 1, end: () => { requestLT(2); return 'Start Lightning again when everyone’s ready.'; } });
+    // the court, fence, buildings and lights never move: a few meshes in place of a couple of hundred (the net swings)
+    mergeStatic(G, { keep: [net] });
     return L;
   })();
   hoops.throwSpeed = [3, 12, 0.2];

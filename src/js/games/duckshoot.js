@@ -44,7 +44,10 @@
           const ring = new THREE.Mesh(new THREE.RingGeometry(0.03, 0.05, 16), new THREE.MeshBasicMaterial({ color: 0xe5453a, side: THREE.DoubleSide })); ring.position.set(-0.02, 0, sz * 0.056); g.add(ring);
         }
       }
-      G.add(g); return g;
+      G.add(g);
+      // (a duck's parts never move apart: a duck is one or two meshes, not eight, as dozens are on show at once)
+      mergeStatic(g, { parts: 1 });
+      return g;
     }
     const booths = [];
     for (let k = 0; k < N; k++) {
@@ -229,6 +232,8 @@
     L.onEnter = () => { R.ph = 'idle'; };
     L.onExit = () => { if (ui.status) ui.status.hidden = true; gun.visible = false; R.ph = 'idle'; for (const c of corks) { c.on = false; c.m.visible = false; } };
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.3; camera.position.set(Math.sin(a) * 3, 2.0, 4.5); camera.lookAt(0, 1.6, -2); };
+    // the fairground and booths never move (the ducks, the corks and the Ferris wheel do, and are left out)
+    mergeStatic(G, { keep: booths.flatMap((b) => b.ducks.flatMap((d) => d.meshes)) });
     L.duckInternals = { R, booths, fire, corkStep, duckPos, hitDuck, startRound, endRound, clock, corks, DZ };
     MUSIC_THEMES.duckshoot = { gain: 0.7, bpm: 126, swing: 0.15, chords: ['F', 'C', 'G', 'C'], comp: { inst: 'musicbox', at: [0, 2, 4, 6, 8, 10, 12, 14], dur: 0.1 }, bass: { at: [0, 4, 8, 12] }, drums: { k: 'x...x...x...x...', h: '..o...o...o...o.' }, cut: 4600 };
     ENDGAME.on(L, { active: () => R.ph === 'play', end: () => { R.ph = 'idle'; for (const c of corks) { c.on = false; c.m.visible = false; } forcePresence(); return 'Fire to start a new round.'; } });

@@ -128,6 +128,8 @@
       g.userData.legs = legs.children;
       if (crouch) legs.scale.y = 0.55, legs.position.y = 0.36;
       G.add(g);
+      // (a player's body, helmet and mask never move apart, only the legs: a few draw calls a player, not a dozen)
+      mergeStatic(g, { parts: 1, keep: [legs] });
       return { g, x: 0, z: 0, vx: 0, vz: 0, yaw: 0, crouch: !!crouch };
     }
     const LINE = [-2.4, -1.2, 0, 1.2, 2.4].map((x, i) => Object.assign(person(OFF, 4, 3, i % 4, true), { hx: x }));
