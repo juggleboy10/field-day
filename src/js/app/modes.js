@@ -25,10 +25,12 @@
     dropMine();
     old.onExit(); RECORDS.hidePanel();
     old.group.visible = false;
+    LOADER.leaving(old);
     for (const b of old.buttons) b.near = false;
     state.level = i;
     const L = curLevel();
     L.group.visible = true;
+    LOADER.arriving(L);
     applyEnv(L.env);
     seenPresence.clear();
     state.lastPeers = null;

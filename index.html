@@ -369,7 +369,7 @@ window.addEventListener('error', function (e) {
   const FWD = new V3(0, 0, -1);
   const GRAVITY = 9.8;
   // which build this is (shown on the start screen and on the VR watch, so you can tell a fresh copy from a stale one)
-  const VERSION = 117;
+  const VERSION = 118;
   const PLAYER_COLORS = [
     { hex: '#4fc3f7', label: 'Sky blue' },
     { hex: '#ff5c8a', label: 'Pink' },
@@ -42933,10 +42933,12 @@ window.addEventListener('error', function (e) {
     dropMine();
     old.onExit(); RECORDS.hidePanel();
     old.group.visible = false;
+    LOADER.leaving(old);
     for (const b of old.buttons) b.near = false;
     state.level = i;
     const L = curLevel();
     L.group.visible = true;
+    LOADER.arriving(L);
     applyEnv(L.env);
     seenPresence.clear();
     state.lastPeers = null;
@@ -43751,7 +43753,68 @@ window.addEventListener('error', function (e) {
       if (S.eager) { all(); return; }
       if (!sync(state.level)) state.level = HUB_IDX;
     }
-    return { S, sync, all, go, boot, filesFor, get want() { return S.want; }, set want(v) { S.want = v; }, get eager() { return S.eager; } };
+    // ---------------------------------------------------------------- giving a place's graphics memory back
+    // A place's code can only run once, so a place you've left stays built. What it holds on the graphics chip (its
+    // shapes and pictures, the bulk of the memory on a headset) is given back once you've been away a while
+    // (REST_MS; ?restms= in the address to change it). Nothing else changes: the place, its state and its scores stay
+    // in the page, and three.js puts the shapes and pictures back on the chip the moment the place is drawn again
+    // (when you go back, behind the switch). The clubhouse is never rested: you pass through it all the time. Anything
+    // the place shares with where you are now, or with the core (avatars, the watch, the camera), is left alone.
+    const REST = {
+      ms: (() => { const v = Number(q.get('restms')); return v > 0 ? v : 45000; })(),
+      left: new Map(), rested: new Set(), checkT: 0, last: null,
+    };
+    const MAPS = ['map', 'alphaMap', 'aoMap', 'bumpMap', 'emissiveMap', 'envMap', 'lightMap', 'normalMap', 'specularMap', 'roughnessMap', 'metalnessMap', 'displacementMap'];
+    // (only pictures it can upload again: a canvas, an image, raw data; never a render target's picture)
+    const reloadable = (t) => {
+      const im = t && t.image;
+      if (!im || t.isVideoTexture || t.isCompressedTexture) return false;
+      if (t.isDataTexture) return !!im.data;
+      return (typeof HTMLCanvasElement !== 'undefined' && im instanceof HTMLCanvasElement) || (typeof HTMLImageElement !== 'undefined' && im instanceof HTMLImageElement)
+        || (typeof ImageBitmap !== 'undefined' && im instanceof ImageBitmap) || (typeof OffscreenCanvas !== 'undefined' && im instanceof OffscreenCanvas);
+    };
+    function collect(root, geos, texs) {
+      root.traverse((o) => {
+        if (o.geometry && !o.isSprite) geos.add(o.geometry);      // (sprites share one shape, kept by three.js itself)
+        const ms = Array.isArray(o.material) ? o.material : o.material ? [o.material] : [];
+        for (const m of ms) {
+          for (const k of MAPS) if (m[k] && m[k].isTexture) texs.add(m[k]);
+          if (m.uniforms) for (const u of Object.values(m.uniforms)) if (u && u.value && u.value.isTexture) texs.add(u.value);
+        }
+      });
+    }
+    function rest(L) {
+      if (!L || L.idx === state.level || L.idx === HUB_IDX) return null;
+      const geos = new Set(), texs = new Set();
+      collect(L.group, geos, texs);
+      if (L.overlay) collect(L.overlay, geos, texs);
+      if (L.env && L.env.sky && L.env.sky.isTexture) texs.add(L.env.sky);
+      // what's still in use: everything in the scene but the other places (and the sky showing now)
+      const keepG = new Set(), keepT = new Set(), others = new Set();
+      for (const Lv of LEVELS) if (Lv && Lv.idx !== state.level) { others.add(Lv.group); if (Lv.overlay) others.add(Lv.overlay); }
+      (function walk(o) { if (others.has(o)) return; collect({ traverse: (f) => f(o) }, keepG, keepT); for (const c of o.children) walk(c); })(scene);
+      if (skyMat.map) keepT.add(skyMat.map);
+      let g = 0, t = 0;
+      for (const x of geos) if (!keepG.has(x)) { x.dispose(); g += 1; }
+      for (const x of texs) if (!keepT.has(x) && reloadable(x)) { x.dispose(); t += 1; }
+      REST.rested.add(L.idx);
+      REST.last = { idx: L.idx, geometries: g, textures: t };
+      return REST.last;
+    }
+    // (modes.js tells us when you leave a place and arrive at one; the main loop calls restTick)
+    function leaving(L) { if (L) REST.left.set(L.idx, performance.now()); }
+    function arriving(L) { if (!L) return; REST.left.delete(L.idx); REST.rested.delete(L.idx); }
+    function restTick(now) {
+      if (now < REST.checkT) return;
+      REST.checkT = now + 2000;
+      for (const [idx, t] of REST.left) {
+        if (idx === state.level || REST.rested.has(idx) || now - t < REST.ms) continue;
+        try { rest(LEVELS[idx]); } catch (e) { console.error(e); }
+        REST.left.delete(idx);
+        break;      // (one place a check: no big pause)
+      }
+    }
+    return { S, sync, all, go, boot, filesFor, REST, rest, leaving, arriving, restTick, get want() { return S.want; }, set want(v) { S.want = v; }, get eager() { return S.eager; } };
   })();
 </script>
 <script>'use strict'; if (window.__fdStop) throw new Error('Field Day: not started (' + window.__fdStop + ')');
@@ -43798,6 +43861,7 @@ window.addEventListener('error', function (e) {
     PRIZE_FX.tick(dt * steps, now);
     CAMERA.tick(dt * steps, now);
     VR_TOAST.tick(dt * steps, now);
+    LOADER.restTick(now);
     if (L.picker) L.picker.tick();
     if (L.sitOut) L.sitOut.tick(dt * steps);
     updateButtons(L, now);

@@ -41,6 +41,7 @@
     PRIZE_FX.tick(dt * steps, now);
     CAMERA.tick(dt * steps, now);
     VR_TOAST.tick(dt * steps, now);
+    LOADER.restTick(now);
     if (L.picker) L.picker.tick();
     if (L.sitOut) L.sitOut.tick(dt * steps);
     updateButtons(L, now);
