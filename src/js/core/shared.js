@@ -802,7 +802,7 @@
 
   // ---------------------------------------------------------------- level registry
   const LEVELS = [];
-  const HOP_PLACES = ['hoops', 'baseball', 'lasertag', 'hub', 'hideseek', 'paintball', 'dodgeball', 'ctf'];
+  const HOP_PLACES = ['hoops', 'baseball', 'lasertag', 'hub', 'hideseek', 'paintball', 'dodgeball', 'ctf', 'pickleball'];
   function newLevel(idx) {
     const group = new THREE.Group();
     group.visible = false;

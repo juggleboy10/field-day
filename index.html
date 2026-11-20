@@ -369,7 +369,7 @@ window.addEventListener('error', function (e) {
   const FWD = new V3(0, 0, -1);
   const GRAVITY = 9.8;
   // which build this is (shown on the start screen and on the VR watch, so you can tell a fresh copy from a stale one)
-  const VERSION = 118;
+  const VERSION = 119;
   const PLAYER_COLORS = [
     { hex: '#4fc3f7', label: 'Sky blue' },
     { hex: '#ff5c8a', label: 'Pink' },
@@ -1499,7 +1499,7 @@ window.addEventListener('error', function (e) {
 
   // ---------------------------------------------------------------- level registry
   const LEVELS = [];
-  const HOP_PLACES = ['hoops', 'baseball', 'lasertag', 'hub', 'hideseek', 'paintball', 'dodgeball', 'ctf'];
+  const HOP_PLACES = ['hoops', 'baseball', 'lasertag', 'hub', 'hideseek', 'paintball', 'dodgeball', 'ctf', 'pickleball'];
   function newLevel(idx) {
     const group = new THREE.Group();
     group.visible = false;
@@ -19722,7 +19722,7 @@ window.addEventListener('error', function (e) {
     const rand = mulberry32(4114);
     const HL = 6.705, HW = 3.05, NET_H = 0.88, KITCH = 2.13, BR = 0.037;   // half length (x), half width (z)
     const GRAV = 9.8, DRAG = 0.06, WIN = 11, MAG = 0.5;   // MAG: how hard spin bends the ball (Magnus)
-    const SIDE_AIR = 0.3, SIDE_KICK = 1.8, TOP_AIR = 0.55;   // spin only bends it a little in the air; it mostly shows when it bounces
+    const SIDE_AIR = 0.4, SIDE_KICK = 2.1, TOP_AIR = 0.55;   // spin only bends it a little in the air; it mostly shows when it bounces
     const R = { minX: -11, maxX: 11, minZ: -7, maxZ: 7 };
     L.bounds = R;
     BOTLV.on(L);   // the court bots: easy, normal (how they always played) or hard
@@ -20015,7 +20015,7 @@ window.addEventListener('error', function (e) {
       const hs = Math.hypot(b.vx, b.vz) || 1, ux = b.vx / hs, uz = b.vz / hs;
       const ts = clamp((b.wx || 0) * uz - (b.wz || 0) * ux, -1, 1);     // + topspin, - backspin
       const keep = 0.82 + 0.14 * ts;
-      b.y = BR; b.vy = -b.vy * (0.72 - 0.14 * ts); b.vx *= keep; b.vz *= keep;
+      b.y = BR; b.vy = -b.vy * (0.8 - 0.14 * ts); b.vx *= keep; b.vz *= keep;
       // sidespin grabs the court and kicks it off sideways, the same way it was curving
       const ss = clamp(b.wy || 0, -1, 1) * SIDE_KICK;
       b.vx += ss * uz; b.vz -= ss * ux;
@@ -20055,20 +20055,21 @@ window.addEventListener('error', function (e) {
       return out;
     }
     // the last check on any shot: lift it until it clears the net, and if that sends it long, take a little pace off
-    function clearNet(from, v) {
+    // (a shot hit too hard to stay in, keepIn false, is left to go long)
+    function clearNet(from, v, keepIn = true) {
       for (let i = 0; i < 16; i++) {
         const f = flyTo(from, v);
         if (f.netY < NET_H + 0.1) { v.vy += 0.25; continue; }
-        if (Math.abs(f.x) > HL - 0.15 && Math.sign(f.x) !== Math.sign(from.x || 1)) { v.vx *= 0.93; v.vz *= 0.93; continue; }
+        if (keepIn && Math.abs(f.x) > HL - 0.15 && Math.sign(f.x) !== Math.sign(from.x || 1)) { v.vx *= 0.93; v.vz *= 0.93; continue; }
         break;
       }
       return v;
     }
-    function hitBall(side, v, slot) {
-      const b = PB.b, s = Math.hypot(v.vx, v.vy, v.vz), k = s > 16 ? 16 / s : 1;
+    function hitBall(side, v, slot, keepIn = true) {
+      const b = PB.b, s = Math.hypot(v.vx, v.vy, v.vz), k = s > 20 ? 20 / s : 1;
       if (PB.ph === 'serve') PB.serveFromZ = b.z;
       v = { vx: v.vx * k, vy: v.vy * k, vz: v.vz * k, wx: v.wx, wy: v.wy, wz: v.wz };
-      clearNet(b, v);
+      clearNet(b, v, keepIn);
       b.vx = v.vx; b.vy = v.vy; b.vz = v.vz;
       b.wx = v.wx || 0; b.wy = v.wy || 0; b.wz = v.wz || 0;
       onHit(side, slot === undefined ? -1 : slot);
@@ -20082,6 +20083,12 @@ window.addEventListener('error', function (e) {
       const far = side === 0 ? 1 : -1;
       if (PB.ph === 'serve') { const z = -Math.sign(PB.b.z || 1) * clamp(Math.abs(wantZ ?? HW / 2), 0.4, HW - 0.35); return { x: far * clamp(Math.abs(wantX ?? HL * 0.7), KITCH + 0.6, HL - 0.4), z }; }
       return { x: far * clamp(Math.abs(wantX ?? HL * 0.7), 1.0, HL - 0.35), z: clamp(wantZ ?? 0, -HW + 0.35, HW - 0.35) };
+    }
+    // power decides how deep it really goes: too soft drops it short, too hard sends it past the baseline. Returns
+    // whether the shot is still meant to land in (so the help keeps it in only then).
+    function powerDepth(tg, deep) {
+      tg.x = Math.sign(tg.x) * Math.max(0.6, deep);
+      return deep <= HL - 0.3;
     }
 
     // ---------------------------------------------------------------- your paddle
@@ -20118,14 +20125,16 @@ window.addEventListener('error', function (e) {
           PB.b.x = at.x; PB.b.y = Math.max(BR, at.y); PB.b.z = at.z;
           vb.addScaledVector(n, -1.8 * vn);
           // your swing sets the pace and direction; the help keeps it in the court
-          const speed = clamp(Math.hypot(vb.x, vb.z), 4, 14);
+          // (a gentle push lands short; a smash, past about 15 m/s off the paddle, sails long)
+          const speed = clamp(Math.hypot(vb.x, vb.z), 3, 20);
           const tg = target(PB.mySide, HL * clamp(0.35 + speed / 22, 0.45, 0.92), PB.b.z + vb.z * 0.35);
+          const keepIn = powerDepth(tg, HL * (0.22 + speed / 19));
           // brushing up the back of the ball gives topspin, chopping down gives backspin, across gives sidespin
           const vt = vp.clone().addScaledVector(_pn, -vp.dot(_pn)), dOut = vb.clone().normalize();
           const w = vt.cross(dOut).multiplyScalar(0.27); if (w.length() > 1) w.normalize();
           if (w.length() < 0.15) w.set(0, 0, 0);
-          const aim = aimed(PB.b, tg.x, tg.z, speed, [w.x, w.y, w.z]);
-          hitBall(PB.mySide, { vx: vb.x * 0.3 + aim.vx * 0.7, vy: vb.y * 0.3 + aim.vy * 0.7, vz: vb.z * 0.3 + aim.vz * 0.7, wx: w.x, wy: w.y, wz: w.z }, PB.mySlot);
+          const aim = aimed(PB.b, tg.x, tg.z, Math.min(speed, 12), [w.x, w.y, w.z]);
+          hitBall(PB.mySide, { vx: vb.x * 0.3 + aim.vx * 0.7, vy: vb.y * 0.3 + aim.vy * 0.7, vz: vb.z * 0.3 + aim.vz * 0.7, wx: w.x, wy: w.y, wz: w.z }, PB.mySlot, keepIn);
           haptic(vrHands[t.held.side], 0.5, 25);
           break;
         }
@@ -20136,7 +20145,7 @@ window.addEventListener('error', function (e) {
     L.deskHand = (side, mh) => {
       const t = paddles.find((x) => x.held && x.held.peer === state.myPeer && x.held.side === side);
       if (!t || state.mode !== 'flat') return false;
-      const b = PB.b, near = Math.hypot(b.x - myHead.pos.x, b.z - myHead.pos.z) < 1.8 && b.y < 2.2 && PB.ph !== 'dead';
+      const b = PB.b, near = Math.hypot(b.x - myHead.pos.x, b.z - myHead.pos.z) < 1.8 && b.y - dolly.position.y < 2.2 && PB.ph !== 'dead';
       if (near) mh.pos.set(b.x + (PB.mySide === 0 ? -0.1 : 0.1), b.y, b.z);
       else { camera.getWorldQuaternion(_q); camera.getWorldPosition(_cp); mh.pos.set(0.3, -0.45, -0.5).applyQuaternion(_q).add(_cp); }
       mh.quat.setFromEuler(new THREE.Euler(0, PB.mySide === 0 ? -Math.PI / 2 : Math.PI / 2, 0));
@@ -20153,7 +20162,7 @@ window.addEventListener('error', function (e) {
     function deskHit(now) {
       if (state.mode !== 'flat' || !myPaddle() || now > PB.swingUntil || !iAmAuth() || !hittable(PB.mySide, PB.mySlot)) return;
       const b = PB.b;
-      if (Math.hypot(b.x - myHead.pos.x, b.z - myHead.pos.z) > 1.8 || b.y > 2.2 || (PB.ph === 'rally' && b.y < BR + 0.02 && Math.abs(b.vy) < 0.3)) return;
+      if (Math.hypot(b.x - myHead.pos.x, b.z - myHead.pos.z) > 1.8 || b.y - dolly.position.y > 2.2 || (PB.ph === 'rally' && b.y < BR + 0.02 && Math.abs(b.vy) < 0.3)) return;
       // the browser plays by the rules for you: wait for the bounce when the two-bounce rule says so, and never volley from the kitchen
       if (PB.ph === 'rally' && !PB.bounced && (PB.hits < 3 || (Math.abs(myHead.pos.x) < KITCH))) return;
       const pow = PB.swingHeld ? swingPower(now) : PB.swingPow;
@@ -20163,12 +20172,14 @@ window.addEventListener('error', function (e) {
       let wx, wz;
       if (dir.y < -0.02) { const tt = -_cp.y / dir.y; wx = _cp.x + dir.x * tt; wz = _cp.z + dir.z * tt; }
       const tg = target(PB.mySide, wx === undefined ? undefined : Math.abs(wx), wz);
-      const speed = PB.ph === 'serve' ? 6.5 + pow * 3.5 : 6.5 + pow * 7.5;
+      const speed = PB.ph === 'serve' ? 5.5 + pow * 4 : 5 + pow * 7;   // (the pace it's aimed with: drag adds the rest)
+      // about half a second of holding lands where you look; a tap drops it short, a full second sends it long
+      const keepIn = powerDepth(tg, Math.abs(tg.x) * (0.4 + 1.2 * pow));
       // the spin you picked, turned to suit the direction of the shot (sidespin's sign is which way it curves)
       const hx = tg.x - b.x, hz = tg.z - b.z, hl = Math.hypot(hx, hz) || 1, ux = hx / hl, uz = hz / hl;
       const m = PB.spinMode, w = m === 1 ? [0.8 * uz, 0, -0.8 * ux] : m === 2 ? [-0.7 * uz, 0, 0.7 * ux] : m === 3 ? [0, 0.8, 0] : m === 4 ? [0, -0.8, 0] : [0, 0, 0];
       const v = aimed(b, tg.x, tg.z, speed, w);
-      hitBall(PB.mySide, v, PB.mySlot);
+      hitBall(PB.mySide, v, PB.mySlot, keepIn);
       PB.swingHeld = false;
     }
 
@@ -20221,14 +20232,18 @@ window.addEventListener('error', function (e) {
         bt.hitKey = hk; bt.reactAt = now + [300, 210, 140][lv] + rand() * 160;
         const hard = Math.hypot(b.vx, b.vz) / 10 + Math.hypot(b.wx || 0, b.wy || 0, b.wz || 0) * 0.6, e = [1.4, 1, 0.55][lv];
         bt.ex = (rand() - 0.5) * (1.0 + hard * 1.4) * e; bt.ez = (rand() - 0.5) * (1.0 + hard * 1.4) * e; bt.err0 = Math.abs(b.x) + 0.5;
+        // once the two-bounce rule allows it, she often takes it out of the air (from outside the kitchen)
+        bt.vol = PB.hits >= 3 && !PB.bounced && rand() < [0.45, 0.65, 0.8][lv] ? volleySpot(bt, s, (bt.reactAt - now) / 1000, BOTLV.pick(L, [2.9, 3.5, 4.2])) : null;
       }
       let speedCap = BOTLV.pick(L, [2.9, 3.5, 4.2]);
       if (coming) {
         if (now < bt.reactAt) { tx = bt.x; tz = bt.z; }
         else {
           const left = clamp(Math.abs(b.x - land.x) / Math.max(1, HL), 0, 1);
-          tx = clamp(land.x + (s === 0 ? -0.9 : 0.9) + bt.ex * left, s === 0 ? -HL - 1.5 : 0.8, s === 0 ? -0.8 : HL + 1.5);
-          tz = clamp(land.z + bt.ez * left, -HW - 1, HW + 1);
+          const vol = bt.vol && !PB.bounced ? bt.vol : null, aimAt = vol || { x: land.x + (s === 0 ? -0.9 : 0.9), z: land.z }, err = vol ? 0.4 : 1;
+          tx = clamp(aimAt.x + bt.ex * left * err, s === 0 ? -HL - 1.5 : 0.8, s === 0 ? -0.8 : HL + 1.5);
+          if (vol) tx = s === 0 ? Math.min(tx, -KITCH - 0.15) : Math.max(tx, KITCH + 0.15);
+          tz = clamp(aimAt.z + bt.ez * left * err, -HW - 1, HW + 1);
         }
       } else speedCap = 2.5;
       if (PB.ph === 'serve' && serverSlot() === bt.sl) { tx = b.x + (s === 0 ? -0.4 : 0.4); tz = b.z; speedCap = 4; }
@@ -20243,7 +20258,8 @@ window.addEventListener('error', function (e) {
       if (!iAmAuth()) return;
       if (PB.ph === 'serve' && serverSlot() === bt.sl) { if (now - PB.serveT > 1000) botHit(bt, true); return; }
       if (!coming) { bt.decided = false; return; }
-      if (!hittable(s) || !PB.bounced) return;
+      const volleyOk = !!bt.vol && !PB.bounced && PB.hits >= 3 && Math.abs(bt.x) > KITCH + 0.05;
+      if (!hittable(s) || (!PB.bounced && !volleyOk)) return;
       if (!bt.decided) {
         // harder to get back: fast balls, spin, and ones she had to run for
         bt.decided = true;
@@ -20252,6 +20268,21 @@ window.addEventListener('error', function (e) {
       }
       if (bt.missing) return;
       if (Math.hypot(b.x - bt.x, b.z - bt.z) < 1.2 && b.y > 0.25 && b.y < 1.6 && b.vy < 1.5) botHit(bt, false);
+    }
+    // where to meet the ball in the air: a spot outside the kitchen, at a comfortable height, that she can get to in time
+    function volleySpot(bt, s, react, speed) {
+      const p = { ...PB.b }, h = 1 / 120;
+      let t = 0, best = null, bd = 1e9;
+      for (let k = 0; k < 400; k++) {
+        const sp = Math.hypot(p.vx, p.vy, p.vz);
+        airStep(p, h, sp); p.x += p.vx * h; p.y += p.vy * h; p.z += p.vz * h; t += h;
+        if (p.y < BR) break;
+        if (k % 2 || sideOfX(p.x) !== s || Math.abs(p.x) < KITCH + 0.5 || p.y < 0.5 || p.y > 1.35) continue;
+        const sx = p.x + (s === 0 ? -0.6 : 0.6), d = Math.hypot(sx - bt.x, p.z - bt.z);
+        if (d > speed * Math.max(0, t - react) * 0.85 + 0.4) continue;
+        if (d < bd) { bd = d; best = { x: sx, z: p.z }; }
+      }
+      return best;
     }
     // a bot's body and the paddle on the end of her arm: a backswing as the ball comes, a full stroke when she hits
     function placeBot(bt, now, coming) {
@@ -20361,7 +20392,7 @@ window.addEventListener('error', function (e) {
     L.spawn = () => { dolly.position.set(-HL - 1.6, 0, HW + 2.2); state.yaw = -Math.PI * 0.75; state.pitch = -0.05; };
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0001) * 0.4; camera.position.set(Math.sin(a) * 9, 5, 9); camera.lookAt(0, 0.5, 0); };
     L.hintsFor = () => {
-      if (PB.mySide >= 0 && state.mode === 'flat') return [['WASD', 'move'], ['Hold Space', 'longer hits harder'], ['Look', 'aim'], ['R', SPINS[PB.spinMode].toLowerCase()], ['E', 'put the paddle back']];
+      if (PB.mySide >= 0 && state.mode === 'flat') return [['WASD', 'move'], ['Hold Space', 'power (too long goes out)'], ['Look', 'aim'], ['R', SPINS[PB.spinMode].toLowerCase()], ['E', 'put the paddle back']];
       return [['WASD', 'move'], ['Drag', 'look'], ['E', 'at a paddle rack to play'], ['Doubles', 'the far racks, or the switch by the net']];
     };
     L.onExit = () => { putDown(myPaddle()); leaveCourt(); PB.swingHeld = false; if (powShown) { powShown = false; ui.power.hidden = true; } };
