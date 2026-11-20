@@ -21,6 +21,8 @@ PLAY = """([secs]) => { const fd = window.__fd, L = fd.LEVELS[15], PB = L.pb, I 
     fd.myHead.pos.set(-10, 1.6, 6.2);
     now += 1000 / 60; L.update(1 / 60, now);
     if (PB.ph === 'serve') servers.add(I.serverSlot());
+    // (my serve, when it comes round: I'm off the court, so serve for me after a moment, and play stays with the bots)
+    if (PB.ph === 'serve' && I.serverSlot() === PB.mySlot && now - PB.serveT > 1200) { const tg = I.target(0); I.hitBall(0, I.aimed(PB.b, tg.x, tg.z, 6.5), PB.mySlot); }
     maxHits = Math.max(maxHits, PB.hits);
     if (PB.winner >= 0) break;
   }

@@ -249,6 +249,12 @@ The kit provides:
   shared with the rest of the scene are kept). three.js uploads them again on return, so coming back may hitch briefly.
   Resting minigolf freed 714 geometries and 65 textures. `tests/v118.py`. (fixes.py's slow-device walking check fails
   on this test box for v117 too.)
+- v119 pickleball: jumping (J / A or X; in the air you reach higher balls). Power matters: in a browser about half a
+  second of Space lands where you look, a tap drops short, a full second goes ~1.6x deeper (long from mid-court aims);
+  in VR a gentle push lands short and a smash past ~15 m/s off the paddle goes long (the help only keeps in a shot meant
+  to land in). Bounce 0.72 -> 0.8; sidespin curves a bit more (SIDE_AIR 0.4, SIDE_KICK 2.1). Bots volley once the
+  two-bounce rule allows (45/65/80% by level, from outside the kitchen). `tests/v119.py`; v88 now serves for the
+  off-court player so bot doubles doesn't stall on my serve.
 - Not yet: games don't all keep everything a new referee needs in their shared state (timers, bot plans). Each game's
   move onto the kit (2.5) checks that with a referee hand-over in its two-page test.
 
