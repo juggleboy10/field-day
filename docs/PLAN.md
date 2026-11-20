@@ -244,6 +244,11 @@ The kit provides:
   244 → 82 (each duck merged within itself; the fairground merged; the Ferris wheel's turning parts merged within the
   wheel, which helps every carnival place), football 244 → 101 (each player merged within itself, legs left out).
   `tests/v117.py [place ...]`.
+- v118 memory: a place you left more than 45 s ago (`?restms=` to change) gives its shapes and pictures back to the
+  graphics chip (`LOADER.rest` in app/loader.js; one place per 2 s check, never the clubhouse or where you are; things
+  shared with the rest of the scene are kept). three.js uploads them again on return, so coming back may hitch briefly.
+  Resting minigolf freed 714 geometries and 65 textures. `tests/v118.py`. (fixes.py's slow-device walking check fails
+  on this test box for v117 too.)
 - Not yet: games don't all keep everything a new referee needs in their shared state (timers, bot plans). Each game's
   move onto the kit (2.5) checks that with a referee hand-over in its two-page test.
 
