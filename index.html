@@ -369,7 +369,7 @@ window.addEventListener('error', function (e) {
   const FWD = new V3(0, 0, -1);
   const GRAVITY = 9.8;
   // which build this is (shown on the start screen and on the VR watch, so you can tell a fresh copy from a stale one)
-  const VERSION = 120;
+  const VERSION = 121;
   const PLAYER_COLORS = [
     { hex: '#4fc3f7', label: 'Sky blue' },
     { hex: '#ff5c8a', label: 'Pink' },
@@ -20100,7 +20100,7 @@ window.addEventListener('error', function (e) {
     const prevPN = new V3(1, 0, 0);
     function vrPaddle(dt, steps) {
       const t = myPaddle();
-      if (!t || state.mode !== 'vr' || !iAmAuth()) { prevPC = null; return; }
+      if (!t || state.mode !== 'vr' || !iAmAuth() || TH.on) { prevPC = null; return; }
       _pc.set(0, 0, -0.22).applyQuaternion(t.quat).add(t.pos); _pn.set(1, 0, 0).applyQuaternion(t.quat);
       if (!prevPC) { prevPC = _pc.clone(); prevPN.copy(_pn); return; }
       const vp = _pc.clone().sub(prevPC).multiplyScalar(1 / Math.max(1e-3, dt));
@@ -20162,7 +20162,7 @@ window.addEventListener('error', function (e) {
     function cycleSpin() { PB.spinMode = (PB.spinMode + 1) % SPINS.length; showToast(`Shot: ${SPINS[PB.spinMode].toLowerCase()}`); sfx('click', 0.6); state.hudDirty = true; }
     L.onKey = (code) => { if (code === 'KeyR' && PB.mySide >= 0) { cycleSpin(); return true; } return false; };
     function deskHit(now) {
-      if (state.mode !== 'flat' || !myPaddle() || now > PB.swingUntil || !iAmAuth() || !hittable(PB.mySide, PB.mySlot)) return;
+      if (state.mode !== 'flat' || !myPaddle() || TH.on || now > PB.swingUntil || !iAmAuth() || !hittable(PB.mySide, PB.mySlot)) return;
       const b = PB.b;
       if (Math.hypot(b.x - myHead.pos.x, b.z - myHead.pos.z) > 1.8 || b.y - dolly.position.y > 2.2 || (PB.ph === 'rally' && b.y < BR + 0.02 && Math.abs(b.vy) < 0.3)) return;
       // the browser plays by the rules for you: wait for the bounce when the two-bounce rule says so, and never volley from the kitchen
@@ -20184,6 +20184,78 @@ window.addEventListener('error', function (e) {
       hitBall(PB.mySide, v, PB.mySlot, keepIn);
       PB.swingHeld = false;
     }
+
+
+    // ---------------------------------------------------------------- throwing the paddle
+    // Jump and trigger together (J while holding Space in a browser) flings your paddle where you're looking: a last
+    // resort for a ball you can't get to. It has to actually meet the ball, and even then it only goes over now and then
+    // (a lucky angle about one time in eight; otherwise it flops off wherever the paddle sends it). The paddle stays
+    // where it lands for the rest of the point and comes back to your hand for the next serve.
+    const TH = { on: false, seq: -1, p: new V3(), v: new V3(), w: new V3(), hit: false, landed: false, prev: false };
+    const throwMesh = TOOL_MESH.pbpaddle(); throwMesh.visible = false; throwMesh.userData.live = true; G.add(throwMesh);
+    const _tq = new Q4(), _tf = new V3();
+    function throwPaddle() {
+      const t = myPaddle();
+      if (!t || TH.on || PB.ph !== 'rally' || !iAmAuth()) return false;
+      // where you're looking (in VR, your head; in a browser, the view), a little upward, about 10 m/s
+      if (state.mode === 'vr') _tq.copy(myHead.quat); else camera.getWorldQuaternion(_tq);
+      _tf.set(0, 0, -1).applyQuaternion(_tq);
+      const pitch = clamp(Math.asin(clamp(_tf.y, -1, 1)), -0.5, 0.6), hz = Math.hypot(_tf.x, _tf.z) || 1;
+      const dir = new V3((_tf.x / hz) * Math.cos(pitch), Math.sin(pitch), (_tf.z / hz) * Math.cos(pitch));
+      TH.p.set(0, 0, -0.22).applyQuaternion(t.quat).add(t.pos);
+      if (state.mode !== 'vr') TH.p.copy(myHead.pos).addScaledVector(dir, 0.4).add(new V3(0, -0.25, 0));
+      TH.v.copy(dir).multiplyScalar(10).add(new V3(0, 1.5, 0));
+      TH.w.set(rand() * 4 - 2, 14 + rand() * 6, rand() * 4 - 2);
+      Object.assign(TH, { on: true, seq: PB.pointSeq, hit: false, landed: false });
+      throwMesh.position.copy(TH.p); throwMesh.quaternion.copy(t.quat); throwMesh.visible = true;
+      PB.swingHeld = false; PB.swingUntil = 0;
+      sfx('whoosh', 0.5);
+      forcePresence();
+      return true;
+    }
+    const thrown = () => TH.on;
+    // the thrown paddle meeting the ball (the ball's path this frame is from b0 to b1)
+    function throwHit(b0, b1, u) {
+      if (TH.hit || TH.landed || !iAmAuth() || !hittable(PB.mySide, PB.mySlot)) return false;
+      const bx = b0.x + (b1.x - b0.x) * u, by = b0.y + (b1.y - b0.y) * u, bz = b0.z + (b1.z - b0.z) * u;
+      if (Math.hypot(bx - TH.p.x, by - TH.p.y, bz - TH.p.z) > 0.17) return false;
+      TH.hit = true;
+      const b = PB.b; b.x = bx; b.y = Math.max(BR, by); b.z = bz;
+      tone(420, 300, 0.06, 'square', 0.3);
+      if (rand() < 0.12) {
+        // a lucky angle: a soft, loopy one over the net, somewhere in their court
+        const tg = target(PB.mySide, HL * (0.35 + rand() * 0.5), (rand() - 0.5) * HW * 1.6);
+        hitBall(PB.mySide, aimed(b, tg.x, tg.z, 5 + rand() * 2.5), PB.mySlot);
+      } else {
+        // the usual: it glances off whichever way the paddle sends it, no help from anyone
+        const n = new V3(rand() - 0.5, rand() - 0.5, rand() - 0.5).normalize();
+        const vb = new V3(b.vx, b.vy, b.vz), vn = vb.dot(n);
+        vb.addScaledVector(n, -1.6 * vn).multiplyScalar(0.5).addScaledVector(TH.v, 0.35);
+        Object.assign(b, { vx: vb.x, vy: vb.y, vz: vb.z, wx: 0, wy: 0, wz: 0 });
+        onHit(PB.mySide, PB.mySlot); PB.ver += 1; forcePresence();
+      }
+      TH.v.multiplyScalar(-0.2);
+      return true;
+    }
+    function throwStep(dt, b0, b1) {
+      const n = Math.max(1, Math.ceil(dt * 240)), h = dt / n;
+      for (let k = 1; k <= n; k++) {
+        if (TH.landed) break;
+        const px = TH.p.x;
+        TH.v.y -= GRAV * h; TH.p.addScaledVector(TH.v, h);
+        // the net stops it
+        if ((px < 0) !== (TH.p.x < 0) && TH.p.y < NET_H && Math.abs(TH.p.z) < HW + 0.3) { TH.p.x = px < 0 ? -0.05 : 0.05; TH.v.x *= -0.15; TH.v.z *= 0.4; }
+        if (TH.p.y < 0.03) { TH.p.y = 0.03; TH.v.y *= -0.25; TH.v.x *= 0.55; TH.v.z *= 0.55; TH.w.multiplyScalar(0.4); tone(160, 0, 0.05, 'triangle', 0.15); if (Math.hypot(TH.v.x, TH.v.y, TH.v.z) < 0.4) TH.landed = true; }
+        TH.p.x = clamp(TH.p.x, R.minX + 0.2, R.maxX - 0.2); TH.p.z = clamp(TH.p.z, R.minZ + 0.2, R.maxZ - 0.2);
+        if (b0 && PB.ph === 'rally') throwHit(b0, b1, k / n);
+      }
+      throwMesh.position.copy(TH.p);
+      if (!TH.landed) { const w = TH.w.length(); if (w > 0.01) throwMesh.rotateOnWorldAxis(_tf.copy(TH.w).multiplyScalar(1 / w), w * dt); }
+      else { throwMesh.rotation.set(0, throwMesh.rotation.y, Math.PI / 2); throwMesh.position.y = 0.02; }
+    }
+    function throwReset() { TH.on = false; throwMesh.visible = false; forcePresence(); }
+    // other players' thrown paddles (from their presence), so everyone sees it fly
+    const ghosts = new Map();
 
     // ---------------------------------------------------------------- Dink Daisy, the court bot
     function predictLanding() {
@@ -20394,10 +20466,10 @@ window.addEventListener('error', function (e) {
     L.spawn = () => { dolly.position.set(-HL - 1.6, 0, HW + 2.2); state.yaw = -Math.PI * 0.75; state.pitch = -0.05; };
     L.attract = (now) => { const a = reduceMotion ? 0 : Math.sin(now * 0.0001) * 0.4; camera.position.set(Math.sin(a) * 9, 5, 9); camera.lookAt(0, 0.5, 0); };
     L.hintsFor = () => {
-      if (PB.mySide >= 0 && state.mode === 'flat') return [['WASD', 'move'], ['Hold Space', 'power (too long goes out)'], ['Look', 'aim'], ['R', SPINS[PB.spinMode].toLowerCase()], ['E', 'put the paddle back']];
+      if (PB.mySide >= 0 && state.mode === 'flat') return [['WASD', 'move'], ['Hold Space', 'power (too long goes out)'], ['Look', 'aim'], ['R', SPINS[PB.spinMode].toLowerCase()], ['Space + J', 'throw the paddle'], ['E', 'put the paddle back']];
       return [['WASD', 'move'], ['Drag', 'look'], ['E', 'at a paddle rack to play'], ['Doubles', 'the far racks, or the switch by the net']];
     };
-    L.onExit = () => { putDown(myPaddle()); leaveCourt(); PB.swingHeld = false; if (powShown) { powShown = false; ui.power.hidden = true; } };
+    L.onExit = () => { if (TH.on) throwReset(); putDown(myPaddle()); leaveCourt(); PB.swingHeld = false; if (powShown) { powShown = false; ui.power.hidden = true; } };
 
     // ---------------------------------------------------------------- per frame
     function drawScore() {
@@ -20455,6 +20527,31 @@ window.addEventListener('error', function (e) {
         deskHit(now);
       } else if (PB.ph === 'rally') { simOnly = true; for (let k = 0; k < steps; k++) stepBall(h); simOnly = false; prevPC = null; }
       botStep(dt, now);
+      // throwing: jump + trigger on the paddle's hand in VR; J while holding Space in a browser
+      {
+        const t = myPaddle(); let combo = false;
+        if (t && state.mode === 'vr') {
+          const gp = (h) => h && h.source && h.source.gamepad, hb = gp(vrHands[t.held.side]);
+          const trig = !!(hb && hb.buttons[0] && hb.buttons[0].pressed);
+          let jump = false;
+          for (const sd of ['left', 'right']) { const g2 = gp(vrHands[sd]); if (g2 && g2.buttons[4] && g2.buttons[4].pressed) jump = true; }
+          const rs = stickAxes(vrHands.right); if (rs && rs[1] < -0.75 && Math.abs(rs[0]) < 0.5) jump = true;
+          combo = trig && jump;
+        } else if (t && state.mode === 'flat') combo = !!state.keys.KeyJ && PB.swingHeld;
+        if (combo && !TH.prev) throwPaddle();
+        TH.prev = combo;
+      }
+      if (TH.on) {
+        if (PB.pointSeq !== TH.seq && PB.ph !== 'dead' || PB.mySide < 0) throwReset();
+        else { throwStep(dt, iAmAuth() && ballPrev ? ballPrev : null, PB.b); const t = myPaddle(); if (t) t.g.visible = false; }
+      }
+      for (const [peer, gh] of ghosts) {
+        const fresh = now - gh.t < 700 && remotes.has(peer);
+        gh.mesh.visible = fresh;
+        if (!fresh) { if (now - gh.t > 5000) { G.remove(gh.mesh); ghosts.delete(peer); } continue; }
+        gh.mesh.position.set(gh.a[0], gh.a[1], gh.a[2]); gh.mesh.quaternion.set(gh.a[3], gh.a[4], gh.a[5], gh.a[6]).normalize();
+        for (const tp of paddles) if (tp.held && tp.held.peer === peer) tp.g.visible = false;
+      }
       ballMesh.position.set(PB.b.x, PB.b.y, PB.b.z);
       ballMesh.visible = PB.ph !== 'idle';
       if (ballMesh.visible) spinBall(Math.min(dt, 0.05));
@@ -20469,9 +20566,16 @@ window.addEventListener('error', function (e) {
     L.presence = () => {
       if (PB.mySide < 0) return {};
       const b = PB.b, bm = botSlots().reduce((m, sl) => m | (1 << sl), 0);
-      return { pb: [PB.mySide, PB.ver, PB.auth, r3(b.x), r3(b.y), r3(b.z), r3(b.vx), r3(b.vy), r3(b.vz), PHC[PB.ph], PB.server, PB.lastHit, PB.need, PB.bounced ? 1 : 0, PB.hits, PB.score[0], PB.score[1], PB.pointSeq, PB.winner, bm, 0, 0, r3(PB.serveFromZ || 0), r3(b.wx || 0), r3(b.wy || 0), r3(b.wz || 0), PB.mySlot, PB.dbl ? 1 : 0, ...BOTS.flatMap((o) => [r3(o.x), r3(o.z)])] };
+      const pbt = TH.on ? [r3(TH.p.x), r3(TH.p.y), r3(TH.p.z), r3(throwMesh.quaternion.x), r3(throwMesh.quaternion.y), r3(throwMesh.quaternion.z), r3(throwMesh.quaternion.w)] : null;
+      return { pbt, pb: [PB.mySide, PB.ver, PB.auth, r3(b.x), r3(b.y), r3(b.z), r3(b.vx), r3(b.vy), r3(b.vz), PHC[PB.ph], PB.server, PB.lastHit, PB.need, PB.bounced ? 1 : 0, PB.hits, PB.score[0], PB.score[1], PB.pointSeq, PB.winner, bm, 0, 0, r3(PB.serveFromZ || 0), r3(b.wx || 0), r3(b.wy || 0), r3(b.wz || 0), PB.mySlot, PB.dbl ? 1 : 0, ...BOTS.flatMap((o) => [r3(o.x), r3(o.z)])] };
     };
     L.readPresence = (rec, pres, st) => {
+      const tt = pres.pbt;
+      if (Array.isArray(tt) && tt.length === 7 && tt.every((x) => finite(x) && Math.abs(x) < 60)) {
+        let gh = ghosts.get(rec.peer);
+        if (!gh) { const m = TOOL_MESH.pbpaddle(); m.userData.live = true; G.add(m); gh = { mesh: m }; ghosts.set(rec.peer, gh); }
+        gh.a = tt; gh.t = performance.now();
+      } else { const gh = ghosts.get(rec.peer); if (gh) gh.t = 0; }
       const a = pres.pb;
       st.pbSide = -1; st.pbSlot = -1;
       if (!Array.isArray(a) || a.length !== 36 || (a[0] !== 0 && a[0] !== 1) || !Number.isInteger(a[1]) || typeof a[2] !== 'string' || !a.slice(3, 9).every((x) => finite(x) && Math.abs(x) < 60)
@@ -20503,7 +20607,7 @@ window.addEventListener('error', function (e) {
       { label: () => (PB.dbl ? 'Doubles \u25b8' : 'Singles \u25b8'), run: () => setDoubles(!PB.dbl) },
       { label: () => 'New game', show: () => PB.mySide >= 0 && humans().length === 1, run: () => { newGame(); showToast(`New game against the court bots. First to ${WIN}, win by 2`); } },
     ];
-    PB.internals = { ballMesh, spinBall, vrPaddle: (dt, steps, b0) => { ballPrev = b0 || null; vrPaddle(dt, steps); }, resetSwing: () => { prevPC = null; }, bounceSpin, airStep, predictLanding, botStep, SPINS, deskHit: (now) => deskHit(now), HL, HW, KITCH, NET_H, paddles, takeSide, takeSlot, setDoubles, slots, botSlots, BOTS, serverSlot, responsible, authFor, homeZ, leaveCourt, newGame, startServe, onHit, onBounce, stepBall, hitBall, aimed, clearNet, flyTo, target, players, botSide, iAmAuth, serveZ };
+    PB.internals = { TH, throwPaddle, throwStep, throwMesh, ghosts, ballMesh, spinBall, vrPaddle: (dt, steps, b0) => { ballPrev = b0 || null; vrPaddle(dt, steps); }, resetSwing: () => { prevPC = null; }, bounceSpin, airStep, predictLanding, botStep, SPINS, deskHit: (now) => deskHit(now), HL, HW, KITCH, NET_H, paddles, takeSide, takeSlot, setDoubles, slots, botSlots, BOTS, serverSlot, responsible, authFor, homeZ, leaveCourt, newGame, startServe, onHit, onBounce, stepBall, hitBall, aimed, clearNet, flyTo, target, players, botSide, iAmAuth, serveZ };
     // End game: start over at 0-0 with whoever's on the court
     ENDGAME.on(L, { shared: true, active: () => PB.mySlot >= 0 && PB.ph !== 'idle', end: () => { if (PB.mySlot < 0) return ''; newGame(); PB.opp = oppKey(); PB.ver += 20; forcePresence(); return 'Starting over at 0-0.'; } });
     return L;
