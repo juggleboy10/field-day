@@ -233,7 +233,7 @@
     function announce(winner, why) {
       const mine = winner === PB.mySide, [a, b] = PB.score;
       if (PB.winner >= 0) ANNOUNCE.win(PB.winner === PB.mySide ? `You win ${Math.max(a, b)}-${Math.min(a, b)}!` : `${nameOfSide(PB.winner)} wins ${Math.max(a, b)}-${Math.min(a, b)}`, PB.winner === PB.mySide ? 'win' : 'lose');
-      else { sfx(mine ? 'chime' : 'buzzer', 0.5); showToast(`${why ? why + ': ' : ''}${mine ? 'your point' : `point to ${nameOfSide(winner)}`}. ${a}-${b}`); }
+      else { sfx(mine ? 'chime' : 'buzzer', 0.5); showToast(`${why ? why + ': ' : ''}${mine ? 'your point' : `point to ${nameOfSide(winner)}`}. ${a}-${b}`, { vr: false }); }   // (the scoreboard has it in VR)
       state.dirtyBoard = true;
     }
     function onHit(side, slot) {
@@ -302,7 +302,7 @@
       const hs = Math.hypot(b.vx, b.vz) || 1, ux = b.vx / hs, uz = b.vz / hs;
       const ts = clamp((b.wx || 0) * uz - (b.wz || 0) * ux, -1, 1);     // + topspin, - backspin
       const keep = 0.82 + 0.14 * ts;
-      b.y = BR; b.vy = -b.vy * (0.8 - 0.14 * ts); b.vx *= keep; b.vz *= keep;
+      b.y = BR; b.vy = -b.vy * (0.76 - 0.14 * ts); b.vx *= keep; b.vz *= keep;
       // sidespin grabs the court and kicks it off sideways, the same way it was curving
       const ss = clamp(b.wy || 0, -1, 1) * SIDE_KICK;
       b.vx += ss * uz; b.vz -= ss * ux;

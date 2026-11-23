@@ -255,6 +255,8 @@ The kit provides:
   to land in). Bounce 0.72 -> 0.8; sidespin curves a bit more (SIDE_AIR 0.4, SIDE_KICK 2.1). Bots volley once the
   two-bounce rule allows (45/65/80% by level, from outside the kitchen). `tests/v119.py`; v88 now serves for the
   off-court player so bot doubles doesn't stall on my serve.
+- v120: pickleball point messages ("your point. 3-2") stay on screen only, not in the headset
+  (`showToast(text, { vr: false })`); bounce 0.8 -> 0.76.
 - Not yet: games don't all keep everything a new referee needs in their shared state (timers, bot plans). Each game's
   move onto the kit (2.5) checks that with a referee hand-over in its two-page test.
 

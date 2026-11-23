@@ -87,7 +87,7 @@ with sync_playwright() as p:
       const fl = (wy) => I.flyTo({{ x: -5, y: 1, z: 0 }}, {{ vx: 9, vy: 2.6, vz: 0, wx: 0, wy, wz: 0 }});
       return {{ up: b.vy, curve: Math.abs(fl(0.8).z - fl(0).z) }}; }})()""")
     print("  bounce up speed from 5 m/s down:", round(r["up"], 2), " slice curve over the flight:", round(r["curve"], 2), "m")
-    check("the ball bounces a little higher (4 m/s up from 5 down)", 3.9 < r["up"] < 4.3, r)
+    check("the ball bounces a little higher (3.8 m/s up from 5 down)", 3.7 < r["up"] < 3.95, r)
     check("a slice curves a little more (but not wildly)", 0.25 < r["curve"] < 0.9, r)
 
     # ------------------------------------------------ the bots volley
@@ -109,6 +109,12 @@ with sync_playwright() as p:
     check("the bots got balls back", len(vol) >= 4, vol)
     check("and took some out of the air", any(not v["bounced"] for v in vol), vol)
     check("never from the kitchen", not faults and all(v["bounced"] or abs(v["x"]) > 2.13 for v in vol), f"{faults} {vol}")
+
+    # ------------------------------------------------ point messages stay off the headset panel
+    pm = page.evaluate(f"""(() => {{ const fd = __fd, PB = fd.LEVELS[fd.state.level].pb, I = PB.internals; fd.VR_TOAST.show('before');
+      Object.assign(PB, {{ ph: 'rally', lastHit: 0, need: 1, hits: 2, bounced: true, winner: -1, score: [0, 0], auth: fd.state.myPeer }}); I.onBounce(4, 0);
+      return {{ screen: document.getElementById('toast').textContent, vr: fd.VR_TOAST.text }}; }})()""")
+    check("a point shows on screen but not in the headset", "point" in pm["screen"] and pm["vr"] == "before", pm)
 
     page.wait_for_timeout(300)
     check("no errors", not errs, errs[:3])

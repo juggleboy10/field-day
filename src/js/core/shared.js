@@ -43,11 +43,13 @@
     }
   }
 
-  function showToast(text) {
+  // (opts.vr false: on a screen only, not in the headset, for chatter a player in VR can do without)
+  function showToast(text, opts) {
     ui.toast.textContent = text;
     ui.toast.classList.add('show');
     clearTimeout(showToast.t);
     showToast.t = setTimeout(() => ui.toast.classList.remove('show'), 2000);
+    if (opts && opts.vr === false) return;
     try { VR_TOAST.show(text); } catch (e) { /* (before the headset panel exists, at load) */ }
   }
 
