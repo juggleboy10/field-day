@@ -257,6 +257,10 @@ The kit provides:
   off-court player so bot doubles doesn't stall on my serve.
 - v120: pickleball point messages ("your point. 3-2") stay on screen only, not in the headset
   (`showToast(text, { vr: false })`); bounce 0.8 -> 0.76.
+- v121 pickleball paddle throw: jump + trigger on the paddle hand in VR (J while holding Space in a browser) flings the
+  paddle along your gaze at ~10 m/s; no swinging for the rest of the point, it lands on the court and is back in hand at
+  the next serve. It must meet the ball (0.17 m); then 12% a lucky soft shot over, otherwise a raw glance (rules still
+  apply). Desperate throws save the point ~1.3% of the time. Others see it via presence `pbt`. `tests/v121.py`.
 - Not yet: games don't all keep everything a new referee needs in their shared state (timers, bot plans). Each game's
   move onto the kit (2.5) checks that with a referee hand-over in its two-page test.
 
