@@ -8,8 +8,8 @@
     const G = L.group;
     const rand = mulberry32(4114);
     const HL = 6.705, HW = 3.05, NET_H = 0.88, KITCH = 2.13, BR = 0.037;   // half length (x), half width (z)
-    const GRAV = 9.8, DRAG = 0.06, WIN = 11, MAG = 0.5;   // MAG: how hard spin bends the ball (Magnus)
-    const SIDE_AIR = 0.4, SIDE_KICK = 2.1, TOP_AIR = 0.55;   // spin only bends it a little in the air; it mostly shows when it bounces
+    const GRAV = 9.8, DRAG = 0.085, WIN = 11, MAG = 0.5;   // (a holey plastic ball: quick off the paddle, then it dies)   // MAG: how hard spin bends the ball (Magnus)
+    const SIDE_AIR = 0.4, SIDE_KICK = 2.1, TOP_AIR = 0.85;   // spin only bends it a little in the air; it mostly shows when it bounces
     const R = { minX: -11, maxX: 11, minZ: -7, maxZ: 7 };
     L.bounds = R;
     BOTLV.on(L);   // the court bots: easy, normal (how they always played) or hard
@@ -297,12 +297,13 @@
       p.vx += (ax - DRAG * sp * p.vx) * h; p.vy += (ay - GRAV - DRAG * sp * p.vy) * h; p.vz += (az - DRAG * sp * p.vz) * h;
       if (wx || wy || wz) { const f = 1 - 0.12 * h; p.wx = wx * f; p.wy = wy * f; p.wz = wz * f; }
     }
-    // on the bounce: topspin skids through low and quick, backspin sits up and slows down
+    // on the bounce the ball loses a lot of pace (it's a light plastic ball): topspin kicks on through, keeping most of
+    // its speed (it comes down steep, so it still jumps); a flat ball sits up slower; backspin checks up and stays low
     function bounceSpin(b) {
       const hs = Math.hypot(b.vx, b.vz) || 1, ux = b.vx / hs, uz = b.vz / hs;
       const ts = clamp((b.wx || 0) * uz - (b.wz || 0) * ux, -1, 1);     // + topspin, - backspin
-      const keep = 0.82 + 0.14 * ts;
-      b.y = BR; b.vy = -b.vy * (0.76 - 0.14 * ts); b.vx *= keep; b.vz *= keep;
+      const keep = 0.72 + 0.2 * ts;
+      b.y = BR; b.vy = -b.vy * (0.76 + (ts > 0 ? -0.08 : 0.12) * ts); b.vx *= keep; b.vz *= keep;
       // sidespin grabs the court and kicks it off sideways, the same way it was curving
       const ss = clamp(b.wy || 0, -1, 1) * SIDE_KICK;
       b.vx += ss * uz; b.vz -= ss * ux;
@@ -311,27 +312,33 @@
     // a shot that lands at (tx, tz) and clears the net: start from the no-air answer, then fly it (with drag and spin) and correct
     function flyTo(from, v) {
       const p = { x: from.x, y: from.y, z: from.z, vx: v.vx, vy: v.vy, vz: v.vz, wx: v.wx || 0, wy: v.wy || 0, wz: v.wz || 0 };
-      let netY = 99;
+      let netY = 99, t = 0;
       for (let k = 0; k < 480; k++) {
+        t += 1 / 120;
         const sp = Math.hypot(p.vx, p.vy, p.vz), h = 1 / 120, px = p.x;
         airStep(p, h, sp);
         p.x += p.vx * h; p.y += p.vy * h; p.z += p.vz * h;
         if ((px < 0) !== (p.x < 0)) netY = p.y;
         if (p.y < BR) break;
       }
-      return { x: p.x, z: p.z, netY };
+      return { x: p.x, z: p.z, netY, t };
     }
     // spin: [wx, wy, wz] the shot will carry (the aim allows for it, so it still lands where you meant, just with a different flight)
     function aimed(from, tx, tz, speed, spin) {
       const dx = tx - from.x, dz = tz - from.z, d = Math.hypot(dx, dz);
-      const T = clamp(d / speed, 0.45, 1.9);
+      let T = clamp(d / speed, 0.45, 1.9);
       const w = spin || [0, 0, 0];
       const out = { vx: dx / T, vy: (BR - from.y + 0.5 * GRAV * T * T) / T, vz: dz / T, wx: w[0], wy: w[1], wz: w[2] };
-      for (let i = 0; i < 6; i++) {
+      // fly it and correct, keeping its time in the air: the distance by the pace, the time by the lift (so topspin gets
+      // a higher arc that dips in, and backspin a flatter one that floats, rather than one just hit harder or softer)
+      let lift = 0;
+      for (let i = 0; i < 12; i++) {
         const f = flyTo(from, out);
-        if (f.netY < NET_H + 0.12) { out.vy += 0.4; continue; }
         const ld = Math.hypot(f.x - from.x, f.z - from.z);
-        if (Math.abs(ld - d) < 0.15) break;
+        if (f.netY < NET_H + 0.12) { lift = Math.max(lift, T * 1.1); out.vy += 0.4; }
+        else if (Math.abs(ld - d) < 0.12 && Math.abs(f.t - T) < 0.06) break;
+        else out.vy += clamp((Math.max(T, lift) - f.t) * GRAV * 0.5, -2, 2);
+        if (lift && f.netY >= NET_H + 0.12) T = Math.max(T, f.t);
         const k = clamp(d / Math.max(0.5, ld), 0.7, 1.4);
         out.vx *= k; out.vz *= k;
         // keep the direction pointed at the target too
@@ -353,7 +360,7 @@
       return v;
     }
     function hitBall(side, v, slot, keepIn = true) {
-      const b = PB.b, s = Math.hypot(v.vx, v.vy, v.vz), k = s > 20 ? 20 / s : 1;
+      const b = PB.b, s = Math.hypot(v.vx, v.vy, v.vz), k = s > 24 ? 24 / s : 1;
       if (PB.ph === 'serve') PB.serveFromZ = b.z;
       v = { vx: v.vx * k, vy: v.vy * k, vz: v.vz * k, wx: v.wx, wy: v.wy, wz: v.wz };
       clearNet(b, v, keepIn);
@@ -418,7 +425,7 @@
           const keepIn = powerDepth(tg, HL * (0.22 + speed / 19));
           // brushing up the back of the ball gives topspin, chopping down gives backspin, across gives sidespin
           const vt = vp.clone().addScaledVector(_pn, -vp.dot(_pn)), dOut = vb.clone().normalize();
-          const w = vt.cross(dOut).multiplyScalar(0.27); if (w.length() > 1) w.normalize();
+          const w = vt.cross(dOut).multiplyScalar(0.36); if (w.length() > 1) w.normalize();
           if (w.length() < 0.15) w.set(0, 0, 0);
           const aim = aimed(PB.b, tg.x, tg.z, Math.min(speed, 12), [w.x, w.y, w.z]);
           hitBall(PB.mySide, { vx: vb.x * 0.3 + aim.vx * 0.7, vy: vb.y * 0.3 + aim.vy * 0.7, vz: vb.z * 0.3 + aim.vz * 0.7, wx: w.x, wy: w.y, wz: w.z }, PB.mySlot, keepIn);
@@ -464,7 +471,7 @@
       const keepIn = powerDepth(tg, Math.abs(tg.x) * (0.4 + 1.2 * pow));
       // the spin you picked, turned to suit the direction of the shot (sidespin's sign is which way it curves)
       const hx = tg.x - b.x, hz = tg.z - b.z, hl = Math.hypot(hx, hz) || 1, ux = hx / hl, uz = hz / hl;
-      const m = PB.spinMode, w = m === 1 ? [0.8 * uz, 0, -0.8 * ux] : m === 2 ? [-0.7 * uz, 0, 0.7 * ux] : m === 3 ? [0, 0.8, 0] : m === 4 ? [0, -0.8, 0] : [0, 0, 0];
+      const m = PB.spinMode, w = m === 1 ? [1 * uz, 0, -1 * ux] : m === 2 ? [-0.9 * uz, 0, 0.9 * ux] : m === 3 ? [0, 0.8, 0] : m === 4 ? [0, -0.8, 0] : [0, 0, 0];
       const v = aimed(b, tg.x, tg.z, speed, w);
       hitBall(PB.mySide, v, PB.mySlot, keepIn);
       PB.swingHeld = false;
