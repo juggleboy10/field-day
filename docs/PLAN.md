@@ -304,6 +304,11 @@ The kit provides:
   rims and backboards from the park (`K.hoops`), placed in the world as the park slides (`hoopsW`); a make swishes and
   counts. Browser: `L.throwOverride` aims at the hoop you're looking at (within ~25 degrees), power against distance
   decides it (makes within about +/-0.08 of the ideal, aimed 8 cm past the rim's middle). `tests/v131.py`.
+- v132 wind at College Park and the Senior Center: "Wind on / off" by the fence (hidden at Sunny Courts) and a HUD
+  action; on, a breeze from a direction picked then, 1-3.6 m/s gusting (`windNow`); `airStep` takes it for the real ball
+  only (drag on the speed through the air), so the aim help and the bots don't allow for it: a 9 m/s drive goes ~0.75 m
+  further downwind, ~0.6 m sideways in a crosswind. A windsock at the court's north-west corner; snow drifts with it.
+  Sent as pkp[4], pkp[5] (direction x 1000). `tests/v132.py`.
 - Not yet: games don't all keep everything a new referee needs in their shared state (timers, bot plans). Each game's
   move onto the kit (2.5) checks that with a referee hand-over in its two-page test.
 
