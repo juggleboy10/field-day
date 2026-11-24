@@ -1,4 +1,4 @@
-"""v126: pickleball parks: the same court in a different place. College Park (from photos) is the first new one.
+"""v126: pickleball parks: the same court in a different place. College Park and the Senior Center, from photos.
 
   - the "Change park" button (and the HUD action) switches Sunny Courts <-> College Park: the scenery round the court,
     the court's colours, and the sky and light all change; the court itself (lines, net, racks) stays where it was
@@ -39,7 +39,7 @@ with sync_playwright() as p:
       bg: __fd.LEVELS[{i}].env.bg, hud: {L}.hudActions.map((a) => a.label()).find((t) => t.startsWith('Park')) }}; }})()"""
     s0 = page.evaluate(look)
     print("  start:", s0)
-    check("it starts at Sunny Courts", s0["park"] == "sunny" and s0["groups"][0] is True and s0["groups"][1] is None and "Sunny Courts" in s0["hud"], s0)
+    check("it starts at Sunny Courts", s0["park"] == "sunny" and s0["groups"][0] is True and s0["groups"][1] is None and s0["groups"][2] is None and "Sunny Courts" in s0["hud"], s0)
 
     # the button by the net
     page.evaluate(f"""(() => {{ const b = __fd.LEVELS[{i}].buttons.find((b) => /park/i.test(b.label || ''));  if (b) b.onPress(b); }})()""")
@@ -48,7 +48,7 @@ with sync_playwright() as p:
     if s1["park"] != "college":   # (if the button can't be pressed from here, the HUD action does the same)
         page.evaluate(f"{L}.hudActions.find((a) => a.label().startsWith('Park')).run()"); page.wait_for_timeout(400); s1 = page.evaluate(look)
     print("  after one press:", s1)
-    check("Change park goes to College Park", s1["park"] == "college" and s1["groups"] == [False, True] and "College Park" in s1["hud"], s1)
+    check("Change park goes to College Park", s1["park"] == "college" and s1["groups"][:2] == [False, True] and "College Park" in s1["hud"], s1)
     check("the court's colours and the sky change with it", s1["court"] != s0["court"] and s1["bg"] != s0["bg"], (s0, s1))
     env = page.evaluate("(() => { const s = __fd.renderer; return __fd.LEVELS[" + str(i) + "].env.fog[2]; })()")
     check("its light and sky are on now", abs(page.evaluate("__fd.camera.parent ? 0 : 0") - 0) == 0 and env == 210, env)
@@ -94,6 +94,26 @@ with sync_playwright() as p:
       return {{ points: PB.pointSeq - seq, hits, score: PB.score.slice() }}; }})()""")
     print("  a point at College Park:", r)
     check("a point plays out there (served, returned, scored)", r["points"] >= 1 and r["hits"] >= 1, r)
+
+    # the Senior Center: the next press goes there, then round to Sunny Courts again
+    page.evaluate(f"{L}.hudActions.find((a) => a.label().startsWith('Park')).run()"); page.wait_for_timeout(500)
+    s2 = page.evaluate(look)
+    print("  next press:", s2)
+    check("the next press goes to the Senior Center", s2["park"] == "senior" and s2["groups"] == [False, False, True] and "Senior Center" in s2["hud"], s2)
+    sp = page.evaluate(f"""(() => {{ const g = {I}.PARKS[2].group; let inst = 0, n = 0; g.traverse((o) => {{ if (o.isInstancedMesh) {{ inst++; n += o.count; }} }}); return {{ inst, n }}; }})()""")
+    check("it has its trees (each kind one draw call)", sp["inst"] >= 3 and sp["n"] >= 400, sp)
+    calls = []
+    for k in range(8):
+        page.evaluate(f"(() => {{ const fd = __fd; fd.dolly.position.set(-3, 0, 0); fd.state.yaw = {k * math.pi / 4}; fd.state.pitch = -0.05; }})()")
+        page.wait_for_timeout(350)
+        calls.append(page.evaluate("__fd.renderer.info.render.calls"))
+    print("  Senior Center draw calls looking round:", calls)
+    check("the Senior Center is under the 150-call budget all the way round", max(calls) < 150, calls)
+    page.wait_for_timeout(400)
+    mc = page.evaluate("__fd.mergeCheck ? __fd.mergeCheck() : []")
+    check("its baked scenery hasn't moved or changed", not mc, mc[:3] if mc else mc)
+    page.evaluate(f"{L}.hudActions.find((a) => a.label().startsWith('Park')).run()"); page.wait_for_timeout(400)
+    check("and the press after goes back round to Sunny Courts", page.evaluate(look)["park"] == "sunny")
 
     # ?park=college opens there
     page.goto(PAGE + "?test&park=college"); page.wait_for_function("window.__fdReady === true", timeout=60000)

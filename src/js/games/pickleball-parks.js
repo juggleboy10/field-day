@@ -272,6 +272,236 @@
       mergeStatic(P);
     }
 
+
+    // ---------------------------------------------------------------- Senior Center (Clinton Township)
+    // From photos: six blue courts with green surrounds in one big fenced enclosure (dark windscreens, banners along the
+    // front), a gate by the sidewalk with a green pop-up tent outside it. In front, the parking lot: cars, tall light
+    // poles, and the blue "Senior Center Recreation" sign by the drive. Behind the courts, a basketball court and a
+    // playground with a pavilion; to the left, sand volleyball courts, and farther left and back, the baseball field.
+    // Big spruces, bare trees and a few red-orange ones.
+    function buildSenior(P, C) {
+      const { HL, HW, R } = C;
+      const rand = mulberry32(2024);
+      const r = (a, b) => a + rand() * (b - a);
+      const pick = (a) => a[(rand() * a.length) | 0];
+      // ---- ground
+      const grassTex = canvasTexture(256, 256, (g) => {
+        g.fillStyle = '#5e7e3c'; g.fillRect(0, 0, 256, 256);
+        for (let k = 0; k < 120; k++) { g.fillStyle = rand() < 0.6 ? 'rgba(110,140,60,0.32)' : rand() < 0.5 ? 'rgba(140,120,70,0.28)' : 'rgba(56,80,36,0.32)'; g.beginPath(); g.ellipse(rand() * 256, rand() * 256, 6 + rand() * 24, 4 + rand() * 14, rand() * 3, 0, Math.PI * 2); g.fill(); }
+        for (let k = 0; k < 2000; k++) { g.fillStyle = rand() < 0.5 ? 'rgba(170,190,100,0.2)' : 'rgba(40,60,25,0.22)'; g.fillRect(rand() * 256, rand() * 256, 1.5, 3); }
+      }).tex;
+      grassTex.wrapS = grassTex.wrapT = THREE.RepeatWrapping; grassTex.repeat.set(34, 34);
+      flat(P, 340, 340, new THREE.MeshLambertMaterial({ map: grassTex }), 0, -0.01, 0);
+      const asphalt = lam(0x55595e), concrete = lam(0xb4b2aa), white = new THREE.MeshBasicMaterial({ color: 0xffffff });
+      // ---- the enclosure: two courts end to end, three side by side; ours is the west one in the middle row
+      const X0 = R.minX, X1 = R.maxX + 22, Z0 = -21, Z1 = 21;     // (the outer fence)
+      flat(P, X1 - X0, Z1 - Z0, lam(0x2f6a4a), (X0 + X1) / 2, 0.001, 0);
+      const COURTS = [];
+      for (const cx of [0, 22]) for (const cz of [-14, 0, 14]) if (cx || cz) COURTS.push([cx, cz]);
+      const netMat = new THREE.MeshLambertMaterial({ color: 0x1b1932, transparent: true, opacity: 0.55, side: THREE.DoubleSide });
+      for (const [cx, cz] of COURTS) {
+        flat(P, HL * 2, HW * 2, lam(0x2e5cb4), cx, 0.004, cz);
+        for (const sx of [-1, 1]) flat(P, 2.13, HW * 2, lam(0x3868c0), cx + sx * 1.065, 0.006, cz);
+        pbLines(P, cx, cz, HL, HW, white);
+        const n = new THREE.Mesh(new THREE.PlaneGeometry(HW * 2 + 0.6, 0.88), netMat); n.rotation.y = Math.PI / 2; n.position.set(cx, 0.44, cz); P.add(n);
+        addBox(P, 0.04, 0.05, HW * 2 + 0.6, white, cx, 0.88, cz);
+        for (const sz of [-1, 1]) addCyl(P, 0.04, 0.04, 0.94, 8, lam(0x2b2d42), cx, 0.47, cz + sz * (HW + 0.3));
+      }
+      // fences: black chain link all round with a dark windscreen on its lower part; low dividers between courts
+      const linkTex = canvasTexture(64, 64, (g) => { g.clearRect(0, 0, 64, 64); g.strokeStyle = '#1e2024'; g.lineWidth = 3.2; g.beginPath(); g.moveTo(0, 0); g.lineTo(64, 64); g.moveTo(64, 0); g.lineTo(0, 64); g.stroke(); }).tex;
+      linkTex.wrapS = linkTex.wrapT = THREE.RepeatWrapping;
+      const FB = 0x15161a, screenMat = lam(0x34403c);
+      const GATE = [-7.2, -5.6];      // (the gate, in the front fence, x from and to)
+      const outer = (x0, z0, x1, z1) => {
+        chainFence(P, x0, z0, x1, z1, 3, FB, linkTex);
+        const len = Math.hypot(x1 - x0, z1 - z0), m = addBox(P, len, 1.3, 0.03, screenMat, (x0 + x1) / 2, 0.68, (z0 + z1) / 2);   // (low enough to see out over)
+        m.rotation.y = -Math.atan2(z1 - z0, x1 - x0);
+      };
+      outer(X0, Z0, X1, Z0); outer(X0, Z0, X0, Z1); outer(X1, Z0, X1, Z1);
+      outer(X0, Z1, GATE[0], Z1); outer(GATE[1], Z1, X1, Z1);
+      // the gate: a frame, and the door standing open
+      for (const gx of GATE) addCyl(P, 0.05, 0.05, 3.1, 6, lam(FB), gx, 1.55, Z1);
+      addBox(P, GATE[1] - GATE[0], 0.06, 0.06, lam(FB), (GATE[0] + GATE[1]) / 2, 3.05, Z1);
+      const door = new THREE.Group(); door.position.set(GATE[1], 0, Z1); door.rotation.y = -1.2; P.add(door);
+      addBox(door, 1.5, 0.05, 0.05, lam(FB), -0.75, 2.1, 0); addBox(door, 1.5, 0.05, 0.05, lam(FB), -0.75, 0.1, 0); addBox(door, 0.05, 2.0, 0.05, lam(FB), -1.5, 1.1, 0);
+      const dl = linkTex.clone(); dl.needsUpdate = true; dl.repeat.set(3, 4);
+      const dp = new THREE.Mesh(new THREE.PlaneGeometry(1.45, 2.0), new THREE.MeshLambertMaterial({ map: dl, transparent: true, side: THREE.DoubleSide, alphaTest: 0.3 })); dp.position.set(-0.75, 1.1, 0); door.add(dp);
+      // low dividers round each court (ours sits inside them)
+      for (const z of [-7, 7]) chainFence(P, X0, z, X1, z, 1.0, FB, linkTex);
+      chainFence(P, R.maxX, Z0, R.maxX, Z1, 1.0, FB, linkTex);
+      // banners along the front fence (both faces)
+      const banners = [['SENIOR CENTER', 'PICKLEBALL', '#1e5a3a', '#ffffff'], ['WELCOME', 'PLAYERS', '#ffffff', '#1e3a7a'], ['PLEASE CLOSE', 'THE GATE', '#ffffff', '#1e5a3a'], ['PADDLES UP!', '', '#1e3a7a', '#ffffff'], ['SENIOR CENTER', 'RECREATION', '#ffffff', '#1e3a7a']];
+      let bx = X0 + 2;
+      for (const [a, b2, bg, fg] of banners.concat(banners)) {
+        if (bx > GATE[0] - 2.2 && bx < GATE[1] + 0.5) bx = GATE[1] + 1.2;
+        if (bx > X1 - 2) break;
+        const tex = canvasTexture(256, 128, (g) => { g.fillStyle = bg; g.fillRect(0, 0, 256, 128); g.fillStyle = fg; g.textAlign = 'center'; g.font = `800 34px ${DISPLAY}`; g.fillText(a, 128, b2 ? 54 : 76); if (b2) { g.font = `700 30px ${DISPLAY}`; g.fillText(b2, 128, 98); } }).tex;
+        for (const side of [1, -1]) { const m = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 0.9), new THREE.MeshLambertMaterial({ map: tex })); m.position.set(bx, 1.4, Z1 + side * 0.04); m.rotation.y = side > 0 ? 0 : Math.PI; P.add(m); }
+        bx += r(3.6, 5.2);
+      }
+      // the sidewalk along the front, the path to the gate, the green pop-up tent and a few chairs
+      flat(P, X1 - X0 + 30, 2.0, concrete, (X0 + X1) / 2, 0.004, Z1 + 2.2);
+      flat(P, 1.8, 6, concrete, (GATE[0] + GATE[1]) / 2, 0.005, Z1 + 3.5);
+      const tent = new THREE.Group(); tent.position.set(X0 + 4.5, 0, Z1 + 5.2); P.add(tent);
+      const tg = lam(0x1e6a3a);
+      for (const [dx, dz] of [[-1.5, -1.5], [1.5, -1.5], [-1.5, 1.5], [1.5, 1.5]]) addCyl(tent, 0.035, 0.035, 2.3, 6, lam(0xc8ccd0), dx, 1.15, dz);
+      const roof = new THREE.Mesh(new THREE.ConeGeometry(2.25, 0.7, 4), tg); roof.rotation.y = Math.PI / 4; roof.position.y = 2.6; tent.add(roof);
+      addBox(tent, 3.0, 0.25, 0.02, tg, 0, 2.2, 1.5); addBox(tent, 3.0, 0.25, 0.02, tg, 0, 2.2, -1.5); addBox(tent, 0.02, 0.25, 3.0, tg, 1.5, 2.2, 0); addBox(tent, 0.02, 0.25, 3.0, tg, -1.5, 2.2, 0);
+      addBox(tent, 1.8, 0.05, 0.7, lam(0xe8e6e0), 0, 0.75, 0); for (const sx of [-0.8, 0.8]) addBox(tent, 0.05, 0.75, 0.6, lam(0x8a8e94), sx, 0.38, 0);
+      addBox(P, 0.55, 0.75, 0.5, lam(0x3a6ab0), X0 + 8, 0.38, Z1 + 4.4);  // (a cooler)
+      const chair = (x, z, yaw, col) => { const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = yaw; P.add(g); addBox(g, 0.5, 0.05, 0.5, lam(col), 0, 0.45, 0); addBox(g, 0.5, 0.5, 0.05, lam(col), 0, 0.72, -0.24); for (const [a, b3] of [[-0.22, -0.22], [0.22, -0.22], [-0.22, 0.22], [0.22, 0.22]]) addBox(g, 0.03, 0.45, 0.03, lam(0x2a2c30), a, 0.22, b3); };
+      for (let k = 0; k < 5; k++) chair(X0 + 3 + k * 0.7, Z1 + 4.3 + (k % 2) * 0.1, Math.PI, pick([0x2a5ab0, 0xc83a3a, 0x2a8a4a, 0x5a5a5a]));
+      for (let k = 0; k < 4; k++) chair(R.minX + 0.6 + (k % 2) * 0.1, -4.5 + k * 3, Math.PI / 2, 0x3a3c42);   // (along our court's back fence)
+      // ---- the parking lot in front: rows of stalls, cars, light poles, the drive in and the sign
+      const LZ0 = Z1 + 9, LZ1 = Z1 + 48, LX0 = X0 - 6, LX1 = X1 + 10;
+      flat(P, LX1 - LX0, LZ1 - LZ0, asphalt, (LX0 + LX1) / 2, 0.003, (LZ0 + LZ1) / 2);
+      const curb = (x0, z0, x1, z1) => { const len = Math.hypot(x1 - x0, z1 - z0), m = addBox(P, len, 0.15, 0.25, concrete, (x0 + x1) / 2, 0.075, (z0 + z1) / 2); m.rotation.y = -Math.atan2(z1 - z0, x1 - x0); };
+      curb(LX0, LZ0, LX1, LZ0); curb(LX0, LZ0, LX0, LZ1); curb(LX1, LZ0, LX1, LZ1 - 12); curb(LX0, LZ1, LX1 - 14, LZ1);
+      const CAR = [0xc8ccd0, 0x2a2c30, 0xe8e8e6, 0x1e2a44, 0x8a8e94, 0x5a1e1e, 0x3a4a5a, 0xa8aeb4, 0x1a1a1c];
+      const car = (x, z, yaw) => {
+        const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = yaw; P.add(g);
+        const col = pick(CAR), truck = rand() < 0.25, tall = !truck && rand() < 0.45;
+        const L2 = truck ? 5.6 : r(4.4, 4.9), W2 = 1.85, bh = tall ? 1.05 : 0.8;
+        addBox(g, W2, bh, L2, lam(col), 0, 0.35 + bh / 2, 0);
+        const glass = lam(0x2e3a4a), top = lam(col);
+        if (truck) { addBox(g, W2 - 0.3, 0.6, 1.9, glass, 0, 0.35 + bh + 0.3, 0.9); addBox(g, W2 - 0.26, 0.06, 1.94, top, 0, 0.35 + bh + 0.62, 0.9); addBox(g, W2 - 0.1, 0.25, 2.2, top, 0, 0.35 + bh + 0.12, -1.6); }
+        else { const ch = tall ? 0.62 : 0.5, cl = L2 * (tall ? 0.6 : 0.48); addBox(g, W2 - 0.3, ch, cl, glass, 0, 0.35 + bh + ch / 2, tall ? -0.2 : 0.05); addBox(g, W2 - 0.26, 0.06, cl - 0.1, top, 0, 0.35 + bh + ch + 0.02, tall ? -0.2 : 0.05); }
+        for (const [wx, wz] of [[-0.85, L2 * 0.32], [0.85, L2 * 0.32], [-0.85, -L2 * 0.32], [0.85, -L2 * 0.32]]) { const w = addCyl(g, 0.36, 0.36, 0.28, 10, lam(0x121214), wx, 0.36, wz); w.rotation.z = Math.PI / 2; }
+      };
+      // two double rows of stalls, nose to nose
+      for (const rowZ of [LZ0 + 6, LZ0 + 22]) {
+        for (const side of [-1, 1]) {
+          const z = rowZ + side * 2.9;
+          for (let x = LX0 + 3; x < LX1 - 3; x += 2.8) {
+            addBox(P, 0.1, 0.005, 5.2, white, x - 1.4, 0.006, z);
+            if (rand() < 0.62) car(x + r(-0.1, 0.1), z + side * r(-0.2, 0.2), side > 0 ? 0 : Math.PI);
+          }
+        }
+        addBox(P, LX1 - LX0 - 6, 0.004, 0.1, white, (LX0 + LX1) / 2, 0.006, rowZ);
+      }
+      // a car trailer by the lot's west edge (as in the photo)
+      const trl = new THREE.Group(); trl.position.set(LX0 - 4, 0, LZ0 + 6); trl.rotation.y = 0.15; P.add(trl);
+      addBox(trl, 2.0, 0.1, 4.5, lam(0x2a2c30), 0, 0.55, 0); for (const sx of [-1, 1]) { addBox(trl, 0.06, 0.3, 4.5, lam(0x2a2c30), sx, 0.75, 0); const w = addCyl(trl, 0.3, 0.3, 0.2, 10, lam(0x121214), sx * 1.1, 0.3, 0); w.rotation.z = Math.PI / 2; } addBox(trl, 0.1, 0.1, 1.6, lam(0x2a2c30), 0, 0.5, 3.0);
+      // light poles
+      for (const [x, z] of [[LX0 + 8, LZ0 + 14], [(LX0 + LX1) / 2, LZ0 + 14], [LX1 - 8, LZ0 + 14], [LX0 + 8, LZ0 + 32], [LX1 - 8, LZ0 + 32], [X0 - 3, 0], [X1 + 3, -10]]) {
+        addCyl(P, 0.12, 0.16, 10, 8, lam(0x9aa0a6), x, 5, z);
+        addBox(P, 1.4, 0.1, 0.12, lam(0x9aa0a6), x + 0.6, 9.9, z); addBox(P, 0.6, 0.2, 0.35, lam(0x5a5e64), x + 1.25, 9.8, z);
+        addCyl(P, 0.3, 0.38, 0.5, 8, concrete, x, 0.25, z);
+      }
+      // the drive in from the road, curving to the lot's south-east corner, and the road
+      flat(P, 340, 9, lam(0x3e4144), 0, 0.002, LZ1 + 26);
+      for (let x = -166; x < 170; x += 6) addBox(P, 3, 0.004, 0.14, lam(0xe8d24a), x, 0.004, LZ1 + 26);
+      const DRIVE = [[LX1 - 7, LZ1 - 2], [LX1 - 6, LZ1 + 8], [LX1 - 2, LZ1 + 16], [LX1 + 2, LZ1 + 22]];
+      for (let k = 0; k < DRIVE.length - 1; k++) { const [x0, z0] = DRIVE[k], [x1, z1] = DRIVE[k + 1], len = Math.hypot(x1 - x0, z1 - z0); flat(P, 8, len + 2, asphalt, (x0 + x1) / 2, 0.0035, (z0 + z1) / 2, Math.atan2(x1 - x0, z1 - z0)); }
+      for (let k = 0; k < DRIVE.length - 1; k++) for (const sx of [-4.1, 4.1]) { const [x0, z0] = DRIVE[k], [x1, z1] = DRIVE[k + 1]; curb(x0 + sx, z0, x1 + sx, z1); }
+      // the blue sign on two white posts, by the drive: "Senior Center Recreation", with its arrow
+      const SGX = LX1 - 13, SGZ = LZ1 + 4;
+      for (const dx of [-0.55, 0.55]) addCyl(P, 0.05, 0.05, 2.0, 8, lam(0xf2f2ee), SGX + dx, 1.0, SGZ);
+      const signTex = canvasTexture(320, 200, (g) => {
+        g.fillStyle = '#1e3e9a'; g.fillRect(0, 0, 320, 200); g.strokeStyle = '#f2f2ee'; g.lineWidth = 6; g.strokeRect(8, 8, 304, 184);
+        g.fillStyle = '#f2f2ee'; g.textAlign = 'center'; g.font = `800 36px ${DISPLAY}`; g.fillText('Senior Center', 160, 78); g.fillText('Recreation', 160, 122);
+        g.beginPath(); g.moveTo(60, 158); g.lineTo(84, 142); g.lineTo(84, 152); g.lineTo(250, 152); g.lineTo(250, 164); g.lineTo(84, 164); g.lineTo(84, 174); g.closePath(); g.fill();
+      }).tex;
+      for (const side of [1, -1]) { const m = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.94), new THREE.MeshLambertMaterial({ map: signTex })); m.position.set(SGX, 1.55, SGZ + side * 0.03); m.rotation.y = side > 0 ? 0 : Math.PI; P.add(m); }
+      // ---- behind the courts: the basketball court (right), the playground and pavilion (left)
+      const BX = 24, BZ = Z0 - 12;
+      flat(P, 26, 15, lam(0xa8a8a2), BX, 0.003, BZ);
+      for (const sx of [-1, 1]) {
+        const hx = BX + sx * 12, black = lam(0x2a2c30);
+        addCyl(P, 0.08, 0.08, 3.1, 8, black, hx, 1.55, BZ);
+        addBox(P, 0.05, 1.05, 1.8, lam(0xf2f2ee), hx - sx * 0.2, 3.35, BZ);
+        const rim = new THREE.Mesh(new THREE.TorusGeometry(0.23, 0.018, 6, 18), lam(0xe8602a)); rim.rotation.x = Math.PI / 2; rim.position.set(hx - sx * 0.48, 3.05, BZ); P.add(rim);
+      }
+      for (const [x, z, w, d] of [[BX, BZ - 7.2, 26, 0.06], [BX, BZ + 7.2, 26, 0.06], [BX, BZ, 0.06, 14.4]]) addBox(P, w, 0.004, d, white, x, 0.008, z);
+      const PGX = 2, PGZ = Z0 - 14;
+      flat(P, 16, 11, lam(0x9a7a52), PGX, 0.003, PGZ);
+      const yel = lam(0xf2c12e), red = lam(0xd83a2a), grn = lam(0x4aa83a), blu = lam(0x2a6ab8);
+      for (const [x, z] of [[-3, -2], [-3, 2], [1, -2], [1, 2]]) addCyl(P, 0.08, 0.08, 2.6, 8, yel, PGX + x, 1.3, PGZ + z);
+      addBox(P, 4.3, 0.12, 4.3, red, PGX - 1, 1.4, PGZ);
+      const pk = new THREE.Mesh(new THREE.ConeGeometry(2.4, 0.9, 4), grn); pk.position.set(PGX - 1, 3.05, PGZ); pk.rotation.y = Math.PI / 4; P.add(pk);
+      const sl = addBox(P, 0.9, 0.08, 3.4, grn, PGX + 3.3, 0.8, PGZ); sl.rotation.z = 0.42; sl.rotation.y = Math.PI / 2;
+      for (const x of [-6, -4.4]) { addCyl(P, 0.06, 0.06, 2.4, 6, blu, PGX + x, 1.2, PGZ - 3.5); addCyl(P, 0.06, 0.06, 2.4, 6, blu, PGX + x, 1.2, PGZ + 3.5); }
+      addBox(P, 0.08, 0.08, 7.1, blu, PGX - 6, 2.4, PGZ); addBox(P, 0.08, 0.08, 7.1, blu, PGX - 4.4, 2.4, PGZ);   // (the swings' frame)
+      for (const z of [-2, 0, 2]) addBox(P, 0.45, 0.05, 0.2, lam(0x2a2c30), PGX - 5.2, 0.55, PGZ + z);
+      // the pavilion: a concrete pad, posts, a brown hip roof, picnic tables
+      const PVX = -14, PVZ = Z0 - 12;
+      flat(P, 10, 8, concrete, PVX, 0.004, PVZ);
+      for (const [dx, dz] of [[-4, -3], [0, -3], [4, -3], [-4, 3], [0, 3], [4, 3]]) addBox(P, 0.22, 2.6, 0.22, lam(0x7a4a2a), PVX + dx, 1.3, PVZ + dz);
+      const pr = new THREE.Mesh(new THREE.ConeGeometry(6.4, 1.6, 4), lam(0x6a3a26)); pr.rotation.y = Math.PI / 4; pr.scale.set(1, 1, 0.78); pr.position.set(PVX, 3.4, PVZ); P.add(pr);
+      for (const dx of [-2.2, 2.2]) for (const dz of [-1.3, 1.3]) { const t = new THREE.Group(); t.position.set(PVX + dx, 0, PVZ + dz); P.add(t); addBox(t, 1.9, 0.07, 0.8, lam(0x8a6038), 0, 0.75, 0); for (const sz of [-0.7, 0.7]) addBox(t, 1.9, 0.06, 0.3, lam(0x8a6038), 0, 0.45, sz); for (const sx of [-0.7, 0.7]) addBox(t, 0.08, 0.75, 1.5, lam(0x2a2c30), sx, 0.38, 0); }
+      // ---- to the west: sand volleyball courts, then the baseball field farther out and back
+      for (const vz of [-8, 8]) {
+        const VX = X0 - 16;
+        flat(P, 11, 19, lam(0xc8a878), VX, 0.004, vz);
+        for (const sz of [-1, 1]) addCyl(P, 0.05, 0.05, 2.5, 8, lam(0xd8d8d4), VX + sz * 4.6, 1.25, vz);
+        const vn = new THREE.Mesh(new THREE.PlaneGeometry(9.2, 1.0), netMat); vn.position.set(VX, 1.95, vz); P.add(vn);
+        addBox(P, 9.2, 0.05, 0.03, white, VX, 2.45, vz);
+        for (const [x, z, w, d] of [[VX, vz - 9, 9, 0.06], [VX, vz + 9, 9, 0.06], [VX - 4.5, vz, 0.06, 18], [VX + 4.5, vz, 0.06, 18]]) addBox(P, w, 0.004, d, lam(0x2a5ab0), x, 0.008, z);
+      }
+      // the diamond: home plate toward the courts (south-east), the outfield away to the north-west
+      const HX = X0 - 46, HZ = -18, dirA = -Math.PI * 0.75;    // (from home toward second base)
+      const fwd = new V3(Math.sin(dirA), 0, Math.cos(dirA)), rgt = new V3(Math.cos(dirA), 0, -Math.sin(dirA));
+      const at = (f, s2) => [HX + fwd.x * f + rgt.x * s2, HZ + fwd.z * f + rgt.z * s2];
+      const dirt = lam(0xa86a3e);
+      const inf = flat(P, 27.4 * 1.35, 27.4 * 1.35, dirt, ...at(19.4, 0).slice(0, 1), 0.003, at(19.4, 0)[1], dirA + Math.PI / 4);
+      inf.position.set(...[at(19.4, 0)[0], 0.003, at(19.4, 0)[1]]);
+      const infGrass = flat(P, 22, 22, lam(0x5e8a3e), 0, 0.005, 0, dirA + Math.PI / 4); { const [x, z] = at(19.4, 0); infGrass.position.set(x, 0.005, z); }
+      { const [x, z] = at(18.4, 0); const mound = new THREE.Mesh(new THREE.CylinderGeometry(2.7, 2.9, 0.25, 18), dirt); mound.position.set(x, 0.12, z); P.add(mound); }
+      for (const [f, s2] of [[0, 0], [19.4, 19.4], [38.8, 0], [19.4, -19.4]]) { const [x, z] = at(f * 0.707, s2 * 0.707); addBox(P, 0.4, 0.08, 0.4, white, x, 0.05, z); }
+      for (const sgn of [-1, 1]) { const [x0, z0] = at(0, 0), [x1, z1] = at(60 * 0.707, sgn * 60 * 0.707); const len = Math.hypot(x1 - x0, z1 - z0), m = addBox(P, len, 0.004, 0.08, white, (x0 + x1) / 2, 0.008, (z0 + z1) / 2); m.rotation.y = -Math.atan2(z1 - z0, x1 - x0); }
+      // the backstop behind home, dugout benches, and a low outfield fence
+      for (let k = -2; k <= 2; k++) { const a0 = dirA + Math.PI + k * 0.32, a1 = a0 + 0.32; chainFence(P, HX + Math.sin(a0) * 7, HZ + Math.cos(a0) * 7, HX + Math.sin(a1) * 7, HZ + Math.cos(a1) * 7, 5, 0x6a6e74, linkTex); }
+      for (const sgn of [-1, 1]) { const [x, z] = at(6, sgn * 14); const b4 = addBox(P, 6, 0.45, 0.5, lam(0x8a8e94), x, 0.25, z); b4.rotation.y = -dirA; }
+      for (let k = 0; k < 9; k++) { const a0 = dirA - Math.PI / 4 + k * (Math.PI / 2) / 9, a1 = a0 + (Math.PI / 2) / 9; chainFence(P, HX + Math.sin(a0) * 82, HZ + Math.cos(a0) * 82, HX + Math.sin(a1) * 82, HZ + Math.cos(a1) * 82, 1.4, 0x6a6e74, linkTex); }
+
+      // ---- trees: big blue spruces, bare trees, and a few still red and orange
+      const keepOut = (x, z) => (x > X0 - 4 && x < X1 + 4 && z > Z0 - 22 && z < LZ1 + 30) || (x > X0 - 24 && x < X0 && z > -20 && z < 20)
+        || Math.hypot(x - HX - fwd.x * 40, z - HZ - fwd.z * 40) < 48 || (Math.abs(z - (LZ1 + 26)) < 7);
+      const trunks = [], limbs = [], cones = [], crowns = [];
+      const trunkGeo = new THREE.CylinderGeometry(0.55, 1, 1, 7); trunkGeo.translate(0, 0.5, 0);
+      const limbGeo = new THREE.CylinderGeometry(0.5, 1, 1, 5); limbGeo.translate(0, 0.5, 0);
+      const coneGeo = new THREE.ConeGeometry(1, 1, 9), blobGeo = new THREE.IcosahedronGeometry(1, 1);
+      const bare = (x, z) => {
+        const h = r(11, 17), rad = r(0.25, 0.42), bark = pick([0x6a5e52, 0x5a5048, 0x7a6e60]);
+        trunks.push([x, 0, z, rad, h, rad, rand() * 6, bark]);
+        for (let k = 0, nb = 5 + ((rand() * 3) | 0); k < nb; k++) {
+          const y = h * r(0.35, 0.8), az = rand() * Math.PI * 2, len = r(3, 6) * (1.2 - y / h * 0.5), br = rad * r(0.3, 0.45);
+          _q.setFromAxisAngle(XAX, r(0.5, 1.0)); _q2.setFromAxisAngle(UP, az); const q = _q2.clone().multiply(_q);
+          limbs.push([x, y, z, br, len, br, q, bark]);
+          const dir = new V3(0, 1, 0).applyQuaternion(q);
+          for (let t = 0; t < 2; t++) { const a2 = r(0.55, 0.95); _q.setFromAxisAngle(XAX, r(0.3, 1.1)); _q2.setFromAxisAngle(UP, az + r(-1.2, 1.2)); limbs.push([x + dir.x * len * a2, y + dir.y * len * a2, z + dir.z * len * a2, br * 0.45, len * r(0.4, 0.7), br * 0.45, _q2.clone().multiply(_q), bark]); }
+        }
+      };
+      const spruce = (x, z) => {
+        const h = r(10, 16), col = pick([0x2a4a3e, 0x2e5244, 0x264236]);
+        trunks.push([x, 0, z, 0.3, h * 0.3, 0.3, 0, 0x4a3828]);
+        const c = new THREE.Color(col);
+        for (let k = 0; k < 5; k++) { const y = h * (0.2 + k * 0.16), s = (1 - k / 5.5) * r(3.0, 3.6); cones.push([x, y + h * 0.1, z, s, h * 0.28, s, rand() * 6, c.clone().offsetHSL(0, 0, (k - 2) * 0.012).getHex()]); }
+      };
+      // a tree that still has its leaves: a fluffy crown of overlapping lumps (red, orange or rust)
+      const leafy = (x, z) => {
+        const h = r(7, 10), col = pick([0xb8462a, 0xc8602a, 0x9a3a26, 0xd8783a]);
+        trunks.push([x, 0, z, 0.25, h * 0.6, 0.25, 0, 0x5a4a3e]);
+        const c = new THREE.Color(col);
+        for (let k = 0; k < 9; k++) { const s = r(1.3, 2.1); crowns.push([x + r(-1.6, 1.6), h * r(0.6, 0.95), z + r(-1.6, 1.6), s, s * 0.85, s, rand() * 6, c.clone().offsetHSL(r(-0.015, 0.015), 0, r(-0.05, 0.05)).getHex()]); }
+      };
+      let placed = 0;
+      for (let tries = 0; tries < 5000 && placed < 190; tries++) {
+        const x = r(-150, 110), z = r(-110, 110);
+        if (keepOut(x, z)) continue;
+        const k = rand(); if (k < 0.3) spruce(x, z); else if (k < 0.42) leafy(x, z); else bare(x, z);
+        placed++;
+      }
+      // the ones in the photo: spruces and bare trees round the lot, a red one by the drive
+      for (const [x, z] of [[X0 - 9, LZ0 + 3], [LX1 + 6, LZ0 + 2], [LX1 + 5, LZ0 + 20], [X1 + 8, 6]]) spruce(x, z);
+      for (const [x, z] of [[X0 - 10, LZ0 + 16], [LX1 + 7, LZ0 + 30], [X0 - 6, Z0 - 6], [X1 + 7, Z0 - 4], [LX0 - 2, LZ1 + 4]]) bare(x, z);
+      for (const [x, z] of [[LX1 - 3, LZ1 + 9], [X0 - 7, LZ0 + 26]]) leafy(x, z);
+      instanced(P, trunkGeo, lam(0xffffff), trunks);
+      instanced(P, limbGeo, lam(0xffffff), limbs);
+      instanced(P, coneGeo, lam(0xffffff), cones);
+      instanced(P, blobGeo, lam(0xffffff), crowns);
+      mergeStatic(P);
+    }
     return [
       { id: 'sunny', name: 'Sunny Courts', court: null, env: null, build: null },
       {
@@ -282,6 +512,15 @@
           sun: [0xfff0d8, 1.05], sunDir: new V3(-0.35, 0.5, 0.8), ambient: [0x8a94a4, 0.36], sprite: null,
         },
         build: buildCollege,
+      },
+      {
+        id: 'senior', name: 'Senior Center', court: [0x2e5cb4, 0x3868c0],
+        env: {
+          sky: skyTexture([[0, '#3a82d8'], [0.45, '#78b2ea'], [0.8, '#c8e0f2'], [1, '#eef2f2']]),
+          bg: 0xa8d0f0, fog: [0xc4dcee, 80, 240], hemi: [0xf0f4ff, 0x6a7a4a, 0.75],
+          sun: [0xfff2dc, 1.0], sunDir: new V3(0.5, 0.6, 0.6), ambient: [0x8a94a4, 0.36], sprite: null,
+        },
+        build: buildSenior,
       },
     ];
   })();
