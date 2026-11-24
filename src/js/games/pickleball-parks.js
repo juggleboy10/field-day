@@ -215,6 +215,13 @@
       addBox(P, 0.06, 0.06, GATE_W, lam(FB), R.minX, 3.05, -CZ);
       for (const dz of [R.minZ, R.maxZ]) chainFence(P, R.minX, dz, R.maxX, dz, 1.2, FB, linkTex);        // (low dividers between the courts)
       chainFence(P, BX - BW - 2.2, BZ - BL - 1.5, BX - BW - 2.2, BZ + BL + 1.5, 3, FB, linkTex);   // (between it and the pickleball courts)
+      // for shooting around (in the park's own coordinates; the court's turned, so its length runs along z): each hoop's
+      // rim centre and backboard, and where the basketballs wait
+      K.hoops = [-1, 1].map((sx) => {
+        const rz = BZ - sx * (BL + 0.9 - 1.33), bz = BZ - sx * (BL + 0.9 - 1.05);
+        return { rim: [BX, 3.05, rz], board: [[BX - 0.9, 2.82, bz - 0.03], [BX + 0.9, 3.88, bz + 0.03]] };
+      });
+
       // ---- the path: in from the sidewalk on Rice Dr, winding south-west through the trees (the courts off to your right,
       // the playground on your left), round to the west side of the courts, and left in through the opening into the north court
       // (round to the west side of the courts, then a left turn in through the opening into the north court)
@@ -506,6 +513,8 @@
         const rim = new THREE.Mesh(new THREE.TorusGeometry(0.23, 0.018, 6, 18), lam(0xe8602a)); rim.rotation.x = Math.PI / 2; rim.position.set(hx - sx * 0.48, 3.05, BZ); P.add(rim);
       }
       for (const [x, z, w, d] of [[BX, BZ - 7.2, 26, 0.06], [BX, BZ + 7.2, 26, 0.06], [BX, BZ, 0.06, 14.4]]) addBox(P, w, 0.004, d, white, x, 0.008, z);
+      K.hoops = [-1, 1].map((sx) => { const hx = BX + sx * 12; return { rim: [hx - sx * 0.48, 3.05, BZ], board: [[hx - sx * 0.2 - 0.03, 2.82, BZ - 0.9], [hx - sx * 0.2 + 0.03, 3.88, BZ + 0.9]] }; });
+
       const PGX = 2, PGZ = Z0 - 14;
       flat(P, 16, 11, lam(0x9a7a52), PGX, 0.003, PGZ);
       const yel = lam(0xf2c12e), red = lam(0xd83a2a), grn = lam(0x4aa83a), blu = lam(0x2a6ab8);
@@ -607,6 +616,7 @@
       { id: 'sunny', name: 'Sunny Courts', natural: 1, court: null, build: null, bounds: { minX: -36, maxX: 36, minZ: -36, maxZ: 36 } },
       {
         id: 'college', name: 'College Park', natural: 2, court: [0x3f7a5a, 0x4c8a66], bounds: { minX: -90, maxX: 90, minZ: -84, maxZ: 58 },
+        ballSlots: [[23, 9.5], [27, 6.5], [24.5, 12]],     // (basketballs on the basketball court; every device makes them in the same order)
         env: {
           sky: skyTexture([[0, '#2a78d8'], [0.45, '#5aa6ec'], [0.85, '#b8daf4'], [1, '#e8f0f0']]),
           bg: 0x9ccaf0, fog: [0xbcd6ea, 70, 210], hemi: [0xe8f2ff, 0x6a7448, 0.72],
@@ -616,6 +626,7 @@
       },
       {
         id: 'senior', name: 'Senior Center', natural: 2, court: [0x2e5cb4, 0x3868c0], bounds: { minX: -150, maxX: 105, minZ: -105, maxZ: 100 },
+        ballSlots: [[22, -32], [26, -34], [24, -30]],
         env: {
           sky: skyTexture([[0, '#3a82d8'], [0.45, '#78b2ea'], [0.8, '#c8e0f2'], [1, '#eef2f2']]),
           bg: 0xa8d0f0, fog: [0xc4dcee, 80, 240], hemi: [0xf0f4ff, 0x6a7a4a, 0.75],
