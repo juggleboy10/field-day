@@ -22,10 +22,12 @@
     const endX = (s) => (s === 0 ? -1 : 1) * HL;
 
     // ---------------------------------------------------------------- the place
+    // (the court is the same in every park; what's round it is the park: Sunny Courts here, the others in pickleball-parks.js)
+    const sunny = new THREE.Group(); G.add(sunny);
     const grass = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), lam(0x6aa84a));
-    grass.rotation.x = -Math.PI / 2; grass.position.y = -0.01; G.add(grass);
+    grass.rotation.x = -Math.PI / 2; grass.position.y = -0.01; sunny.add(grass);
     const apron = new THREE.Mesh(new THREE.PlaneGeometry(22, 14), lam(0x3a7a5a));
-    apron.rotation.x = -Math.PI / 2; G.add(apron);
+    apron.rotation.x = -Math.PI / 2; sunny.add(apron);
     const court = new THREE.Mesh(new THREE.PlaneGeometry(HL * 2, HW * 2), lam(0x2a6ab8));
     court.rotation.x = -Math.PI / 2; court.position.y = 0.004; G.add(court);
     const kitchenMat = lam(0x3a86c8);
@@ -46,19 +48,40 @@
     fence.wrapS = fence.wrapT = THREE.RepeatWrapping;
     const fenceMat = (w) => { const t = fence.clone(); t.needsUpdate = true; t.repeat.set(w / 0.5, 6); return new THREE.MeshLambertMaterial({ map: t, transparent: true, side: THREE.DoubleSide, alphaTest: 0.3 }); };
     for (const [x, z, w, rot] of [[0, R.minZ, 22, 0], [0, R.maxZ, 22, 0], [R.minX, 0, 14, Math.PI / 2], [R.maxX, 0, 14, Math.PI / 2]]) {
-      const f = new THREE.Mesh(new THREE.PlaneGeometry(w, 3), fenceMat(w)); f.position.set(x, 1.5, z); f.rotation.y = rot; G.add(f);
-      addBox(G, rot ? 0.06 : w, 0.06, rot ? w : 0.06, lam(0x9aa0b0), x, 3.0, z);
+      const f = new THREE.Mesh(new THREE.PlaneGeometry(w, 3), fenceMat(w)); f.position.set(x, 1.5, z); f.rotation.y = rot; sunny.add(f);
+      addBox(sunny, rot ? 0.06 : w, 0.06, rot ? w : 0.06, lam(0x9aa0b0), x, 3.0, z);
     }
-    for (const sx of [-1, 1]) { addBox(G, 2.2, 0.45, 0.5, lam(0xc8955a), sx * 4.5, 0.25, R.maxZ - 0.6); addBox(G, 2.2, 0.5, 0.08, lam(0xa8753a), sx * 4.5, 0.65, R.maxZ - 0.38); }
-    addCyl(G, 0.05, 0.05, 2.4, 6, lam(0xf4f2ec), 0, 1.2, R.maxZ - 1.0);
+    for (const sx of [-1, 1]) { addBox(sunny, 2.2, 0.45, 0.5, lam(0xc8955a), sx * 4.5, 0.25, R.maxZ - 0.6); addBox(sunny, 2.2, 0.5, 0.08, lam(0xa8753a), sx * 4.5, 0.65, R.maxZ - 0.38); }
+    addCyl(sunny, 0.05, 0.05, 2.4, 6, lam(0xf4f2ec), 0, 1.2, R.maxZ - 1.0);
     const umb = new THREE.Mesh(new THREE.ConeGeometry(1.4, 0.6, 12, 1, true), new THREE.MeshLambertMaterial({ color: 0xff5c6a, side: THREE.DoubleSide }));
-    umb.position.set(0, 2.5, R.maxZ - 1.0); G.add(umb);
+    umb.position.set(0, 2.5, R.maxZ - 1.0); sunny.add(umb);
     for (const [x, z] of [[-16, -12], [-9, -14], [3, -15], [14, -12], [18, 4], [-18, 6], [-6, 14], [9, 13]]) {
-      addCyl(G, 0.2, 0.28, 2.4, 7, lam(0x7a5a3a), x, 1.2, z);
-      const crown = new THREE.Mesh(new THREE.IcosahedronGeometry(1.8, 1), lam(0x4e8a3a)); crown.position.set(x, 3.4, z); G.add(crown);
+      addCyl(sunny, 0.2, 0.28, 2.4, 7, lam(0x7a5a3a), x, 1.2, z);
+      const crown = new THREE.Mesh(new THREE.IcosahedronGeometry(1.8, 1), lam(0x4e8a3a)); crown.position.set(x, 3.4, z); sunny.add(crown);
     }
-    // the singles / doubles switch, on a stand by the net post on the bench side
+    // ---------------------------------------------------------------- the park
+    // Everyone on the court sees the same park: the latest pick wins (by its number, so devices agree).
+    const PARKS = PB_PARKS;
+    PARKS[0].env = L.env; PARKS[0].court = [0x2a6ab8, 0x3a86c8]; PARKS[0].group = sunny;
+    let park = 0, parkVer = 0;
+    function setPark(i, ver, quiet) {
+      if (!(i >= 0 && i < PARKS.length)) return;
+      park = i; parkVer = Math.max(parkVer, ver || parkVer + 1);
+      const P = PARKS[i];
+      if (!P.group) { P.group = new THREE.Group(); G.add(P.group); P.build(P.group, { HL, HW, R }); }
+      for (const Q of PARKS) if (Q.group) Q.group.visible = Q === P;
+      court.material.color.setHex(P.court[0]); kitchenMat.color.setHex(P.court[1]);
+      L.env = P.env;
+      if (state.level === L.idx) applyEnv(L.env);
+      state.hudDirty = true;
+      if (!quiet) { showToast(`Park: ${P.name}`); sfx('chime', 0.5); forcePresence(); }
+    }
+    const nextPark = () => setPark((park + 1) % PARKS.length, parkVer + 1);
+
+    // the singles / doubles switch, on a stand by the net post on the bench side, and the park switch beside it
     makeButton(L, new V3(0, 1.0, HW + 0.9), 0xffd23f, 'Singles / Doubles', () => setDoubles(!PB.dbl), { faceYaw: 0 });
+    makeButton(L, new V3(-2.4, 1.0, HW + 0.9), 0x8bd450, 'Change park', () => nextPark(), { faceYaw: 0 });
+    try { const q = new URLSearchParams(location.search).get('park'); const i = PARKS.findIndex((P) => P.id === q); if (i > 0) setPark(i, 1, true); } catch (e) { /* ignore */ }
     // the scoreboard by the net post
     const scoreC = canvasTexture(640, 220);
     const scoreBoard = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 0.76), new THREE.MeshBasicMaterial({ map: scoreC.tex }));
@@ -865,12 +888,14 @@
     const PHC = { idle: 0, serve: 1, rally: 2, dead: 3 }, PHN = ['idle', 'serve', 'rally', 'dead'];
     const r3 = (x) => Math.round(x * 1000) / 1000;
     L.presence = () => {
-      if (PB.mySide < 0) return {};
+      if (PB.mySide < 0) return { pkp: [park, parkVer] };   // (the park, even when you're not playing)
       const b = PB.b, bm = botSlots().reduce((m, sl) => m | (1 << sl), 0);
       const pbt = TH.on ? [r3(TH.p.x), r3(TH.p.y), r3(TH.p.z), r3(throwMesh.quaternion.x), r3(throwMesh.quaternion.y), r3(throwMesh.quaternion.z), r3(throwMesh.quaternion.w)] : null;
-      return { pbt, pb: [PB.mySide, PB.ver, PB.auth, r3(b.x), r3(b.y), r3(b.z), r3(b.vx), r3(b.vy), r3(b.vz), PHC[PB.ph], PB.server, PB.lastHit, PB.need, PB.bounced ? 1 : 0, PB.hits, PB.score[0], PB.score[1], PB.pointSeq, PB.winner, bm, 0, 0, r3(PB.serveFromZ || 0), r3(b.wx || 0), r3(b.wy || 0), r3(b.wz || 0), PB.mySlot, PB.dbl ? 1 : 0, ...BOTS.flatMap((o) => [r3(o.x), r3(o.z)])] };
+      return { pbt, pkp: [park, parkVer], pb: [PB.mySide, PB.ver, PB.auth, r3(b.x), r3(b.y), r3(b.z), r3(b.vx), r3(b.vy), r3(b.vz), PHC[PB.ph], PB.server, PB.lastHit, PB.need, PB.bounced ? 1 : 0, PB.hits, PB.score[0], PB.score[1], PB.pointSeq, PB.winner, bm, 0, 0, r3(PB.serveFromZ || 0), r3(b.wx || 0), r3(b.wy || 0), r3(b.wz || 0), PB.mySlot, PB.dbl ? 1 : 0, ...BOTS.flatMap((o) => [r3(o.x), r3(o.z)])] };
     };
     L.readPresence = (rec, pres, st) => {
+      const pk = pres.pkp;
+      if (Array.isArray(pk) && pk.length === 2 && Number.isInteger(pk[0]) && Number.isInteger(pk[1]) && pk[1] > parkVer && pk[1] < 1e6) setPark(pk[0], pk[1], true);
       const tt = pres.pbt;
       if (Array.isArray(tt) && tt.length === 7 && tt.every((x) => finite(x) && Math.abs(x) < 60)) {
         let gh = ghosts.get(rec.peer);
@@ -905,10 +930,11 @@
     };
     L.hudActions = [
       { label: () => `Shot: ${SPINS[PB.spinMode]} \u25b8`, show: () => PB.mySide >= 0, run: () => cycleSpin() },
+      { label: () => `Park: ${PARKS[park].name} \u25b8`, show: () => true, run: () => nextPark() },
       { label: () => (PB.dbl ? 'Doubles \u25b8' : 'Singles \u25b8'), run: () => setDoubles(!PB.dbl) },
       { label: () => 'New game', show: () => PB.mySide >= 0 && humans().length === 1, run: () => { newGame(); showToast(`New game against the court bots. First to ${WIN}, win by 2`); } },
     ];
-    PB.internals = { botHit: (bt, serve) => botHit(bt, serve), TH, throwPaddle, throwStep, throwMesh, ghosts, ballMesh, spinBall, vrPaddle: (dt, steps, b0) => { ballPrev = b0 || null; vrPaddle(dt, steps); }, resetSwing: () => { prevPC = null; }, bounceSpin, airStep, predictLanding, botStep, SPINS, deskHit: (now) => deskHit(now), HL, HW, KITCH, NET_H, paddles, takeSide, takeSlot, setDoubles, slots, botSlots, BOTS, serverSlot, responsible, authFor, homeZ, leaveCourt, newGame, startServe, onHit, onBounce, stepBall, hitBall, aimed, clearNet, flyTo, target, players, botSide, iAmAuth, serveZ };
+    PB.internals = { setPark, park: () => park, parkVer: () => parkVer, PARKS, botHit: (bt, serve) => botHit(bt, serve), TH, throwPaddle, throwStep, throwMesh, ghosts, ballMesh, spinBall, vrPaddle: (dt, steps, b0) => { ballPrev = b0 || null; vrPaddle(dt, steps); }, resetSwing: () => { prevPC = null; }, bounceSpin, airStep, predictLanding, botStep, SPINS, deskHit: (now) => deskHit(now), HL, HW, KITCH, NET_H, paddles, takeSide, takeSlot, setDoubles, slots, botSlots, BOTS, serverSlot, responsible, authFor, homeZ, leaveCourt, newGame, startServe, onHit, onBounce, stepBall, hitBall, aimed, clearNet, flyTo, target, players, botSide, iAmAuth, serveZ };
     // End game: start over at 0-0 with whoever's on the court
     ENDGAME.on(L, { shared: true, active: () => PB.mySlot >= 0 && PB.ph !== 'idle', end: () => { if (PB.mySlot < 0) return ''; newGame(); PB.opp = oppKey(); PB.ver += 20; forcePresence(); return 'Starting over at 0-0.'; } });
     return L;

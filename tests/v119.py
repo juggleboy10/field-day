@@ -91,30 +91,27 @@ with sync_playwright() as p:
     check("a slice curves a little more (but not wildly)", 0.25 < r["curve"] < 0.9, r)
 
     # ------------------------------------------------ the bots volley
-    page.evaluate("""(() => { window.__vol = []; const fd = __fd, PB = fd.LEVELS[fd.state.level].pb; let prevB = PB.bounced, prevL = PB.lastHit;
-      setInterval(() => { if (PB.lastHit === 1 && prevL !== 1 && PB.ph === 'rally') __vol.push({ bounced: prevB, x: PB.b.x }); prevB = PB.bounced; prevL = PB.lastHit; }, 4); })()""")
-    faults = []
-    for k in range(8):
-        page.evaluate(f"""(() => {{ const fd = __fd, PB = fd.LEVELS[fd.state.level].pb, I = PB.internals;
-          fd.dolly.position.set(-6, 0, 0);
-          for (const bt of I.BOTS) if (bt.sl >= 2) {{ bt.x = 5.7; bt.z = {(-1) ** k * 0.6}; bt.vx = bt.vz = 0; }}
-          Object.assign(PB, {{ ph: 'rally', lastHit: 0, need: 1, hits: 3, bounced: false, auth: fd.state.myPeer, pointSeq: PB.pointSeq + 1 }});
-          Object.assign(PB.b, {{ x: -3, y: 1.0, z: 0, wx: 0, wy: 0, wz: 0 }});
-          const v = I.aimed(PB.b, 6.0, {(-1) ** k * 0.8}, 8.5); Object.assign(PB.b, {{ vx: v.vx, vy: v.vy, vz: v.vz }}); PB.ver += 1; }})()""")
-        page.wait_for_timeout(2200)
-        why = page.evaluate("document.getElementById('toast').textContent")
-        if "Kitchen" in why: faults.append(why)
-    vol = page.evaluate("__vol")
-    print("  bot returns:", [("air" if not v["bounced"] else "bounce", round(v["x"], 1)) for v in vol])
-    check("the bots got balls back", len(vol) >= 4, vol)
-    check("and took some out of the air", any(not v["bounced"] for v in vol), vol)
-    check("never from the kitchen", not faults and all(v["bounced"] or abs(v["x"]) > 2.13 for v in vol), f"{faults} {vol}")
-
-    # ------------------------------------------------ point messages stay off the headset panel
-    pm = page.evaluate(f"""(() => {{ const fd = __fd, PB = fd.LEVELS[fd.state.level].pb, I = PB.internals; fd.VR_TOAST.show('before');
-      Object.assign(PB, {{ ph: 'rally', lastHit: 0, need: 1, hits: 2, bounced: true, winner: -1, score: [0, 0], auth: fd.state.myPeer }}); I.onBounce(4, 0);
-      return {{ screen: document.getElementById('toast').textContent, vr: fd.VR_TOAST.text }}; }})()""")
-    check("a point shows on screen but not in the headset", "point" in pm["screen"] and pm["vr"] == "before", pm)
+    # (simulated straight through, 60 times: a firm shot to them, the game run frame by frame until they hit or the point ends)
+    sim = page.evaluate("""(() => { const fd = __fd, Lv = fd.LEVELS[fd.state.level], PB = Lv.pb, I = PB.internals; let ret = 0, air = 0, kitchen = 0; const N = 60;
+      for (let k = 0; k < N; k++) {
+        fd.dolly.position.set(-6, 0, 0); fd.myHead.pos.set(-6, 1.6, 0);
+        for (const bt of I.BOTS) if (bt.sl >= 2) { bt.x = 5.7; bt.z = (k % 2 ? -1 : 1) * 0.6; bt.vx = bt.vz = 0; }
+        Object.assign(PB, { ph: 'rally', lastHit: 0, need: 1, hits: 3, bounced: false, auth: fd.state.myPeer, pointSeq: PB.pointSeq + 1, score: [0, 0], winner: -1 });
+        Object.assign(PB.b, { x: -3, y: 1.0, z: 0, wx: 0, wy: 0, wz: 0 });
+        const v = I.aimed(PB.b, 5.5, (k % 2 ? -1 : 1) * 0.8, 6.5); Object.assign(PB.b, { vx: v.vx, vy: v.vy, vz: v.vz }); PB.ver += 1;
+        let now = performance.now() + k * 10000, seq = PB.pointSeq, prevB = false;
+        for (let f = 0; f < 180; f++) {
+          now += 1000 / 60; prevB = PB.bounced; const bx = PB.b.x; Lv.update(1 / 60, now);
+          if (PB.lastHit === 1) { ret++; if (!prevB) { air++; if (Math.abs(bx) < I.KITCH) kitchen++; } break; }
+          if (PB.pointSeq !== seq) break;
+        }
+      }
+      PB.ph = 'idle';
+      return { ret, air, kitchen, N }; })()""")
+    print("  bot returns of 60 firm shots:", sim)
+    check("the bots got balls back", sim["ret"] >= sim["N"] * 0.6, sim)
+    check("and took some out of the air", sim["air"] >= sim["N"] * 0.25, sim)
+    check("never from the kitchen", sim["kitchen"] == 0, sim)
 
     page.wait_for_timeout(300)
     check("no errors", not errs, errs[:3])

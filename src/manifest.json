@@ -87,6 +87,7 @@
    "js/games/paintball.js"
   ],
   "pickleball": [
+   "js/games/pickleball-parks.js",
    "js/games/pickleball.js"
   ],
   "parkour": [

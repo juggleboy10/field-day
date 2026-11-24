@@ -47,6 +47,7 @@ js/games/karts.js
 js/games/hideseek.js
 js/games/charades.js
 js/games/paintball.js
+js/games/pickleball-parks.js
 js/games/pickleball.js
 js/games/parkour.js
 js/games/dodgeball.js
