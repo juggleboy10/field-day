@@ -36,7 +36,7 @@ with sync_playwright() as p:
     L, I = f"__fd.LEVELS[{i}]", f"__fd.LEVELS[{i}].pb.internals"
     look = f"""(() => {{ const I = {I}, sky = __fd.renderer.getClearColor ? 0 : 0; return {{ park: I.PARKS[I.park()].id, groups: I.PARKS.map((P) => P.group ? P.group.visible : null),
       court: {L}.group.children.find((m) => m.geometry && m.geometry.parameters && m.geometry.parameters.width === I.HL * 2 && m.geometry.parameters.height === I.HW * 2).material.color.getHex(),
-      bg: __fd.LEVELS[{i}].env.bg, hud: {L}.hudActions.map((a) => a.label()).find((t) => t.startsWith('Park')) }}; }})()"""
+      bg: __fd.LEVELS[{i}].env.fog[2], hud: {L}.hudActions.map((a) => a.label()).find((t) => t.startsWith('Park')) }}; }})()"""
     s0 = page.evaluate(look)
     print("  start:", s0)
     check("it starts at Sunny Courts", s0["park"] == "sunny" and s0["groups"][0] is True and s0["groups"][1] is None and s0["groups"][2] is None and "Sunny Courts" in s0["hud"], s0)

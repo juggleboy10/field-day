@@ -56,6 +56,79 @@
       return g;
     }
 
+
+    // ---------------------------------------------------------------- the seasons (in every park)
+    // Spring: fresh green and blossom, flowers in the grass. Summer: deep green. Fall: orange, red, yellow and brown, with
+    // leaves on the ground. Winter: bare trees, snow on the ground and the pines (and falling: see pickleball.js).
+    const SEASONS = [
+      { id: 'spring', name: 'Spring', env: { sky: skyTexture([[0, '#5a9ae0'], [0.5, '#9ccaf0'], [0.85, '#d8ecf4'], [1, '#eef4ee']]), bg: 0xb0d4f0, fog: [0xd0e4f0, 70, 220], hemi: [0xf4fff0, 0x7a9a5a, 0.7], sun: [0xfffaf0, 0.95], sunDir: new V3(0.4, 0.8, 0.4), ambient: [0x9aa4b0, 0.36], sprite: null } },
+      { id: 'summer', name: 'Summer', env: { sky: skyTexture([[0, '#2a7ad8'], [0.5, '#6ab6f0'], [0.85, '#c8e4f4'], [1, '#eaf4f4']]), bg: 0x9ccaf0, fog: [0xc4e0f0, 90, 260], hemi: [0xffffff, 0x6a8a4a, 0.72], sun: [0xfff4e0, 1.0], sunDir: new V3(0.3, 1, 0.35), ambient: [0x8a9aaa, 0.36], sprite: null } },
+      { id: 'fall', name: 'Fall', env: { sky: skyTexture([[0, '#2a78d8'], [0.45, '#5aa6ec'], [0.85, '#b8daf4'], [1, '#e8f0f0']]), bg: 0x9ccaf0, fog: [0xbcd6ea, 70, 210], hemi: [0xe8f2ff, 0x6a7448, 0.72], sun: [0xfff0d8, 1.05], sunDir: new V3(-0.35, 0.5, 0.8), ambient: [0x8a94a4, 0.36], sprite: null } },
+      { id: 'winter', name: 'Winter', env: { sky: skyTexture([[0, '#7a9ab8'], [0.5, '#b8cad8'], [0.85, '#dfe6ec'], [1, '#eef2f4']]), bg: 0xc8d4de, fog: [0xd8e0e8, 50, 170], hemi: [0xf0f4ff, 0xb0b8c8, 0.85], sun: [0xf0f4ff, 0.75], sunDir: new V3(-0.3, 0.45, 0.7), ambient: [0xa0a8b8, 0.42], sprite: null } },
+    ];
+    const groundTex = [];
+    function seasonGround(s) {
+      if (groundTex[s]) return groundTex[s];
+      const rand = mulberry32(900 + s);
+      const t = canvasTexture(256, 256, (g) => {
+        g.fillStyle = ['#6a9c42', '#4e8a34', '#566c36', '#eef2f6'][s]; g.fillRect(0, 0, 256, 256);
+        const blot = [['rgba(140,190,70,0.35)', 'rgba(90,140,50,0.35)', 'rgba(170,200,90,0.3)'], ['rgba(70,130,50,0.35)', 'rgba(50,100,36,0.38)', 'rgba(100,150,60,0.3)'],
+          ['rgba(120,140,60,0.35)', 'rgba(140,110,64,0.4)', 'rgba(54,76,36,0.38)'], ['rgba(190,205,225,0.45)', 'rgba(255,255,255,0.7)', 'rgba(160,175,195,0.25)']][s];
+        for (let k = 0; k < 140; k++) { g.fillStyle = blot[k % 3]; g.beginPath(); g.ellipse(rand() * 256, rand() * 256, 6 + rand() * 26, 4 + rand() * 16, rand() * 3, 0, Math.PI * 2); g.fill(); }
+        if (s === 3) for (let k = 0; k < 160; k++) { g.fillStyle = 'rgba(90,110,70,0.3)'; g.fillRect(rand() * 256, rand() * 256, 1.2, 2.5); }   // (a few tufts poking through)
+        else for (let k = 0; k < 2200; k++) { g.fillStyle = rand() < 0.5 ? 'rgba(170,190,100,0.22)' : 'rgba(40,60,25,0.25)'; g.fillRect(rand() * 256, rand() * 256, 1.5, 3); }
+      }).tex;
+      t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(32, 32);
+      return (groundTex[s] = t);
+    }
+    const PAL = {
+      spring: [0x9ad860, 0x8ac850, 0xa8e070, 0x7ab848], blossom: [0xf4b8d8, 0xf8e8f0, 0xe8a0c8, 0xfcd8e8],
+      summer: [0x4a8a30, 0x3e7a2a, 0x5a9a3a, 0x467e2c],
+      fall: [[0xd8782a, 0xe08a3a, 0xc8602a], [0xb83a22, 0xc8482a, 0x9a3020], [0xe8b830, 0xd8a028, 0xf0c840], [0x9a6a3a, 0x8a5a30, 0xa87a48]],
+    };
+    // what a park registers as it builds, so a season can recolour or show it: its ground, leafy crowns (on the bare
+    // trees), pine tiers (and their winter snow caps), leaves on the ground (fall) and flowers (spring)
+    function seasonKit(rand) {
+      const K = { grounds: [], crowns: [], cones: [], caps: [], leaves: [], flowerList: [], im: {} };
+      K.ground = (m) => { m.userData.live = true; K.grounds.push(m); return m; };
+      K.tree = () => ({ blossom: rand() < 0.22, fall: (rand() * 4) | 0 });
+      K.crown = (t, x, y, z, sz) => K.crowns.push({ t, x, y, z, s: sz, j: rand(), yaw: rand() * 6, sq: 0.75 + rand() * 0.2 });
+      K.cone = (x, y, z, sz, h, color) => { K.cones.push([x, y, z, sz, h, sz, rand() * 6, color]); K.caps.push([x, y + h * 0.16, z, sz * 0.8, h * 0.62, sz * 0.8, rand() * 6, 0xf2f6fa]); };
+      K.flowers = (n, area, keepOut) => {
+        for (let k = 0, tries = 0; k < n && tries < n * 8; tries++) {
+          const x = area[0] + rand() * (area[1] - area[0]), z = area[2] + rand() * (area[3] - area[2]);
+          if (keepOut(x, z)) continue;
+          const sz = 0.05 + rand() * 0.05;
+          K.flowerList.push([x, 0.04, z, sz, sz * 0.6, sz, 0, [0xf8e040, 0xffffff, 0xb07ae0, 0xf27aa8, 0xf8f0a0][(rand() * 5) | 0]]); k++;
+        }
+      };
+      const blob = new THREE.IcosahedronGeometry(1, 0), cone = new THREE.ConeGeometry(1, 1, 8);
+      const leafGeo = new THREE.PlaneGeometry(1, 1); leafGeo.rotateX(-Math.PI / 2);
+      K.flush = (P) => {
+        K.im.crowns = instanced(P, blob, lam(0xffffff), K.crowns.map((c) => [c.x, c.y, c.z, c.s, c.s * c.sq, c.s, c.yaw, 0xffffff]));
+        K.im.cones = instanced(P, cone, lam(0xffffff), K.cones);
+        K.im.caps = instanced(P, cone, lam(0xffffff), K.caps);
+        K.im.leaves = instanced(P, leafGeo, new THREE.MeshLambertMaterial({ color: 0xffffff, side: THREE.DoubleSide }), K.leaves);
+        K.im.flowers = instanced(P, blob, lam(0xffffff), K.flowerList);
+        for (const [k, m] of Object.entries(K.im)) if (m) { m.userData.live = true; m.name = `season-${k}`; }
+      };
+      K.apply = (s) => {
+        for (const m of K.grounds) { m.material.map = seasonGround(s); m.material.needsUpdate = true; }
+        const cr = K.im.crowns;
+        if (cr) {
+          cr.visible = s !== 3;
+          if (s !== 3) {
+            K.crowns.forEach((c, i) => { const p = s === 0 ? (c.t.blossom ? PAL.blossom : PAL.spring) : s === 1 ? PAL.summer : PAL.fall[c.t.fall]; _col.setHex(p[(c.j * p.length) | 0]).offsetHSL(0, 0, (c.j - 0.5) * 0.06); cr.setColorAt(i, _col); });
+            cr.instanceColor.needsUpdate = true;
+          }
+        }
+        if (K.im.caps) K.im.caps.visible = s === 3;
+        if (K.im.leaves) K.im.leaves.visible = s === 2;
+        if (K.im.flowers) K.im.flowers.visible = s === 0;
+      };
+      return K;
+    }
+
     // ---------------------------------------------------------------- College Park
     // From photos: a neighbourhood park in late autumn. A paved path winds in from Rice Dr past the green "College Park"
     // sign on its stone pillars, through tall bare oaks and pines, to the fenced courts: two pickleball courts side by
@@ -65,14 +138,9 @@
       const { HL, HW, R } = C;
       const rand = mulberry32(14630);
       const r = (a, b) => a + rand() * (b - a);
-      // ---- ground: autumn grass with worn, leafy patches
-      const grassTex = canvasTexture(256, 256, (g) => {
-        g.fillStyle = '#566c36'; g.fillRect(0, 0, 256, 256);
-        for (let k = 0; k < 140; k++) { g.fillStyle = rand() < 0.55 ? 'rgba(120,140,60,0.35)' : rand() < 0.5 ? 'rgba(140,110,64,0.4)' : 'rgba(54,76,36,0.38)'; g.beginPath(); g.ellipse(rand() * 256, rand() * 256, 6 + rand() * 26, 4 + rand() * 16, rand() * 3, 0, Math.PI * 2); g.fill(); }
-        for (let k = 0; k < 2200; k++) { g.fillStyle = rand() < 0.5 ? 'rgba(170,190,100,0.22)' : 'rgba(40,60,25,0.25)'; g.fillRect(rand() * 256, rand() * 256, 1.5, 3); }
-      }).tex;
-      grassTex.wrapS = grassTex.wrapT = THREE.RepeatWrapping; grassTex.repeat.set(30, 30);
-      flat(P, 300, 300, new THREE.MeshLambertMaterial({ map: grassTex }), 0, -0.01, -20);
+      const K = seasonKit(rand);
+      // ---- ground (its grass, or snow, comes with the season)
+      K.ground(flat(P, 300, 300, new THREE.MeshLambertMaterial({ map: seasonGround(2) }), 0, -0.01, -20));
       const asphalt = lam(0x6e7276), concrete = lam(0xb8b6ae);
       // ---- the courts: ours (fenced, light blue-grey surround), the one beside it, and the basketball court
       flat(P, 24, 15, lam(0x6a7e92), 0, 0.001, 0);              // our surround
@@ -206,14 +274,15 @@
       // ---- trees: tall bare oaks and maples (trunks, branches and twigs), pines (some going rusty), a few that keep brown leaves
       const keepOut = (x, z) => (x > -16 && x < 15 && z > -11 && z < 25.5) || (x > 9 && x < 40 && z > 4 && z < 25) || (Math.hypot(x - PX, z - PZ) < 9)
         || nearPath(x, z, 2.6) || (z < -62 && !(x > -27 && x < 8)) || z < -79 || Math.hypot(x - SX, z - SZ) < 3;
-      const trunks = [], branches = [], pineCones = [], crowns = [];
+      const trunks = [], branches = [];
       const trunkGeo = new THREE.CylinderGeometry(0.55, 1, 1, 7); trunkGeo.translate(0, 0.5, 0);
       const limbGeo = new THREE.CylinderGeometry(0.5, 1, 1, 5); limbGeo.translate(0, 0.5, 0);
       const coneGeo = new THREE.ConeGeometry(1, 1, 8);
       const blobGeo = new THREE.IcosahedronGeometry(1, 0);
       const BARK = [0x6a5e52, 0x5a5048, 0x7a6e60, 0x4e463e];
       function bareTree(x, z) {
-        const h = r(12, 20), rad = r(0.22, 0.4), bark = BARK[(rand() * 4) | 0];
+        const h = r(12, 20), rad = r(0.22, 0.4), bark = BARK[(rand() * 4) | 0], tree = K.tree();
+        K.crown(tree, x, h * 0.97, z, r(1.8, 2.6));
         trunks.push([x, 0, z, rad, h, rad, rand() * 6, bark]);
         const nb = 4 + ((rand() * 3) | 0);
         for (let k = 0; k < nb; k++) {
@@ -225,16 +294,17 @@
           for (let t = 0; t < 2; t++) {
             const at = r(0.55, 0.95), tx = x + dir.x * len * at, ty = y + dir.y * len * at, tz = z + dir.z * len * at;
             _q.setFromAxisAngle(XAX, r(0.3, 1.1)); _q2.setFromAxisAngle(UP, az + r(-1.2, 1.2));
-            branches.push([tx, ty, tz, br * 0.45, len * r(0.4, 0.7), br * 0.45, _q2.clone().multiply(_q), bark]);
+            const q2 = _q2.clone().multiply(_q), tl = len * r(0.4, 0.7), d2 = new V3(0, 1, 0).applyQuaternion(q2);
+            branches.push([tx, ty, tz, br * 0.45, tl, br * 0.45, q2, bark]);
+            K.crown(tree, tx + d2.x * tl, ty + d2.y * tl, tz + d2.z * tl, r(1.3, 2.0));   // (its leaves, when it has them)
           }
         }
-        if (false) crowns.push([x + r(-1, 1), h * 0.8, z + r(-1, 1), r(2.2, 3.4), r(1.6, 2.4), r(2.2, 3.4), rand() * 6, [0x8a6a42, 0x9a7448, 0x7a5a38][(rand() * 3) | 0]]);
       }
       function pine(x, z) {
         const h = r(9, 17), rusty = rand() < 0.16, green = rusty ? [0x6e4a2c, 0x7a5434][(rand() * 2) | 0] : [0x2e4a2a, 0x355a30, 0x2a4226][(rand() * 3) | 0];
         trunks.push([x, 0, z, 0.25, h, 0.25, 0, 0x5a3e2a]);
         const tiers = 4;
-        for (let k = 0; k < tiers; k++) { const y = h * (0.35 + k * 0.17), s = (1 - k / tiers) * r(2.2, 3.0); pineCones.push([x, y, z, s, h * 0.26, s, rand() * 6, green]); }
+        for (let k = 0; k < tiers; k++) { const y = h * (0.35 + k * 0.17), sz = (1 - k / tiers) * r(2.2, 3.0); K.cone(x, y, z, sz, h * 0.26, green); }
       }
       let placed = 0;
       for (let tries = 0; tries < 4000 && placed < 230; tries++) {
@@ -251,12 +321,10 @@
       for (const [x, z] of [[-31, -64], [-15, -36], [-21, 2], [20, -14], [48, 24]]) pine(x, z);
       instanced(P, trunkGeo, lam(0xffffff), trunks);
       instanced(P, limbGeo, lam(0xffffff), branches);
-      instanced(P, coneGeo, lam(0xffffff), pineCones);
-      instanced(P, blobGeo, lam(0xffffff), crowns);
       // ---- fallen leaves: on the grass, along the fences and scattered over the courts
       const leafGeo = new THREE.PlaneGeometry(1, 1); leafGeo.rotateX(-Math.PI / 2);
       const LEAF = [0x8a5a2a, 0xa86a2a, 0x6a4a2a, 0xc88a3a, 0x9a7a4a, 0x5a3a1e];
-      const leaves = [];
+      const leaves = K.leaves;
       for (let k = 0; k < 900; k++) {
         const x = r(-40, 50), z = r(-45, 40), s = r(0.1, 0.18);
         if (x > R.minX && x < R.maxX && z > R.minZ && z < R.maxZ && rand() < 0.7) continue;   // (fewer on the court you play on)
@@ -267,9 +335,12 @@
         const [x, z] = side === 0 ? [R.minX + t * (R.maxX - R.minX), R.minZ + r(0.05, 0.5)] : side === 1 ? [R.minX + r(0.05, 0.5), R.minZ + t * (22 - R.minZ)] : side === 2 ? [R.maxX - r(0.05, 0.5), R.minZ + t * (22 - R.minZ)] : [R.minX + t * (R.maxX - R.minX), 22 - r(0.05, 0.5)];
         const s = r(0.1, 0.17); leaves.push([x, 0.013, z, s, 1, s * 0.8, rand() * 6, LEAF[(rand() * LEAF.length) | 0]]);
       }
-      instanced(P, leafGeo, new THREE.MeshLambertMaterial({ color: 0xffffff, side: THREE.DoubleSide }), leaves);
-      // everything here stands still: bake it into a few meshes (the see-through fences, glass and net stay as they are)
+      // spring flowers in the grass
+      K.flowers(1100, [-60, 60, -78, 45], (x, z) => (x > -16 && x < 15 && z > -11 && z < 25.5) || (x > 9 && x < 40 && z > 4 && z < 25) || Math.hypot(x - PX, z - PZ) < 9 || nearPath(x, z, 1.4) || (z < -62 && !(x > -27 && x < 8)) || z < -79);
+      K.flush(P);
+      // everything else here stands still: bake it into a few meshes (the see-through fences, glass and net stay as they are)
       mergeStatic(P);
+      return K;
     }
 
 
@@ -284,14 +355,9 @@
       const rand = mulberry32(2024);
       const r = (a, b) => a + rand() * (b - a);
       const pick = (a) => a[(rand() * a.length) | 0];
-      // ---- ground
-      const grassTex = canvasTexture(256, 256, (g) => {
-        g.fillStyle = '#5e7e3c'; g.fillRect(0, 0, 256, 256);
-        for (let k = 0; k < 120; k++) { g.fillStyle = rand() < 0.6 ? 'rgba(110,140,60,0.32)' : rand() < 0.5 ? 'rgba(140,120,70,0.28)' : 'rgba(56,80,36,0.32)'; g.beginPath(); g.ellipse(rand() * 256, rand() * 256, 6 + rand() * 24, 4 + rand() * 14, rand() * 3, 0, Math.PI * 2); g.fill(); }
-        for (let k = 0; k < 2000; k++) { g.fillStyle = rand() < 0.5 ? 'rgba(170,190,100,0.2)' : 'rgba(40,60,25,0.22)'; g.fillRect(rand() * 256, rand() * 256, 1.5, 3); }
-      }).tex;
-      grassTex.wrapS = grassTex.wrapT = THREE.RepeatWrapping; grassTex.repeat.set(34, 34);
-      flat(P, 340, 340, new THREE.MeshLambertMaterial({ map: grassTex }), 0, -0.01, 0);
+      const K = seasonKit(rand);
+      // ---- ground (its grass, or snow, comes with the season)
+      K.ground(flat(P, 340, 340, new THREE.MeshLambertMaterial({ map: seasonGround(2) }), 0, -0.01, 0));
       const asphalt = lam(0x55595e), concrete = lam(0xb4b2aa), white = new THREE.MeshBasicMaterial({ color: 0xffffff });
       // ---- the enclosure: two courts end to end, three side by side; ours is the west one in the middle row
       const X0 = R.minX, X1 = R.maxX + 22, Z0 = -21, Z1 = 21;     // (the outer fence)
@@ -457,34 +523,34 @@
       // ---- trees: big blue spruces, bare trees, and a few still red and orange
       const keepOut = (x, z) => (x > X0 - 4 && x < X1 + 4 && z > Z0 - 22 && z < LZ1 + 30) || (x > X0 - 24 && x < X0 && z > -20 && z < 20)
         || Math.hypot(x - HX - fwd.x * 40, z - HZ - fwd.z * 40) < 48 || (Math.abs(z - (LZ1 + 26)) < 7);
-      const trunks = [], limbs = [], cones = [], crowns = [];
+      const trunks = [], limbs = [];
       const trunkGeo = new THREE.CylinderGeometry(0.55, 1, 1, 7); trunkGeo.translate(0, 0.5, 0);
       const limbGeo = new THREE.CylinderGeometry(0.5, 1, 1, 5); limbGeo.translate(0, 0.5, 0);
       const coneGeo = new THREE.ConeGeometry(1, 1, 9), blobGeo = new THREE.IcosahedronGeometry(1, 1);
       const bare = (x, z) => {
-        const h = r(11, 17), rad = r(0.25, 0.42), bark = pick([0x6a5e52, 0x5a5048, 0x7a6e60]);
+        const h = r(11, 17), rad = r(0.25, 0.42), bark = pick([0x6a5e52, 0x5a5048, 0x7a6e60]), tree = K.tree();
         trunks.push([x, 0, z, rad, h, rad, rand() * 6, bark]);
+        K.crown(tree, x, h * 0.97, z, r(1.8, 2.6));
         for (let k = 0, nb = 5 + ((rand() * 3) | 0); k < nb; k++) {
           const y = h * r(0.35, 0.8), az = rand() * Math.PI * 2, len = r(3, 6) * (1.2 - y / h * 0.5), br = rad * r(0.3, 0.45);
           _q.setFromAxisAngle(XAX, r(0.5, 1.0)); _q2.setFromAxisAngle(UP, az); const q = _q2.clone().multiply(_q);
           limbs.push([x, y, z, br, len, br, q, bark]);
           const dir = new V3(0, 1, 0).applyQuaternion(q);
-          for (let t = 0; t < 2; t++) { const a2 = r(0.55, 0.95); _q.setFromAxisAngle(XAX, r(0.3, 1.1)); _q2.setFromAxisAngle(UP, az + r(-1.2, 1.2)); limbs.push([x + dir.x * len * a2, y + dir.y * len * a2, z + dir.z * len * a2, br * 0.45, len * r(0.4, 0.7), br * 0.45, _q2.clone().multiply(_q), bark]); }
+          for (let t = 0; t < 2; t++) {
+            const a2 = r(0.55, 0.95); _q.setFromAxisAngle(XAX, r(0.3, 1.1)); _q2.setFromAxisAngle(UP, az + r(-1.2, 1.2));
+            const q2 = _q2.clone().multiply(_q), tl = len * r(0.4, 0.7), d2 = new V3(0, 1, 0).applyQuaternion(q2), tx = x + dir.x * len * a2, ty = y + dir.y * len * a2, tz = z + dir.z * len * a2;
+            limbs.push([tx, ty, tz, br * 0.45, tl, br * 0.45, q2, bark]);
+            K.crown(tree, tx + d2.x * tl, ty + d2.y * tl, tz + d2.z * tl, r(1.3, 2.0));
+          }
         }
       };
       const spruce = (x, z) => {
         const h = r(10, 16), col = pick([0x2a4a3e, 0x2e5244, 0x264236]);
         trunks.push([x, 0, z, 0.3, h * 0.3, 0.3, 0, 0x4a3828]);
         const c = new THREE.Color(col);
-        for (let k = 0; k < 5; k++) { const y = h * (0.2 + k * 0.16), s = (1 - k / 5.5) * r(3.0, 3.6); cones.push([x, y + h * 0.1, z, s, h * 0.28, s, rand() * 6, c.clone().offsetHSL(0, 0, (k - 2) * 0.012).getHex()]); }
+        for (let k = 0; k < 5; k++) { const y = h * (0.2 + k * 0.16), sz = (1 - k / 5.5) * r(3.0, 3.6); K.cone(x, y + h * 0.1, z, sz, h * 0.28, c.clone().offsetHSL(0, 0, (k - 2) * 0.012).getHex()); }
       };
-      // a tree that still has its leaves: a fluffy crown of overlapping lumps (red, orange or rust)
-      const leafy = (x, z) => {
-        const h = r(7, 10), col = pick([0xb8462a, 0xc8602a, 0x9a3a26, 0xd8783a]);
-        trunks.push([x, 0, z, 0.25, h * 0.6, 0.25, 0, 0x5a4a3e]);
-        const c = new THREE.Color(col);
-        for (let k = 0; k < 9; k++) { const s = r(1.3, 2.1); crowns.push([x + r(-1.6, 1.6), h * r(0.6, 0.95), z + r(-1.6, 1.6), s, s * 0.85, s, rand() * 6, c.clone().offsetHSL(r(-0.015, 0.015), 0, r(-0.05, 0.05)).getHex()]); }
-      };
+      const leafy = bare;     // (every deciduous tree takes its colour from the season)
       let placed = 0;
       for (let tries = 0; tries < 5000 && placed < 190; tries++) {
         const x = r(-150, 110), z = r(-110, 110);
@@ -498,14 +564,22 @@
       for (const [x, z] of [[LX1 - 3, LZ1 + 9], [X0 - 7, LZ0 + 26]]) leafy(x, z);
       instanced(P, trunkGeo, lam(0xffffff), trunks);
       instanced(P, limbGeo, lam(0xffffff), limbs);
-      instanced(P, coneGeo, lam(0xffffff), cones);
-      instanced(P, blobGeo, lam(0xffffff), crowns);
+      // fallen leaves round the courts and the lot (fall), flowers in the grass (spring)
+      const LEAF = [0x8a5a2a, 0xa86a2a, 0x6a4a2a, 0xc88a3a, 0x9a7a4a, 0xb83a22];
+      for (let k = 0; k < 800; k++) {
+        const x = r(X0 - 30, X1 + 20), z = r(Z0 - 25, LZ1 + 10);
+        if (x > X0 && x < X1 && z > Z0 && z < Z1 && rand() < 0.8) continue;
+        const sz = r(0.1, 0.18); K.leaves.push([x, 0.013 + rand() * 0.004, z, sz, 1, sz * r(0.6, 1), rand() * 6, pick(LEAF)]);
+      }
+      K.flowers(1000, [-120, 90, -90, 90], (x, z) => (x > X0 - 4 && x < X1 + 4 && z > Z0 - 4 && z < LZ1 + 30) || (x > X0 - 24 && x < X0 && z > -20 && z < 20) || (Math.abs(z - (LZ1 + 26)) < 7) || (x > PGX - 9 && x < BX + 14 && z > Z0 - 22 && z < Z0));
+      K.flush(P);
       mergeStatic(P);
+      return K;
     }
-    return [
-      { id: 'sunny', name: 'Sunny Courts', court: null, env: null, build: null },
+    const LIST = [
+      { id: 'sunny', name: 'Sunny Courts', natural: 1, court: null, build: null },
       {
-        id: 'college', name: 'College Park', court: [0x3f7a5a, 0x4c8a66],
+        id: 'college', name: 'College Park', natural: 2, court: [0x3f7a5a, 0x4c8a66],
         env: {
           sky: skyTexture([[0, '#2a78d8'], [0.45, '#5aa6ec'], [0.85, '#b8daf4'], [1, '#e8f0f0']]),
           bg: 0x9ccaf0, fog: [0xbcd6ea, 70, 210], hemi: [0xe8f2ff, 0x6a7448, 0.72],
@@ -514,7 +588,7 @@
         build: buildCollege,
       },
       {
-        id: 'senior', name: 'Senior Center', court: [0x2e5cb4, 0x3868c0],
+        id: 'senior', name: 'Senior Center', natural: 2, court: [0x2e5cb4, 0x3868c0],
         env: {
           sky: skyTexture([[0, '#3a82d8'], [0.45, '#78b2ea'], [0.8, '#c8e0f2'], [1, '#eef2f2']]),
           bg: 0xa8d0f0, fog: [0xc4dcee, 80, 240], hemi: [0xf0f4ff, 0x6a7a4a, 0.75],
@@ -523,4 +597,6 @@
         build: buildSenior,
       },
     ];
+    LIST.SEASONS = SEASONS;
+    return LIST;
   })();
