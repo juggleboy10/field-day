@@ -299,6 +299,11 @@ The kit provides:
   court (the one nearest the walkway); the stripe is white, raised 1 cm, 0.254 m wide, across the middle court fence to
   fence (`stripeKick`: a bounce on it goes 5-15% higher and 1-3 degrees off); you walk about twice as fast off the court
   (`L.walkSpeed` getter: 6.5 / 5 VR, 3 / 2.6 in a game). `tests/v130.py`.
+- v131 shoot hoops at the parks: three basketballs (bodies, made up front for every park in a fixed order so they
+  match across devices; only the current park's are out) on College Park's and the Senior Center's basketball courts;
+  rims and backboards from the park (`K.hoops`), placed in the world as the park slides (`hoopsW`); a make swishes and
+  counts. Browser: `L.throwOverride` aims at the hoop you're looking at (within ~25 degrees), power against distance
+  decides it (makes within about +/-0.08 of the ideal, aimed 8 cm past the rim's middle). `tests/v131.py`.
 - Not yet: games don't all keep everything a new referee needs in their shared state (timers, bot plans). Each game's
   move onto the kit (2.5) checks that with a referee hand-over in its two-page test.
 
