@@ -290,6 +290,11 @@ The kit provides:
 - v128: College Park as you walk in from Rice Dr: the courts off to your right, the playground (x1.5) on your left;
   the basketball court turned to run north-south; the park and season buttons back by the fence (z R.maxZ - 1.6);
   walk round each park (`bounds` per park) when you're not in a game (in a game you stay on your half). `tests/v128.py`.
+- v129: pick your court: a park lists `courts` (each drawn as its own merged group, `decoCourt`); the park group slides
+  so the picked one sits at the game's court (that one's drawing hidden), walking bounds slide with it; "Change court"
+  button and a HUD action; sent as pkp[3]. College Park: three courts in one fence, gates north and south, the giant
+  line (0.254 m wide, gate to gate, x -3.2), and the crack in the middle court (`crackKick`: a bounce within 8 cm of it
+  turns 4-10 degrees, vy x 0.8-1.15). Senior Center: six courts. `tests/v129.py`.
 - Not yet: games don't all keep everything a new referee needs in their shared state (timers, bot plans). Each game's
   move onto the kit (2.5) checks that with a referee hand-over in its two-page test.
 
