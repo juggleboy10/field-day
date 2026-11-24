@@ -101,13 +101,39 @@
       if (!(i >= 0 && i < PARKS.length)) return;
       park = i; parkVer = Math.max(parkVer, ver || parkVer + 1);
       const P = PARKS[i];
-      if (!P.group) { P.group = new THREE.Group(); G.add(P.group); const K = P.build(P.group, { HL, HW, R }); if (K) { P.apply = K.apply; P.crack = K.crack || null; } }
+      if (!P.group) {
+        P.group = new THREE.Group(); G.add(P.group);
+        const K = P.build(P.group, { HL, HW, R });
+        if (K) { P.apply = K.apply; P.crack = K.crack || null; P.courts = K.courts; P.courtGroups = K.courtGroups; P.courtNames = K.courtNames; P.court0 = K.home; }
+        if (P.courtAt === undefined) P.courtAt = P.court0 || 0;
+      }
       for (const Q of PARKS) if (Q.group) Q.group.visible = Q === P;
-      Object.assign(L.bounds, P.bounds || R);    // (you can leave the court and look round the park)
+      placeCourt();
       court.material.color.setHex(P.court[0]); kitchenMat.color.setHex(P.court[1]);
       applyLook();
       if (!quiet) { showToast(`Park: ${P.name} (${SEASONS[curSeason()].name.toLowerCase()})`); sfx('chime', 0.5); forcePresence(); }
     }
+    // which of the park's courts you play on: the park slides so that court sits where the game is (the game's court,
+    // racks, scoreboard and buttons don't move), and that court's own drawing hides under it
+    function placeCourt() {
+      const P = PARKS[park], k = P.courts ? clamp(P.courtAt || 0, 0, P.courts.length - 1) : 0, [ox, oz] = P.courts ? P.courts[k] : [0, 0];
+      P.group.position.set(-ox, 0, -oz);
+      if (P.courtGroups) P.courtGroups.forEach((g, j) => { g.visible = j !== k; });
+      const B = P.bounds || R;
+      Object.assign(L.bounds, B === R ? R : { minX: B.minX - ox, maxX: B.maxX - ox, minZ: B.minZ - oz, maxZ: B.maxZ - oz });   // (you can leave the court and look round)
+      courtOff[0] = ox; courtOff[1] = oz;
+    }
+    const courtOff = [0, 0];
+    const courtCount = () => (PARKS[park].courts ? PARKS[park].courts.length : 1);
+    function setCourt(k, ver, quiet) {
+      const P = PARKS[park];
+      if (!P.courts) { if (!quiet) showToast('There’s just the one court here'); return; }
+      if (!(k >= 0 && k < P.courts.length)) return;
+      P.courtAt = k; parkVer = Math.max(parkVer, ver || parkVer + 1);
+      placeCourt();
+      if (!quiet) { showToast(`Playing on the ${P.courtNames[k]} (${k + 1} of ${P.courts.length})`); sfx('chime', 0.5); forcePresence(); }
+    }
+    const nextCourt = () => setCourt(((PARKS[park].courtAt || 0) + 1) % courtCount(), parkVer + 1);
     function setSeason(s, ver, quiet) {
       if (!(s >= -1 && s < SEASONS.length)) return;
       season = s; parkVer = Math.max(parkVer, ver || parkVer + 1);
@@ -123,6 +149,7 @@
     makeButton(L, new V3(0, 1.0, HW + 0.9), 0xffd23f, 'Singles / Doubles', () => setDoubles(!PB.dbl), { faceYaw: 0 });
     // the park and the seasons: further back, by the fence on the bench side, out of the way of play
     makeButton(L, new V3(-2.2, 1.0, R.maxZ - 1.6), 0x8bd450, 'Change park', () => nextPark(), { faceYaw: Math.PI });
+    makeButton(L, new V3(-3.2, 1.0, R.maxZ - 1.6), 0x4fc3f7, 'Change court', () => nextCourt(), { faceYaw: Math.PI });
     SEASONS.forEach((S, k) => makeButton(L, new V3(1.2 + k * 0.85, 1.0, R.maxZ - 1.6), [0xff9ad0, 0xffd23f, 0xf2782a, 0x9af0ff][k], S.name, () => setSeason(k), { faceYaw: Math.PI }));
     try { const u = new URLSearchParams(location.search), i = PARKS.findIndex((P) => P.id === u.get('park')), j = SEASONS.findIndex((S) => S.id === u.get('season')); if (j >= 0) season = j; if (i > 0) setPark(i, 1, true); else if (j >= 0) setSeason(j, 1, true); } catch (e) { /* ignore */ }
     // the scoreboard by the net post
@@ -363,7 +390,7 @@
       if (Math.hypot(x - (x0 + dx * t), z - (z0 + dz * t)) < 0.08) return true; } return false; };
     function crackKick(b) {
       const C = PARKS[park].crack;
-      if (!C || !_onCrack(b.x, b.z, C)) return false;
+      if (!C || !_onCrack(b.x + courtOff[0], b.z + courtOff[1], C)) return false;
       const a = (rand() < 0.5 ? -1 : 1) * (0.07 + rand() * 0.11), c = Math.cos(a), sn = Math.sin(a);   // (4 to 10 degrees)
       const vx = b.vx * c - b.vz * sn, vz = b.vx * sn + b.vz * c;
       b.vx = vx; b.vz = vz; b.vy *= 0.8 + rand() * 0.35;
@@ -950,15 +977,16 @@
     const PHC = { idle: 0, serve: 1, rally: 2, dead: 3 }, PHN = ['idle', 'serve', 'rally', 'dead'];
     const r3 = (x) => Math.round(x * 1000) / 1000;
     L.presence = () => {
-      if (PB.mySide < 0) return { pkp: [park, parkVer, season] };   // (the park, even when you're not playing)
+      if (PB.mySide < 0) return { pkp: [park, parkVer, season, PARKS[park].courtAt || 0] };   // (the park, even when you're not playing)
       const b = PB.b, bm = botSlots().reduce((m, sl) => m | (1 << sl), 0);
       const pbt = TH.on ? [r3(TH.p.x), r3(TH.p.y), r3(TH.p.z), r3(throwMesh.quaternion.x), r3(throwMesh.quaternion.y), r3(throwMesh.quaternion.z), r3(throwMesh.quaternion.w)] : null;
-      return { pbt, pkp: [park, parkVer, season], pb: [PB.mySide, PB.ver, PB.auth, r3(b.x), r3(b.y), r3(b.z), r3(b.vx), r3(b.vy), r3(b.vz), PHC[PB.ph], PB.server, PB.lastHit, PB.need, PB.bounced ? 1 : 0, PB.hits, PB.score[0], PB.score[1], PB.pointSeq, PB.winner, bm, 0, 0, r3(PB.serveFromZ || 0), r3(b.wx || 0), r3(b.wy || 0), r3(b.wz || 0), PB.mySlot, PB.dbl ? 1 : 0, ...BOTS.flatMap((o) => [r3(o.x), r3(o.z)])] };
+      return { pbt, pkp: [park, parkVer, season, PARKS[park].courtAt || 0], pb: [PB.mySide, PB.ver, PB.auth, r3(b.x), r3(b.y), r3(b.z), r3(b.vx), r3(b.vy), r3(b.vz), PHC[PB.ph], PB.server, PB.lastHit, PB.need, PB.bounced ? 1 : 0, PB.hits, PB.score[0], PB.score[1], PB.pointSeq, PB.winner, bm, 0, 0, r3(PB.serveFromZ || 0), r3(b.wx || 0), r3(b.wy || 0), r3(b.wz || 0), PB.mySlot, PB.dbl ? 1 : 0, ...BOTS.flatMap((o) => [r3(o.x), r3(o.z)])] };
     };
     L.readPresence = (rec, pres, st) => {
       const pk = pres.pkp;
-      if (Array.isArray(pk) && (pk.length === 2 || pk.length === 3) && Number.isInteger(pk[0]) && Number.isInteger(pk[1]) && pk[1] > parkVer && pk[1] < 1e6) {
-        if (pk.length === 3 && Number.isInteger(pk[2]) && pk[2] >= -1 && pk[2] < SEASONS.length) season = pk[2];
+      if (Array.isArray(pk) && pk.length >= 2 && pk.length <= 4 && Number.isInteger(pk[0]) && Number.isInteger(pk[1]) && pk[1] > parkVer && pk[1] < 1e6) {
+        if (pk.length >= 3 && Number.isInteger(pk[2]) && pk[2] >= -1 && pk[2] < SEASONS.length) season = pk[2];
+        if (pk.length === 4 && Number.isInteger(pk[3]) && pk[3] >= 0 && pk[3] < 9 && PARKS[pk[0]]) PARKS[pk[0]].courtAt = pk[3];
         setPark(pk[0], pk[1], true);
       }
       const tt = pres.pbt;
@@ -997,10 +1025,11 @@
       { label: () => `Shot: ${SPINS[PB.spinMode]} \u25b8`, show: () => PB.mySide >= 0, run: () => cycleSpin() },
       { label: () => `Park: ${PARKS[park].name} \u25b8`, show: () => true, run: () => nextPark() },
       { label: () => `Season: ${SEASONS[curSeason()].name} \u25b8`, show: () => true, run: () => nextSeason() },
+      { label: () => `Court: ${(PARKS[park].courtAt || 0) + 1} of ${courtCount()} \u25b8`, show: () => courtCount() > 1, run: () => nextCourt() },
       { label: () => (PB.dbl ? 'Doubles \u25b8' : 'Singles \u25b8'), run: () => setDoubles(!PB.dbl) },
       { label: () => 'New game', show: () => PB.mySide >= 0 && humans().length === 1, run: () => { newGame(); showToast(`New game against the court bots. First to ${WIN}, win by 2`); } },
     ];
-    PB.internals = { crackKick, setSeason, season: () => curSeason(), snow, SEASONS, setPark, park: () => park, parkVer: () => parkVer, PARKS, botHit: (bt, serve) => botHit(bt, serve), TH, throwPaddle, throwStep, throwMesh, ghosts, ballMesh, spinBall, vrPaddle: (dt, steps, b0) => { ballPrev = b0 || null; vrPaddle(dt, steps); }, resetSwing: () => { prevPC = null; }, bounceSpin, airStep, predictLanding, botStep, SPINS, deskHit: (now) => deskHit(now), HL, HW, KITCH, NET_H, paddles, takeSide, takeSlot, setDoubles, slots, botSlots, BOTS, serverSlot, responsible, authFor, homeZ, leaveCourt, newGame, startServe, onHit, onBounce, stepBall, hitBall, aimed, clearNet, flyTo, target, players, botSide, iAmAuth, serveZ };
+    PB.internals = { setCourt, courtOff, crackKick, setSeason, season: () => curSeason(), snow, SEASONS, setPark, park: () => park, parkVer: () => parkVer, PARKS, botHit: (bt, serve) => botHit(bt, serve), TH, throwPaddle, throwStep, throwMesh, ghosts, ballMesh, spinBall, vrPaddle: (dt, steps, b0) => { ballPrev = b0 || null; vrPaddle(dt, steps); }, resetSwing: () => { prevPC = null; }, bounceSpin, airStep, predictLanding, botStep, SPINS, deskHit: (now) => deskHit(now), HL, HW, KITCH, NET_H, paddles, takeSide, takeSlot, setDoubles, slots, botSlots, BOTS, serverSlot, responsible, authFor, homeZ, leaveCourt, newGame, startServe, onHit, onBounce, stepBall, hitBall, aimed, clearNet, flyTo, target, players, botSide, iAmAuth, serveZ };
     // End game: start over at 0-0 with whoever's on the court
     ENDGAME.on(L, { shared: true, active: () => PB.mySlot >= 0 && PB.ph !== 'idle', end: () => { if (PB.mySlot < 0) return ''; newGame(); PB.opp = oppKey(); PB.ver += 20; forcePresence(); return 'Starting over at 0-0.'; } });
     return L;

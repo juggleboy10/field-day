@@ -42,6 +42,20 @@
       line(-K, 0, 0.05, HW * 2); line(K, 0, 0.05, HW * 2);
       line(-(K + HL) / 2, 0, HL - K, 0.05); line((K + HL) / 2, 0, HL - K, 0.05);
     }
+    // one of a park's courts (surface, kitchens, lines, net and posts) as a group of its own, baked into a few meshes. The
+    // one you're playing on is hidden (the game's own court is drawn there instead).
+    function decoCourt(parent, cx, cz, HL, HW, colors, white, netMat) {
+      const g = new THREE.Group(); g.position.set(cx, 0, cz); parent.add(g);
+      flat(g, HL * 2, HW * 2, lam(colors[0]), 0, 0.004, 0);
+      for (const sx of [-1, 1]) flat(g, 2.13, HW * 2, lam(colors[1]), sx * 1.065, 0.006, 0);
+      pbLines(g, 0, 0, HL, HW, white);
+      const n = new THREE.Mesh(new THREE.PlaneGeometry(HW * 2 + 0.6, 0.88), netMat); n.rotation.y = Math.PI / 2; n.position.set(0, 0.44, 0); g.add(n);
+      addBox(g, 0.04, 0.05, HW * 2 + 0.6, white, 0, 0.88, 0);
+      for (const sz of [-1, 1]) addCyl(g, 0.04, 0.04, 0.94, 8, lam(0x2b2d42), 0, 0.47, sz * (HW + 0.3));
+      mergeStatic(g);
+      g.userData.live = true;     // (so the park's own merge leaves it be: it's shown and hidden)
+      return g;
+    }
     // a gabled house: walls, a roof (a three-sided prism), a door and windows, facing +z when yaw is 0
     // (a three-sided prism along x, its ridge up: the apex at y 1, the base at y -0.5, z from -0.87 to 0.87)
     const roofGeo = (() => { const g = new THREE.CylinderGeometry(1, 1, 1, 3, 1); g.rotateZ(Math.PI / 2); g.rotateX(-Math.PI / 2); return g; })();
@@ -147,14 +161,9 @@
       flat(P, 24, FZ * 2 + 0.6, lam(0x6a7e92), 0, 0.001, 0);
       const white = new THREE.MeshBasicMaterial({ color: 0xffffff });
       const netMat2 = new THREE.MeshLambertMaterial({ color: 0x1b1932, transparent: true, opacity: 0.55, side: THREE.DoubleSide });
-      for (const cz of [-CZ, CZ]) {
-        flat(P, HL * 2, HW * 2, lam(0x3f7a5a), 0, 0.004, cz);
-        for (const sx of [-1, 1]) flat(P, 2.13, HW * 2, lam(0x4c8a66), sx * 1.065, 0.006, cz);
-        pbLines(P, 0, cz, HL, HW, white);
-        const n = new THREE.Mesh(new THREE.PlaneGeometry(HW * 2 + 0.6, 0.88), netMat2); n.rotation.y = Math.PI / 2; n.position.set(0, 0.44, cz); P.add(n);
-        addBox(P, 0.04, 0.05, HW * 2 + 0.6, white, 0, 0.88, cz);
-        for (const sz of [-1, 1]) addCyl(P, 0.04, 0.04, 0.94, 8, lam(0x2b2d42), 0, 0.47, cz + sz * (HW + 0.3));
-      }
+      // (every court, the middle one included: you can play on any of them)
+      K.courts = [[0, -CZ], [0, 0], [0, CZ]]; K.home = 1; K.courtNames = ['north court', 'middle court', 'south court'];
+      K.courtGroups = K.courts.map(([cx, cz]) => decoCourt(P, cx, cz, HL, HW, [0x3f7a5a, 0x4c8a66], white, netMat2));
       // the giant line: a stripe about 10 inches (0.25 m) wide, straight through the middle of all three courts, from the
       // north gate to the south gate (just for fun: it doesn't change the bounce)
       const LINE_X = -3.2, GATE_W = 1.6;
@@ -385,17 +394,11 @@
       // ---- the enclosure: two courts end to end, three side by side; ours is the west one in the middle row
       const X0 = R.minX, X1 = R.maxX + 22, Z0 = -21, Z1 = 21;     // (the outer fence)
       flat(P, X1 - X0, Z1 - Z0, lam(0x2f6a4a), (X0 + X1) / 2, 0.001, 0);
-      const COURTS = [];
-      for (const cx of [0, 22]) for (const cz of [-14, 0, 14]) if (cx || cz) COURTS.push([cx, cz]);
       const netMat = new THREE.MeshLambertMaterial({ color: 0x1b1932, transparent: true, opacity: 0.55, side: THREE.DoubleSide });
-      for (const [cx, cz] of COURTS) {
-        flat(P, HL * 2, HW * 2, lam(0x2e5cb4), cx, 0.004, cz);
-        for (const sx of [-1, 1]) flat(P, 2.13, HW * 2, lam(0x3868c0), cx + sx * 1.065, 0.006, cz);
-        pbLines(P, cx, cz, HL, HW, white);
-        const n = new THREE.Mesh(new THREE.PlaneGeometry(HW * 2 + 0.6, 0.88), netMat); n.rotation.y = Math.PI / 2; n.position.set(cx, 0.44, cz); P.add(n);
-        addBox(P, 0.04, 0.05, HW * 2 + 0.6, white, cx, 0.88, cz);
-        for (const sz of [-1, 1]) addCyl(P, 0.04, 0.04, 0.94, 8, lam(0x2b2d42), cx, 0.47, cz + sz * (HW + 0.3));
-      }
+      // all six courts (you can play on any of them): the west three, then the east three, north to south
+      K.courts = []; for (const cx of [0, 22]) for (const cz of [-14, 0, 14]) K.courts.push([cx, cz]);
+      K.home = 1; K.courtNames = ['court 1', 'court 2', 'court 3', 'court 4', 'court 5', 'court 6'];
+      K.courtGroups = K.courts.map(([cx, cz]) => decoCourt(P, cx, cz, HL, HW, [0x2e5cb4, 0x3868c0], white, netMat));
       // fences: black chain link all round with a dark windscreen on its lower part; low dividers between courts
       const linkTex = canvasTexture(64, 64, (g) => { g.clearRect(0, 0, 64, 64); g.strokeStyle = '#1e2024'; g.lineWidth = 3.2; g.beginPath(); g.moveTo(0, 0); g.lineTo(64, 64); g.moveTo(64, 0); g.lineTo(0, 64); g.stroke(); }).tex;
       linkTex.wrapS = linkTex.wrapT = THREE.RepeatWrapping;
