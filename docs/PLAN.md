@@ -274,6 +274,19 @@ The kit provides:
   or by proj) costs a heart inside 1.4 m; every 7.5 s (4.2 s enraged), one on each player in the arena plus extras.
   At half health (`e.enr`, sent as e[12]): st 6 roar 1.8 s, red glow, x1.12 size, summons at once, speed and charge x1.35,
   windup x0.75, cooldown x0.7, barrage +2, and st 7 crouch-then-charge from range. `tests/v124.py`.
+- v125 pickleball: bot serves aimed at 11-12.5 (peak ~2 m, was a 4 m lob after v123's drag); your serve 9 + 4 x pow;
+  bot shots carry spin (about half topspin, a quarter backspin, the rest slice; amount by level); hard hits go long
+  sooner (VR depth HL x (0.18 + speed / 16), long past ~13 m/s; browser 0.4 + 1.3 x pow). `tests/v125.py`. v119's
+  volley check is now simulated (60 balls): over 200 balls v126's bots return the same share as v124's.
+- v126 pickleball parks (games/pickleball-parks.js, in src/order.txt before pickleball.js): the court stays, the
+  park round it changes. Sunny Courts, College Park and the Senior Center (both built from the user's photos),
+  built the first time they're picked and merged. "Change park" button by the net and a HUD action; the pick is sent
+  as presence `pkp` [park, ver, season] even without a paddle (the latest ver wins). ?park=college / senior. `tests/v126.py`.
+- v127 seasons, every park: spring / summer / fall / winter buttons by the court (and a HUD action). Each park starts
+  in its own (Sunny summer, the others fall) until one is picked, which then holds. `seasonKit` in the parks file:
+  ground texture by season (snow in winter), leafy crowns on the bare trees (blossom in spring, four fall palettes,
+  none in winter), snow caps on the pines, leaves (fall), flowers (spring); falling snow (Points) round the court in
+  winter; sky and light from `PB_PARKS.SEASONS`. ?season=winter. `tests/v127.py`.
 - Not yet: games don't all keep everything a new referee needs in their shared state (timers, bot plans). Each game's
   move onto the kit (2.5) checks that with a referee hand-over in its two-page test.
 
