@@ -42,11 +42,11 @@ with sync_playwright() as p:
     st = page.evaluate(f"""(() => {{ const P = {I}.PARKS[1]; let line = null, gates = 0;
       P.group.traverse((o) => {{ if (o.isMesh && o.geometry.type === 'BoxGeometry' && o.geometry.parameters.width === 1 && Math.abs(o.scale.x - 0.254) < 1e-6 && o.scale.z > 40) line = [o.position.x, o.scale.z]; }});
       return {{ courts: P.courts.length, at: P.courtAt, vis: P.courtGroups.map((g) => g.visible), line }}; }})()""")
-    if st["line"] is None:   # (addBox may size the geometry rather than scale the mesh)
-        st["line"] = page.evaluate(f"""(() => {{ let line = null; {I}.PARKS[1].group.traverse((o) => {{ const p = o.geometry && o.geometry.parameters; if (o.isMesh && p && Math.abs(p.width - 0.254) < 1e-6 && p.depth > 40) line = [o.position.x, p.depth]; }}); return line; }})()""")
+    if st["line"] is None:   # (since v130 the stripe runs east-west across the middle court, fence to fence)
+        st["line"] = page.evaluate(f"""(() => {{ let line = null; {I}.PARKS[1].group.traverse((o) => {{ const p = o.geometry && o.geometry.parameters; if (o.isMesh && p && Math.abs(p.depth - 0.254) < 1e-6 && p.width > 20) line = [o.position.z, p.width]; }}); return line; }})()""")
     print("  College Park:", st, hud())
     check("College Park has three courts, you on the middle one", st["courts"] == 3 and st["at"] == 1 and st["vis"] == [True, False, True], st)
-    check("the giant line runs gate to gate through all three (about 10 inches wide)", st["line"] and st["line"][1] >= 43, st)
+    check("the giant stripe (about 10 inches wide) is there", st["line"] and st["line"][1] >= 21.9, st)
     check("the Court action shows 2 of 3", hud() and "2 of 3" in hud(), hud())
 
     # the crack: a bounce on it turns the ball 4 to 10 degrees; off it, nothing

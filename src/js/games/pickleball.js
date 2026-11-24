@@ -104,7 +104,7 @@
       if (!P.group) {
         P.group = new THREE.Group(); G.add(P.group);
         const K = P.build(P.group, { HL, HW, R });
-        if (K) { P.apply = K.apply; P.crack = K.crack || null; P.courts = K.courts; P.courtGroups = K.courtGroups; P.courtNames = K.courtNames; P.court0 = K.home; }
+        if (K) { P.apply = K.apply; P.crack = K.crack || null; P.stripe = K.stripe || null; P.courts = K.courts; P.courtGroups = K.courtGroups; P.courtNames = K.courtNames; P.court0 = K.home; }
         if (P.courtAt === undefined) P.courtAt = P.court0 || 0;
       }
       for (const Q of PARKS) if (Q.group) Q.group.visible = Q === P;
@@ -376,7 +376,7 @@
       if (b.y < BR && b.vy < 0) {
         bounceSpin(b);
         tick(0.6);
-        if (!simOnly) crackKick(b);
+        if (!simOnly) { crackKick(b); stripeKick(b); }
         if (!simOnly) onBounce(b.x, b.z);
       }
       if (Math.abs(b.x) > R.maxX - 0.2 || Math.abs(b.z) > R.maxZ - 0.2) { b.vx *= -0.3; b.vz *= -0.3; b.x = clamp(b.x, R.minX + 0.2, R.maxX - 0.2); b.z = clamp(b.z, R.minZ + 0.2, R.maxZ - 0.2); }
@@ -396,6 +396,18 @@
       b.vx = vx; b.vz = vz; b.vy *= 0.8 + rand() * 0.35;
       tone(330, 180, 0.05, 'square', 0.12);
       PB.crackHits = (PB.crackHits || 0) + 1;
+      return true;
+    }
+    // College Park's raised white stripe: a ball that lands on it bounces a touch higher, and a degree or two off line
+    function stripeKick(b) {
+      const S = PARKS[park].stripe;
+      if (!S) return false;
+      const x = b.x + courtOff[0], z = b.z + courtOff[1];
+      if (x < S.x0 || x > S.x1 || Math.abs(z - S.z) > S.hw + BR * 0.5) return false;
+      const a = (rand() < 0.5 ? -1 : 1) * (0.015 + rand() * 0.035), c = Math.cos(a), sn = Math.sin(a);   // (1 to 3 degrees)
+      const vx = b.vx * c - b.vz * sn, vz = b.vx * sn + b.vz * c;
+      b.vx = vx; b.vz = vz; b.vy *= 1.05 + rand() * 0.1;
+      PB.stripeHits = (PB.stripeHits || 0) + 1;
       return true;
     }
     // drag, gravity and spin over one small step. Spin (w, at most 1 long) pushes the ball along w x v: topspin dips it,
@@ -865,9 +877,11 @@
       }
       return false;
     };
-    // stay on your own half while you play; otherwise the whole park is yours to walk round
+    // stay on your own half while you play; otherwise the whole park is yours to walk round (and quicker, to look round)
+    const inGame = () => PB.mySide >= 0 && (PB.ph === 'serve' || PB.ph === 'rally' || PB.ph === 'dead');
+    Object.defineProperty(L, 'walkSpeed', { configurable: true, get: () => (inGame() ? (state.mode === 'vr' ? 2.6 : 3) : (state.mode === 'vr' ? 5 : 6.5)) });
     L.clampPlayer = (p) => {
-      const playing = PB.mySide >= 0 && (PB.ph === 'serve' || PB.ph === 'rally' || PB.ph === 'dead');
+      const playing = inGame();
       if (!playing) { const B = L.bounds; return [clamp(p.x, B.minX + 0.4, B.maxX - 0.4) - p.x, clamp(p.z, B.minZ + 0.4, B.maxZ - 0.4) - p.z]; }
       let x = clamp(p.x, R.minX + 0.4, R.maxX - 0.4), z = clamp(p.z, R.minZ + 0.4, R.maxZ - 0.4);
       if (PB.mySide === 0) x = Math.min(x, -0.35); else if (PB.mySide === 1) x = Math.max(x, 0.35);
@@ -1029,7 +1043,7 @@
       { label: () => (PB.dbl ? 'Doubles \u25b8' : 'Singles \u25b8'), run: () => setDoubles(!PB.dbl) },
       { label: () => 'New game', show: () => PB.mySide >= 0 && humans().length === 1, run: () => { newGame(); showToast(`New game against the court bots. First to ${WIN}, win by 2`); } },
     ];
-    PB.internals = { setCourt, courtOff, crackKick, setSeason, season: () => curSeason(), snow, SEASONS, setPark, park: () => park, parkVer: () => parkVer, PARKS, botHit: (bt, serve) => botHit(bt, serve), TH, throwPaddle, throwStep, throwMesh, ghosts, ballMesh, spinBall, vrPaddle: (dt, steps, b0) => { ballPrev = b0 || null; vrPaddle(dt, steps); }, resetSwing: () => { prevPC = null; }, bounceSpin, airStep, predictLanding, botStep, SPINS, deskHit: (now) => deskHit(now), HL, HW, KITCH, NET_H, paddles, takeSide, takeSlot, setDoubles, slots, botSlots, BOTS, serverSlot, responsible, authFor, homeZ, leaveCourt, newGame, startServe, onHit, onBounce, stepBall, hitBall, aimed, clearNet, flyTo, target, players, botSide, iAmAuth, serveZ };
+    PB.internals = { stripeKick, setCourt, courtOff, crackKick, setSeason, season: () => curSeason(), snow, SEASONS, setPark, park: () => park, parkVer: () => parkVer, PARKS, botHit: (bt, serve) => botHit(bt, serve), TH, throwPaddle, throwStep, throwMesh, ghosts, ballMesh, spinBall, vrPaddle: (dt, steps, b0) => { ballPrev = b0 || null; vrPaddle(dt, steps); }, resetSwing: () => { prevPC = null; }, bounceSpin, airStep, predictLanding, botStep, SPINS, deskHit: (now) => deskHit(now), HL, HW, KITCH, NET_H, paddles, takeSide, takeSlot, setDoubles, slots, botSlots, BOTS, serverSlot, responsible, authFor, homeZ, leaveCourt, newGame, startServe, onHit, onBounce, stepBall, hitBall, aimed, clearNet, flyTo, target, players, botSide, iAmAuth, serveZ };
     // End game: start over at 0-0 with whoever's on the court
     ENDGAME.on(L, { shared: true, active: () => PB.mySlot >= 0 && PB.ph !== 'idle', end: () => { if (PB.mySlot < 0) return ''; newGame(); PB.opp = oppKey(); PB.ver += 20; forcePresence(); return 'Starting over at 0-0.'; } });
     return L;

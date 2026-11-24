@@ -164,10 +164,11 @@
       // (every court, the middle one included: you can play on any of them)
       K.courts = [[0, -CZ], [0, 0], [0, CZ]]; K.home = 1; K.courtNames = ['north court', 'middle court', 'south court'];
       K.courtGroups = K.courts.map(([cx, cz]) => decoCourt(P, cx, cz, HL, HW, [0x3f7a5a, 0x4c8a66], white, netMat2));
-      // the giant line: a stripe about 10 inches (0.25 m) wide, straight through the middle of all three courts, from the
-      // north gate to the south gate (just for fun: it doesn't change the bounce)
-      const LINE_X = -3.2, GATE_W = 1.6;
-      addBox(P, 0.254, 0.003, FZ * 2, lam(0x26282c), LINE_X, 0.0105, 0);
+      // the giant stripe: white, about 10 inches (0.254 m) wide and raised a centimetre, straight across the centre of the
+      // middle court from fence to fence. A ball that lands on it bounces a touch higher and a degree or two off (see
+      // pickleball.js)
+      const GATE_W = 1.6, STRIPE = { x0: R.minX, x1: R.maxX, z: 0, hw: 0.127 };
+      addBox(P, R.maxX - R.minX, 0.012, 0.254, new THREE.MeshLambertMaterial({ color: 0xf4f4f0 }), 0, 0.006, 0);
       // and the crack in our court: a jagged split across the east service boxes. A ball that lands on it kicks off at
       // a slightly different angle (see pickleball.js)
       const CRACK = [[2.6, -2.7], [3.0, -2.1], [3.5, -1.8], [3.8, -1.0], [4.5, -0.6], [4.9, 0.3], [5.4, 0.7], [5.6, 1.6], [6.1, 2.2]];
@@ -205,19 +206,19 @@
       const linkTex = canvasTexture(64, 64, (g) => { g.clearRect(0, 0, 64, 64); g.strokeStyle = '#1e2024'; g.lineWidth = 3.2; g.beginPath(); g.moveTo(0, 0); g.lineTo(64, 64); g.moveTo(64, 0); g.lineTo(0, 64); g.stroke(); }).tex;
       linkTex.wrapS = linkTex.wrapT = THREE.RepeatWrapping;
       const FB = 0x15161a;
-      // the outer fence, with a gate in the middle of each end (north and south), where the giant line starts and ends
-      for (const fz of [-FZ, FZ]) {
-        chainFence(P, R.minX, fz, LINE_X - GATE_W / 2, fz, 3, FB, linkTex); chainFence(P, LINE_X + GATE_W / 2, fz, R.maxX, fz, 3, FB, linkTex);
-        for (const gx of [LINE_X - GATE_W / 2, LINE_X + GATE_W / 2]) addCyl(P, 0.05, 0.05, 3.1, 6, lam(FB), gx, 1.55, fz);
-        addBox(P, GATE_W, 0.06, 0.06, lam(FB), LINE_X, 3.05, fz);
-      }
-      chainFence(P, R.minX, -FZ, R.minX, FZ, 3, FB, linkTex);
+      // the outer fence, with a little opening in the west side of the north court (the one nearest the walkway as you
+      // come in): the way in, on your left as you walk down the path
+      for (const fz of [-FZ, FZ]) chainFence(P, R.minX, fz, R.maxX, fz, 3, FB, linkTex);
       chainFence(P, R.maxX, -FZ, R.maxX, FZ, 3, FB, linkTex);
+      chainFence(P, R.minX, -FZ, R.minX, -CZ - GATE_W / 2, 3, FB, linkTex); chainFence(P, R.minX, -CZ + GATE_W / 2, R.minX, FZ, 3, FB, linkTex);
+      for (const gz of [-CZ - GATE_W / 2, -CZ + GATE_W / 2]) addCyl(P, 0.05, 0.05, 3.1, 6, lam(FB), R.minX, 1.55, gz);
+      addBox(P, 0.06, 0.06, GATE_W, lam(FB), R.minX, 3.05, -CZ);
       for (const dz of [R.minZ, R.maxZ]) chainFence(P, R.minX, dz, R.maxX, dz, 1.2, FB, linkTex);        // (low dividers between the courts)
       chainFence(P, BX - BW - 2.2, BZ - BL - 1.5, BX - BW - 2.2, BZ + BL + 1.5, 3, FB, linkTex);   // (between it and the pickleball courts)
-      // ---- the path: in from the sidewalk on Rice Dr, winding south through the trees (the courts off to your right, the
-      // playground on your left) to the gate in the courts' east fence
-      const PATH = [[22, -80], [21, -70], [17, -60], [10, -50], [6, -40], [3, -32], [-1, -27], [LINE_X, -FZ - 0.6]];
+      // ---- the path: in from the sidewalk on Rice Dr, winding south-west through the trees (the courts off to your right,
+      // the playground on your left), round to the west side of the courts, and left in through the opening into the north court
+      // (round to the west side of the courts, then a left turn in through the opening into the north court)
+      const PATH = [[22, -80], [21, -70], [17, -60], [8, -50], [-2, -42], [-10, -34], [-14.6, -26], [-14.6, -CZ], [R.minX - 0.3, -CZ]];
       const pathSegs = [];
       for (let k = 0; k < PATH.length - 1; k++) {
         const [x0, z0] = PATH[k], [x1, z1] = PATH[k + 1], len = Math.hypot(x1 - x0, z1 - z0), ang = Math.atan2(x1 - x0, z1 - z0);
@@ -229,8 +230,8 @@
         const len = Math.hypot(x1 - x0, z1 - z0), ang = Math.atan2(x1 - x0, z1 - z0);
         flat(P, 1.8, len + 1, asphalt, (x0 + x1) / 2, 0.0028, (z0 + z1) / 2, ang); pathSegs.push([x0, z0, x1, z1]);
       }
-      // a path from the north gate round the east side (between the courts and the basketball court) to the south gate
-      for (const [[x0, z0], [x1, z1]] of [[[LINE_X, -FZ - 1.4], [13.4, -FZ - 1.4]], [[13.4, -FZ - 1.4], [13.4, FZ + 1.4]], [[13.4, FZ + 1.4], [LINE_X, FZ + 1.4]]]) {
+      // and on down the west side, round the south end and up the east side (between the courts and the basketball court)
+      for (const [[x0, z0], [x1, z1]] of [[[-14.6, -CZ], [-14.6, FZ + 1.4]], [[-14.6, FZ + 1.4], [13.4, FZ + 1.4]], [[13.4, FZ + 1.4], [13.4, -4]]]) {
         const len = Math.hypot(x1 - x0, z1 - z0), ang = Math.atan2(x1 - x0, z1 - z0);
         flat(P, 1.8, len + 1, concrete, (x0 + x1) / 2, 0.0029, (z0 + z1) / 2, ang); pathSegs.push([x0, z0, x1, z1]);
       }
@@ -298,7 +299,7 @@
       // benches and a picnic table
       const wood = lam(0x8a6038), iron = lam(0x2a2c30);
       const bench = (x, z, yaw) => { const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = yaw; P.add(g); addBox(g, 1.8, 0.06, 0.42, wood, 0, 0.46, 0); addBox(g, 1.8, 0.32, 0.05, wood, 0, 0.72, -0.2); for (const sx of [-0.75, 0.75]) addBox(g, 0.06, 0.46, 0.42, iron, sx, 0.23, 0); };
-      bench(-14.5, -3, Math.PI / 2); bench(-14.5, 4, Math.PI / 2); bench(25, 22.2, Math.PI); bench(35.6, 8, -Math.PI / 2); bench(PX - 4, PZ + 11, Math.PI); bench(PX + 4, PZ + 11, Math.PI);
+      bench(-16.6, -4, Math.PI / 2); bench(-16.6, 5, Math.PI / 2); bench(25, 22.2, Math.PI); bench(35.6, 8, -Math.PI / 2); bench(PX - 4, PZ + 11, Math.PI); bench(PX + 4, PZ + 11, Math.PI);
       const pt = new THREE.Group(); pt.position.set(36, 0, 24); P.add(pt);
       addBox(pt, 2.0, 0.07, 0.9, wood, 0, 0.75, 0); for (const sz of [-0.75, 0.75]) addBox(pt, 2.0, 0.06, 0.32, wood, 0, 0.45, sz); for (const sx of [-0.7, 0.7]) addBox(pt, 0.08, 0.75, 1.6, iron, sx, 0.38, 0);
 
@@ -371,7 +372,7 @@
       K.flush(P);
       // everything else here stands still: bake it into a few meshes (the see-through fences, glass and net stay as they are)
       mergeStatic(P);
-      K.crack = CRACK;
+      K.crack = CRACK; K.stripe = STRIPE;
       return K;
     }
 
