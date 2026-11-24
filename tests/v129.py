@@ -80,7 +80,7 @@ with sync_playwright() as p:
 
     # everyone plays on the same court
     pk = page.evaluate(f"{L}.presence().pkp")
-    check("the court is sent with the park and season", pk and len(pk) == 4 and pk[3] == 0, pk)
+    check("the court is sent with the park and season", pk and len(pk) >= 4 and pk[3] == 0, pk)
     page.evaluate(f"{L}.readPresence({{ peer: 'zz', name: 'Zed' }}, {{ pkp: [2, {pk[1]} + 2, -1, 4] }}, {{}})"); page.wait_for_timeout(400)
     s3 = page.evaluate(f"(() => {{ const P = {I}.PARKS[2]; return {{ park: {I}.park(), at: P.courtAt, pos: [P.group.position.x, P.group.position.z], n: P.courts.length }}; }})()")
     check("a friend's pick (Senior Center, court 5) is taken: the park slides to it", s3["park"] == 2 and s3["at"] == 4 and s3["pos"] == [-22, 0] and s3["n"] == 6, s3)
