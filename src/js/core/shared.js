@@ -146,15 +146,16 @@
   // Big in the middle of the screen, and on the panel in front of you in the headset. MATCH calls these itself.
   const ANNOUNCE = (() => {
     let lastN = -1, hideT = 0;
-    function big(text, kind, ms) {
+    function big(text, kind, ms, sub) {
       const el = ui.bigMsg;
       if (el) {
         el.textContent = text; el.className = `${kind}${text.length > 7 ? ' long' : ''}`;
+        if (sub) { const s = document.createElement('span'); s.className = 'sub'; s.textContent = sub; el.appendChild(s); }
         void el.offsetWidth; el.classList.add('show');
         clearTimeout(hideT); hideT = setTimeout(() => el.classList.remove('show'), ms);
       }
-      try { VR_TOAST.show(text, kind, ms); } catch (e) { /* (at load) */ }
-      A.last = { text, kind, at: performance.now() };
+      try { VR_TOAST.show(sub ? `${text}: ${sub}` : text, kind, ms); } catch (e) { /* (at load) */ }
+      A.last = { text, kind, sub: sub || '', at: performance.now() };
     }
     const A = {
       last: null,
@@ -169,6 +170,8 @@
         const k = outcome === 'win' || outcome === 'lose' ? outcome : 'draw';
         big(text, k, 3000); sfx(k === 'win' ? 'fanfare' : k === 'lose' ? 'buzzer' : 'chime', 0.85);
       },
+      // a name with a line under it, for a boss arriving, getting angry or going down (kind: boss, enrage or win)
+      banner(text, sub, kind, ms) { big(text, kind || 'boss', ms || 3200, sub); },
       reset() { lastN = -1; },
     };
     return A;

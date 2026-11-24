@@ -66,7 +66,7 @@
       const fluke = at(new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.05, 6, 14, Math.PI), dark), 0, -0.4, -1.12); fluke.rotation.x = Math.PI / 2;
       arm.add(shaft, fluke);
     } });
-  defEnemy('captain', { hp: 22, perPlayer: 8, r: 0.95, h: 2.9, speed: 1.0, ai: 'boss', reach: 3.2, windup: 1.2, cool: 3.8, dmg: 2, proj: 'shot', boss: { slam: true, barrage: 5, summon: 'pirate', every: 11000 }, death: 'Captain Saltbeard walks the plank!',
+  defEnemy('captain', { hp: 22, perPlayer: 8, r: 0.95, h: 2.9, speed: 1.0, ai: 'boss', reach: 3.2, windup: 1.2, cool: 3.8, dmg: 2, proj: 'shot', boss: { slam: true, barrage: 5, summon: 'pirate', every: 11000, name: 'Captain Saltbeard', title: 'Terror of the Cove', hazard: 'Cannon fire!' }, death: 'Captain Saltbeard walks the plank!',
     mesh(g, arm, M) {
       const coat = M(0x9a1e2a), trim = M(0xe8b54a), skin = M(0xd8a878), beard = M(0x6a4a3a), dark = M(0x1a1a22), boot = M(0x2a1a14);
       for (const sx of [-1, 1]) g.add(at(new THREE.Mesh(cyl(0.2, 0.18, 0.9), boot), sx * 0.3, 0.45, 0));

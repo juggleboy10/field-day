@@ -60,7 +60,7 @@
       for (let k = 0; k < 4; k++) { const sp = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.22, 5), M(0xcfefff, 0x2a8aca)); const a = (k / 4) * Math.PI * 2; sp.position.set(Math.cos(a) * 0.16, 0, Math.sin(a) * 0.16); sp.rotation.z = Math.PI / 2; sp.rotation.y = -a; arm.add(sp); }
       arm.userData.spin = true;
     } });
-  defEnemy('frostking', { hp: 22, perPlayer: 8, r: 0.95, h: 3.0, speed: 0.95, ai: 'boss', reach: 3.2, windup: 1.2, cool: 3.8, dmg: 2, proj: 'ice', boss: { slam: true, barrage: 6, summon: 'snowgob', every: 11000 }, death: 'The Frost King shatters into snow!',
+  defEnemy('frostking', { hp: 22, perPlayer: 8, r: 0.95, h: 3.0, speed: 0.95, ai: 'boss', reach: 3.2, windup: 1.2, cool: 3.8, dmg: 2, proj: 'ice', boss: { slam: true, barrage: 6, summon: 'snowgob', every: 11000, name: 'The Frost King', title: 'Lord of the Ice Caves', hazard: 'Icicles falling!', hazardColor: 0x2a6aff }, death: 'The Frost King shatters into snow!',
     mesh(g, arm, M) {
       const ice = M(0xbfe8ff, 0x1a4a6a), robe = M(0x2a4a8a), trim = M(0xf4f8ff), crown = M(0x9af0ff, 0x2a8aca);
       for (const sx of [-1, 1]) g.add(at(new THREE.Mesh(cyl(0.2, 0.18, 0.9), robe), sx * 0.3, 0.45, 0));

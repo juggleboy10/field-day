@@ -329,7 +329,7 @@
     function makeEnemy(id, type, x, z, y) {
       const T = ENEMIES[type];
       const yy = y !== undefined ? y : T.fly || 0;
-      const e = { id, type, x, z, y: yy, yaw: 0, hp: T.hp, hpMax: T.hp, st: 0, ac: 0, t: 0, cd: 1 + rand(), rx: x, rz: z, ry: yy, ryaw: 0, lastAc: 0, flash: 0, dieT: 0, room: L.roomAt(new V3(x, 0, z)), strafe: rand() < 0.5 ? 1 : -1, slowUntil: 0, fx: 0, burstLeft: 0, burstT: 0, dive: false, champ: 0 };
+      const e = { id, type, x, z, y: yy, yaw: 0, hp: T.hp, hpMax: T.hp, st: 0, ac: 0, t: 0, cd: 1 + rand(), rx: x, rz: z, ry: yy, ryaw: 0, lastAc: 0, flash: 0, dieT: 0, room: L.roomAt(new V3(x, 0, z)), strafe: rand() < 0.5 ? 1 : -1, slowUntil: 0, fx: 0, burstLeft: 0, burstT: 0, dive: false, champ: 0, enr: 0, alt: false };
       Object.assign(e, enemyMesh(type));
       e.g.position.set(x, yy, z);
       L.enemies.set(id, e);
@@ -363,7 +363,7 @@
         const c = fresh.reduce((a, b) => (ENEMIES[b.type].hp > ENEMIES[a.type].hp ? b : a));
         c.hp = c.hpMax = Math.max(6, Math.ceil(c.hpMax * 2.5)) + Math.min(3, n - 1) * 2;
         makeChamp(c);
-        showToast('A champion leads this wave!');
+        if (!Array.from(L.enemies.values()).some((e) => ENEMIES[e.type].ai === 'boss')) showToast('A champion leads this wave!');   // (a boss has its own entrance)
       }
       forcePresence();
     }
@@ -414,7 +414,7 @@
         dropLoot(e);
         sfx('poof', 0.8 / (1 + Math.hypot(e.x - myHead.pos.x, e.z - myHead.pos.z) * 0.08));
         if (T.split) for (const s of [-1, 1]) makeEnemy(L.nextId++, ENEMY[T.split], e.x + s * 0.45, e.z + s * 0.2);
-        if (T.death) { showToast(T.death); sfx('roar', 0.7); }
+        if (T.death && T.ai !== 'boss') { showToast(T.death); sfx('roar', 0.7); }
       } else if (T.ai !== 'boss' && T.ai !== 'turret') {
         const tgt = nearestTarget(e, currentTargets());
         if (tgt) { const dx = e.x - tgt.pos.x, dz = e.z - tgt.pos.z, d = Math.hypot(dx, dz) || 1; e.x += (dx / d) * 0.35; e.z += (dz / d) * 0.35; }
@@ -476,13 +476,100 @@
       } else if (T.ai === 'kamikaze') {
         e.ac += 1; e.hp = 0; e.st = 3; e.t = 0.4;
       } else if (T.ai === 'boss' && e.st === 5) {
-        const n = T.boss.barrage;
-        for (let k = 0; k < n; k++) shoot(e, tgt, now, ((k / (n - 1)) - 0.5) * 0.9);
+        const n = T.boss.barrage + (e.enr ? 2 : 0);
+        for (let k = 0; k < n; k++) shoot(e, tgt, now, ((k / (n - 1)) - 0.5) * (e.enr ? 1.2 : 0.9));
         e.st = 2; e.t = 0.5; e.cd = T.cool;
       } else {
         e.st = 2; e.t = 0.35; e.ac += 1; e.cd = T.cool; e.dive = false;
       }
+      if (e.enr) e.cd *= 0.7;     // (an angry boss comes again sooner)
       forcePresence();
+    }
+    // ---------------------------------------------------------------- the boss fight
+    // It arrives with its name; at half health it stops to roar and turns: faster, sooner, more shots, and it charges.
+    // All fight long, things come down on the arena (themed: rocks, lasers, fire, cannonballs, icicles), each on a glowing
+    // circle that fills for 1.3 s first, so you can step out. The host picks the spots; everyone sees and dodges them.
+    const HZ_R = 1.4, HZ_WARN = 1300;
+    const hzRingGeo = new THREE.RingGeometry(HZ_R - 0.14, HZ_R, 40), hzDiscGeo = new THREE.CircleGeometry(HZ_R, 40);
+    L.hazards = new Map();
+    const bossAlive = () => { for (const e of L.enemies.values()) if (ENEMIES[e.type].ai === 'boss' && e.st !== 3) return e; return null; };
+    const hzColor = (T) => (T && T.boss && T.boss.hazardColor) || ({ laser: 0x7ad8ff, fire: 0xff7a2a, shot: 0xffb04a, ice: 0x9af0ff }[T && T.proj] || 0xff5a3a);
+    function addHazard(id, x, z, at, color) {
+      if (L.hazards.has(id)) return;
+      const g = new THREE.Group();
+      const mk = (geo, op) => { const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color, transparent: true, opacity: op, depthWrite: false, side: THREE.DoubleSide })); m.rotation.x = -Math.PI / 2; g.add(m); return m; };
+      const ring = mk(hzRingGeo, 0.8), disc = mk(hzDiscGeo, 0.42);
+      ring.position.y = 0.035; disc.position.y = 0.03;
+      g.position.set(x, 0, z); g.userData.live = true; G.add(g);
+      L.hazards.set(id, { id, x, z, at, color, g, ring, disc, fired: 0 });
+    }
+    function dropHazard(h) { G.remove(h.g); h.ring.material.dispose(); h.disc.material.dispose(); L.hazards.delete(h.id); }
+    function hazardStep(now) {
+      const alive = bossAlive();
+      for (const h of Array.from(L.hazards.values())) {
+        if (!h.fired && !alive) { dropHazard(h); continue; }
+        if (h.fired) { const k = (now - h.fired) / 450; if (k >= 1) dropHazard(h); else { h.ring.material.opacity = 0.8 * (1 - k); h.ring.scale.setScalar(1 + k * 0.4); } continue; }
+        const left = h.at - now;
+        h.disc.scale.setScalar(Math.max(0.01, clamp(1 - left / HZ_WARN, 0, 1)));
+        h.ring.material.opacity = 0.55 + 0.35 * Math.sin(now * 0.03);
+        if (left > 0) continue;
+        h.fired = now; h.disc.visible = false;
+        const at = new V3(h.x, 0.3, h.z);
+        showBeam(new V3(h.x, 16, h.z), at, h.color, 0.35);
+        spawnBlast(at, h.color, 2.2);
+        const d = Math.hypot(h.x - myHead.pos.x, h.z - myHead.pos.z);
+        sfx('slam', 0.9 / (1 + d * 0.12));
+        if (state.mode === 'flat' && d < 5) L.shakeT = now;
+        if (d < HZ_R && inGameHere() && !me.down) takeDamage(1);
+      }
+    }
+    function bossStep(e, targets, now) {
+      const T = ENEMIES[e.type], r = ROOMS[e.room];
+      if (!r) return;
+      if (!e.enr && e.hp <= e.hpMax / 2) {
+        e.enr = 1; e.st = 6; e.t = 1.8; e.cd = 2.2;
+        host.summonT = now + 600;        // (its reinforcements come straight away)
+        host.hzT = now + 2400;
+        forcePresence();
+        return;
+      }
+      if (!host.hzT || host.hzT > now + 20000) host.hzT = now + 5500;
+      if (now < host.hzT || e.st === 6) return;
+      host.hzT = now + (e.enr ? 4200 : 7500);
+      const spots = [];
+      for (const t of targets) if (L.inRect(t.pos, r, 0)) spots.push([t.pos.x + (rand() - 0.5) * 1.4, t.pos.z + (rand() - 0.5) * 1.4]);
+      for (let k = 0; k < (e.enr ? 3 : 1); k++) spots.push([r.cx + (rand() - 0.5) * (r.w - 3), r.cz + (rand() - 0.5) * (r.d - 3)]);
+      for (const [x, z] of spots.slice(0, 8)) addHazard(L.nextId++, clamp(x, r.x0 + 1, r.x1 - 1), clamp(z, r.z0 + 1, r.z1 - 1), now + HZ_WARN, hzColor(T));
+      forcePresence();
+    }
+    L.bossStep = bossStep;
+    L.hazardStep = hazardStep;
+    // the moments everyone sees (from whatever the host sends): its arrival, its rage, its fall; and its bar on screen
+    const bossBar = (() => {
+      let el = document.getElementById('boss-bar');
+      if (!el) { el = document.createElement('div'); el.id = 'boss-bar'; el.hidden = true; el.innerHTML = '<div class="nm"></div><div class="track"><div class="fill"></div></div>'; document.body.appendChild(el); }
+      return el;
+    })();
+    const bossSeen = new Set();
+    function bossMoments(now) {
+      let shown = null;
+      for (const e of L.enemies.values()) {
+        const T = ENEMIES[e.type];
+        if (T.ai !== 'boss') continue;
+        const B = T.boss, name = B.name || cfg.text.boss || 'The boss';
+        if (!bossSeen.has(e.id) && e.st !== 3 && inGameHere()) { bossSeen.add(e.id); ANNOUNCE.banner(name.toUpperCase(), B.title || '', 'boss', 3400); sfx('roar', 1); }
+        if (e.enr && !e.enrShown && e.st !== 3) { e.enrShown = 1; if (inGameHere()) { ANNOUNCE.banner(`${name} is enraged!`, B.hazard || 'Watch the ground!', 'enrage', 2800); sfx('roar', 1); if (state.mode === 'flat') L.shakeT = now; } }
+        if (e.st === 3 && !e.deadShown) { e.deadShown = 1; if (inGameHere() && bossSeen.has(e.id)) { ANNOUNCE.banner(T.death || `${name} is beaten!`, '', 'win', 3200); sfx('fanfare', 0.8); } }
+        if (e.st !== 3) shown = e;
+      }
+      const on = !!shown && inGameHere();
+      if (bossBar.hidden === on) bossBar.hidden = !on;
+      if (on) {
+        const B = ENEMIES[shown.type].boss, nm = B.name || 'The boss';
+        if (bossBar.dataset.nm !== nm) { bossBar.dataset.nm = nm; bossBar.querySelector('.nm').textContent = nm; }
+        bossBar.querySelector('.fill').style.transform = `scaleX(${Math.max(0, shown.hp / shown.hpMax).toFixed(3)})`;
+        bossBar.classList.toggle('enr', !!shown.enr);
+      }
     }
     function hostStep(dt, now) {
       const q = L.q;
@@ -513,16 +600,20 @@
         e.yaw += clamp(dy, -6 * dt, 6 * dt);
         if (e.st === 1 || e.st === 5) { e.t -= dt * slow; if (e.t <= 0) strike(e, tgt, now); continue; }
         if (e.st === 2) { e.t -= dt; if (e.t <= 0) { e.st = 0; e.dive = false; } continue; }
+        // a boss stopping to roar at half health, and a boss crouching to charge (its second-phase move)
+        if (e.st === 6) { e.t -= dt; if (e.t <= 0) e.st = 0; continue; }
+        if (e.st === 7) { e.t -= dt * slow; if (e.t <= 0) { e.st = 4; e.t = 1.3; e.dx = dx / d; e.dz = dz / d; sfx('whoosh', 1); forcePresence(); } continue; }
         if (e.st === 4) {
           e.t -= dt;
-          e.x += e.dx * T.speed * 3.4 * slow * dt; e.z += e.dz * T.speed * 3.4 * slow * dt;
+          const cs = T.speed * 3.4 * slow * (e.enr ? 1.35 : 1);
+          e.x += e.dx * cs * dt; e.z += e.dz * cs * dt;
           if (d < T.reach) { e.st = 2; e.t = 0.5; e.ac += 1; e.cd = T.cool; forcePresence(); }
           else if (e.t <= 0) { e.st = 0; e.cd = T.cool; }
           continue;
         }
         let mx = 0, mz = 0;
         const ux = dx / d, uz = dz / d;
-        const windup = (st) => { e.st = st || 1; e.t = T.windup; sfx(T.ai === 'boss' ? 'roar' : T.proj ? 'creak' : 'growl', 0.8 / (1 + d * 0.15)); forcePresence(); };
+        const windup = (st) => { e.st = st || 1; e.t = T.windup * (e.enr ? 0.75 : 1); sfx(T.ai === 'boss' ? 'roar' : T.proj ? 'creak' : 'growl', 0.8 / (1 + d * 0.15)); forcePresence(); };
         if (T.ai === 'ranged' || (T.ai === 'flyer' && T.ranged)) {
           const [near, far] = T.keep || [4.5, 8];
           if (d < near) { mx -= ux; mz -= uz; } else if (d > far) { mx += ux; mz += uz; }
@@ -544,6 +635,8 @@
         } else if (T.ai === 'boss') {
           const B = T.boss;
           if (B.slam && e.cd <= 0 && d < T.reach + 0.1) { windup(1); continue; }
+          // enraged, it charges at you from range (taking turns with its barrage, if it has one)
+          if (e.enr && e.cd <= 0 && d >= T.reach + 0.1 && d < 14 && (!B.barrage || (e.alt = !e.alt))) { windup(7); continue; }
           if (B.barrage && e.cd <= 0 && (!B.slam || d >= T.reach + 0.1)) { windup(5); continue; }
           const stop = T.fly ? 5 : T.reach * 0.8;
           if (d > stop) { mx = ux; mz = uz; }
@@ -552,7 +645,8 @@
           if (e.cd <= 0 && d < T.reach + 0.1) { windup(); continue; }
         }
         const ml = Math.hypot(mx, mz);
-        if (ml > 0.01) { e.x += (mx / ml) * T.speed * slow * dt; e.z += (mz / ml) * T.speed * slow * dt; }
+        const sp = T.speed * slow * (e.enr ? 1.35 : 1);
+        if (ml > 0.01) { e.x += (mx / ml) * sp * dt; e.z += (mz / ml) * sp * dt; }
       }
       const list = Array.from(L.enemies.values()).filter((e) => e.st !== 3);
       for (let i = 0; i < list.length; i++) {
@@ -574,9 +668,10 @@
         e.z = clamp(e.z, r.z0 + m, r.z1 - m);
       }
       const boss = list.find((e) => ENEMIES[e.type].ai === 'boss');
+      if (boss) bossStep(boss, targets, now);
       if (boss && now > host.summonT) {
         const B = ENEMIES[boss.type].boss;
-        host.summonT = now + B.every;
+        host.summonT = now + B.every * (boss.enr ? 0.7 : 1);
         const kind = ENEMY[B.summon];
         if (list.filter((e) => e.type === kind).length < 3) {
           const r = ROOMS[boss.room];
@@ -716,7 +811,7 @@
         e.ryaw += dy * k;
         if (e.ac !== e.lastAc) { if (L.onStrike) L.onStrike(e); e.lastAc = e.ac; }
         let armX = 0, bob = 0, scale = 1;
-        if (e.st === 1) armX = T.ai === 'ranged' || T.ai === 'turret' ? 0 : -1.4;
+        if (e.st === 1 || e.st === 6 || e.st === 7) armX = T.ai === 'ranged' || T.ai === 'turret' ? 0 : -1.4;
         if (e.st === 2) armX = T.ai === 'ranged' || T.ai === 'turret' ? 0 : 0.9;
         if (e.st === 0 && !T.fly) bob = Math.abs(Math.sin(now * 0.012 + e.id)) * 0.05;
         if (e.st === 3) { e.dieT += dt; scale = Math.max(0.01, 1 - e.dieT / 0.6); }
@@ -729,13 +824,14 @@
         else e.arm.rotation.x = armX;
         e.g.position.set(e.rx, (T.fly ? e.ry : 0) + bob, e.rz);
         e.g.rotation.y = e.ryaw;
-        e.g.scale.setScalar(scale * (e.champ ? 1.28 : 1));
+        e.g.scale.setScalar(scale * (e.champ ? 1.28 : 1) * (e.enr ? 1.12 : 1) * (e.st === 6 ? 1 + Math.abs(Math.sin(now * 0.02)) * 0.06 : 1));
         e.shadow.position.set(e.rx, 0.01, e.rz);
         e.shadow.material.opacity = T.fly ? 0.25 : 0.5;
         if (T.ai === 'boss' && T.boss.slam && e.st === 1) slam = e;
         e.flash = Math.max(0, e.flash - dt);
-        for (const m of e.mats) m.emissive.setHex(e.flash > 0 ? 0x887766 : e.fx ? 0x1a3a66 : m.userData.base);
-        e.bar.visible = e.hp < e.hpMax && e.st !== 3;
+        const angry = e.enr ? (Math.sin(now * 0.012) > 0 ? 0x5a1000 : 0x2a0600) : 0;
+        for (const m of e.mats) m.emissive.setHex(e.flash > 0 ? 0x887766 : e.fx ? 0x1a3a66 : angry || m.userData.base);
+        e.bar.visible = (e.hp < e.hpMax || T.ai === 'boss') && e.st !== 3;
         if (e.bar.visible) {
           e.fill.scale.x = Math.max(0.001, e.hp / e.hpMax);
           e.fill.position.x = -(1 - e.fill.scale.x) / 2;
@@ -743,6 +839,8 @@
           e.bar.lookAt(_ey.x, e.bar.getWorldPosition(_eb).y, _ey.z);
         }
       }
+      bossMoments(now);
+      hazardStep(now);
       slamRing.visible = !!slam;
       if (slam) {
         const s = ENEMIES[slam.type].reach / 3.3;
@@ -1253,6 +1351,8 @@
       L.pickups.clear();
       L.claimed.clear();
       seenProj.clear();
+      for (const h of Array.from(L.hazards.values())) dropHazard(h);
+      bossSeen.clear(); host.hzT = 0;
       L.sunstone.position.copy(L.SUN_HOME);
       L.sunGlow.position.copy(L.SUN_HOME);
     }
@@ -1355,10 +1455,12 @@
     function hostSnapshot() {
       const q = L.q;
       const e = [];
-      for (const en of L.enemies.values()) e.push([en.id, en.type, r2(en.x), r2(en.z), r2(en.yaw), Math.max(0, Math.round(en.hp)), en.hpMax, en.st, en.ac, r2(en.y), en.fx, en.champ ? 1 : 0]);
+      for (const en of L.enemies.values()) e.push([en.id, en.type, r2(en.x), r2(en.z), r2(en.yaw), Math.max(0, Math.round(en.hp)), en.hpMax, en.st, en.ac, r2(en.y), en.fx, en.champ ? 1 : 0, en.enr ? 1 : 0]);
+      const now = performance.now(), z = [];
+      for (const h of L.hazards.values()) if (!h.fired) z.push([h.id, r2(h.x), r2(h.z), Math.max(0, Math.round(h.at - now))]);
       const p = L.hostState.projLog.map((a) => [a.id, r2(a.pos.x), r2(a.pos.y), r2(a.pos.z), r2(a.vel.x), r2(a.vel.y), r2(a.vel.z), a.ptype]);
       const k = Array.from(L.pickups.values()).slice(-28).map((a) => [a.id, a.type, r2(a.x), r2(a.z)]);
-      return { q: [q.r, q.pg, q.wave, q.spawned, q.done], e, p, k, n: L.nextId };
+      return { q: [q.r, q.pg, q.wave, q.spawned, q.done], e, p, k, z, n: L.nextId };
     }
     L.presence = () => {
       const p = { dq: [me.hp, me.coins, me.kills, me.down ? 1 : 0, L.q.r, me.relics.size], hx: me.hx.slice(), sh: me.sh.slice(), pc: me.pc.slice(-24), dr: me.dr.slice(), ff: me.ff.slice(), rv: me.rv.slice() };
@@ -1375,11 +1477,11 @@
       const seen = new Set();
       if (Array.isArray(dh.e)) {
         for (const a of dh.e.slice(0, 30)) {
-          if (!Array.isArray(a) || (a.length !== 11 && a.length !== 12) || !int(a[0], 0, 1e9) || !int(a[1], 0, ENEMIES.length - 1) || !ENEMIES[a[1]] || !num(a[2], 300) || !num(a[3], 300) || !num(a[4], 50) || !int(a[5], 0, 999) || !int(a[6], 1, 999) || !int(a[7], 0, 5) || !int(a[8], 0, 1e9) || !num(a[9], 30) || !int(a[10], 0, 1)) continue;
+          if (!Array.isArray(a) || a.length < 11 || a.length > 13 || !int(a[0], 0, 1e9) || !int(a[1], 0, ENEMIES.length - 1) || !ENEMIES[a[1]] || !num(a[2], 300) || !num(a[3], 300) || !num(a[4], 50) || !int(a[5], 0, 999) || !int(a[6], 1, 999) || !int(a[7], 0, 7) || !int(a[8], 0, 1e9) || !num(a[9], 30) || !int(a[10], 0, 1)) continue;
           let e = L.enemies.get(a[0]);
           if (!e) { e = makeEnemy(a[0], a[1], a[2], a[3], a[9]); e.lastAc = a[8]; }
           if (a[11] === 1) makeChamp(e);
-          e.x = a[2]; e.z = a[3]; e.yaw = a[4]; e.hp = a[5]; e.hpMax = a[6]; e.y = a[9]; e.fx = a[10];
+          e.x = a[2]; e.z = a[3]; e.yaw = a[4]; e.hp = a[5]; e.hpMax = a[6]; e.y = a[9]; e.fx = a[10]; e.enr = a[12] === 1 ? 1 : 0;
           if (a[7] === 3 && e.st !== 3) { e.dieT = 0; sfx('poof', 0.8 / (1 + Math.hypot(e.x - myHead.pos.x, e.z - myHead.pos.z) * 0.08)); }
           e.st = a[7]; e.ac = a[8];
           seen.add(a[0]);
@@ -1397,6 +1499,10 @@
           seenProj.add(a[0]);
           L.spawnProjectile(a[0], new V3(a[1], a[2], a[3]), new V3(a[4], a[5], a[6]), a[7]);
         }
+      }
+      if (Array.isArray(dh.z)) {
+        const b = bossAlive(), col = hzColor(b && ENEMIES[b.type]), now = performance.now();
+        for (const a of dh.z.slice(0, 10)) if (Array.isArray(a) && a.length === 4 && int(a[0], 0, 1e9) && num(a[1], 300) && num(a[2], 300) && int(a[3], 0, 5000)) addHazard(a[0], a[1], a[2], now + a[3], col);
       }
       if (Array.isArray(dh.k)) {
         const next = new Map();
@@ -1813,7 +1919,7 @@
       return [x - p.x, z - p.z];
     };
     L.spawn = () => { dolly.position.set((Math.random() - 0.5) * 2, 0, 2.6); state.yaw = 0; };
-    L.onExit = () => { veil.visible = false; downText.visible = false; wristMesh.visible = false; if (ui.status) ui.status.hidden = true; };
+    L.onExit = () => { bossBar.hidden = true; for (const h of Array.from(L.hazards.values())) dropHazard(h); veil.visible = false; downText.visible = false; wristMesh.visible = false; if (ui.status) ui.status.hidden = true; };
     L.attract = (now) => {
       const a = reduceMotion ? 0 : Math.sin(now * 0.0002) * 0.25;
       camera.position.set(Math.sin(a) * 2, 1.7, 4.2);

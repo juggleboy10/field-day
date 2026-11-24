@@ -230,6 +230,16 @@ kbd {
 }
 #big-msg.long { font-size: clamp(36px, 7vw, 80px); }
 #big-msg.win { color: #ffd23f; } #big-msg.lose { color: #ff8a7a; } #big-msg.draw { color: #e8e6ff; }
+#big-msg.boss { color: #ff6a4a; } #big-msg.enrage { color: #ff3a2a; }
+#big-msg .sub { display: block; margin-top: 0.35em; font-size: clamp(18px, 3.2vw, 30px); font-weight: 800; color: #f2eeff; -webkit-text-stroke: 1px #1b1932; text-shadow: 0 3px 0 #1b1932; }
+/* the boss's health, across the top while you fight it */
+#boss-bar { position: fixed; left: 50%; bottom: calc(68px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); width: min(520px, calc(100vw - 32px)); pointer-events: none; text-align: center; font-family: var(--display); }
+#boss-bar[hidden] { display: none; }
+#boss-bar .nm { font-weight: 900; font-size: 16px; letter-spacing: 0.04em; color: #fff; -webkit-text-stroke: 1px #1b1932; text-shadow: 0 2px 0 #1b1932; margin-bottom: 4px; }
+#boss-bar .track { height: 14px; border-radius: 7px; background: rgba(27, 25, 50, 0.85); border: 2px solid #1b1932; overflow: hidden; }
+#boss-bar .fill { height: 100%; width: 100%; background: linear-gradient(#ff8a5a, #d8322a); transform-origin: left; transition: transform 0.2s ease; }
+#boss-bar.enr .fill { background: linear-gradient(#ff5a3a, #9a0a0a); }
+#boss-bar.enr .nm { color: #ffb0a0; }
 #big-msg:not(.show) { visibility: hidden; transition: opacity 0.15s ease, transform 0.25s, visibility 0s 0.25s; }
 #big-msg.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 @media (max-width: 560px) {

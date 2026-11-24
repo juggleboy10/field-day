@@ -41,7 +41,7 @@
       arm.add(limb, bow);
       g.add(at(new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.4, 10, 1, true), dark), 0, 1.68, 0));
     } });
-  defEnemy('warden', { hp: 19, perPlayer: 8, r: 0.95, h: 3.0, speed: 0.95, ai: 'boss', reach: 3.3, windup: 1.3, cool: 4.2, dmg: 2, boss: { slam: true, summon: 'goblin', every: 11000 }, death: 'The Warden crumbles!',
+  defEnemy('warden', { hp: 19, perPlayer: 8, r: 0.95, h: 3.0, speed: 0.95, ai: 'boss', reach: 3.3, windup: 1.3, cool: 4.2, dmg: 2, boss: { slam: true, summon: 'goblin', every: 11000, name: 'The Warden', title: 'Keeper of the Crypt', hazard: 'Falling rocks!', hazardColor: 0xc8b090 }, death: 'The Warden crumbles!',
     mesh(g, arm, M) {
       const stone = M(0x6d6876), dark = M(0x48444f), glow = M(0x301000, 0xff6a1a);
       for (const sx of [-1, 1]) g.add(at(new THREE.Mesh(boxg(0.5, 1.1, 0.55), dark), sx * 0.42, 0.55, 0));
@@ -110,7 +110,7 @@
       arm.position.set(0, 1.0, 0);
       arm.add(at(new THREE.Mesh(sph(0.36, 14, 10), head), 0, 0, 0), at(new THREE.Mesh(boxg(0.12, 0.12, 0.7), base), 0, 0, -0.4), at(new THREE.Mesh(sph(0.07, 8, 6), glowEye(0xff3a3a)), 0, 0.05, -0.33));
     } });
-  defEnemy('overseer', { hp: 21, perPlayer: 8, r: 1.15, h: 1.6, fly: 3.4, speed: 0.9, ai: 'boss', reach: 3.0, windup: 1.0, cool: 3.6, dmg: 2, proj: 'laser', boss: { barrage: 7, summon: 'drone', every: 12000 }, death: 'The Overseer goes dark!',
+  defEnemy('overseer', { hp: 21, perPlayer: 8, r: 1.15, h: 1.6, fly: 3.4, speed: 0.9, ai: 'boss', reach: 3.0, windup: 1.0, cool: 3.6, dmg: 2, proj: 'laser', boss: { barrage: 7, summon: 'drone', every: 12000, name: 'The Overseer', title: 'Eye of the Skyline', hazard: 'Orbital strikes!' }, death: 'The Overseer goes dark!',
     mesh(g, arm, M) {
       const shell = M(0x2e3242), plate = M(0xc8ccd8), eye = glowEye(0xff2a4a);
       const body = new THREE.Mesh(sph(0.95, 18, 14), shell); body.scale.set(1, 0.8, 1); g.add(body);
@@ -187,7 +187,7 @@
       arm.position.set(0.22, 0.72, -0.05);
       arm.add(at(new THREE.Mesh(sph(0.09, 8, 6), glowEye(0xff9a3a)), 0, 0, -0.18));
     } });
-  defEnemy('hexwarden', { hp: 21, perPlayer: 8, r: 0.9, h: 2.6, speed: 1.0, ai: 'boss', reach: 3.0, windup: 1.1, cool: 3.6, dmg: 2, proj: 'fire', boss: { slam: true, barrage: 6, summon: 'wisp', every: 10000 }, death: 'The Hexwarden fades into the mist!',
+  defEnemy('hexwarden', { hp: 21, perPlayer: 8, r: 0.9, h: 2.6, speed: 1.0, ai: 'boss', reach: 3.0, windup: 1.1, cool: 3.6, dmg: 2, proj: 'fire', boss: { slam: true, barrage: 6, summon: 'wisp', every: 10000, name: 'The Hexwarden', title: 'Witch of the Hollow', hazard: 'The ground burns!' }, death: 'The Hexwarden fades into the mist!',
     mesh(g, arm, M) {
       const robe = M(0x3a1d4a), trim = M(0x8a3abf), skin = M(0x9ad0a0);
       g.add(at(new THREE.Mesh(new THREE.ConeGeometry(0.85, 2.0, 14, 1, true), robe), 0, 1.0, 0), at(new THREE.Mesh(sph(0.3), skin), 0, 2.2, 0));
