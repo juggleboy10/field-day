@@ -264,6 +264,10 @@ The kit provides:
 - v122: the paddle throw works any time you hold a paddle on court (it was rally-only and needed the ball's authority,
   so it seemed to do nothing). Thrown mid-point it stays out till the point ends; otherwise it comes back once landed.
   B / Y also count as jump for it; a buzz in the hand when it goes.
+- v123 pickleball flight: DRAG 0.06 -> 0.085 (quick off the paddle, then it dies); the bounce keeps 0.72 + 0.2 x
+  topspin of the pace (was 0.82 + 0.14); topspin kicks through, backspin checks up low. TOP_AIR 0.55 -> 0.85, more
+  spin from VR brushing (0.36) and the desk spins (1 / 0.9). Speed cap 24. `aimed` now holds the flight time
+  (distance by pace, time by lift), so spin changes the arc, not the pace; every aim lands within 0.3 m. `tests/v123.py`.
 - Not yet: games don't all keep everything a new referee needs in their shared state (timers, bot plans). Each game's
   move onto the kit (2.5) checks that with a referee hand-over in its two-page test.
 
