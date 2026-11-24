@@ -261,6 +261,9 @@ The kit provides:
   paddle along your gaze at ~10 m/s; no swinging for the rest of the point, it lands on the court and is back in hand at
   the next serve. It must meet the ball (0.17 m); then 12% a lucky soft shot over, otherwise a raw glance (rules still
   apply). Desperate throws save the point ~1.3% of the time. Others see it via presence `pbt`. `tests/v121.py`.
+- v122: the paddle throw works any time you hold a paddle on court (it was rally-only and needed the ball's authority,
+  so it seemed to do nothing). Thrown mid-point it stays out till the point ends; otherwise it comes back once landed.
+  B / Y also count as jump for it; a buzz in the hand when it goes.
 - Not yet: games don't all keep everything a new referee needs in their shared state (timers, bot plans). Each game's
   move onto the kit (2.5) checks that with a referee hand-over in its two-page test.
 

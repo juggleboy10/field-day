@@ -369,7 +369,7 @@ window.addEventListener('error', function (e) {
   const FWD = new V3(0, 0, -1);
   const GRAVITY = 9.8;
   // which build this is (shown on the start screen and on the VR watch, so you can tell a fresh copy from a stale one)
-  const VERSION = 121;
+  const VERSION = 122;
   const PLAYER_COLORS = [
     { hex: '#4fc3f7', label: 'Sky blue' },
     { hex: '#ff5c8a', label: 'Pink' },
@@ -20196,7 +20196,7 @@ window.addEventListener('error', function (e) {
     const _tq = new Q4(), _tf = new V3();
     function throwPaddle() {
       const t = myPaddle();
-      if (!t || TH.on || PB.ph !== 'rally' || !iAmAuth()) return false;
+      if (!t || TH.on || PB.mySide < 0) return false;
       // where you're looking (in VR, your head; in a browser, the view), a little upward, about 10 m/s
       if (state.mode === 'vr') _tq.copy(myHead.quat); else camera.getWorldQuaternion(_tq);
       _tf.set(0, 0, -1).applyQuaternion(_tq);
@@ -20210,6 +20210,7 @@ window.addEventListener('error', function (e) {
       throwMesh.position.copy(TH.p); throwMesh.quaternion.copy(t.quat); throwMesh.visible = true;
       PB.swingHeld = false; PB.swingUntil = 0;
       sfx('whoosh', 0.5);
+      if (state.mode === 'vr') haptic(vrHands[t.held.side], 0.6, 60);
       forcePresence();
       return true;
     }
@@ -20534,7 +20535,7 @@ window.addEventListener('error', function (e) {
           const gp = (h) => h && h.source && h.source.gamepad, hb = gp(vrHands[t.held.side]);
           const trig = !!(hb && hb.buttons[0] && hb.buttons[0].pressed);
           let jump = false;
-          for (const sd of ['left', 'right']) { const g2 = gp(vrHands[sd]); if (g2 && g2.buttons[4] && g2.buttons[4].pressed) jump = true; }
+          for (const sd of ['left', 'right']) { const g2 = gp(vrHands[sd]); if (g2 && g2.buttons && [4, 5].some((k) => g2.buttons[k] && g2.buttons[k].pressed)) jump = true; }
           const rs = stickAxes(vrHands.right); if (rs && rs[1] < -0.75 && Math.abs(rs[0]) < 0.5) jump = true;
           combo = trig && jump;
         } else if (t && state.mode === 'flat') combo = !!state.keys.KeyJ && PB.swingHeld;
@@ -20542,7 +20543,9 @@ window.addEventListener('error', function (e) {
         TH.prev = combo;
       }
       if (TH.on) {
-        if (PB.pointSeq !== TH.seq && PB.ph !== 'dead' || PB.mySide < 0) throwReset();
+        // back in your hand at the next serve (thrown mid-point, it stays out until the point's over; thrown any other
+        // time, it comes back once it has landed)
+        if (PB.mySide < 0 || (PB.ph !== 'rally' && PB.ph !== 'dead' && (TH.landed || PB.pointSeq !== TH.seq))) throwReset();
         else { throwStep(dt, iAmAuth() && ballPrev ? ballPrev : null, PB.b); const t = myPaddle(); if (t) t.g.visible = false; }
       }
       for (const [peer, gh] of ghosts) {

@@ -85,6 +85,15 @@ with sync_playwright() as p:
     check("VR: the trigger alone or the jump alone doesn't throw", not vr["trigOnly"] and not vr["jumpOnly"], vr)
     check("VR: both together throws", vr["both"], vr)
     page.evaluate(f"(() => {{ const PB = {L}.pb; PB.ph = 'serve'; PB.pointSeq += 1; }})()"); page.wait_for_timeout(300)
+    page.wait_for_timeout(2500)
+    # before a serve too: it flies, lands, and comes straight back
+    page.evaluate(f"(() => {{ const PB = {L}.pb; PB.ph = 'serve'; PB.server = 1; }})()")
+    page.wait_for_timeout(200)
+    page.keyboard.down("Space"); page.wait_for_timeout(100); page.keyboard.down("KeyJ"); page.wait_for_timeout(80); page.keyboard.up("KeyJ"); page.keyboard.up("Space")
+    page.wait_for_timeout(150)
+    s1 = page.evaluate(f"{I}.TH.on")
+    page.wait_for_function(f"!{I}.TH.on", timeout=6000)
+    check("before a serve it throws too, and comes back once it lands", s1 and page.evaluate(f"{I}.paddles[0].g.visible"), s1)
 
     # ------------------------------------------------ meeting the ball
     # straight into the ball: it's hit, and sometimes (not always) goes over
