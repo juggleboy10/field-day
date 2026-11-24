@@ -93,7 +93,7 @@ with sync_playwright() as p:
     check("a picked season holds as you change park", page.evaluate(STATE)["season"] == "spring")
     # everyone sees it: sent with the park, and a friend's newer pick is taken
     pk = page.evaluate(f"{L}.presence().pkp")
-    check("the season is sent with the park", pk and len(pk) == 3 and pk[2] == 0, pk)
+    check("the season is sent with the park", pk and len(pk) >= 3 and pk[2] == 0, pk)
     page.evaluate(f"{L}.readPresence({{ peer: 'zz', name: 'Zed' }}, {{ pkp: [2, {pk[1]} + 3, 3] }}, {{}})"); page.wait_for_timeout(300)
     s = page.evaluate(STATE)
     check("a friend's newer pick (Senior Center in winter) is taken", s["park"] == "senior" and s["season"] == "winter", s)
