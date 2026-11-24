@@ -10,8 +10,8 @@
     const HL = 6.705, HW = 3.05, NET_H = 0.88, KITCH = 2.13, BR = 0.037;   // half length (x), half width (z)
     const GRAV = 9.8, DRAG = 0.085, WIN = 11, MAG = 0.5;   // (a holey plastic ball: quick off the paddle, then it dies)   // MAG: how hard spin bends the ball (Magnus)
     const SIDE_AIR = 0.4, SIDE_KICK = 2.1, TOP_AIR = 0.85;   // spin only bends it a little in the air; it mostly shows when it bounces
-    const R = { minX: -11, maxX: 11, minZ: -7, maxZ: 7 };
-    L.bounds = R;
+    const R = { minX: -11, maxX: 11, minZ: -7, maxZ: 7 };      // the court's fence: the ball, a thrown paddle and the bots stay inside
+    L.bounds = { ...R };                                          // where you can walk: the park round it (set by the park)
     BOTLV.on(L);   // the court bots: easy, normal (how they always played) or hard
     L.env = {
       sky: skyTexture([[0, '#5aa8e8'], [0.6, '#a8d8f8'], [1, '#f4f8e8']]),
@@ -103,6 +103,7 @@
       const P = PARKS[i];
       if (!P.group) { P.group = new THREE.Group(); G.add(P.group); const K = P.build(P.group, { HL, HW, R }); if (K) P.apply = K.apply; }
       for (const Q of PARKS) if (Q.group) Q.group.visible = Q === P;
+      Object.assign(L.bounds, P.bounds || R);    // (you can leave the court and look round the park)
       court.material.color.setHex(P.court[0]); kitchenMat.color.setHex(P.court[1]);
       applyLook();
       if (!quiet) { showToast(`Park: ${P.name} (${SEASONS[curSeason()].name.toLowerCase()})`); sfx('chime', 0.5); forcePresence(); }
@@ -115,13 +116,14 @@
     }
     const nextPark = () => setPark((park + 1) % PARKS.length, parkVer + 1);
     const nextSeason = () => setSeason((curSeason() + 1) % SEASONS.length, parkVer + 1);
+    Object.assign(L.bounds, PARKS[0].bounds);
     applyLook();
 
     // the singles / doubles switch, on a stand by the net post on the bench side, and the park switch beside it
     makeButton(L, new V3(0, 1.0, HW + 0.9), 0xffd23f, 'Singles / Doubles', () => setDoubles(!PB.dbl), { faceYaw: 0 });
-    makeButton(L, new V3(-2.4, 1.0, HW + 0.9), 0x8bd450, 'Change park', () => nextPark(), { faceYaw: 0 });
-    // the seasons, a row of buttons on the other side of the net post
-    SEASONS.forEach((S, k) => makeButton(L, new V3(2.0 + k * 0.85, 1.0, HW + 0.9), [0xff9ad0, 0xffd23f, 0xf2782a, 0x9af0ff][k], S.name, () => setSeason(k), { faceYaw: 0 }));
+    // the park and the seasons: further back, by the fence on the bench side, out of the way of play
+    makeButton(L, new V3(-2.2, 1.0, R.maxZ - 1.6), 0x8bd450, 'Change park', () => nextPark(), { faceYaw: Math.PI });
+    SEASONS.forEach((S, k) => makeButton(L, new V3(1.2 + k * 0.85, 1.0, R.maxZ - 1.6), [0xff9ad0, 0xffd23f, 0xf2782a, 0x9af0ff][k], S.name, () => setSeason(k), { faceYaw: Math.PI }));
     try { const u = new URLSearchParams(location.search), i = PARKS.findIndex((P) => P.id === u.get('park')), j = SEASONS.findIndex((S) => S.id === u.get('season')); if (j >= 0) season = j; if (i > 0) setPark(i, 1, true); else if (j >= 0) setSeason(j, 1, true); } catch (e) { /* ignore */ }
     // the scoreboard by the net post
     const scoreC = canvasTexture(640, 220);
@@ -820,8 +822,10 @@
       }
       return false;
     };
-    // stay on your own half while you play
+    // stay on your own half while you play; otherwise the whole park is yours to walk round
     L.clampPlayer = (p) => {
+      const playing = PB.mySide >= 0 && (PB.ph === 'serve' || PB.ph === 'rally' || PB.ph === 'dead');
+      if (!playing) { const B = L.bounds; return [clamp(p.x, B.minX + 0.4, B.maxX - 0.4) - p.x, clamp(p.z, B.minZ + 0.4, B.maxZ - 0.4) - p.z]; }
       let x = clamp(p.x, R.minX + 0.4, R.maxX - 0.4), z = clamp(p.z, R.minZ + 0.4, R.maxZ - 0.4);
       if (PB.mySide === 0) x = Math.min(x, -0.35); else if (PB.mySide === 1) x = Math.max(x, 0.35);
       return [x - p.x, z - p.z];
