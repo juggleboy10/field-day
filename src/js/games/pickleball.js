@@ -79,12 +79,15 @@
     const snowGeo = new THREE.BufferGeometry(); snowGeo.setAttribute('position', new THREE.BufferAttribute(snowPos, 3));
     const snow = new THREE.Points(snowGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.07, transparent: true, opacity: 0.9, depthWrite: false }));
     snow.visible = false; snow.frustumCulled = false; snow.userData.live = true; G.add(snow);
+    let WIND_SNOW = null;
     function snowStep(dt, now) {
       if (!snow.visible) return;
+      WIND_SNOW = windNow();
       for (let k = 0; k < SNOW_N; k++) {
         const i3 = k * 3;
         snowPos[i3 + 1] -= (0.6 + (k % 7) * 0.06) * dt;
         snowPos[i3] += Math.sin(now * 0.0008 + k) * 0.18 * dt;
+        if (WIND_SNOW) { snowPos[i3] += WIND_SNOW.x * 0.6 * dt; snowPos[i3 + 2] += WIND_SNOW.z * 0.6 * dt; if (snowPos[i3] > 16) snowPos[i3] -= 32; else if (snowPos[i3] < -16) snowPos[i3] += 32; if (snowPos[i3 + 2] > 12) snowPos[i3 + 2] -= 24; else if (snowPos[i3 + 2] < -12) snowPos[i3 + 2] += 24; }
         if (snowPos[i3 + 1] < 0) { snowPos[i3 + 1] += 14; snowPos[i3] = -16 + Math.random() * 32; }
       }
       snowGeo.attributes.position.needsUpdate = true;
@@ -112,9 +115,48 @@
       showBalls();
       court.material.color.setHex(P.court[0]); kitchenMat.color.setHex(P.court[1]);
       applyLook();
+      showWindBtn();
       if (!quiet) { showToast(`Park: ${P.name} (${SEASONS[curSeason()].name.toLowerCase()})`); sfx('chime', 0.5); forcePresence(); }
     }
-    // ---------------------------------------------------------------- shooting hoops, on a park's basketball court
+    // ---------------------------------------------------------------- the wind (College Park and the Senior Center)
+    // On or off by the fence. On, a breeze from one direction (picked when it's turned on), 1 to 3.5 m/s, gusting; the
+    // windsock on the court's north-west corner shows which way and how hard, and falling snow drifts with it.
+    let windOn = false, windDir = 0;
+    const WIND = new V3();
+    const windHere = () => windOn && park > 0;
+    function windNow() {
+      if (!windHere()) return null;
+      const t = performance.now() / 1000;
+      const sp = clamp(2.1 + 0.9 * Math.sin(t * 0.37) + 0.6 * Math.sin(t * 1.31 + 1.7) + 0.3 * Math.sin(t * 2.9), 1, 3.6);
+      const a = windDir + 0.22 * Math.sin(t * 0.21 + 0.4);
+      return WIND.set(Math.sin(a) * sp, 0, Math.cos(a) * sp);    // (the way it blows toward)
+    }
+    const COMPASS = ['north', 'north-east', 'east', 'south-east', 'south', 'south-west', 'west', 'north-west'];
+    // (where it blows from, as a compass point: -z is north)
+    const windFrom = () => COMPASS[(Math.round((Math.atan2(-Math.sin(windDir), Math.cos(windDir)) + Math.PI) / (Math.PI / 4)) + 8) % 8];
+    function setWind(on, dir, ver, quiet) {
+      windOn = !!on; if (dir !== undefined) windDir = dir; parkVer = Math.max(parkVer, ver || parkVer + 1);
+      state.hudDirty = true;
+      if (!quiet) { showToast(windOn ? `Wind on: from the ${windFrom()}, gusting` : 'Wind off'); sfx('whoosh', 0.6); forcePresence(); }
+    }
+    const toggleWind = () => { if (park === 0) { showToast('No wind at Sunny Courts'); return; } setWind(!windOn, windOn ? windDir : rand() * Math.PI * 2, parkVer + 1); };
+    // the windsock: a pole and an orange-and-white sock that swings round to point downwind and lifts with the speed
+    const sock = new THREE.Group(); sock.position.set(R.minX + 0.5, 0, R.minZ + 0.5); G.add(sock);
+    addCyl(sock, 0.035, 0.045, 4.2, 8, lam(0xc8ccd0), 0, 2.1, 0);
+    const sockHead = new THREE.Group(); sockHead.position.y = 4.15; sock.add(sockHead);
+    const sockTex = canvasTexture(128, 32, (g) => { for (let k = 0; k < 5; k++) { g.fillStyle = k % 2 ? '#f4f2ee' : '#f2782a'; g.fillRect(k * 25.6, 0, 25.6, 32); } }).tex;
+    const sockGeo = new THREE.CylinderGeometry(0.2, 0.08, 1.1, 14, 1, true); sockGeo.rotateZ(Math.PI / 2); sockGeo.translate(0.55, 0, 0);
+    const sockMesh = new THREE.Mesh(sockGeo, new THREE.MeshLambertMaterial({ map: sockTex, side: THREE.DoubleSide })); sockHead.add(sockMesh);
+    addCyl(sockHead, 0.21, 0.21, 0.04, 14, lam(0x9aa0a6), 0.01, 0, 0).rotation.z = Math.PI / 2;
+    sock.userData.live = true;
+    function windStep(now) {
+      sock.visible = park > 0;
+      const W = windNow(), sp = W ? Math.hypot(W.x, W.z) : 0;
+      // (no wind: it hangs straight down; full wind: nearly level, flapping)
+      const lift = W ? clamp(sp / 3.6, 0, 1) * 1.35 : 0;
+      if (W) sockHead.rotation.y = Math.atan2(-W.z, W.x);
+      sockMesh.rotation.z = -Math.PI / 2 + lift + (W ? Math.sin(now * 0.012) * 0.06 * lift : 0);
+    }
     // Basketballs wait on the court: pick one up (E, or a grip in VR) and shoot. In VR it goes as you throw it; in a
     // browser, look at a hoop and hold Space: about the right power for the distance drops it in, too much or too little
     // misses long or short. The rims and backboards are solid; a make swishes and counts.
@@ -238,6 +280,11 @@
     // the park and the seasons: further back, by the fence on the bench side, out of the way of play
     makeButton(L, new V3(-2.2, 1.0, R.maxZ - 1.6), 0x8bd450, 'Change park', () => nextPark(), { faceYaw: Math.PI });
     makeButton(L, new V3(-3.2, 1.0, R.maxZ - 1.6), 0x4fc3f7, 'Change court', () => nextCourt(), { faceYaw: Math.PI });
+    const windParts0 = G.children.length;
+    const windBtn = makeButton(L, new V3(-4.2, 1.0, R.maxZ - 1.6), 0xb8e0ff, 'Wind on / off', () => toggleWind(), { faceYaw: Math.PI });
+    const windParts = G.children.slice(windParts0);
+    function showWindBtn() { const on = park > 0; windBtn.off = !on; for (const o of windParts) o.visible = on; }
+    showWindBtn();
     SEASONS.forEach((S, k) => makeButton(L, new V3(1.2 + k * 0.85, 1.0, R.maxZ - 1.6), [0xff9ad0, 0xffd23f, 0xf2782a, 0x9af0ff][k], S.name, () => setSeason(k), { faceYaw: Math.PI }));
     try { const u = new URLSearchParams(location.search), i = PARKS.findIndex((P) => P.id === u.get('park')), j = SEASONS.findIndex((S) => S.id === u.get('season')); if (j >= 0) season = j; if (i > 0) setPark(i, 1, true); else if (j >= 0) setSeason(j, 1, true); } catch (e) { /* ignore */ }
     // the scoreboard by the net post
@@ -457,7 +504,7 @@
       const b = PB.b;
       if (PB.ph !== 'rally') return;
       const sp = Math.hypot(b.vx, b.vy, b.vz);
-      airStep(b, h, sp);
+      airStep(b, h, sp, windNow());
       const px = b.x;
       b.x += b.vx * h; b.y += b.vy * h; b.z += b.vz * h;
       if ((px < 0) !== (b.x < 0) && b.y < NET_H + BR && Math.abs(b.z) < HW + 0.3) { b.x = px < 0 ? -BR : BR; b.vx *= -0.1; b.vz *= 0.4; tone(220, 0, 0.06, 'triangle', 0.1); }
@@ -500,10 +547,13 @@
     }
     // drag, gravity and spin over one small step. Spin (w, at most 1 long) pushes the ball along w x v: topspin dips it,
     // backspin floats it, sidespin curves it. It wears off slowly in the air.
-    function airStep(p, h, sp) {
+    // (W: the wind, for the real ball only: the drag works on the ball's speed through the air, so a breeze pushes it.
+    // The aim help and the bots' guesses fly it without, so the wind is yours to play)
+    function airStep(p, h, sp, W) {
       const wx = p.wx || 0, wy = p.wy || 0, wz = p.wz || 0, ws = wy * SIDE_AIR, tx = wx * TOP_AIR, tz = wz * TOP_AIR;
       const ax = MAG * (ws * p.vz - tz * p.vy), ay = MAG * (tz * p.vx - tx * p.vz), az = MAG * (tx * p.vy - ws * p.vx);
-      p.vx += (ax - DRAG * sp * p.vx) * h; p.vy += (ay - GRAV - DRAG * sp * p.vy) * h; p.vz += (az - DRAG * sp * p.vz) * h;
+      const rx = W ? p.vx - W.x : p.vx, rz = W ? p.vz - W.z : p.vz, rs = W ? Math.hypot(rx, p.vy, rz) : sp;
+      p.vx += (ax - DRAG * rs * rx) * h; p.vy += (ay - GRAV - DRAG * rs * p.vy) * h; p.vz += (az - DRAG * rs * rz) * h;
       if (wx || wy || wz) { const f = 1 - 0.12 * h; p.wx = wx * f; p.wy = wy * f; p.wz = wz * f; }
     }
     // on the bounce the ball loses a lot of pace (it's a light plastic ball): topspin kicks on through, keeping most of
@@ -1040,6 +1090,7 @@
       } else if (PB.ph === 'rally') { simOnly = true; for (let k = 0; k < steps; k++) stepBall(h); simOnly = false; prevPC = null; }
       botStep(dt, now);
       snowStep(dt, now);
+      windStep(now);
       // throwing: jump + trigger on the paddle's hand in VR; J while holding Space in a browser
       {
         const t = myPaddle(); let combo = false;
@@ -1079,14 +1130,15 @@
     const PHC = { idle: 0, serve: 1, rally: 2, dead: 3 }, PHN = ['idle', 'serve', 'rally', 'dead'];
     const r3 = (x) => Math.round(x * 1000) / 1000;
     L.presence = () => {
-      if (PB.mySide < 0) return { pkp: [park, parkVer, season, PARKS[park].courtAt || 0] };   // (the park, even when you're not playing)
+      if (PB.mySide < 0) return { pkp: [park, parkVer, season, PARKS[park].courtAt || 0, windOn ? 1 : 0, Math.round(windDir * 1000)] };   // (the park, even when you're not playing)
       const b = PB.b, bm = botSlots().reduce((m, sl) => m | (1 << sl), 0);
       const pbt = TH.on ? [r3(TH.p.x), r3(TH.p.y), r3(TH.p.z), r3(throwMesh.quaternion.x), r3(throwMesh.quaternion.y), r3(throwMesh.quaternion.z), r3(throwMesh.quaternion.w)] : null;
-      return { pbt, pkp: [park, parkVer, season, PARKS[park].courtAt || 0], pb: [PB.mySide, PB.ver, PB.auth, r3(b.x), r3(b.y), r3(b.z), r3(b.vx), r3(b.vy), r3(b.vz), PHC[PB.ph], PB.server, PB.lastHit, PB.need, PB.bounced ? 1 : 0, PB.hits, PB.score[0], PB.score[1], PB.pointSeq, PB.winner, bm, 0, 0, r3(PB.serveFromZ || 0), r3(b.wx || 0), r3(b.wy || 0), r3(b.wz || 0), PB.mySlot, PB.dbl ? 1 : 0, ...BOTS.flatMap((o) => [r3(o.x), r3(o.z)])] };
+      return { pbt, pkp: [park, parkVer, season, PARKS[park].courtAt || 0, windOn ? 1 : 0, Math.round(windDir * 1000)], pb: [PB.mySide, PB.ver, PB.auth, r3(b.x), r3(b.y), r3(b.z), r3(b.vx), r3(b.vy), r3(b.vz), PHC[PB.ph], PB.server, PB.lastHit, PB.need, PB.bounced ? 1 : 0, PB.hits, PB.score[0], PB.score[1], PB.pointSeq, PB.winner, bm, 0, 0, r3(PB.serveFromZ || 0), r3(b.wx || 0), r3(b.wy || 0), r3(b.wz || 0), PB.mySlot, PB.dbl ? 1 : 0, ...BOTS.flatMap((o) => [r3(o.x), r3(o.z)])] };
     };
     L.readPresence = (rec, pres, st) => {
       const pk = pres.pkp;
-      if (Array.isArray(pk) && pk.length >= 2 && pk.length <= 4 && Number.isInteger(pk[0]) && Number.isInteger(pk[1]) && pk[1] > parkVer && pk[1] < 1e6) {
+      if (Array.isArray(pk) && pk.length >= 2 && pk.length <= 6 && Number.isInteger(pk[0]) && Number.isInteger(pk[1]) && pk[1] > parkVer && pk[1] < 1e6) {
+        if (pk.length === 6 && (pk[4] === 0 || pk[4] === 1) && Number.isInteger(pk[5]) && Math.abs(pk[5]) < 7000) setWind(pk[4] === 1, pk[5] / 1000, pk[1], true);
         if (pk.length >= 3 && Number.isInteger(pk[2]) && pk[2] >= -1 && pk[2] < SEASONS.length) season = pk[2];
         if (pk.length === 4 && Number.isInteger(pk[3]) && pk[3] >= 0 && pk[3] < 9 && PARKS[pk[0]]) PARKS[pk[0]].courtAt = pk[3];
         setPark(pk[0], pk[1], true);
@@ -1128,10 +1180,11 @@
       { label: () => `Park: ${PARKS[park].name} \u25b8`, show: () => true, run: () => nextPark() },
       { label: () => `Season: ${SEASONS[curSeason()].name} \u25b8`, show: () => true, run: () => nextSeason() },
       { label: () => `Court: ${(PARKS[park].courtAt || 0) + 1} of ${courtCount()} \u25b8`, show: () => courtCount() > 1, run: () => nextCourt() },
+      { label: () => `Wind: ${windOn ? 'on' : 'off'} \u25b8`, show: () => park > 0, run: () => toggleWind() },
       { label: () => (PB.dbl ? 'Doubles \u25b8' : 'Singles \u25b8'), run: () => setDoubles(!PB.dbl) },
       { label: () => 'New game', show: () => PB.mySide >= 0 && humans().length === 1, run: () => { newGame(); showToast(`New game against the court bots. First to ${WIN}, win by 2`); } },
     ];
-    PB.internals = { hoopsMade: () => hoopsMade, stripeKick, setCourt, courtOff, crackKick, setSeason, season: () => curSeason(), snow, SEASONS, setPark, park: () => park, parkVer: () => parkVer, PARKS, botHit: (bt, serve) => botHit(bt, serve), TH, throwPaddle, throwStep, throwMesh, ghosts, ballMesh, spinBall, vrPaddle: (dt, steps, b0) => { ballPrev = b0 || null; vrPaddle(dt, steps); }, resetSwing: () => { prevPC = null; }, bounceSpin, airStep, predictLanding, botStep, SPINS, deskHit: (now) => deskHit(now), HL, HW, KITCH, NET_H, paddles, takeSide, takeSlot, setDoubles, slots, botSlots, BOTS, serverSlot, responsible, authFor, homeZ, leaveCourt, newGame, startServe, onHit, onBounce, stepBall, hitBall, aimed, clearNet, flyTo, target, players, botSide, iAmAuth, serveZ };
+    PB.internals = { setWind, toggleWind, windNow, wind: () => ({ on: windOn, dir: windDir }), sock, sockMesh, sockHead, windBtn, hoopsMade: () => hoopsMade, stripeKick, setCourt, courtOff, crackKick, setSeason, season: () => curSeason(), snow, SEASONS, setPark, park: () => park, parkVer: () => parkVer, PARKS, botHit: (bt, serve) => botHit(bt, serve), TH, throwPaddle, throwStep, throwMesh, ghosts, ballMesh, spinBall, vrPaddle: (dt, steps, b0) => { ballPrev = b0 || null; vrPaddle(dt, steps); }, resetSwing: () => { prevPC = null; }, bounceSpin, airStep, predictLanding, botStep, SPINS, deskHit: (now) => deskHit(now), HL, HW, KITCH, NET_H, paddles, takeSide, takeSlot, setDoubles, slots, botSlots, BOTS, serverSlot, responsible, authFor, homeZ, leaveCourt, newGame, startServe, onHit, onBounce, stepBall, hitBall, aimed, clearNet, flyTo, target, players, botSide, iAmAuth, serveZ };
     // End game: start over at 0-0 with whoever's on the court
     ENDGAME.on(L, { shared: true, active: () => PB.mySlot >= 0 && PB.ph !== 'idle', end: () => { if (PB.mySlot < 0) return ''; newGame(); PB.opp = oppKey(); PB.ver += 20; forcePresence(); return 'Starting over at 0-0.'; } });
     return L;
