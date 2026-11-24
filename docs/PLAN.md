@@ -268,6 +268,12 @@ The kit provides:
   topspin of the pace (was 0.82 + 0.14); topspin kicks through, backspin checks up low. TOP_AIR 0.55 -> 0.85, more
   spin from VR brushing (0.36) and the desk spins (1 / 0.9). Speed cap 24. `aimed` now holds the flight time
   (distance by pace, time by lift), so spin changes the arc, not the pace; every aim lands within 0.3 m. `tests/v123.py`.
+- v124 boss fights (quest-engine.js, all five quests): `ANNOUNCE.banner(text, sub, kind)` for the boss's arrival
+  (name + title from `boss.name/title`), rage and fall; `#boss-bar` above the hint row. Arena hazards (`L.hazards`,
+  host-picked, sent as `dh.z` [id, x, z, ms left]): a circle fills for 1.3 s, then a themed strike (`boss.hazardColor`
+  or by proj) costs a heart inside 1.4 m; every 7.5 s (4.2 s enraged), one on each player in the arena plus extras.
+  At half health (`e.enr`, sent as e[12]): st 6 roar 1.8 s, red glow, x1.12 size, summons at once, speed and charge x1.35,
+  windup x0.75, cooldown x0.7, barrage +2, and st 7 crouch-then-charge from range. `tests/v124.py`.
 - Not yet: games don't all keep everything a new referee needs in their shared state (timers, bot plans). Each game's
   move onto the kit (2.5) checks that with a referee hand-over in its two-page test.
 
