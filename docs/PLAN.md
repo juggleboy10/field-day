@@ -295,6 +295,10 @@ The kit provides:
   button and a HUD action; sent as pkp[3]. College Park: three courts in one fence, gates north and south, the giant
   line (0.254 m wide, gate to gate, x -3.2), and the crack in the middle court (`crackKick`: a bounce within 8 cm of it
   turns 4-10 degrees, vy x 0.8-1.15). Senior Center: six courts. `tests/v129.py`.
+- v130 College Park: the path comes round the west side of the courts and turns left through an opening into the north
+  court (the one nearest the walkway); the stripe is white, raised 1 cm, 0.254 m wide, across the middle court fence to
+  fence (`stripeKick`: a bounce on it goes 5-15% higher and 1-3 degrees off); you walk about twice as fast off the court
+  (`L.walkSpeed` getter: 6.5 / 5 VR, 3 / 2.6 in a game). `tests/v130.py`.
 - Not yet: games don't all keep everything a new referee needs in their shared state (timers, bot plans). Each game's
   move onto the kit (2.5) checks that with a referee hand-over in its two-page test.
 
