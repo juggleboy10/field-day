@@ -101,7 +101,7 @@
       if (!(i >= 0 && i < PARKS.length)) return;
       park = i; parkVer = Math.max(parkVer, ver || parkVer + 1);
       const P = PARKS[i];
-      if (!P.group) { P.group = new THREE.Group(); G.add(P.group); const K = P.build(P.group, { HL, HW, R }); if (K) P.apply = K.apply; }
+      if (!P.group) { P.group = new THREE.Group(); G.add(P.group); const K = P.build(P.group, { HL, HW, R }); if (K) { P.apply = K.apply; P.crack = K.crack || null; } }
       for (const Q of PARKS) if (Q.group) Q.group.visible = Q === P;
       Object.assign(L.bounds, P.bounds || R);    // (you can leave the court and look round the park)
       court.material.color.setHex(P.court[0]); kitchenMat.color.setHex(P.court[1]);
@@ -349,11 +349,27 @@
       if (b.y < BR && b.vy < 0) {
         bounceSpin(b);
         tick(0.6);
+        if (!simOnly) crackKick(b);
         if (!simOnly) onBounce(b.x, b.z);
       }
       if (Math.abs(b.x) > R.maxX - 0.2 || Math.abs(b.z) > R.maxZ - 0.2) { b.vx *= -0.3; b.vz *= -0.3; b.x = clamp(b.x, R.minX + 0.2, R.maxX - 0.2); b.z = clamp(b.z, R.minZ + 0.2, R.maxZ - 0.2); }
       // a ball that has stopped is dead
       if (!simOnly && PB.ph === 'rally' && b.y < BR + 0.01 && sp < 0.6) { if (PB.bounced) point(PB.lastHit, 'Missed it'); else point(1 - PB.lastHit, 'Out'); }
+    }
+    // a crack in the court (College Park): a ball that lands on it kicks off a few degrees one way or the other, and a
+    // little higher or lower. (Bots can't see it coming either.)
+    const _onCrack = (x, z, C) => { for (let k = 0; k < C.length - 1; k++) {
+      const [x0, z0] = C[k], [x1, z1] = C[k + 1], dx = x1 - x0, dz = z1 - z0, t = clamp(((x - x0) * dx + (z - z0) * dz) / (dx * dx + dz * dz), 0, 1);
+      if (Math.hypot(x - (x0 + dx * t), z - (z0 + dz * t)) < 0.08) return true; } return false; };
+    function crackKick(b) {
+      const C = PARKS[park].crack;
+      if (!C || !_onCrack(b.x, b.z, C)) return false;
+      const a = (rand() < 0.5 ? -1 : 1) * (0.07 + rand() * 0.11), c = Math.cos(a), sn = Math.sin(a);   // (4 to 10 degrees)
+      const vx = b.vx * c - b.vz * sn, vz = b.vx * sn + b.vz * c;
+      b.vx = vx; b.vz = vz; b.vy *= 0.8 + rand() * 0.35;
+      tone(330, 180, 0.05, 'square', 0.12);
+      PB.crackHits = (PB.crackHits || 0) + 1;
+      return true;
     }
     // drag, gravity and spin over one small step. Spin (w, at most 1 long) pushes the ball along w x v: topspin dips it,
     // backspin floats it, sidespin curves it. It wears off slowly in the air.
@@ -984,7 +1000,7 @@
       { label: () => (PB.dbl ? 'Doubles \u25b8' : 'Singles \u25b8'), run: () => setDoubles(!PB.dbl) },
       { label: () => 'New game', show: () => PB.mySide >= 0 && humans().length === 1, run: () => { newGame(); showToast(`New game against the court bots. First to ${WIN}, win by 2`); } },
     ];
-    PB.internals = { setSeason, season: () => curSeason(), snow, SEASONS, setPark, park: () => park, parkVer: () => parkVer, PARKS, botHit: (bt, serve) => botHit(bt, serve), TH, throwPaddle, throwStep, throwMesh, ghosts, ballMesh, spinBall, vrPaddle: (dt, steps, b0) => { ballPrev = b0 || null; vrPaddle(dt, steps); }, resetSwing: () => { prevPC = null; }, bounceSpin, airStep, predictLanding, botStep, SPINS, deskHit: (now) => deskHit(now), HL, HW, KITCH, NET_H, paddles, takeSide, takeSlot, setDoubles, slots, botSlots, BOTS, serverSlot, responsible, authFor, homeZ, leaveCourt, newGame, startServe, onHit, onBounce, stepBall, hitBall, aimed, clearNet, flyTo, target, players, botSide, iAmAuth, serveZ };
+    PB.internals = { crackKick, setSeason, season: () => curSeason(), snow, SEASONS, setPark, park: () => park, parkVer: () => parkVer, PARKS, botHit: (bt, serve) => botHit(bt, serve), TH, throwPaddle, throwStep, throwMesh, ghosts, ballMesh, spinBall, vrPaddle: (dt, steps, b0) => { ballPrev = b0 || null; vrPaddle(dt, steps); }, resetSwing: () => { prevPC = null; }, bounceSpin, airStep, predictLanding, botStep, SPINS, deskHit: (now) => deskHit(now), HL, HW, KITCH, NET_H, paddles, takeSide, takeSlot, setDoubles, slots, botSlots, BOTS, serverSlot, responsible, authFor, homeZ, leaveCourt, newGame, startServe, onHit, onBounce, stepBall, hitBall, aimed, clearNet, flyTo, target, players, botSide, iAmAuth, serveZ };
     // End game: start over at 0-0 with whoever's on the court
     ENDGAME.on(L, { shared: true, active: () => PB.mySlot >= 0 && PB.ph !== 'idle', end: () => { if (PB.mySlot < 0) return ''; newGame(); PB.opp = oppKey(); PB.ver += 20; forcePresence(); return 'Starting over at 0-0.'; } });
     return L;
