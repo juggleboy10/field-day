@@ -287,6 +287,9 @@ The kit provides:
   ground texture by season (snow in winter), leafy crowns on the bare trees (blossom in spring, four fall palettes,
   none in winter), snow caps on the pines, leaves (fall), flowers (spring); falling snow (Points) round the court in
   winter; sky and light from `PB_PARKS.SEASONS`. ?season=winter. `tests/v127.py`.
+- v128: College Park as you walk in from Rice Dr: the courts off to your right, the playground (x1.5) on your left;
+  the basketball court turned to run north-south; the park and season buttons back by the fence (z R.maxZ - 1.6);
+  walk round each park (`bounds` per park) when you're not in a game (in a game you stay on your half). `tests/v128.py`.
 - Not yet: games don't all keep everything a new referee needs in their shared state (timers, bot plans). Each game's
   move onto the kit (2.5) checks that with a referee hand-over in its two-page test.
 
