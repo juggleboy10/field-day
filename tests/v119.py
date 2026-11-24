@@ -79,7 +79,7 @@ with sync_playwright() as p:
 
     # ------------------------------------------------ VR: the swing's pace
     vr = page.evaluate(f"""(() => {{ const I = {I}, HL = I.HL, out = [];
-      for (const sp of [3.5, 9, 18]) {{ const deep = HL * (0.22 + sp / 19); out.push(deep); }} return out; }})()""")
+      for (const sp of [3.5, 9, 14]) {{ const deep = HL * (0.18 + sp / 16); out.push(deep); }} return out; }})()""")
     check("VR: a gentle push is short, a firm one in, a smash long", vr[0] < 3 and 3.5 < vr[1] < 6.4 and vr[2] > 6.8, vr)
 
     # ------------------------------------------------ bounce and curve

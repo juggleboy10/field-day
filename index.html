@@ -379,7 +379,7 @@ window.addEventListener('error', function (e) {
   const FWD = new V3(0, 0, -1);
   const GRAVITY = 9.8;
   // which build this is (shown on the start screen and on the VR watch, so you can tell a fresh copy from a stale one)
-  const VERSION = 124;
+  const VERSION = 125;
   const PLAYER_COLORS = [
     { hex: '#4fc3f7', label: 'Sky blue' },
     { hex: '#ff5c8a', label: 'Pink' },
@@ -20253,10 +20253,10 @@ window.addEventListener('error', function (e) {
           PB.b.x = at.x; PB.b.y = Math.max(BR, at.y); PB.b.z = at.z;
           vb.addScaledVector(n, -1.8 * vn);
           // your swing sets the pace and direction; the help keeps it in the court
-          // (a gentle push lands short; a smash, past about 15 m/s off the paddle, sails long)
+          // (a gentle push lands short; a hard hit, past about 13 m/s off the paddle, sails long)
           const speed = clamp(Math.hypot(vb.x, vb.z), 3, 20);
           const tg = target(PB.mySide, HL * clamp(0.35 + speed / 22, 0.45, 0.92), PB.b.z + vb.z * 0.35);
-          const keepIn = powerDepth(tg, HL * (0.22 + speed / 19));
+          const keepIn = powerDepth(tg, HL * (0.18 + speed / 16));
           // brushing up the back of the ball gives topspin, chopping down gives backspin, across gives sidespin
           const vt = vp.clone().addScaledVector(_pn, -vp.dot(_pn)), dOut = vb.clone().normalize();
           const w = vt.cross(dOut).multiplyScalar(0.36); if (w.length() > 1) w.normalize();
@@ -20300,9 +20300,9 @@ window.addEventListener('error', function (e) {
       let wx, wz;
       if (dir.y < -0.02) { const tt = -_cp.y / dir.y; wx = _cp.x + dir.x * tt; wz = _cp.z + dir.z * tt; }
       const tg = target(PB.mySide, wx === undefined ? undefined : Math.abs(wx), wz);
-      const speed = PB.ph === 'serve' ? 5.5 + pow * 4 : 5 + pow * 7;   // (the pace it's aimed with: drag adds the rest)
+      const speed = PB.ph === 'serve' ? 9 + pow * 4 : 5 + pow * 7;   // (the pace it's aimed with: drag adds the rest)
       // about half a second of holding lands where you look; a tap drops it short, a full second sends it long
-      const keepIn = powerDepth(tg, Math.abs(tg.x) * (0.4 + 1.2 * pow));
+      const keepIn = powerDepth(tg, Math.abs(tg.x) * (0.4 + 1.3 * pow));
       // the spin you picked, turned to suit the direction of the shot (sidespin's sign is which way it curves)
       const hx = tg.x - b.x, hz = tg.z - b.z, hl = Math.hypot(hx, hz) || 1, ux = hx / hl, uz = hz / hl;
       const m = PB.spinMode, w = m === 1 ? [1 * uz, 0, -1 * ux] : m === 2 ? [-0.9 * uz, 0, 0.9 * ux] : m === 3 ? [0, 0.8, 0] : m === 4 ? [0, -0.8, 0] : [0, 0, 0];
@@ -20503,7 +20503,13 @@ window.addEventListener('error', function (e) {
       const lv = BOTLV.get(L), s = sideOf(bt.sl), wild = !serve && rand() < [0.12, 0.08, 0.03][lv];
       const tg = target(s, HL * (wild ? 1.08 + rand() * 0.15 : [0.42, 0.5, 0.62][lv] + rand() * [0.35, 0.4, 0.3][lv]), (rand() - 0.5) * (HW * 2 - [1.4, 1, 0.7][lv]));
       const sc = [0.8, 0.6, 0.3][lv];
-      hitBall(s, aimed(PB.b, tg.x + (rand() - 0.5) * sc, tg.z + (rand() - 0.5) * sc, serve ? [6.3, 7, 7.8][lv] : [6, 7, 8.4][lv] + rand() * 3), bt.sl);
+      // a bit of spin, like a real player: mostly topspin drives, some backspin, the odd slice (better bots put more on)
+      const ax = tg.x - PB.b.x, az = tg.z - PB.b.z, al = Math.hypot(ax, az) || 1, ux = ax / al, uz = az / al;
+      const amt = [0.35, 0.5, 0.65][lv] * (0.6 + rand() * 0.4), roll = rand();
+      const w = serve ? (roll < 0.6 ? [0.4 * amt * uz, 0, -0.4 * amt * ux] : [0, (rand() < 0.5 ? 1 : -1) * 0.5 * amt, 0])
+        : roll < 0.5 ? [amt * uz, 0, -amt * ux] : roll < 0.8 ? [-0.9 * amt * uz, 0, 0.9 * amt * ux] : [0, (rand() < 0.5 ? 1 : -1) * 0.7 * amt, 0];
+      // (the pace it's aimed with: a serve arcs to about 2 m, a drive less)
+      hitBall(s, aimed(PB.b, tg.x + (rand() - 0.5) * sc, tg.z + (rand() - 0.5) * sc, serve ? [11, 11.8, 12.5][lv] : [8, 9, 10][lv] + rand() * 2.5, w), bt.sl);
       bt.swingT = performance.now(); for (const o of BOTS) o.decided = false;
     }
 
@@ -20736,7 +20742,7 @@ window.addEventListener('error', function (e) {
       { label: () => (PB.dbl ? 'Doubles \u25b8' : 'Singles \u25b8'), run: () => setDoubles(!PB.dbl) },
       { label: () => 'New game', show: () => PB.mySide >= 0 && humans().length === 1, run: () => { newGame(); showToast(`New game against the court bots. First to ${WIN}, win by 2`); } },
     ];
-    PB.internals = { TH, throwPaddle, throwStep, throwMesh, ghosts, ballMesh, spinBall, vrPaddle: (dt, steps, b0) => { ballPrev = b0 || null; vrPaddle(dt, steps); }, resetSwing: () => { prevPC = null; }, bounceSpin, airStep, predictLanding, botStep, SPINS, deskHit: (now) => deskHit(now), HL, HW, KITCH, NET_H, paddles, takeSide, takeSlot, setDoubles, slots, botSlots, BOTS, serverSlot, responsible, authFor, homeZ, leaveCourt, newGame, startServe, onHit, onBounce, stepBall, hitBall, aimed, clearNet, flyTo, target, players, botSide, iAmAuth, serveZ };
+    PB.internals = { botHit: (bt, serve) => botHit(bt, serve), TH, throwPaddle, throwStep, throwMesh, ghosts, ballMesh, spinBall, vrPaddle: (dt, steps, b0) => { ballPrev = b0 || null; vrPaddle(dt, steps); }, resetSwing: () => { prevPC = null; }, bounceSpin, airStep, predictLanding, botStep, SPINS, deskHit: (now) => deskHit(now), HL, HW, KITCH, NET_H, paddles, takeSide, takeSlot, setDoubles, slots, botSlots, BOTS, serverSlot, responsible, authFor, homeZ, leaveCourt, newGame, startServe, onHit, onBounce, stepBall, hitBall, aimed, clearNet, flyTo, target, players, botSide, iAmAuth, serveZ };
     // End game: start over at 0-0 with whoever's on the court
     ENDGAME.on(L, { shared: true, active: () => PB.mySlot >= 0 && PB.ph !== 'idle', end: () => { if (PB.mySlot < 0) return ''; newGame(); PB.opp = oppKey(); PB.ver += 20; forcePresence(); return 'Starting over at 0-0.'; } });
     return L;
