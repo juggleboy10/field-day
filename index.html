@@ -379,7 +379,7 @@ window.addEventListener('error', function (e) {
   const FWD = new V3(0, 0, -1);
   const GRAVITY = 9.8;
   // which build this is (shown on the start screen and on the VR watch, so you can tell a fresh copy from a stale one)
-  const VERSION = 128;
+  const VERSION = 129;
   const PLAYER_COLORS = [
     { hex: '#4fc3f7', label: 'Sky blue' },
     { hex: '#ff5c8a', label: 'Pink' },
@@ -19876,6 +19876,20 @@ window.addEventListener('error', function (e) {
       line(-K, 0, 0.05, HW * 2); line(K, 0, 0.05, HW * 2);
       line(-(K + HL) / 2, 0, HL - K, 0.05); line((K + HL) / 2, 0, HL - K, 0.05);
     }
+    // one of a park's courts (surface, kitchens, lines, net and posts) as a group of its own, baked into a few meshes. The
+    // one you're playing on is hidden (the game's own court is drawn there instead).
+    function decoCourt(parent, cx, cz, HL, HW, colors, white, netMat) {
+      const g = new THREE.Group(); g.position.set(cx, 0, cz); parent.add(g);
+      flat(g, HL * 2, HW * 2, lam(colors[0]), 0, 0.004, 0);
+      for (const sx of [-1, 1]) flat(g, 2.13, HW * 2, lam(colors[1]), sx * 1.065, 0.006, 0);
+      pbLines(g, 0, 0, HL, HW, white);
+      const n = new THREE.Mesh(new THREE.PlaneGeometry(HW * 2 + 0.6, 0.88), netMat); n.rotation.y = Math.PI / 2; n.position.set(0, 0.44, 0); g.add(n);
+      addBox(g, 0.04, 0.05, HW * 2 + 0.6, white, 0, 0.88, 0);
+      for (const sz of [-1, 1]) addCyl(g, 0.04, 0.04, 0.94, 8, lam(0x2b2d42), 0, 0.47, sz * (HW + 0.3));
+      mergeStatic(g);
+      g.userData.live = true;     // (so the park's own merge leaves it be: it's shown and hidden)
+      return g;
+    }
     // a gabled house: walls, a roof (a three-sided prism), a door and windows, facing +z when yaw is 0
     // (a three-sided prism along x, its ridge up: the apex at y 1, the base at y -0.5, z from -0.87 to 0.87)
     const roofGeo = (() => { const g = new THREE.CylinderGeometry(1, 1, 1, 3, 1); g.rotateZ(Math.PI / 2); g.rotateX(-Math.PI / 2); return g; })();
@@ -19976,18 +19990,27 @@ window.addEventListener('error', function (e) {
       // ---- ground (its grass, or snow, comes with the season)
       K.ground(flat(P, 300, 300, new THREE.MeshLambertMaterial({ map: seasonGround(2) }), 0, -0.01, -20));
       const asphalt = lam(0x6e7276), concrete = lam(0xb8b6ae);
-      // ---- the courts: ours (fenced, light blue-grey surround), the one beside it, and the basketball court
-      flat(P, 24, 15, lam(0x6a7e92), 0, 0.001, 0);              // our surround
-      flat(P, 24, 15, lam(0x6a7e92), 0, 0.001, 14.5);           // the second court's surround
-      flat(P, HL * 2, HW * 2, lam(0x3f7a5a), 0, 0.004, 14.5);
-      for (const sx of [-1, 1]) flat(P, 2.13, HW * 2, lam(0x4c8a66), sx * 1.065, 0.006, 14.5);
+      // ---- the courts: three side by side in one fence (light blue-grey round them), ours in the middle
+      const CZ = 14.5, FZ = 22;      // (the other two courts' centres are at -CZ and +CZ; the outer fence at -FZ and +FZ)
+      flat(P, 24, FZ * 2 + 0.6, lam(0x6a7e92), 0, 0.001, 0);
       const white = new THREE.MeshBasicMaterial({ color: 0xffffff });
-      pbLines(P, 0, 14.5, HL, HW, white);
-      // its net and posts
-      const net2 = new THREE.Mesh(new THREE.PlaneGeometry(HW * 2 + 0.6, 0.88), new THREE.MeshLambertMaterial({ color: 0x1b1932, transparent: true, opacity: 0.55, side: THREE.DoubleSide }));
-      net2.rotation.y = Math.PI / 2; net2.position.set(0, 0.44, 14.5); P.add(net2);
-      addBox(P, 0.04, 0.05, HW * 2 + 0.6, white, 0, 0.88, 14.5);
-      for (const sz of [-1, 1]) addCyl(P, 0.04, 0.04, 0.94, 8, lam(0x2b2d42), 0, 0.47, 14.5 + sz * (HW + 0.3));
+      const netMat2 = new THREE.MeshLambertMaterial({ color: 0x1b1932, transparent: true, opacity: 0.55, side: THREE.DoubleSide });
+      // (every court, the middle one included: you can play on any of them)
+      K.courts = [[0, -CZ], [0, 0], [0, CZ]]; K.home = 1; K.courtNames = ['north court', 'middle court', 'south court'];
+      K.courtGroups = K.courts.map(([cx, cz]) => decoCourt(P, cx, cz, HL, HW, [0x3f7a5a, 0x4c8a66], white, netMat2));
+      // the giant line: a stripe about 10 inches (0.25 m) wide, straight through the middle of all three courts, from the
+      // north gate to the south gate (just for fun: it doesn't change the bounce)
+      const LINE_X = -3.2, GATE_W = 1.6;
+      addBox(P, 0.254, 0.003, FZ * 2, lam(0x26282c), LINE_X, 0.0105, 0);
+      // and the crack in our court: a jagged split across the east service boxes. A ball that lands on it kicks off at
+      // a slightly different angle (see pickleball.js)
+      const CRACK = [[2.6, -2.7], [3.0, -2.1], [3.5, -1.8], [3.8, -1.0], [4.5, -0.6], [4.9, 0.3], [5.4, 0.7], [5.6, 1.6], [6.1, 2.2]];
+      const crackMat = lam(0x202224);
+      for (let k = 0; k < CRACK.length - 1; k++) {
+        const [x0, z0] = CRACK[k], [x1, z1] = CRACK[k + 1], len = Math.hypot(x1 - x0, z1 - z0);
+        const m = addBox(P, len + 0.02, 0.002, 0.035, crackMat, (x0 + x1) / 2, 0.0108, (z0 + z1) / 2); m.rotation.y = -Math.atan2(z1 - z0, x1 - x0);
+      }
+      for (const [x, z, l, a] of [[3.7, -1.2, 0.4, 0.6], [4.8, 0.1, 0.35, -2.4], [5.5, 1.2, 0.3, 0.9]]) { const m = addBox(P, l, 0.002, 0.022, crackMat, x + Math.cos(a) * l / 2, 0.0108, z + Math.sin(a) * l / 2); m.rotation.y = -a; }
       // the basketball court: navy round the edge, green inside, white lines, east of the courts, its length running north-south
       const BX = 25, BZ = 8, BL = 11, BW = 7;      // centre and half sizes (BL along its length, which runs north-south)
       const bb = new THREE.Group(); bb.position.set(BX, 0, BZ); bb.rotation.y = Math.PI / 2; P.add(bb);
@@ -20016,15 +20039,19 @@ window.addEventListener('error', function (e) {
       const linkTex = canvasTexture(64, 64, (g) => { g.clearRect(0, 0, 64, 64); g.strokeStyle = '#1e2024'; g.lineWidth = 3.2; g.beginPath(); g.moveTo(0, 0); g.lineTo(64, 64); g.moveTo(64, 0); g.lineTo(0, 64); g.stroke(); }).tex;
       linkTex.wrapS = linkTex.wrapT = THREE.RepeatWrapping;
       const FB = 0x15161a;
-      chainFence(P, R.minX, R.minZ, R.maxX, R.minZ, 3, FB, linkTex);
-      chainFence(P, R.minX, R.minZ, R.minX, 22, 3, FB, linkTex);
-      chainFence(P, R.maxX, R.minZ, R.maxX, -6.6, 3, FB, linkTex); chainFence(P, R.maxX, -5.0, R.maxX, 22, 3, FB, linkTex);   // (a gap: the way in, at the path's end)
-      chainFence(P, R.minX, 22, R.maxX, 22, 3, FB, linkTex);
-      chainFence(P, R.minX, R.maxZ, R.maxX, R.maxZ, 1.2, FB, linkTex);        // (a low divider between the two courts)
+      // the outer fence, with a gate in the middle of each end (north and south), where the giant line starts and ends
+      for (const fz of [-FZ, FZ]) {
+        chainFence(P, R.minX, fz, LINE_X - GATE_W / 2, fz, 3, FB, linkTex); chainFence(P, LINE_X + GATE_W / 2, fz, R.maxX, fz, 3, FB, linkTex);
+        for (const gx of [LINE_X - GATE_W / 2, LINE_X + GATE_W / 2]) addCyl(P, 0.05, 0.05, 3.1, 6, lam(FB), gx, 1.55, fz);
+        addBox(P, GATE_W, 0.06, 0.06, lam(FB), LINE_X, 3.05, fz);
+      }
+      chainFence(P, R.minX, -FZ, R.minX, FZ, 3, FB, linkTex);
+      chainFence(P, R.maxX, -FZ, R.maxX, FZ, 3, FB, linkTex);
+      for (const dz of [R.minZ, R.maxZ]) chainFence(P, R.minX, dz, R.maxX, dz, 1.2, FB, linkTex);        // (low dividers between the courts)
       chainFence(P, BX - BW - 2.2, BZ - BL - 1.5, BX - BW - 2.2, BZ + BL + 1.5, 3, FB, linkTex);   // (between it and the pickleball courts)
       // ---- the path: in from the sidewalk on Rice Dr, winding south through the trees (the courts off to your right, the
       // playground on your left) to the gate in the courts' east fence
-      const PATH = [[22, -80], [21, -70], [17, -60], [10, -50], [6, -40], [8, -30], [12, -20], [13.4, -11], [13.4, -5.8], [11.2, -5.8]];
+      const PATH = [[22, -80], [21, -70], [17, -60], [10, -50], [6, -40], [3, -32], [-1, -27], [LINE_X, -FZ - 0.6]];
       const pathSegs = [];
       for (let k = 0; k < PATH.length - 1; k++) {
         const [x0, z0] = PATH[k], [x1, z1] = PATH[k + 1], len = Math.hypot(x1 - x0, z1 - z0), ang = Math.atan2(x1 - x0, z1 - z0);
@@ -20036,8 +20063,8 @@ window.addEventListener('error', function (e) {
         const len = Math.hypot(x1 - x0, z1 - z0), ang = Math.atan2(x1 - x0, z1 - z0);
         flat(P, 1.8, len + 1, asphalt, (x0 + x1) / 2, 0.0028, (z0 + z1) / 2, ang); pathSegs.push([x0, z0, x1, z1]);
       }
-      // a path down between the courts and the basketball court, and round the south end
-      for (const [[x0, z0], [x1, z1]] of [[[13.4, -5.8], [13.4, 23.5]], [[13.4, 23.5], [-13, 23.5]]]) {
+      // a path from the north gate round the east side (between the courts and the basketball court) to the south gate
+      for (const [[x0, z0], [x1, z1]] of [[[LINE_X, -FZ - 1.4], [13.4, -FZ - 1.4]], [[13.4, -FZ - 1.4], [13.4, FZ + 1.4]], [[13.4, FZ + 1.4], [LINE_X, FZ + 1.4]]]) {
         const len = Math.hypot(x1 - x0, z1 - z0), ang = Math.atan2(x1 - x0, z1 - z0);
         flat(P, 1.8, len + 1, concrete, (x0 + x1) / 2, 0.0029, (z0 + z1) / 2, ang); pathSegs.push([x0, z0, x1, z1]);
       }
@@ -20110,7 +20137,7 @@ window.addEventListener('error', function (e) {
       addBox(pt, 2.0, 0.07, 0.9, wood, 0, 0.75, 0); for (const sz of [-0.75, 0.75]) addBox(pt, 2.0, 0.06, 0.32, wood, 0, 0.45, sz); for (const sx of [-0.7, 0.7]) addBox(pt, 0.08, 0.75, 1.6, iron, sx, 0.38, 0);
 
       // ---- trees: tall bare oaks and maples (trunks, branches and twigs), pines (some going rusty), a few that keep brown leaves
-      const keepOut = (x, z) => (x > -16 && x < 15 && z > -11 && z < 25.5) || (x > 14 && x < 36 && z > -7 && z < 23) || (Math.hypot(x - PX, z - PZ) < 9 * PS + 1)
+      const keepOut = (x, z) => (x > -16 && x < 15 && z > -FZ - 4 && z < FZ + 3.5) || (x > 14 && x < 36 && z > -7 && z < 23) || (Math.hypot(x - PX, z - PZ) < 9 * PS + 1)
         || nearPath(x, z, 2.6) || (z < -62 && !(x > 4 && x < 50)) || z < -79 || Math.hypot(x - SX, z - SZ) < 3;
       const trunks = [], branches = [];
       const trunkGeo = new THREE.CylinderGeometry(0.55, 1, 1, 7); trunkGeo.translate(0, 0.5, 0);
@@ -20170,14 +20197,15 @@ window.addEventListener('error', function (e) {
       }
       for (let k = 0; k < 260; k++) {   // drifts along the fence bottoms
         const side = (rand() * 4) | 0, t = rand();
-        const [x, z] = side === 0 ? [R.minX + t * (R.maxX - R.minX), R.minZ + r(0.05, 0.5)] : side === 1 ? [R.minX + r(0.05, 0.5), R.minZ + t * (22 - R.minZ)] : side === 2 ? [R.maxX - r(0.05, 0.5), R.minZ + t * (22 - R.minZ)] : [R.minX + t * (R.maxX - R.minX), 22 - r(0.05, 0.5)];
+        const [x, z] = side === 0 ? [R.minX + t * (R.maxX - R.minX), -FZ + r(0.05, 0.5)] : side === 1 ? [R.minX + r(0.05, 0.5), -FZ + t * FZ * 2] : side === 2 ? [R.maxX - r(0.05, 0.5), -FZ + t * FZ * 2] : [R.minX + t * (R.maxX - R.minX), FZ - r(0.05, 0.5)];
         const s = r(0.1, 0.17); leaves.push([x, 0.013, z, s, 1, s * 0.8, rand() * 6, LEAF[(rand() * LEAF.length) | 0]]);
       }
       // spring flowers in the grass
-      K.flowers(1100, [-60, 60, -78, 45], (x, z) => (x > -16 && x < 15 && z > -11 && z < 25.5) || (x > 14 && x < 36 && z > -7 && z < 23) || Math.hypot(x - PX, z - PZ) < 9 * PS || nearPath(x, z, 1.4) || (z < -62 && !(x > 4 && x < 50)) || z < -79);
+      K.flowers(1100, [-60, 60, -78, 45], (x, z) => (x > -16 && x < 15 && z > -FZ - 4 && z < FZ + 3.5) || (x > 14 && x < 36 && z > -7 && z < 23) || Math.hypot(x - PX, z - PZ) < 9 * PS || nearPath(x, z, 1.4) || (z < -62 && !(x > 4 && x < 50)) || z < -79);
       K.flush(P);
       // everything else here stands still: bake it into a few meshes (the see-through fences, glass and net stay as they are)
       mergeStatic(P);
+      K.crack = CRACK;
       return K;
     }
 
@@ -20200,17 +20228,11 @@ window.addEventListener('error', function (e) {
       // ---- the enclosure: two courts end to end, three side by side; ours is the west one in the middle row
       const X0 = R.minX, X1 = R.maxX + 22, Z0 = -21, Z1 = 21;     // (the outer fence)
       flat(P, X1 - X0, Z1 - Z0, lam(0x2f6a4a), (X0 + X1) / 2, 0.001, 0);
-      const COURTS = [];
-      for (const cx of [0, 22]) for (const cz of [-14, 0, 14]) if (cx || cz) COURTS.push([cx, cz]);
       const netMat = new THREE.MeshLambertMaterial({ color: 0x1b1932, transparent: true, opacity: 0.55, side: THREE.DoubleSide });
-      for (const [cx, cz] of COURTS) {
-        flat(P, HL * 2, HW * 2, lam(0x2e5cb4), cx, 0.004, cz);
-        for (const sx of [-1, 1]) flat(P, 2.13, HW * 2, lam(0x3868c0), cx + sx * 1.065, 0.006, cz);
-        pbLines(P, cx, cz, HL, HW, white);
-        const n = new THREE.Mesh(new THREE.PlaneGeometry(HW * 2 + 0.6, 0.88), netMat); n.rotation.y = Math.PI / 2; n.position.set(cx, 0.44, cz); P.add(n);
-        addBox(P, 0.04, 0.05, HW * 2 + 0.6, white, cx, 0.88, cz);
-        for (const sz of [-1, 1]) addCyl(P, 0.04, 0.04, 0.94, 8, lam(0x2b2d42), cx, 0.47, cz + sz * (HW + 0.3));
-      }
+      // all six courts (you can play on any of them): the west three, then the east three, north to south
+      K.courts = []; for (const cx of [0, 22]) for (const cz of [-14, 0, 14]) K.courts.push([cx, cz]);
+      K.home = 1; K.courtNames = ['court 1', 'court 2', 'court 3', 'court 4', 'court 5', 'court 6'];
+      K.courtGroups = K.courts.map(([cx, cz]) => decoCourt(P, cx, cz, HL, HW, [0x2e5cb4, 0x3868c0], white, netMat));
       // fences: black chain link all round with a dark windscreen on its lower part; low dividers between courts
       const linkTex = canvasTexture(64, 64, (g) => { g.clearRect(0, 0, 64, 64); g.strokeStyle = '#1e2024'; g.lineWidth = 3.2; g.beginPath(); g.moveTo(0, 0); g.lineTo(64, 64); g.moveTo(64, 0); g.lineTo(0, 64); g.stroke(); }).tex;
       linkTex.wrapS = linkTex.wrapT = THREE.RepeatWrapping;
@@ -20543,13 +20565,39 @@ window.addEventListener('error', function (e) {
       if (!(i >= 0 && i < PARKS.length)) return;
       park = i; parkVer = Math.max(parkVer, ver || parkVer + 1);
       const P = PARKS[i];
-      if (!P.group) { P.group = new THREE.Group(); G.add(P.group); const K = P.build(P.group, { HL, HW, R }); if (K) P.apply = K.apply; }
+      if (!P.group) {
+        P.group = new THREE.Group(); G.add(P.group);
+        const K = P.build(P.group, { HL, HW, R });
+        if (K) { P.apply = K.apply; P.crack = K.crack || null; P.courts = K.courts; P.courtGroups = K.courtGroups; P.courtNames = K.courtNames; P.court0 = K.home; }
+        if (P.courtAt === undefined) P.courtAt = P.court0 || 0;
+      }
       for (const Q of PARKS) if (Q.group) Q.group.visible = Q === P;
-      Object.assign(L.bounds, P.bounds || R);    // (you can leave the court and look round the park)
+      placeCourt();
       court.material.color.setHex(P.court[0]); kitchenMat.color.setHex(P.court[1]);
       applyLook();
       if (!quiet) { showToast(`Park: ${P.name} (${SEASONS[curSeason()].name.toLowerCase()})`); sfx('chime', 0.5); forcePresence(); }
     }
+    // which of the park's courts you play on: the park slides so that court sits where the game is (the game's court,
+    // racks, scoreboard and buttons don't move), and that court's own drawing hides under it
+    function placeCourt() {
+      const P = PARKS[park], k = P.courts ? clamp(P.courtAt || 0, 0, P.courts.length - 1) : 0, [ox, oz] = P.courts ? P.courts[k] : [0, 0];
+      P.group.position.set(-ox, 0, -oz);
+      if (P.courtGroups) P.courtGroups.forEach((g, j) => { g.visible = j !== k; });
+      const B = P.bounds || R;
+      Object.assign(L.bounds, B === R ? R : { minX: B.minX - ox, maxX: B.maxX - ox, minZ: B.minZ - oz, maxZ: B.maxZ - oz });   // (you can leave the court and look round)
+      courtOff[0] = ox; courtOff[1] = oz;
+    }
+    const courtOff = [0, 0];
+    const courtCount = () => (PARKS[park].courts ? PARKS[park].courts.length : 1);
+    function setCourt(k, ver, quiet) {
+      const P = PARKS[park];
+      if (!P.courts) { if (!quiet) showToast('There’s just the one court here'); return; }
+      if (!(k >= 0 && k < P.courts.length)) return;
+      P.courtAt = k; parkVer = Math.max(parkVer, ver || parkVer + 1);
+      placeCourt();
+      if (!quiet) { showToast(`Playing on the ${P.courtNames[k]} (${k + 1} of ${P.courts.length})`); sfx('chime', 0.5); forcePresence(); }
+    }
+    const nextCourt = () => setCourt(((PARKS[park].courtAt || 0) + 1) % courtCount(), parkVer + 1);
     function setSeason(s, ver, quiet) {
       if (!(s >= -1 && s < SEASONS.length)) return;
       season = s; parkVer = Math.max(parkVer, ver || parkVer + 1);
@@ -20565,6 +20613,7 @@ window.addEventListener('error', function (e) {
     makeButton(L, new V3(0, 1.0, HW + 0.9), 0xffd23f, 'Singles / Doubles', () => setDoubles(!PB.dbl), { faceYaw: 0 });
     // the park and the seasons: further back, by the fence on the bench side, out of the way of play
     makeButton(L, new V3(-2.2, 1.0, R.maxZ - 1.6), 0x8bd450, 'Change park', () => nextPark(), { faceYaw: Math.PI });
+    makeButton(L, new V3(-3.2, 1.0, R.maxZ - 1.6), 0x4fc3f7, 'Change court', () => nextCourt(), { faceYaw: Math.PI });
     SEASONS.forEach((S, k) => makeButton(L, new V3(1.2 + k * 0.85, 1.0, R.maxZ - 1.6), [0xff9ad0, 0xffd23f, 0xf2782a, 0x9af0ff][k], S.name, () => setSeason(k), { faceYaw: Math.PI }));
     try { const u = new URLSearchParams(location.search), i = PARKS.findIndex((P) => P.id === u.get('park')), j = SEASONS.findIndex((S) => S.id === u.get('season')); if (j >= 0) season = j; if (i > 0) setPark(i, 1, true); else if (j >= 0) setSeason(j, 1, true); } catch (e) { /* ignore */ }
     // the scoreboard by the net post
@@ -20791,11 +20840,27 @@ window.addEventListener('error', function (e) {
       if (b.y < BR && b.vy < 0) {
         bounceSpin(b);
         tick(0.6);
+        if (!simOnly) crackKick(b);
         if (!simOnly) onBounce(b.x, b.z);
       }
       if (Math.abs(b.x) > R.maxX - 0.2 || Math.abs(b.z) > R.maxZ - 0.2) { b.vx *= -0.3; b.vz *= -0.3; b.x = clamp(b.x, R.minX + 0.2, R.maxX - 0.2); b.z = clamp(b.z, R.minZ + 0.2, R.maxZ - 0.2); }
       // a ball that has stopped is dead
       if (!simOnly && PB.ph === 'rally' && b.y < BR + 0.01 && sp < 0.6) { if (PB.bounced) point(PB.lastHit, 'Missed it'); else point(1 - PB.lastHit, 'Out'); }
+    }
+    // a crack in the court (College Park): a ball that lands on it kicks off a few degrees one way or the other, and a
+    // little higher or lower. (Bots can't see it coming either.)
+    const _onCrack = (x, z, C) => { for (let k = 0; k < C.length - 1; k++) {
+      const [x0, z0] = C[k], [x1, z1] = C[k + 1], dx = x1 - x0, dz = z1 - z0, t = clamp(((x - x0) * dx + (z - z0) * dz) / (dx * dx + dz * dz), 0, 1);
+      if (Math.hypot(x - (x0 + dx * t), z - (z0 + dz * t)) < 0.08) return true; } return false; };
+    function crackKick(b) {
+      const C = PARKS[park].crack;
+      if (!C || !_onCrack(b.x + courtOff[0], b.z + courtOff[1], C)) return false;
+      const a = (rand() < 0.5 ? -1 : 1) * (0.07 + rand() * 0.11), c = Math.cos(a), sn = Math.sin(a);   // (4 to 10 degrees)
+      const vx = b.vx * c - b.vz * sn, vz = b.vx * sn + b.vz * c;
+      b.vx = vx; b.vz = vz; b.vy *= 0.8 + rand() * 0.35;
+      tone(330, 180, 0.05, 'square', 0.12);
+      PB.crackHits = (PB.crackHits || 0) + 1;
+      return true;
     }
     // drag, gravity and spin over one small step. Spin (w, at most 1 long) pushes the ball along w x v: topspin dips it,
     // backspin floats it, sidespin curves it. It wears off slowly in the air.
@@ -21376,15 +21441,16 @@ window.addEventListener('error', function (e) {
     const PHC = { idle: 0, serve: 1, rally: 2, dead: 3 }, PHN = ['idle', 'serve', 'rally', 'dead'];
     const r3 = (x) => Math.round(x * 1000) / 1000;
     L.presence = () => {
-      if (PB.mySide < 0) return { pkp: [park, parkVer, season] };   // (the park, even when you're not playing)
+      if (PB.mySide < 0) return { pkp: [park, parkVer, season, PARKS[park].courtAt || 0] };   // (the park, even when you're not playing)
       const b = PB.b, bm = botSlots().reduce((m, sl) => m | (1 << sl), 0);
       const pbt = TH.on ? [r3(TH.p.x), r3(TH.p.y), r3(TH.p.z), r3(throwMesh.quaternion.x), r3(throwMesh.quaternion.y), r3(throwMesh.quaternion.z), r3(throwMesh.quaternion.w)] : null;
-      return { pbt, pkp: [park, parkVer, season], pb: [PB.mySide, PB.ver, PB.auth, r3(b.x), r3(b.y), r3(b.z), r3(b.vx), r3(b.vy), r3(b.vz), PHC[PB.ph], PB.server, PB.lastHit, PB.need, PB.bounced ? 1 : 0, PB.hits, PB.score[0], PB.score[1], PB.pointSeq, PB.winner, bm, 0, 0, r3(PB.serveFromZ || 0), r3(b.wx || 0), r3(b.wy || 0), r3(b.wz || 0), PB.mySlot, PB.dbl ? 1 : 0, ...BOTS.flatMap((o) => [r3(o.x), r3(o.z)])] };
+      return { pbt, pkp: [park, parkVer, season, PARKS[park].courtAt || 0], pb: [PB.mySide, PB.ver, PB.auth, r3(b.x), r3(b.y), r3(b.z), r3(b.vx), r3(b.vy), r3(b.vz), PHC[PB.ph], PB.server, PB.lastHit, PB.need, PB.bounced ? 1 : 0, PB.hits, PB.score[0], PB.score[1], PB.pointSeq, PB.winner, bm, 0, 0, r3(PB.serveFromZ || 0), r3(b.wx || 0), r3(b.wy || 0), r3(b.wz || 0), PB.mySlot, PB.dbl ? 1 : 0, ...BOTS.flatMap((o) => [r3(o.x), r3(o.z)])] };
     };
     L.readPresence = (rec, pres, st) => {
       const pk = pres.pkp;
-      if (Array.isArray(pk) && (pk.length === 2 || pk.length === 3) && Number.isInteger(pk[0]) && Number.isInteger(pk[1]) && pk[1] > parkVer && pk[1] < 1e6) {
-        if (pk.length === 3 && Number.isInteger(pk[2]) && pk[2] >= -1 && pk[2] < SEASONS.length) season = pk[2];
+      if (Array.isArray(pk) && pk.length >= 2 && pk.length <= 4 && Number.isInteger(pk[0]) && Number.isInteger(pk[1]) && pk[1] > parkVer && pk[1] < 1e6) {
+        if (pk.length >= 3 && Number.isInteger(pk[2]) && pk[2] >= -1 && pk[2] < SEASONS.length) season = pk[2];
+        if (pk.length === 4 && Number.isInteger(pk[3]) && pk[3] >= 0 && pk[3] < 9 && PARKS[pk[0]]) PARKS[pk[0]].courtAt = pk[3];
         setPark(pk[0], pk[1], true);
       }
       const tt = pres.pbt;
@@ -21423,10 +21489,11 @@ window.addEventListener('error', function (e) {
       { label: () => `Shot: ${SPINS[PB.spinMode]} \u25b8`, show: () => PB.mySide >= 0, run: () => cycleSpin() },
       { label: () => `Park: ${PARKS[park].name} \u25b8`, show: () => true, run: () => nextPark() },
       { label: () => `Season: ${SEASONS[curSeason()].name} \u25b8`, show: () => true, run: () => nextSeason() },
+      { label: () => `Court: ${(PARKS[park].courtAt || 0) + 1} of ${courtCount()} \u25b8`, show: () => courtCount() > 1, run: () => nextCourt() },
       { label: () => (PB.dbl ? 'Doubles \u25b8' : 'Singles \u25b8'), run: () => setDoubles(!PB.dbl) },
       { label: () => 'New game', show: () => PB.mySide >= 0 && humans().length === 1, run: () => { newGame(); showToast(`New game against the court bots. First to ${WIN}, win by 2`); } },
     ];
-    PB.internals = { setSeason, season: () => curSeason(), snow, SEASONS, setPark, park: () => park, parkVer: () => parkVer, PARKS, botHit: (bt, serve) => botHit(bt, serve), TH, throwPaddle, throwStep, throwMesh, ghosts, ballMesh, spinBall, vrPaddle: (dt, steps, b0) => { ballPrev = b0 || null; vrPaddle(dt, steps); }, resetSwing: () => { prevPC = null; }, bounceSpin, airStep, predictLanding, botStep, SPINS, deskHit: (now) => deskHit(now), HL, HW, KITCH, NET_H, paddles, takeSide, takeSlot, setDoubles, slots, botSlots, BOTS, serverSlot, responsible, authFor, homeZ, leaveCourt, newGame, startServe, onHit, onBounce, stepBall, hitBall, aimed, clearNet, flyTo, target, players, botSide, iAmAuth, serveZ };
+    PB.internals = { setCourt, courtOff, crackKick, setSeason, season: () => curSeason(), snow, SEASONS, setPark, park: () => park, parkVer: () => parkVer, PARKS, botHit: (bt, serve) => botHit(bt, serve), TH, throwPaddle, throwStep, throwMesh, ghosts, ballMesh, spinBall, vrPaddle: (dt, steps, b0) => { ballPrev = b0 || null; vrPaddle(dt, steps); }, resetSwing: () => { prevPC = null; }, bounceSpin, airStep, predictLanding, botStep, SPINS, deskHit: (now) => deskHit(now), HL, HW, KITCH, NET_H, paddles, takeSide, takeSlot, setDoubles, slots, botSlots, BOTS, serverSlot, responsible, authFor, homeZ, leaveCourt, newGame, startServe, onHit, onBounce, stepBall, hitBall, aimed, clearNet, flyTo, target, players, botSide, iAmAuth, serveZ };
     // End game: start over at 0-0 with whoever's on the court
     ENDGAME.on(L, { shared: true, active: () => PB.mySlot >= 0 && PB.ph !== 'idle', end: () => { if (PB.mySlot < 0) return ''; newGame(); PB.opp = oppKey(); PB.ver += 20; forcePresence(); return 'Starting over at 0-0.'; } });
     return L;
