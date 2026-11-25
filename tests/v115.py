@@ -48,9 +48,10 @@ with sync_playwright() as p:
     page.wait_for_timeout(7000)     # (past dodgeball's own countdown and GO: a big message isn't covered by a small one)
     page.evaluate("""(() => { const L = __fd.LEVELS[__fd.state.level]; L.hudActions.find((a) => /team/i.test(a.label())).run(); })()""")
     txt = page.evaluate("__fd.VR_TOAST.text")
-    check("a game's own message reaches the headset panel", "on " in txt or "on" in txt and "now" in txt, txt)
+    # (since v133 only records, bests and results go to the headset: a team change stays on the screen)
+    check("a game's everyday message stays off the headset panel", not ("on" in txt and "now" in txt), txt)
     page.wait_for_timeout(300)
-    check("on a screen, the panel stays hidden", page.evaluate("!__fd.VR_TOAST.mesh.visible"))
+    check("on a screen, the panel stays hidden", page.evaluate("!__fd.VR_TOAST.mesh || !__fd.VR_TOAST.mesh.visible"))
 
     page.evaluate("(() => { __fd.myHead.pos.set(0, 1.6, 0); __fd.myHead.quat.set(0, 0, 0, 1); __fd.VR_TOAST.show('GO! Grab a ball'); })()")
     r = page.evaluate(SIM, [0, 0.5])

@@ -309,6 +309,9 @@ The kit provides:
   only (drag on the speed through the air), so the aim help and the bots don't allow for it: a 9 m/s drive goes ~0.75 m
   further downwind, ~0.6 m sideways in a crosswind. A windsock at the court's north-west corner; snow drifts with it.
   Sent as pkp[4], pkp[5] (direction x 1000). `tests/v132.py`.
+- v133: the headset panel (VR_TOAST) shows only what matters in VR: `showToast` sends a message there only if it reads
+  as a new record, a best or a game's end (`VR_WORTHY`), or if `opts.vr` is true; ANNOUNCE's big banners go there only
+  for a result (win / lose / draw), not the countdown, GO or a boss's arrival. `tests/v133.py`; v115, v116, v124 updated.
 - Not yet: games don't all keep everything a new referee needs in their shared state (timers, bot plans). Each game's
   move onto the kit (2.5) checks that with a referee hand-over in its two-page test.
 

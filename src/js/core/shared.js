@@ -44,18 +44,22 @@
   }
 
   // (opts.vr false: on a screen only, not in the headset, for chatter a player in VR can do without)
+  // In the headset, only what matters there: a new record or a best, and how a game ended. Everything else (a hit, a
+  // distance, whose turn it is) stays on the screen. opts.vr true or false decides it outright.
+  const VR_WORTHY = /new record|your best|new best|best yet|best lap|a new best|game over|^time!|round over|^finished|final:|shift over|bucket done|workout done|knockout|it boots|three strikes|walls!/i;
   function showToast(text, opts) {
     ui.toast.textContent = text;
     ui.toast.classList.add('show');
     clearTimeout(showToast.t);
     showToast.t = setTimeout(() => ui.toast.classList.remove('show'), 2000);
-    if (opts && opts.vr === false) return;
+    const vr = opts && typeof opts.vr === 'boolean' ? opts.vr : VR_WORTHY.test(text);
+    if (!vr) return;
     try { VR_TOAST.show(text); } catch (e) { /* (before the headset panel exists, at load) */ }
   }
 
-  // ---------------------------------------------------------------- the same messages, inside the headset
-  // (the page's toast is HTML, which a headset never shows: in VR every "GO!", "you're out" and "Blue wins" is drawn
-  // on a panel a little below eye level that drifts after your gaze, so you can look around without losing it)
+  // ---------------------------------------------------------------- the messages that matter, inside the headset
+  // (the page's toast is HTML, which a headset never shows: in VR a new record, a best and a game's result are drawn on
+  // a panel a little below eye level that drifts after your gaze, so you can look around without losing it)
   const VR_TOAST = (() => {
     let tc = null, mesh = null, until = 0, shown = '', shownKind, bigUntil = 0, fade = 0;
     const want = new V3(), fwd = new V3(), cur = new V3(), lookQ = new Q4(), tmp = new V3(), lookM = new THREE.Matrix4();
@@ -154,7 +158,8 @@
         void el.offsetWidth; el.classList.add('show');
         clearTimeout(hideT); hideT = setTimeout(() => el.classList.remove('show'), ms);
       }
-      try { VR_TOAST.show(sub ? `${text}: ${sub}` : text, kind, ms); } catch (e) { /* (at load) */ }
+      // (in the headset only a result: who won, a loss or a draw; the countdown, GO and the rest stay on the screen)
+      if (kind === 'win' || kind === 'lose' || kind === 'draw') try { VR_TOAST.show(sub ? `${text}: ${sub}` : text, kind, ms); } catch (e) { /* (at load) */ }
       A.last = { text, kind, sub: sub || '', at: performance.now() };
     }
     const A = {

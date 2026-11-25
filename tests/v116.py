@@ -58,7 +58,7 @@ with sync_playwright() as p:
       __fd.VR_TOAST.show('a small message');
       return { nums, go, shown: el.classList.contains('show'), cls: el.className, vr: __fd.VR_TOAST.text, kind: __fd.VR_TOAST.kind }; })()""")
     check("each number once: 3, 2, 1", r["nums"] == ["3", "2", "1"], r["nums"])
-    check("GO reaches the headset panel too", r["go"] == "GO!", r)
+    check("GO stays on the screen (since v133 the headset shows only results)", r["go"] != "GO!", r)
     check("the result shows big, in the winner's colour", r["shown"] and "win" in r["cls"], r)
     check("a small message doesn't cover it in the headset", r["vr"] == "Blue wins!" and r["kind"] == "win", r)
     page.wait_for_timeout(3300)

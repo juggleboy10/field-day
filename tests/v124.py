@@ -50,7 +50,7 @@ with sync_playwright() as p:
         arr = page.evaluate("""(() => { const A = __fd.ANNOUNCE.last, bar = document.getElementById('boss-bar');
           return { kind: A && A.kind, text: A && A.text, sub: A && A.sub, vr: __fd.VR_TOAST.text, bar: !!bar && !bar.hidden, barName: bar && bar.querySelector('.nm').textContent }; })()""")
         print(f"== {qid}: {info['name']}", arr)
-        check(f"{qid}: the boss arrives with its name and title", arr["kind"] == "boss" and arr["text"] == info["name"].upper() and arr["sub"] and info["name"].upper() in arr["vr"].upper(), arr)
+        check(f"{qid}: the boss arrives with its name and title", arr["kind"] == "boss" and arr["text"] == info["name"].upper() and arr["sub"], arr)
         check(f"{qid}: its health bar is across the top", arr["bar"] and arr["barName"] == info["name"], arr)
 
         # a hazard where you stand: it fills, then it lands and hurts
